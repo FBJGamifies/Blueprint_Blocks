@@ -1,0 +1,2997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="artifact-type" content="tool">
+<meta name="design-style" content="neon_noir">
+<title>Cardiology COMLEX-USA XR 3-Lane Diagnostic Runner</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --background: #0a0a12;
+  --surface-container-low: #111118;
+  --surface-container: #141422;
+  --surface-container-high: #1e1e30;
+  --surface-overlay: rgba(8, 8, 16, 0.86);
+  --surface-glass: rgba(16, 16, 30, 0.84);
+  --on-surface: #e8e0f0;
+  --on-surface-variant: #a098b0;
+  --outline: #5a5068;
+  --outline-variant: #302840;
+  --primary: #ff2d78;
+  --on-primary: #1a0010;
+  --primary-container: #b3004e;
+  --on-primary-container: #ffe0ec;
+  --secondary: #00ffcc;
+  --tertiary: #ffe04a;
+  --error: #ff4444;
+  --on-error: #1a0000;
+  --positive: #00ffcc;
+  --warning: #ffe04a;
+  --focus: #ff2d78;
+  --data-1: #ff2d78;
+  --data-2: #00ffcc;
+  --data-3: #ffe04a;
+  --data-4: #b388ff;
+  --data-context: #6e6680;
+  --font-headline: 'Sora', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-label: 'Space Mono', monospace;
+  --rounded: 0.125rem;
+  --rounded-lg: 0.25rem;
+  --rounded-full: 0.75rem;
+  --display-size: clamp(1.35rem, 1.1rem + 0.8vw, 1.85rem);
+  --headline-size: clamp(1.1rem, 1rem + 0.4vw, 1.35rem);
+  --subhead-size: clamp(0.95rem, 0.9rem + 0.2vw, 1.1rem);
+  --game-body-size: clamp(0.92rem, 0.88rem + 0.16vw, 1rem);
+  --label-size: 0.75rem;
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+  --glow-text: 0 0 8px currentColor;
+  --glow-primary: 0 0 16px color-mix(in srgb, var(--primary) 42%, transparent);
+  --glow-secondary: 0 0 16px color-mix(in srgb, var(--secondary) 38%, transparent);
+  --glow-tertiary: 0 0 16px color-mix(in srgb, var(--tertiary) 38%, transparent);
+  --neon-border: 1px solid color-mix(in srgb, var(--primary) 34%, transparent);
+  --neon-border-cyan: 1px solid color-mix(in srgb, var(--secondary) 34%, transparent);
+  --neon-border-yellow: 1px solid color-mix(in srgb, var(--tertiary) 38%, transparent);
+  --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 12%, transparent);
+  --scanlines: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in srgb, var(--on-surface) 3%, transparent) 3px 4px);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overflow-x: clip;
+  background-color: var(--background);
+  background-image: var(--scanlines);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: var(--game-body-size);
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+}
+
+button, input, select {
+  font-family: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* =========================================================
+   4-BAND MINIMALIST COCKPIT
+   ========================================================= */
+#xr-app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  overflow: hidden;
+}
+
+/* BAND 1: ULTRA-SLIM TOP MINI BAR */
+.top-mini-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-md);
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  min-height: 44px;
+  z-index: 20;
+}
+
+.menu-mini-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: 36px;
+  padding: 0.35rem 0.75rem;
+  background: var(--surface-container);
+  border: var(--neon-border);
+  border-radius: var(--rounded);
+  color: var(--primary);
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+.menu-mini-btn:hover {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+  text-shadow: var(--glow-text);
+}
+
+.mini-telemetry {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.tele-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.22rem 0.5rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+.tele-chip span { color: var(--on-surface); font-weight: 700; }
+.tele-chip.is-hp { border-color: color-mix(in srgb, var(--primary) 45%, transparent); }
+.tele-chip.is-hp span { color: var(--primary); }
+.tele-chip.is-xp span { color: var(--secondary); }
+.tele-chip.is-streak span { color: var(--tertiary); }
+.tele-chip.is-timer.is-urgent {
+  border-color: var(--error);
+  color: var(--error);
+  box-shadow: var(--glow-primary);
+}
+.tele-chip.is-timer.is-urgent span { color: var(--error); }
+
+/* BAND 2: TOP QUESTION STAGE */
+.question-stage {
+  padding: var(--space-sm) var(--space-md);
+  background: linear-gradient(180deg, var(--surface-container) 0%, color-mix(in srgb, var(--background) 92%, transparent) 100%);
+  border-bottom: 1px solid var(--outline-variant);
+  z-index: 15;
+}
+
+.question-stage-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.meta-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs);
+  max-height: 48px;
+  opacity: 1;
+  overflow: hidden;
+  transition: opacity var(--dur-long) var(--ease-out), max-height var(--dur-long) var(--ease-out), margin var(--dur-long) var(--ease-out);
+}
+.meta-strip.is-collapsed {
+  opacity: 0;
+  max-height: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+.meta-badge {
+  padding: 0.16rem 0.5rem;
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid var(--outline);
+  background: var(--surface-container-low);
+  color: var(--on-surface-variant);
+}
+.meta-badge.is-lo { border-color: var(--primary); color: var(--primary); }
+.meta-badge.is-angle { border-color: var(--secondary); color: var(--secondary); }
+.meta-badge.is-phase { border-color: var(--tertiary); color: var(--tertiary); }
+.meta-badge.is-corridor { border-color: var(--data-4); color: var(--data-4); }
+
+.question-stem-box {
+  background: var(--surface-container-low);
+  border: var(--neon-border-cyan);
+  border-radius: var(--rounded-lg);
+  padding: 0.65rem 0.9rem;
+  box-shadow: inset 0 0 12px color-mix(in srgb, var(--secondary) 8%, transparent);
+}
+
+.question-stem {
+  margin: 0;
+  font-size: clamp(0.9rem, 0.85rem + 0.2vw, 1.04rem);
+  line-height: 1.48;
+  color: var(--on-surface);
+  max-width: 98ch;
+}
+
+/* BAND 3: CENTER 3D XR VIEWPORT + 3 CENTERED ANSWER CARDS */
+.runner-viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 180px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background);
+}
+
+#xr-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.lane-cards-overlay {
+  position: relative;
+  z-index: 10;
+  width: min(1100px, 95vw);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-md);
+  align-items: stretch;
+  padding: var(--space-sm) 0;
+}
+
+.lane-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  min-height: 132px;
+  padding: 0.9rem 1rem;
+  background: var(--surface-glass);
+  backdrop-filter: blur(8px);
+  border-radius: var(--rounded-lg);
+  text-align: left;
+  cursor: pointer;
+  transition: transform var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+.lane-card:hover:not(:disabled) {
+  transform: translateY(-4px);
+}
+.lane-card:disabled {
+  cursor: default;
+  opacity: 0.88;
+}
+
+.lane-card.lane-0 {
+  border: 1.5px solid color-mix(in srgb, var(--primary) 65%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--primary) 16%, transparent);
+}
+.lane-card.lane-0:hover:not(:disabled) {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary), inset 0 0 18px color-mix(in srgb, var(--primary) 24%, transparent);
+}
+
+.lane-card.lane-1 {
+  border: 1.5px solid color-mix(in srgb, var(--secondary) 65%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--secondary) 16%, transparent);
+}
+.lane-card.lane-1:hover:not(:disabled) {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary), inset 0 0 18px color-mix(in srgb, var(--secondary) 24%, transparent);
+}
+
+.lane-card.lane-2 {
+  border: 1.5px solid color-mix(in srgb, var(--tertiary) 65%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--tertiary) 16%, transparent);
+}
+.lane-card.lane-2:hover:not(:disabled) {
+  border-color: var(--tertiary);
+  box-shadow: var(--glow-tertiary), inset 0 0 18px color-mix(in srgb, var(--tertiary) 24%, transparent);
+}
+
+.lane-card.is-correct {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+}
+.lane-card.is-wrong {
+  border-color: var(--error);
+  box-shadow: var(--glow-primary);
+}
+
+.lane-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.lane-0 .lane-card-head { color: var(--primary); }
+.lane-1 .lane-card-head { color: var(--secondary); }
+.lane-2 .lane-card-head { color: var(--tertiary); }
+
+.lane-key-label {
+  padding: 0.12rem 0.4rem;
+  border-radius: var(--rounded);
+  border: 1px solid currentColor;
+  font-weight: 700;
+}
+
+.lane-choice-text {
+  font-family: var(--font-headline);
+  font-size: clamp(0.9rem, 0.84rem + 0.25vw, 1.06rem);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--on-surface);
+  margin: auto 0;
+}
+
+.lane-portal-tag {
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+
+/* BAND 4: BOTTOM HINTS BAR */
+.hints-bar {
+  background: var(--surface-container-low);
+  border-top: 1px solid var(--outline-variant);
+  padding: 0.45rem var(--space-md);
+  z-index: 15;
+}
+#xr-app.hints-hidden .hints-bar {
+  display: none;
+}
+
+.hints-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.hints-label {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  white-space: nowrap;
+}
+
+.hints-text {
+  margin: 0;
+  font-size: clamp(0.84rem, 0.8rem + 0.14vw, 0.94rem);
+  color: var(--on-surface);
+  line-height: 1.38;
+  flex: 1;
+}
+
+.hint-close-btn {
+  min-height: 32px;
+  padding: 0.2rem 0.6rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+/* =========================================================
+   MENU & SKILL TREE DRAWER
+   ========================================================= */
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: var(--surface-overlay);
+  display: none;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+.menu-backdrop.is-open { display: flex; }
+
+.menu-drawer {
+  width: min(560px, 95vw);
+  height: 100dvh;
+  overflow-y: auto;
+  background: var(--surface-container);
+  border-right: var(--neon-border);
+  box-shadow: var(--glow-primary);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.drawer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  border-bottom: 1px solid var(--outline-variant);
+  padding-bottom: var(--space-sm);
+}
+
+.drawer-kicker {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  text-shadow: var(--glow-text);
+}
+
+.drawer-title {
+  margin: 0.2rem 0 0;
+  font-family: var(--font-headline);
+  font-size: var(--headline-size);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--on-surface);
+}
+
+.drawer-section {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.drawer-section-title {
+  margin: 0;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  align-items: center;
+}
+
+.btn-neon {
+  min-height: 40px;
+  padding: 0.4rem 0.78rem;
+  background: var(--surface-container);
+  border: var(--neon-border);
+  border-radius: var(--rounded);
+  color: var(--primary);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+.btn-neon:hover { border-color: var(--primary); box-shadow: var(--glow-primary); }
+.btn-neon.is-cyan { border: var(--neon-border-cyan); color: var(--secondary); }
+.btn-neon.is-cyan:hover { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.btn-neon.is-yellow { border: var(--neon-border-yellow); color: var(--tertiary); }
+.btn-neon.is-yellow:hover { border-color: var(--tertiary); box-shadow: var(--glow-tertiary); }
+.btn-neon.is-active {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  border-color: var(--primary);
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.field-label {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+
+.neon-select, .neon-input {
+  width: 100%;
+  min-height: 40px;
+  padding: 0.4rem 0.65rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline);
+  border-bottom: 2px solid var(--secondary);
+  border-radius: var(--rounded);
+  color: var(--on-surface);
+  font-size: 0.82rem;
+}
+
+.phase-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.phase-pill {
+  min-height: 36px;
+  padding: 0.28rem 0.65rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  color: var(--on-surface-variant);
+}
+.phase-pill.is-active {
+  border-color: var(--secondary);
+  color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+}
+
+.skill-tree-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--space-xs);
+}
+
+.skill-node {
+  padding: 0.45rem 0.55rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.skill-node:hover { border-color: var(--secondary); }
+.skill-node.is-selected {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+}
+.skill-node-id {
+  font-family: var(--font-label);
+  font-size: 0.65rem;
+  color: var(--secondary);
+}
+.skill-node-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--on-surface);
+  line-height: 1.25;
+}
+.skill-node-prog {
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  color: var(--tertiary);
+}
+
+/* =========================================================
+   OUTCOME DOSSIER & LOOT CODEX MODALS
+   ========================================================= */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  background: var(--surface-overlay);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+}
+.modal-backdrop.is-open { display: flex; }
+
+.modal-panel {
+  width: min(860px, 94vw);
+  max-height: 90dvh;
+  overflow-y: auto;
+  background: var(--surface-container);
+  border: var(--neon-border);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+.modal-panel.is-wide {
+  width: min(1080px, 95vw);
+  border: var(--neon-border-cyan);
+  box-shadow: var(--glow-secondary);
+}
+
+.outcome-verdict-banner {
+  padding: 0.7rem 1rem;
+  border-radius: var(--rounded);
+  font-family: var(--font-headline);
+  font-size: var(--headline-size);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  border: 1.5px solid var(--secondary);
+  background: color-mix(in srgb, var(--secondary) 14%, var(--surface-container-low));
+  color: var(--secondary);
+}
+.outcome-verdict-banner.is-wrong {
+  border-color: var(--error);
+  background: color-mix(in srgb, var(--error) 14%, var(--surface-container-low));
+  color: var(--error);
+}
+.outcome-verdict-banner.is-timeout {
+  border-color: var(--tertiary);
+  background: color-mix(in srgb, var(--tertiary) 14%, var(--surface-container-low));
+  color: var(--tertiary);
+}
+
+.dossier-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+
+.dossier-card {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.7rem 0.85rem;
+}
+.dossier-card.is-full { grid-column: 1 / -1; }
+
+.dossier-card h4 {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--secondary);
+}
+.dossier-card.is-pink h4 { color: var(--primary); }
+.dossier-card.is-yellow h4 { color: var(--tertiary); }
+
+.dossier-card p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--on-surface);
+}
+
+.dossier-bullets {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.dossier-bullets li {
+  font-size: 0.84rem;
+  line-height: 1.42;
+  color: var(--on-surface);
+}
+
+.codex-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+}
+
+.codex-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+.codex-table th {
+  background: var(--surface-container-high);
+  color: var(--secondary);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 0.55rem 0.6rem;
+  border-bottom: 1px solid var(--outline);
+}
+.codex-table td {
+  padding: 0.55rem 0.6rem;
+  border-bottom: 1px solid var(--outline-variant);
+  vertical-align: top;
+  color: var(--on-surface);
+  line-height: 1.4;
+}
+.codex-table tr:nth-child(even) td {
+  background: var(--surface-container-low);
+}
+
+.status-toast {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  color: var(--secondary);
+  min-height: 1.1em;
+}
+
+/* =========================================================
+   REQUIRED RESPONSIVE PHONE MEDIA QUERIES (STEP 2 LOCK)
+   ========================================================= */
+@media (max-width: 600px) {
+  .top-mini-bar { padding: 0.3rem 0.5rem; }
+  .tele-chip.is-xp { display: none; }
+  .question-stage { padding: 0.35rem 0.55rem; }
+  .question-stem { font-size: 0.86rem; line-height: 1.38; }
+  .lane-cards-overlay {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+    width: 94vw;
+  }
+  .lane-card {
+    min-height: 64px;
+    padding: 0.55rem 0.75rem;
+  }
+  .lane-card-head, .lane-key-label { display: none; }
+  .lane-choice-text { font-size: 0.88rem; }
+  #xr-app.hints-visible .question-stem { font-size: 0.82rem; }
+  .modal-panel, .modal-panel.is-wide {
+    width: 96vw;
+    max-height: 92dvh;
+    padding: 0.85rem;
+  }
+  .dossier-grid { grid-template-columns: 1fr; }
+  .filter-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-height: 500px) and (pointer: coarse) {
+  .top-mini-bar { min-height: 34px; padding: 0.2rem 0.5rem; }
+  .question-stage { padding: 0.25rem 0.5rem; }
+  .question-stem-box { padding: 0.38rem 0.6rem; }
+  .question-stem { font-size: 0.8rem; line-height: 1.28; }
+  .lane-cards-overlay {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+  .lane-card { min-height: 72px; padding: 0.45rem 0.55rem; }
+  .lane-choice-text { font-size: 0.8rem; }
+  .hints-bar { padding: 0.25rem 0.5rem; }
+}
+
+@media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+  html { font-size: 200%; }
+  .lane-cards-overlay { grid-template-columns: 1fr; gap: 0.5rem; }
+  .lane-card-head, .lane-key-label { display: none; }
+  .dossier-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+<div id="xr-app" class="hints-hidden">
+  <!-- BAND 1: ULTRA-SLIM TOP MINI BAR -->
+  <div class="top-mini-bar">
+    <button type="button" class="menu-mini-btn" id="menu-toggle-btn" onclick="toggleMenuDrawer()" aria-expanded="false" aria-controls="top-menu-drawer">☰ MENU</button>
+    <div class="mini-telemetry" aria-label="Game Status">
+      <span class="tele-chip is-hp" id="hp-chip">HP <span id="hp-text">100</span></span>
+      <span class="tele-chip is-xp">XP <span id="xp-text">0</span></span>
+      <span class="tele-chip is-streak">STREAK <span id="streak-text">0</span></span>
+      <span class="tele-chip">GATE <span id="gate-text">1/45</span></span>
+      <span class="tele-chip is-timer" id="timer-chip">T <span id="timer-text">50s</span></span>
+    </div>
+  </div>
+
+  <!-- BAND 2: TOP QUESTION STAGE -->
+  <div class="question-stage">
+    <div class="question-stage-inner">
+      <div class="meta-strip" id="meta-strip">
+        <span class="meta-badge is-lo" id="lo-badge">SECTOR I</span>
+        <span class="meta-badge is-angle" id="angle-badge">PRESENTATION -> DIAGNOSIS</span>
+        <span class="meta-badge is-phase" id="phase-badge">PHASE 1: PATHOGENESIS</span>
+        <span class="meta-badge is-corridor" id="corridor-badge">CORRIDOR</span>
+      </div>
+      <div class="question-stem-box">
+        <p class="question-stem amboss-scan-target" id="q-stem-text">Initializing Cardiology COMLEX-USA XR Diagnostic Runner…</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- BAND 3: CENTER 3D XR VIEWPORT + 3 ANSWER CARDS -->
+  <div class="runner-viewport">
+    <canvas id="xr-canvas" aria-hidden="true"></canvas>
+    <div class="lane-cards-overlay" id="lane-cards-overlay">
+      <button type="button" class="lane-card lane-0" id="lane-btn-0" onclick="chooseLane(0)">
+        <div class="lane-card-head">
+          <span>LANE 1 • HOT PINK</span>
+          <span class="lane-key-label">[1 / A / ←]</span>
+        </div>
+        <div class="lane-choice-text amboss-scan-target" id="lane-text-0">Loading…</div>
+        <div class="lane-portal-tag">PORTAL ALPHA</div>
+      </button>
+      <button type="button" class="lane-card lane-1" id="lane-btn-1" onclick="chooseLane(1)">
+        <div class="lane-card-head">
+          <span>LANE 2 • ELECTRIC CYAN</span>
+          <span class="lane-key-label">[2 / W / ↑]</span>
+        </div>
+        <div class="lane-choice-text amboss-scan-target" id="lane-text-1">Loading…</div>
+        <div class="lane-portal-tag">PORTAL BETA</div>
+      </button>
+      <button type="button" class="lane-card lane-2" id="lane-btn-2" onclick="chooseLane(2)">
+        <div class="lane-card-head">
+          <span>LANE 3 • NEON YELLOW</span>
+          <span class="lane-key-label">[3 / D / →]</span>
+        </div>
+        <div class="lane-choice-text amboss-scan-target" id="lane-text-2">Loading…</div>
+        <div class="lane-portal-tag">PORTAL GAMMA</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- BAND 4: BOTTOM HINTS BAR -->
+  <div class="hints-bar" id="hints-bar">
+    <div class="hints-inner">
+      <span class="hints-label">[H] TACTICAL CLUE</span>
+      <p class="hints-text amboss-scan-target" id="q-hint-text">Toggle hints with [H] for second-order board clues.</p>
+      <button type="button" class="hint-close-btn" onclick="toggleHints()">HIDE [H]</button>
+    </div>
+  </div>
+</div>
+
+<!-- MENU & SKILL TREE DRAWER -->
+<div class="menu-backdrop" id="menu-backdrop" onclick="handleBackdropClick(event, 'menu-backdrop', closeMenuDrawer)">
+  <aside class="menu-drawer" id="top-menu-drawer" aria-label="Command Drawer">
+    <div class="drawer-header">
+      <div>
+        <div class="drawer-kicker">NBOME COMLEX-USA CP-8 &amp; OMT DOMAIN 1</div>
+        <h1 class="drawer-title">Cardiology XR 3-Lane Runner</h1>
+      </div>
+      <button type="button" class="btn-neon" onclick="closeMenuDrawer()">CLOSE [M]</button>
+    </div>
+
+    <div class="drawer-section">
+      <h2 class="drawer-section-title">Run Controls &amp; Timer</h2>
+      <div class="controls-row">
+        <button type="button" class="btn-neon is-cyan" onclick="toggleHints()">HINTS [H]</button>
+        <button type="button" class="btn-neon is-yellow" onclick="skipQuestion()">SKIP [S]</button>
+        <button type="button" class="btn-neon is-cyan" id="timer-toggle-btn" onclick="toggleTimerEnabled()">TIMER ON [T]</button>
+        <button type="button" class="btn-neon" id="timeout-mode-btn" onclick="toggleTimeoutMode()">TIME'S UP = WRONG</button>
+        <button type="button" class="btn-neon is-cyan" onclick="shuffleAndRestart()">SHUFFLE DECK</button>
+        <button type="button" class="btn-neon is-yellow" onclick="openCodexModal()">LOOT CODEX [C]</button>
+        <button type="button" class="btn-neon" id="reset-mastery-btn" onclick="resetMastery(this)">RESET MASTERY</button>
+      </div>
+      <div class="status-toast" id="drawer-status">Ready for diagnostic run. Grounded in First Aid 2025, Pathoma, Sketchy &amp; COMLEX CP-8.</div>
+    </div>
+
+    <div class="drawer-section">
+      <h2 class="drawer-section-title">Synthwave Audio Suite</h2>
+      <div class="controls-row">
+        <button type="button" class="btn-neon is-active" id="sound-toggle-btn" onclick="toggleMasterSound()">SOUND: ON</button>
+        <button type="button" class="btn-neon is-cyan" id="bgm-toggle-btn" onclick="toggleBgm()">ZOMBIES BGM: OFF</button>
+        <label class="field-group" style="flex:1; min-width:130px;">
+          <span class="field-label">MASTER VOLUME</span>
+          <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.55" oninput="setMasterVolume(this.value)">
+        </label>
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="custom-bgm-input">CUSTOM MP3 / WAV TRACK LOADER</label>
+        <input type="file" id="custom-bgm-input" class="neon-input" accept="audio/*" onchange="loadCustomAudio(event)">
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <h2 class="drawer-section-title">4 Cardiology Skill Tree Filters &amp; Phase Mix</h2>
+      <div class="filter-grid">
+        <div class="field-group">
+          <label class="field-label" for="sector-filter">SECTOR (CP-8)</label>
+          <select id="sector-filter" class="neon-select" onchange="onFilterChange()">
+            <option value="all">All 5 Sectors (45 Gates)</option>
+            <option value="sector_1">Sector I — Ischemic &amp; Cardiomyopathies</option>
+            <option value="sector_2">Sector II — Arrhythmias &amp; Conduction</option>
+            <option value="sector_3">Sector III — Valvular &amp; Congenital</option>
+            <option value="sector_4">Sector IV — Vascular, HTN &amp; Lymphatic</option>
+            <option value="sector_5">Sector V — Exam, Diagnostics &amp; OMT</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="compartment-filter">COMPARTMENT</label>
+          <select id="compartment-filter" class="neon-select" onchange="onFilterChange()">
+            <option value="all">All Compartments</option>
+            <option value="Coronary & Myocardium">Coronary &amp; Myocardium</option>
+            <option value="Conduction System">Conduction System</option>
+            <option value="Valves & Septa">Valves &amp; Septa</option>
+            <option value="Aorta & Vasculature">Aorta &amp; Vasculature</option>
+            <option value="Autonomic & OMT">Autonomic &amp; OMT</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="age-filter">DEMOGRAPHICS</label>
+          <select id="age-filter" class="neon-select" onchange="onFilterChange()">
+            <option value="all">All Demographics</option>
+            <option value="Pediatric / Congenital">Pediatric / Congenital</option>
+            <option value="Young Adult / Genetic">Young Adult / Genetic</option>
+            <option value="Adult / Acquired">Adult / Acquired</option>
+            <option value="Older Adult / Degenerative">Older Adult / Degenerative</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="behavior-filter">PATHOLOGIC MECHANISM</label>
+          <select id="behavior-filter" class="neon-select" onchange="onFilterChange()">
+            <option value="all">All Mechanisms</option>
+            <option value="Ischemia & Necrosis">Ischemia &amp; Necrosis</option>
+            <option value="Structural & Pressure">Structural &amp; Pressure</option>
+            <option value="Electrical & Channelopathy">Electrical &amp; Channelopathy</option>
+            <option value="Inflammatory & Vascular">Inflammatory &amp; Vascular</option>
+            <option value="Hemodynamic & Autonomic">Hemodynamic &amp; Autonomic</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-group">
+        <span class="field-label">30% / 35% / 35% PHASE MIX FILTER</span>
+        <div class="phase-pills">
+          <button type="button" class="phase-pill is-active" data-phase="all" onclick="setPhaseFilter('all')">ALL (30/35/35)</button>
+          <button type="button" class="phase-pill" data-phase="Phase 1: Pathogenesis" onclick="setPhaseFilter('Phase 1: Pathogenesis')">PHASE 1: PATHOGENESIS</button>
+          <button type="button" class="phase-pill" data-phase="Phase 2: Histology / Structure" onclick="setPhaseFilter('Phase 2: Histology / Structure')">PHASE 2: HISTOLOGY</button>
+          <button type="button" class="phase-pill" data-phase="Phase 3: Clinical & Management" onclick="setPhaseFilter('Phase 3: Clinical & Management')">PHASE 3: MANAGEMENT</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="controls-row" style="justify-content:space-between;">
+        <h2 class="drawer-section-title">15-Entity Cardiology Skill Tree</h2>
+        <button type="button" class="btn-neon" onclick="selectLoFilter(null)">ALL ENTITIES</button>
+      </div>
+      <div class="skill-tree-grid" id="skill-tree-grid"></div>
+    </div>
+  </aside>
+</div>
+
+<!-- 7-PART OUTCOME DOSSIER MODAL -->
+<div class="modal-backdrop" id="outcome-modal" onclick="handleBackdropClick(event, 'outcome-modal', nextQuestion)">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="outcome-verdict">
+    <div class="outcome-verdict-banner" id="outcome-verdict">✔ CORRECT — DIAGNOSIS</div>
+    <div class="dossier-grid">
+      <div class="dossier-card is-full">
+        <h4>1. BOARD RATIONALE &amp; DISTRACTOR EXCLUSION</h4>
+        <p class="amboss-scan-target" id="out-explanation"></p>
+      </div>
+      <div class="dossier-card is-pink">
+        <h4>2. SECOND-ORDER BOARD LOGIC</h4>
+        <p class="amboss-scan-target" id="out-second-order"></p>
+      </div>
+      <div class="dossier-card">
+        <h4>3. PHASE 1: PATHOGENESIS &amp; PV LOOP</h4>
+        <p class="amboss-scan-target" id="out-p1-pearl"></p>
+      </div>
+      <div class="dossier-card is-yellow">
+        <h4>4. PHASE 2: HISTOLOGY, ECG &amp; MURMUR HALLMARKS</h4>
+        <p class="amboss-scan-target" id="out-p2-hallmark"></p>
+      </div>
+      <div class="dossier-card is-pink">
+        <h4>5. PHASE 3: MANAGEMENT, OMT &amp; GUILD SECRET</h4>
+        <p class="amboss-scan-target" id="out-p3-secret"></p>
+      </div>
+      <div class="dossier-card is-full">
+        <h4>6. HIGH-YIELD SYNTHESIS BULLETS (P1 • P2 • P3)</h4>
+        <ul class="dossier-bullets amboss-scan-target" id="out-bullets"></ul>
+      </div>
+    </div>
+    <div class="controls-row" style="justify-content:space-between;">
+      <button type="button" class="btn-neon is-yellow" onclick="openCodexFromOutcome()">OPEN LOOT CODEX [C]</button>
+      <button type="button" class="btn-neon is-cyan" onclick="nextQuestion()">NEXT DIAGNOSTIC GATE [SPACE / ENTER] →</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6-COLUMN LOOT CODEX MODAL -->
+<div class="modal-backdrop" id="codex-modal" onclick="handleBackdropClick(event, 'codex-modal', closeCodexModal)">
+  <div class="modal-panel is-wide" role="dialog" aria-modal="true" aria-labelledby="codex-title">
+    <div class="drawer-header">
+      <div>
+        <div class="drawer-kicker">15 HIGH-YIELD ENTITIES • CP-8 &amp; OMT</div>
+        <h2 class="drawer-title" id="codex-title">Cardiology Loot Codex</h2>
+      </div>
+      <button type="button" class="btn-neon" onclick="closeCodexModal()">CLOSE [ESC]</button>
+    </div>
+    <div class="controls-row">
+      <div class="field-group" style="flex:1; min-width:210px;">
+        <label class="field-label" for="codex-search">SEARCH ENTITIES, MURMURS, DRUGS OR OMT LEVELS</label>
+        <input type="text" id="codex-search" class="neon-input" placeholder="e.g., T1-T4, Dressler, flecainide, pulsus parvus…" oninput="renderCodexTable()">
+      </div>
+    </div>
+    <div class="phase-pills" id="codex-sector-pills">
+      <button type="button" class="phase-pill is-active" data-sector="all" onclick="setCodexSector('all')">ALL 15</button>
+      <button type="button" class="phase-pill" data-sector="sector_1" onclick="setCodexSector('sector_1')">SECTOR I: ACS/CM</button>
+      <button type="button" class="phase-pill" data-sector="sector_2" onclick="setCodexSector('sector_2')">SECTOR II: RHYTHM</button>
+      <button type="button" class="phase-pill" data-sector="sector_3" onclick="setCodexSector('sector_3')">SECTOR III: VALVE/CHD</button>
+      <button type="button" class="phase-pill" data-sector="sector_4" onclick="setCodexSector('sector_4')">SECTOR IV: VASC/HTN</button>
+      <button type="button" class="phase-pill" data-sector="sector_5" onclick="setCodexSector('sector_5')">SECTOR V: EXAM/OMT</button>
+    </div>
+    <div class="codex-table-wrap">
+      <table class="codex-table">
+        <thead>
+          <tr>
+            <th>Entity &amp; Sector</th>
+            <th>Etiology &amp; Trigger</th>
+            <th>Phase 1: Pathogenesis</th>
+            <th>Phase 2: Hallmarks</th>
+            <th>Phase 3: Clinical</th>
+            <th>Management, OMT &amp; Guild Secret</th>
+          </tr>
+        </thead>
+        <tbody id="codex-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<api-shim></api-shim>
+<script>
+const GAME_CONFIG = {
+  title: `Cardiology COMLEX-USA XR 3-Lane Diagnostic Runner`,
+  timerSeconds: 50,
+  metaFadeMs: 3000
+};
+
+const LO_VISUAL_THEMES = {
+  1:  { corridor: `CORONARY SINUS`, accent: `#ff2d78`, rail: `#00ffcc` },
+  2:  { corridor: `PAPILLARY VAULT`, accent: `#ff2d78`, rail: `#ffe04a` },
+  3:  { corridor: `SARCOMERE LAB`, accent: `#b388ff`, rail: `#00ffcc` },
+  4:  { corridor: `PULMONARY VEIN`, accent: `#00ffcc`, rail: `#ff2d78` },
+  5:  { corridor: `AV NODE GATE`, accent: `#ffe04a`, rail: `#00ffcc` },
+  6:  { corridor: `PURKINJE NEXUS`, accent: `#ff2d78`, rail: `#b388ff` },
+  7:  { corridor: `AORTIC OUTFLOW`, accent: `#ffe04a`, rail: `#ff2d78` },
+  8:  { corridor: `MITRAL ATRIUM`, accent: `#00ffcc`, rail: `#ffe04a` },
+  9:  { corridor: `DUCTAL SHUNT`, accent: `#b388ff`, rail: `#ff2d78` },
+  10: { corridor: `AORTIC ARCH`, accent: `#ff2d78`, rail: `#00ffcc` },
+  11: { corridor: `RENIN ARTERIOLE`, accent: `#00ffcc`, rail: `#ffe04a` },
+  12: { corridor: `VASCULITIS GRID`, accent: `#ffe04a`, rail: `#b388ff` },
+  13: { corridor: `AUSCULTATION BAY`, accent: `#00ffcc`, rail: `#ff2d78` },
+  14: { corridor: `JVP WAVEFORM`, accent: `#b388ff`, rail: `#00ffcc` },
+  15: { corridor: `T1-T5 SYMPATHETIC`, accent: `#ff2d78`, rail: `#ffe04a` }
+};
+
+const CODEX_DATA = [
+  {
+    lo: 1, sector: `sector_1`, tag: `CP 8.1 • Coronary`, compartment: `Coronary & Myocardium`,
+    ageGroup: `Adult / Acquired`, behavior: `Ischemia & Necrosis`,
+    entity: `STEMI & Acute Coronary Syndrome`,
+    etiology: `Atherosclerotic plaque rupture with acute occlusive thrombus (LAD most common; RCA inferior wall; LCX lateral wall).`,
+    pathogenesis: `Transmural ischemia depletes ATP -> coagulative necrosis (4-24h), neutrophil infiltration (1-3d), macrophage phagocytosis (3-7d), granulation tissue -> collagen scar.`,
+    hallmarks: `ST elevations in contiguous leads; Troponin I peaks at 24h and stays elevated 7-10d; CK-MB normalizes in 48-72h (detects reinfarction).`,
+    clinical: `Crushing substernal chest pain radiating to left arm/jaw, diaphoresis, dyspnea; Dressler syndrome (weeks later: autoimmune fibrinous pericarditis).`,
+    management: `MONA-B + dual antiplatelet + emergent PCI (<90 min); OMT: T1-T4 sympathetics (left > right), Chapman point 2nd ICS parasternal; Guild Secret: Posteromedial papillary muscle has single PDA blood supply.`
+  },
+  {
+    lo: 2, sector: `sector_1`, tag: `CP 8.1 • Post-MI Complications`, compartment: `Coronary & Myocardium`,
+    ageGroup: `Older Adult / Degenerative`, behavior: `Ischemia & Necrosis`,
+    entity: `Post-MI Mechanical Complications`,
+    etiology: `Macrophage-mediated degradation of necrotic myocardium between days 2 and 14 post-transmural MI.`,
+    pathogenesis: `Days 2-7: posteromedial papillary muscle rupture (single PDA supply) or IV septum rupture; Days 5-14: LV free wall rupture -> hemopericardium -> tamponade.`,
+    hallmarks: `Acute holosystolic murmur + pulmonary edema (papillary rupture); step-up in RV O2 saturation (VSD); Beck triad (hypotension, JVD, muffled heart sounds) + electrical alternans (tamponade).`,
+    clinical: `Sudden cardiogenic shock or PEA arrest 3-10 days after inferior or anterior STEMI.`,
+    management: `Emergent pericardiocentesis for tamponade, vasodilators/IABP & urgent surgical repair; LVH and prior MI protect against free wall rupture; Guild Secret: Pseudoaneurysm lacks myocardium and ruptures easily.`
+  },
+  {
+    lo: 3, sector: `sector_1`, tag: `CP 8.6 • Cardiomyopathies`, compartment: `Coronary & Myocardium`,
+    ageGroup: `Young Adult / Genetic`, behavior: `Structural & Pressure`,
+    entity: `Dilated, Hypertrophic & Restrictive CM`,
+    etiology: `DCM: Coxsackie B, alcohol, doxorubicin, Chagas, TTN; HCM: AD sarcomere mutation (beta-myosin heavy chain); RCM: amyloidosis, hemochromatosis, sarcoidosis.`,
+    pathogenesis: `DCM: eccentric hypertrophy -> systolic HF (EF <40%); HCM: asymmetric septal hypertrophy -> dynamic LVOT obstruction + diastolic dysfunction; RCM: rigid noncompliant ventricles.`,
+    hallmarks: `DCM: S3 gallop, balloon heart on CXR; HCM: harsh systolic crescendo-decrescendo murmur louder with Valsalva/standing, myofibrillar disarray; RCM: low-voltage ECG + apple-green birefringence (Congo red).`,
+    clinical: `HCM causes sudden cardiac death in young athletes; DCM presents with biventricular HF; RCM mimics constrictive pericarditis.`,
+    management: `HCM: beta-blockers or non-DHP CCBs (avoid digoxin, diuretics, vasodilators); DCM: GDMT (ACEi/ARNI, beta-blocker, MRA, SGLT2i); Guild Secret: Valsalva decreases preload and worsens HCM murmur.`
+  },
+  {
+    lo: 4, sector: `sector_2`, tag: `CP 8.2 • Atrial Arrhythmia`, compartment: `Conduction System`,
+    ageGroup: `Older Adult / Degenerative`, behavior: `Electrical & Channelopathy`,
+    entity: `Atrial Fibrillation & Atrial Flutter`,
+    etiology: `Hypertension, LA dilation (mitral stenosis), hyperthyroidism, alcohol ("holiday heart"), pulmonary disease.`,
+    pathogenesis: `AFib: chaotic ectopic foci near pulmonary veins; AFlutter: macro-reentrant circuit around tricuspid annulus in RA (~300 bpm atrial, 150 bpm ventricular with 2:1 block).`,
+    hallmarks: `AFib: irregularly irregular rhythm, absent P waves; AFlutter: sawtooth flutter waves (best in II, III, aVF).`,
+    clinical: `Palpitations, dyspnea, loss of atrial kick -> stasis in LA appendage -> thromboembolic stroke.`,
+    management: `Rate control (beta-blocker, diltiazem/verapamil); rhythm control (flecainide/propafenone ONLY in structurally normal hearts - "Healthy Hearts Only"); anticoagulation per CHA2DS2-VASc; Guild Secret: Class IC prolongs QRS without changing AP duration.`
+  },
+  {
+    lo: 5, sector: `sector_2`, tag: `CP 8.2 • AV Blocks & WPW`, compartment: `Conduction System`,
+    ageGroup: `Young Adult / Genetic`, behavior: `Electrical & Channelopathy`,
+    entity: `AV Conduction Blocks & WPW Syndrome`,
+    etiology: `AV blocks: inferior MI (RCA), Lyme carditis, nodal blockers, fibrosis; WPW: congenital accessory pathway (Bundle of Kent).`,
+    pathogenesis: `Mobitz I: AV node fatigue; Mobitz II: His-Purkinje infra-nodal disease; WPW: rapid anterograde pre-excitation bypassing AV node delay.`,
+    hallmarks: `Mobitz I: progressive PR prolongation before dropped beat; Mobitz II: constant PR with sudden dropped QRS; WPW: short PR, delta wave, wide QRS.`,
+    clinical: `Mobitz II risks progression to 3rd-degree AV dissociation (cannon A waves); WPW + AFib risks degeneration to VFib.`,
+    management: `Mobitz II & 3rd degree: permanent pacemaker; WPW + AFib: procainamide (avoid AV nodal blockers like adenosine, verapamil, digoxin, beta-blockers); Guild Secret: OA-AA release enhances vagal tone to slow AV conduction.`
+  },
+  {
+    lo: 6, sector: `sector_2`, tag: `CP 8.2 • Ventricular & QT`, compartment: `Conduction System`,
+    ageGroup: `Adult / Acquired`, behavior: `Electrical & Channelopathy`,
+    entity: `Long QT Syndrome & Torsades de Pointes`,
+    etiology: `Congenital K+ channel loss-of-function (Romano-Ward, Jervell and Lange-Nielsen with sensorineural deafness); acquired Class IA/III antiarrhythmics, macrolides, haloperidol, hypokalemia/hypomagnesemia.`,
+    pathogenesis: `Delayed phase 3 K+ efflux prolongs repolarization -> early afterdepolarizations (EADs) -> polymorphic VT twisting around isoelectric baseline.`,
+    hallmarks: `QTc >470-500 ms; sinusoidal undulating QRS amplitude ("twisting of points") on telemetry.`,
+    clinical: `Syncope, palpitations, or sudden cardiac death triggered by adrenergic surge or QT-prolonging meds.`,
+    management: `IV magnesium sulfate (first-line even if serum Mg2+ is normal), discontinue offending agent, correct K+; Guild Secret: Amiodarone prolongs QT yet rarely causes Torsades.`
+  },
+  {
+    lo: 7, sector: `sector_3`, tag: `CP 8.12 • Aortic Valve`, compartment: `Valves & Septa`,
+    ageGroup: `Older Adult / Degenerative`, behavior: `Structural & Pressure`,
+    entity: `Aortic Stenosis & Aortic Regurgitation`,
+    etiology: `AS: age-related dystrophic calcification (>60y) or early calcification of bicuspid aortic valve (50-60y); AR: bicuspid valve, endocarditis, aortic root dilation, rheumatic fever (BEAR).`,
+    pathogenesis: `AS: fixed afterload -> concentric LVH -> decreased compliance -> SAD triad; AR: diastolic regurgitant volume -> eccentric LVH + wide pulse pressure.`,
+    hallmarks: `AS: crescendo-decrescendo systolic murmur at right 2nd ICS radiating to carotids, soft S2, pulsus parvus et tardus; AR: early diastolic decrescendo murmur at LSB, head bobbing, bounding waterhammer pulse.`,
+    clinical: `AS: Syncope, Angina, Dyspnea on exertion (once symptomatic, rapid decline without valve replacement); AR: exertional dyspnea, palpitations.`,
+    management: `AS: surgical or transcatheter aortic valve replacement (avoid aggressive preload/afterload drop); AR: vasodilators (ACEi/nifedipine) + surgery; Guild Secret: Handgrip decreases AS murmur intensity and increases AR murmur.`
+  },
+  {
+    lo: 8, sector: `sector_3`, tag: `CP 8.12 • Mitral Valve`, compartment: `Valves & Septa`,
+    ageGroup: `Adult / Acquired`, behavior: `Structural & Pressure`,
+    entity: `Mitral Stenosis & Mitral Valve Prolapse`,
+    etiology: `MS: late highly specific sequela of rheumatic fever; MVP: myxomatous degeneration (primary or Marfan/Ehlers-Danlos), chordae rupture.`,
+    pathogenesis: `MS: commissural fusion -> LA >> LV diastolic gradient -> LA dilation -> pulmonary congestion + AFib; MVP: billowing leaflets tense chordae mid-systole.`,
+    hallmarks: `MS: opening snap (narrower S2-OS = more severe) followed by delayed rumbling diastolic murmur at apex; MVP: mid-systolic click + late systolic crescendo murmur.`,
+    clinical: `MS: Ortner syndrome (hoarseness from recurrent laryngeal nerve compression), hemoptysis, right HF; MVP: mostly benign, risk of endocarditis/MR.`,
+    management: `MS: diuretics, rate control, percutaneous balloon valvuloplasty; MVP: reassurance; Guild Secret: Squatting/leg raise delays MVP click and softens murmur by increasing LV preload.`
+  },
+  {
+    lo: 9, sector: `sector_3`, tag: `CP 8.12 • Congenital CHD`, compartment: `Valves & Septa`,
+    ageGroup: `Pediatric / Congenital`, behavior: `Structural & Pressure`,
+    entity: `Shunts (ASD/VSD/PDA), TOF & Coarctation`,
+    etiology: `VSD (most common CHD); PDA (prematurity, congenital rubella); Coarctation (Turner syndrome); TOF (22q11 deletion, anterosuperior displacement of infundibular septum).`,
+    pathogenesis: `Left-to-right shunts (ASD, VSD, PDA) -> pulmonary hypertension -> Eisenmenger reversal; TOF: overriding aorta, RVH, VSD, pulmonary stenosis (degree of PS determines cyanosis).`,
+    hallmarks: `ASD: wide fixed split S2; VSD: harsh holosystolic murmur; PDA: continuous machine-like murmur; TOF: boot-shaped heart on CXR, "tet" spells relieved by squatting; Coarctation: upper > lower extremity BP, rib notching.`,
+    clinical: `Cyanotic spells relieved by squatting (increases SVR -> reduces R-to-L shunt); PDA differential cyanosis if Eisenmenger develops.`,
+    management: `Indomethacin closes PDA (PGE1 keeps PDA open in ductal-dependent lesions); surgical repair for TOF/VSD/coarctation; Guild Secret: Larger VSDs often produce softer murmurs than small restrictive VSDs.`
+  },
+  {
+    lo: 10, sector: `sector_4`, tag: `CP 8.5 • Aortic Syndromes`, compartment: `Aorta & Vasculature`,
+    ageGroup: `Older Adult / Degenerative`, behavior: `Structural & Pressure`,
+    entity: `Aortic Dissection & Aortic Aneurysm`,
+    etiology: `Dissection: chronic HTN (most common), bicuspid aortic valve, Marfan/Ehlers-Danlos cystic medial degeneration; AAA: smoking + atherosclerosis (infrarenal).`,
+    pathogenesis: `Intimal tear allows high-pressure blood into media -> false lumen propagation (Type A involves ascending aorta; Type B spares ascending aorta).`,
+    hallmarks: `Sudden tearing chest/back pain, >20 mmHg BP difference between arms, widened mediastinum on CXR; AAA: pulsatile abdominal mass.`,
+    clinical: `Type A dissection can cause acute AR, pericardial tamponade, or coronary ostial occlusion (RCA -> inferior MI).`,
+    management: `IV esmolol/labetalol FIRST to lower HR/shear stress (dP/dt) before nicardipine/nitroprusside; Type A = emergent surgery; Type B = medical BP/HR control; Guild Secret: Never give vasodilator before beta-blocker.`
+  },
+  {
+    lo: 11, sector: `sector_4`, tag: `CP 8.3 • Hypertension`, compartment: `Aorta & Vasculature`,
+    ageGroup: `Adult / Acquired`, behavior: `Hemodynamic & Autonomic`,
+    entity: `Hypertension, RAAS & Hypertensive Crisis`,
+    etiology: `Primary (essential) HTN 90%; secondary: renovascular (fibromuscular dysplasia in young women vs atherosclerotic RAS in older smokers), primary hyperaldosteronism, pheochromocytoma, coarctation.`,
+    pathogenesis: `Decreased renal perfusion -> JG cell renin -> Ang II constricts efferent arteriole (preserves GFR) + aldosterone increases ENaC Na+ reabsorption & K+/H+ excretion.`,
+    hallmarks: `Hypertensive urgency (BP >180/120 without end-organ damage) vs emergency (papilledema, encephalopathy, AKI, ACS, dissection); FMD = "string of beads" renal angiogram.`,
+    clinical: `Hyperaldosteronism: resistant HTN + hypokalemia + metabolic alkalosis + high aldosterone/renin ratio.`,
+    management: `First-line: thiazides, ACEi/ARB, DHP CCB; Pregnancy: labetalol, nifedipine, methyldopa (ACEi/ARB contraindicated - fetal renal dysgenesis); Guild Secret: Bilateral RAS contraindicates ACEi/ARB due to acute GFR drop.`
+  },
+  {
+    lo: 12, sector: `sector_4`, tag: `CP 8.4/8.9 • Thrombo & Vasculitis`, compartment: `Aorta & Vasculature`,
+    ageGroup: `Adult / Acquired`, behavior: `Inflammatory & Vascular`,
+    entity: `DVT/PE & Systemic Vasculitides`,
+    etiology: `Virchow triad (stasis, endothelial injury, hypercoagulability); Vasculitides: GCA (>50y), Takayasu (<40y Asian female), PAN (HBV), Kawasaki (children <5y), IgA vasculitis.`,
+    pathogenesis: `PE -> abrupt RV afterload -> V/Q mismatch + RV strain; GCA/Takayasu: granulomatous large-vessel inflammation; Kawasaki: mucocutaneous + coronary artery aneurysms.`,
+    hallmarks: `PE: sinus tachycardia, S1Q3T3, wedge-shaped Hampton hump; GCA: jaw claudication + elevated ESR; PAN: transmural fibrinoid necrosis + "beads on a string" sparing lungs.`,
+    clinical: `DVT: unilateral calf swelling/Homan sign; Kawasaki: CRASH & Burn fever >=5 days; GCA: irreversible vision loss if steroids delayed.`,
+    management: `PE: anticoagulation (LMWH/DOAC) or thrombolysis if massive/hypotensive; GCA: immediate high-dose corticosteroids before temporal biopsy; Kawasaki: IVIG + high-dose aspirin; Guild Secret: Kawasaki is the exception where aspirin is given to children.`
+  },
+  {
+    lo: 13, sector: `sector_5`, tag: `CP 8.12 • Exam & Maneuvers`, compartment: `Valves & Septa`,
+    ageGroup: `Adult / Acquired`, behavior: `Hemodynamic & Autonomic`,
+    entity: `Heart Sounds (S3/S4) & Murmur Maneuvers`,
+    etiology: `S3: rapid ventricular filling in volume overload (dilated CM, MR, pregnancy); S4: atrial kick into stiff noncompliant ventricle (LVH, AS, HCM).`,
+    pathogenesis: `Inspiration increases venous return to right heart (louder right-sided murmurs, delays P2 -> physiologic split S2); Valsalva/standing decreases preload.`,
+    hallmarks: `Valsalva/standing increases ONLY HCM and shifts MVP click earlier; squatting/handgrip increases afterload -> louder MR, AR, VSD.`,
+    clinical: `S3 ("Kentucky") indicates systolic dysfunction/volume overload; S4 ("Tennessee") indicates diastolic stiffness and vanishes in AFib.`,
+    management: `Use maneuvers bedside to distinguish AS (softens with Valsalva) from HCM (louder with Valsalva); Guild Secret: Handgrip softens AS and HCM murmurs by raising aortic pressure.`
+  },
+  {
+    lo: 14, sector: `sector_5`, tag: `CP 8.13 • Hemodynamics & Infective`, compartment: `Aorta & Vasculature`,
+    ageGroup: `Adult / Acquired`, behavior: `Hemodynamic & Autonomic`,
+    entity: `JVP Waveforms, Digoxin & Endocarditis`,
+    etiology: `JVP abnormalities: tricuspid regurgitation (giant V wave), tamponade/constrictive pericarditis, 3rd-degree block (cannon A wave); Endocarditis: S. aureus (IVDU tricuspid), S. viridans (subacute), S. gallolyticus (colon cancer).`,
+    pathogenesis: `Digoxin inhibits Na+/K+-ATPase -> increased intracellular Ca2+ (positive inotrope) + direct vagal stimulation (slows AV node); K+ competes with digoxin at Na+/K+-ATPase.`,
+    hallmarks: `Tamponade: blunted Y descent + pulsus paradoxus (>10 mmHg drop on inspiration); Constrictive pericarditis: Kussmaul sign + sharp Y descent; Digoxin: scooped ST segments, hyperkalemia in acute toxicity.`,
+    clinical: `Janeway lesions (painless palmar macules), Osler nodes (painful finger pads), Roth spots, splinter hemorrhages.`,
+    management: `Digoxin toxicity: normalize K+, Mg2+, anti-digoxin Fab fragments; Enterococcus/MRSA endocarditis: vancomycin; Guild Secret: Hypokalemia precipitates chronic digoxin toxicity, while acute overdose causes hyperkalemia.`
+  },
+  {
+    lo: 15, sector: `sector_5`, tag: `Domain 1 • OMT & Autonomics`, compartment: `Autonomic & OMT`,
+    ageGroup: `Adult / Acquired`, behavior: `Hemodynamic & Autonomic`,
+    entity: `Cardiac OMT: T1-T5/T6, Chapman & OA-AA`,
+    etiology: `Viscerosomatic reflexes via cardiac autonomic afferents synapsing in upper thoracic cord (T1-T5, left > right; pericardium/coronary up to T6) and vagal CN X parasympathetics (OA-AA).`,
+    pathogenesis: `Myocardial ischemia/stress facilitates spinal cord interneurons -> paraspinal hypertonicity, boggy tissue texture, warmth; sympathetic surge increases HR/contractility; OA-AA dysfunction alters vagal tone.`,
+    hallmarks: `T1-T5 (left > right) somatic dysfunction; Chapman anterior reflex at 2nd ICS parasternal (posterior at T2-T3 spinous/transverse); OA/AA/C2 parasympathetic somatic dysfunction.`,
+    clinical: `Left T2-T4 tissue texture changes can mirror angina/ACS; rib raising normalizes thoracic sympathetic tone; OA decompression enhances parasympathetic vagal outflow.`,
+    management: `Rule out acute MI before thoracic HVLA; use gentle myofascial release, rib raising (T1-T5), and suboccipital/OA release to balance autonomic tone; Guild Secret: Left 2nd ICS parasternal Chapman point corresponds to myocardium.`
+  }
+];
+
+const ALL_QUESTIONS = [
+  // LO 1: STEMI & ACS
+  {
+    id: `CV01-Q1`, lo: 1, sector: `sector_1`, compartment: `Coronary & Myocardium`, ageGroup: `Adult / Acquired`, behavior: `Ischemia & Necrosis`,
+    loTitle: `Sector I • STEMI & ACS`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Inferior Wall STEMI (RCA)`,
+    stem: `A 62-year-old man with hypertension presents with 45 minutes of crushing substernal chest pain, diaphoresis, and nausea. BP is 94/62 mmHg and HR is 52/min. ECG shows ST-segment elevations in leads II, III, and aVF with reciprocal ST depressions in I and aVL. Which culprit vessel is most likely occluded?`,
+    clue: `Leads II, III, and aVF view the inferior wall; sinus bradycardia points to SA/AV nodal supply.`,
+    choices: [`Right coronary artery (RCA)`, `Left anterior descending artery`, `Left circumflex artery`],
+    correctIndex: 0,
+    explanation: `Correct: Leads II, III, and aVF reflect inferior wall ischemia, supplied by the RCA in ~85% of patients, which also supplies the AV node (explaining bradycardia). Distractor exclusion: LAD supplies anterior leads (V1-V4); LCX supplies lateral leads (I, aVL, V5-V6).`,
+    secondOrderClue: `II, III, aVF ST elevation + bradycardia -> RCA occlusion (avoid nitrates if RV infarct suspected).`,
+    phase1Pearl: `Plaque rupture exposes subendothelial collagen and tissue factor -> platelet aggregation and occlusive fibrin thrombus.`,
+    phase2Hallmark: `Coagulative necrosis appears at 4-24 hours with hypereosinophilic myocytes and loss of nuclei.`,
+    phase3Secret: `Emergent PCI <90 min; OMT shows T1-T4 left > right viscerosomatic facilitation and 2nd ICS Chapman point.`,
+    dossierBullets: {
+      p1: [`• Plaque rupture triggers acute arterial thrombosis`, `• ATP depletion causes reversible then coagulative necrosis`],
+      p2: [`• Leads II, III, aVF localize to inferior LV/RV wall`, `• Troponin I peaks at 24h and stays elevated 7-10 days`],
+      p3: [`• Dual antiplatelet + heparin + emergent PCI`, `• Left T1-T4 sympathetics & 2nd ICS parasternal Chapman point`]
+    }
+  },
+  {
+    id: `CV01-Q2`, lo: 1, sector: `sector_1`, compartment: `Coronary & Myocardium`, ageGroup: `Adult / Acquired`, behavior: `Ischemia & Necrosis`,
+    loTitle: `Sector I • STEMI & ACS`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `CK-MB Reinfarction Tracking`,
+    stem: `A 58-year-old woman recovers in the CCU 4 days after an anterior STEMI treated with PCI. She suddenly develops recurrent chest pain and dyspnea. Because serum troponin I remains elevated from the index event, which biomarker best confirms an acute reinfarction?`,
+    clue: `Compare the washout kinetics of cardiac biomarkers after day 3.`,
+    choices: [`CK-MB`, `Troponin T`, `Lactate dehydrogenase`],
+    correctIndex: 0,
+    explanation: `Correct: CK-MB rises at 4-8 hours, peaks at 24 hours, and normalizes within 48-72 hours, making a second spike diagnostic for reinfarction at day 4. Distractor exclusion: Troponin T remains elevated for 7-10 days; LDH is nonspecific and slow to clear.`,
+    secondOrderClue: `Recurrent pain days 3-7 post-MI -> check CK-MB because Troponin stays elevated for 7-10 days.`,
+    phase1Pearl: `Reperfusion injury generates reactive oxygen species (ROS) causing mitochondrial permeability transition and contraction band necrosis.`,
+    phase2Hallmark: `Contraction band necrosis is characteristic of reperfused myocardium, whereas non-reperfused MI shows wavy fibers early.`,
+    phase3Secret: `Distinguish reinfarction from Dressler syndrome (weeks later) or peri-infarction pericarditis (days 1-3).`,
+    dossierBullets: {
+      p1: [`• Reperfusion restores O2 but induces Ca2+ overload and ROS`, `• Contraction bands mark reperfused myocytes`],
+      p2: [`• CK-MB returns to baseline by 48-72h`, `• Troponin I/T remain positive up to 10 days`],
+      p3: [`• Urgent repeat ECG and CK-MB for suspected stent thrombosis`, `• Dressler syndrome is autoimmune and occurs weeks later`]
+    }
+  },
+  {
+    id: `CV01-Q3`, lo: 1, sector: `sector_1`, compartment: `Coronary & Myocardium`, ageGroup: `Adult / Acquired`, behavior: `Ischemia & Necrosis`,
+    loTitle: `Sector I • STEMI & ACS`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Neutrophil Infiltrate (1-3 Days)`,
+    stem: `A 67-year-old man dies suddenly 48 hours after onset of severe substernal chest pain. Histologic examination of the anterior left ventricular wall reveals extensive coagulative necrosis with dense neutrophilic infiltration and early loss of striations. Which post-MI complication is most likely during days 1-3?`,
+    clue: `Match the 1-3 day histologic timeline to its corresponding clinical syndrome.`,
+    choices: [`Peri-infarction fibrinous pericarditis`, `Ventricular free wall rupture`, `True ventricular aneurysm`],
+    correctIndex: 0,
+    explanation: `Correct: Dense neutrophilic infiltration occurs at 1-3 days post-MI, matching the timeframe for peri-infarction fibrinous pericarditis (pleuritic chest pain, friction rub). Distractor exclusion: Free wall rupture peaks at 5-14 days during macrophage softening; true aneurysm forms weeks to months later with fibrosis.`,
+    secondOrderClue: `Day 1-3 neutrophils = fibrinous pericarditis; Day 3-7 macrophages = papillary/septal/free wall rupture.`,
+    phase1Pearl: `Neutrophils release myeloperoxidase and proteases, initiating clearance of necrotic debris before macrophages arrive at day 3.`,
+    phase2Hallmark: `1-3 days: coagulative necrosis + neutrophils; 3-7 days: macrophages; 1-2 weeks: granulation tissue; >2 weeks: dense collagen scar.`,
+    phase3Secret: `Peri-infarction pericarditis is self-limited; avoid high-dose NSAIDs/steroids post-MI due to impaired scar healing.`,
+    dossierBullets: {
+      p1: [`• Neutrophils dominate 24-72h post-infarction`, `• Macrophages follow at 3-7 days to phagocytose debris`],
+      p2: [`• Friction rub + diffuse PR depression / ST elevation`, `• Scar remodeling completes by 2 months`],
+      p3: [`• Peri-infarction pericarditis is distinct from late Dressler syndrome`, `• T1-T4 left paraspinal hypertonicity accompanies cardiac pain`]
+    }
+  },
+
+  // LO 2: Post-MI Mechanical Complications
+  {
+    id: `CV02-Q1`, lo: 2, sector: `sector_1`, compartment: `Coronary & Myocardium`, ageGroup: `Older Adult / Degenerative`, behavior: `Ischemia & Necrosis`,
+    loTitle: `Sector I • Mechanical Post-MI`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Posteromedial Papillary Rupture`,
+    stem: `Five days after an inferior STEMI, a 71-year-old woman develops sudden respiratory distress, hypotension (82/50 mmHg), and pink frothy sputum. Auscultation reveals a new loud holosystolic murmur at the cardiac apex radiating to the axilla, and chest radiograph shows bilateral pulmonary edema. What is the diagnosis?`,
+    clue: `Inferior MI + day 5 + new apical holosystolic murmur + flash pulmonary edema.`,
+    choices: [`Posteromedial papillary muscle rupture`, `Interventricular septal rupture`, `Left ventricular free wall rupture`],
+    correctIndex: 0,
+    explanation: `Correct: Inferior MI (PDA) causes posteromedial papillary muscle necrosis and rupture at days 2-7, producing acute severe mitral regurgitation and cardiogenic pulmonary edema. Distractor exclusion: VSD murmur is loudest at the left sternal border with RV O2 step-up; free wall rupture causes tamponade with muffled sounds and JVD.`,
+    secondOrderClue: `Inferior MI + holosystolic apical murmur + pulmonary edema = posteromedial papillary muscle rupture.`,
+    phase1Pearl: `The posteromedial papillary muscle has a single blood supply (PDA), whereas the anterolateral has dual supply (LAD + LCX).`,
+    phase2Hallmark: `Holosystolic blowing murmur at apex; echo shows flail mitral leaflet.`,
+    phase3Secret: `Stabilize with afterload reduction (nitroprusside) / IABP and emergent surgical mitral repair/replacement.`,
+    dossierBullets: {
+      p1: [`• Single PDA supply makes posteromedial papillary muscle vulnerable`, `• Macrophage collagenase activity weakens necrotic tissue days 2-7`],
+      p2: [`• Apical holosystolic murmur radiating to axilla`, `• Prominent V waves on pulmonary capillary wedge tracing`],
+      p3: [`• Urgent afterload reduction and surgical repair`, `• Contrast with VSD (LSB murmur + RV O2 step-up)`]
+    }
+  },
+  {
+    id: `CV02-Q2`, lo: 2, sector: `sector_1`, compartment: `Coronary & Myocardium`, ageGroup: `Older Adult / Degenerative`, behavior: `Ischemia & Necrosis`,
+    loTitle: `Sector I • Mechanical Post-MI`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Macrophage Wall Degradation`,
+    stem: `A 69-year-old man collapses with pulseless electrical activity 7 days after an anterior STEMI. Bedside echocardiography demonstrates a large pericardial effusion with right ventricular diastolic collapse and hemopericardium. Which cellular process directly predisposes the infarcted wall to this rupture?`,
+    clue: `Consider which cell peaks between days 3 and 14 to clear necrotic tissue.`,
+    choices: [`Macrophage-mediated enzymatic degradation`, `Fibroblast collagen deposition`, `Lymphocytic autoimmune complex deposition`],
+    correctIndex: 0,
+    explanation: `Correct: Between days 5 and 14, macrophage-mediated phagocytosis and metalloproteinase digestion maximally weaken the necrotic wall before collagen scarring forms, risking free wall rupture and tamponade. Distractor exclusion: Fibroblast collagen deposition (weeks+) strengthens the wall; immune complexes cause late Dressler syndrome.`,
+    secondOrderClue: `Days 5-14 macrophage softening -> peak risk of free wall rupture (tamponade); prior MI/LVH is protective.`,
+    phase1Pearl: `Macrophages clear dead myocytes and secrete MMPs before myofibroblasts lay down type I collagen.`,
+    phase2Hallmark: `Beck triad (hypotension, JVD, muffled heart sounds) + electrical alternans + pulsus paradoxus >10 mmHg.`,
+    phase3Secret: `Emergent pericardiocentesis and surgical patch repair; LV hypertrophy and prior MI reduce rupture risk.`,
+    dossierBullets: {
+      p1: [`• Macrophages degrade necrotic extracellular matrix days 3-14`, `• Prior fibrosis or LVH protects against transmural rupture`],
+      p2: [`• Hemopericardium -> cardiac tamponade -> PEA arrest`, `• Echocardiogram shows RA/RV diastolic collapse`],
+      p3: [`• Immediate pericardiocentesis & surgical repair`, `• Avoid aggressive anticoagulation if rupture suspected`]
+    }
+  },
+  {
+    id: `CV02-Q3`, lo: 2, sector: `sector_1`, compartment: `Coronary & Myocardium`, ageGroup: `Older Adult / Degenerative`, behavior: `Ischemia & Necrosis`,
+    loTitle: `Sector I • Mechanical Post-MI`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Ventricular Septal Rupture (O2 Step-up)`,
+    stem: `Four days after an anterior STEMI, a 66-year-old man develops sudden hypotension and a harsh holosystolic murmur best heard at the left lower sternal border with a palpable thrill. Right heart catheterization shows right atrial O2 saturation of 65% and right ventricular O2 saturation of 84%. What structural defect explains these findings?`,
+    clue: `An O2 saturation step-up from RA to RV identifies a left-to-right shunt.`,
+    choices: [`Interventricular septal rupture (VSD)`, `Ventricular pseudoaneurysm`, `Anterolateral papillary muscle rupture`],
+    correctIndex: 0,
+    explanation: `Correct: Macrophage-mediated septal necrosis (days 3-5) creates an acquired VSD, shunting oxygenated LV blood into the RV (O2 step-up from 65% to 84%) and causing a harsh LSB holosystolic murmur. Distractor exclusion: Pseudoaneurysm is a contained free wall rupture without an O2 step-up; papillary rupture causes MR without RV O2 step-up.`,
+    secondOrderClue: `Step-up in RV O2 saturation + harsh LSB holosystolic murmur days 3-5 post-MI = septal rupture.`,
+    phase1Pearl: `LAD supplies anterior 2/3 of septum; RCA/PDA supplies posterior 1/3; either infarct can cause septal perforation.`,
+    phase2Hallmark: `Step-up in O2 saturation between RA and RV; color Doppler confirms left-to-right transseptal jet.`,
+    phase3Secret: `Afterload reduction + emergent surgical/percutaneous VSD closure; pseudoaneurysm requires urgent surgery too due to rupture risk.`,
+    dossierBullets: {
+      p1: [`• Transmural septal necrosis creates acute left-to-right shunt`, `• Increases RV volume/pressure and pulmonary flow`],
+      p2: [`• Harsh LSB holosystolic murmur + thrill`, `• RV O2 saturation step-up >7-10% above RA`],
+      p3: [`• Urgent surgical closure + hemodynamic stabilization`, `• True aneurysm shows persistent ST elevation and dyskinetic bulge`]
+    }
+  },
+
+  // LO 3: Cardiomyopathies
+  {
+    id: `CV03-Q1`, lo: 3, sector: `sector_1`, compartment: `Coronary & Myocardium`, ageGroup: `Young Adult / Genetic`, behavior: `Structural & Pressure`,
+    loTitle: `Sector I • Cardiomyopathies`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Hypertrophic Cardiomyopathy (HCM)`,
+    stem: `A 19-year-old collegiate basketball player experiences syncope during practice. His older brother died suddenly at age 22. Cardiac exam reveals a harsh systolic crescendo-decrescendo murmur at the left lower sternal border that intensifies when he stands up from a squat and softens with handgrip. What is the most likely diagnosis?`,
+    clue: `Young athlete + family SCD + systolic murmur louder with decreased preload (standing).`,
+    choices: [`Hypertrophic cardiomyopathy`, `Calcific aortic stenosis`, `Dilated cardiomyopathy`],
+    correctIndex: 0,
+    explanation: `Correct: HCM presents in young athletes with exertional syncope/SCD and a dynamic LVOT obstruction murmur that worsens with decreased preload (standing/Valsalva) and softens with increased afterload (handgrip/squatting). Distractor exclusion: AS softens with standing/Valsalva and occurs in older adults/bicuspid valves; DCM produces an S3 and holosystolic MR.`,
+    secondOrderClue: `Murmur louder with Valsalva/standing = HCM (or earlier click in MVP); softer with squatting.`,
+    phase1Pearl: `Autosomal dominant mutation in sarcomeric proteins (most commonly beta-myosin heavy chain or myosin-binding protein C).`,
+    phase2Hallmark: `Asymmetric interventricular septal hypertrophy, systolic anterior motion (SAM) of mitral valve, myofibrillar disarray on histology.`,
+    phase3Secret: `Treat with beta-blockers or verapamil; avoid digoxin, diuretics, and vasodilators (worsen LVOT obstruction).`,
+    dossierBullets: {
+      p1: [`• AD sarcomere gene mutation -> asymmetric septal hypertrophy`, `• Diastolic dysfunction + dynamic subaortic LVOT obstruction`],
+      p2: [`• Myocyte hypertrophy and myofibrillar disarray`, `• S4 gallop + bisferiens pulse + SAM on echo`],
+      p3: [`• Beta-blockers prolong diastole and reduce contractility`, `• ICD placement for high SCD risk; avoid dehydration`]
+    }
+  },
+  {
+    id: `CV03-Q2`, lo: 3, sector: `sector_1`, compartment: `Coronary & Myocardium`, ageGroup: `Adult / Acquired`, behavior: `Structural & Pressure`,
+    loTitle: `Sector I • Cardiomyopathies`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Coxsackie B Dilated CM`,
+    stem: `A 34-year-old man develops progressive orthopnea, lower extremity edema, and an S3 gallop 3 weeks after a febrile upper respiratory illness. Echocardiography shows four-chamber dilation with an ejection fraction of 25%. Which primary myocardial remodeling mechanism drives his reduced ejection fraction?`,
+    clue: `Viral myocarditis progressing to eccentric hypertrophy and systolic dysfunction.`,
+    choices: [`Sarcomeres added in series (eccentric hypertrophy)`, `Sarcomeres added in parallel (concentric hypertrophy)`, `Myocardial amyloid fibril stiffness`],
+    correctIndex: 0,
+    explanation: `Correct: Post-viral (Coxsackie B) myocarditis can progress to dilated cardiomyopathy, where volume overload and myocyte loss drive eccentric hypertrophy (sarcomeres added in series), increasing chamber radius and reducing EF. Distractor exclusion: Parallel sarcomere addition occurs in pressure overload/AS; amyloid causes restrictive CM with preserved/near-normal EF.`,
+    secondOrderClue: `Volume overload / DCM = sarcomeres in series (eccentric); Pressure overload / AS = sarcomeres in parallel (concentric).`,
+    phase1Pearl: `Coxsackie B virus binds CAR receptor and triggers lymphocytic myocarditis; other DCM causes include alcohol, doxorubicin, Chagas, and pregnancy.`,
+    phase2Hallmark: `Global four-chamber dilation ("balloon heart" on CXR), S3 gallop, and secondary functional mitral/tricuspid regurgitation.`,
+    phase3Secret: `Treat HFrEF with GDMT (ACEi/ARNI, beta-blocker, spironolactone, SGLT2i); prevent doxorubicin cardiotoxicity with dexrazoxane.`,
+    dossierBullets: {
+      p1: [`• Viral (Coxsackie B), toxic (EtOH, doxorubicin), or genetic (TTN)`, `• Eccentric remodeling adds sarcomeres in series`],
+      p2: [`• S3 gallop, cardiomegaly, LVEF <40%`, `• Lymphocytic infiltrate with myocyte necrosis in acute myocarditis`],
+      p3: [`• GDMT reduces mortality in HFrEF`, `• T1-T4 somatic dysfunction often accompanies congestion`]
+    }
+  },
+  {
+    id: `CV03-Q3`, lo: 3, sector: `sector_1`, compartment: `Coronary & Myocardium`, ageGroup: `Older Adult / Degenerative`, behavior: `Structural & Pressure`,
+    loTitle: `Sector I • Cardiomyopathies`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Amyloid Restrictive CM`,
+    stem: `A 72-year-old man presents with progressive dyspnea, peripheral edema, and hepatomegaly. ECG shows low-voltage QRS complexes despite echocardiography demonstrating thickened ventricular walls with a speckled myocardium and biatrial enlargement. Endomyocardial biopsy stained with Congo red is most likely to demonstrate what finding?`,
+    clue: `Low-voltage ECG + thick "speckled" myocardium = infiltrative restrictive cardiomyopathy.`,
+    choices: [`Apple-green birefringence under polarized light`, `Myofibrillar disarray with branching myocytes`, `Aschoff bodies with Anitschkow cells`],
+    correctIndex: 0,
+    explanation: `Correct: Cardiac amyloidosis causes restrictive cardiomyopathy with thick walls yet paradoxically low-voltage QRS complexes (infiltrated extracellular space rather than myocyte hypertrophy), showing apple-green birefringence on Congo red stain. Distractor exclusion: Myofibrillar disarray is HCM; Aschoff bodies indicate acute rheumatic fever.`,
+    secondOrderClue: `Thick walls on echo + LOW voltage on ECG = cardiac amyloidosis (restrictive CM).`,
+    phase1Pearl: `Extracellular deposition of AL (light chain) or ATTR (transthyretin) amyloid fibrils impairs diastolic ventricular relaxation.`,
+    phase2Hallmark: `Congo red apple-green birefringence under polarized light; biatrial enlargement with preserved/mildly reduced EF.`,
+    phase3Secret: `Manage volume cautiously with loop diuretics; tafamidis stabilizes transthyretin in ATTR cardiomyopathy.`,
+    dossierBullets: {
+      p1: [`• Infiltrative disorders (amyloid, sarcoid, hemochromatosis) stiffen myocardium`, `• Ventricular filling plateaus abruptly in diastole`],
+      p2: [`• Low-voltage ECG + thickened speckled septum`, `• Congo red apple-green birefringence`],
+      p3: [`• Careful diuresis (preload-dependent cardiac output)`, `• Distinguish RCM from constrictive pericarditis ("knock" + calcification)`]
+    }
+  },
+
+  // LO 4: AFib & AFlutter
+  {
+    id: `CV04-Q1`, lo: 4, sector: `sector_2`, compartment: `Conduction System`, ageGroup: `Older Adult / Degenerative`, behavior: `Electrical & Channelopathy`,
+    loTitle: `Sector II • AFib & AFlutter`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Atrial Fibrillation (LA Stasis)`,
+    stem: `A 74-year-old woman with hypertension presents with sudden-onset right hemiparesis and expressive aphasia. Her pulse is 108/min and irregularly irregular. ECG demonstrates absent P waves and variable R-R intervals. Which anatomical site is the most common source of her cerebral embolus?`,
+    clue: `Loss of organized atrial contraction causes stasis in a specific left atrial pouch.`,
+    choices: [`Left atrial appendage`, `Right ventricular apex`, `Carotid sinus bifurcation`],
+    correctIndex: 0,
+    explanation: `Correct: Irregularly irregular rhythm without P waves defines atrial fibrillation; stasis of blood in the left atrial appendage promotes mural thrombus formation and cardioembolic stroke. Distractor exclusion: RV apex thrombus would embolize to lungs; carotid bifurcation causes atheroembolic stroke independent of AFib.`,
+    secondOrderClue: `AFib + acute focal neuro deficit -> thromboembolism from left atrial appendage.`,
+    phase1Pearl: `Chaotic firing from ectopic foci around the pulmonary vein ostia drives disorganized atrial depolarization.`,
+    phase2Hallmark: `Absent P waves, fibrillatory baseline, and irregularly irregular R-R intervals on ECG.`,
+    phase3Secret: `Assess stroke risk with CHA2DS2-VASc and anticoagulate (DOAC or warfarin); control rate with beta-blockers or diltiazem.`,
+    dossierBullets: {
+      p1: [`• Ectopic pulmonary vein foci trigger atrial fibrillation`, `• Loss of atrial kick drops LV filling by ~20%`],
+      p2: [`• Irregularly irregular R-R intervals, no discrete P waves`, `• Left atrial enlargement on echo`],
+      p3: [`• Rate control + CHA2DS2-VASc anticoagulation`, `• Rule out hyperthyroidism and mitral stenosis`]
+    }
+  },
+  {
+    id: `CV04-Q2`, lo: 4, sector: `sector_2`, compartment: `Conduction System`, ageGroup: `Adult / Acquired`, behavior: `Electrical & Channelopathy`,
+    loTitle: `Sector II • AFib & AFlutter`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Class IC Contraindication (CAD)`,
+    stem: `A 63-year-old man with a history of anterior myocardial infarction and ischemic cardiomyopathy presents with symptomatic paroxysmal atrial fibrillation. Why is flecainide strictly contraindicated for rhythm control in this patient?`,
+    clue: `Recall the Sketchy Pharm rule for Class IC antiarrhythmics ("Healthy Hearts Only").`,
+    choices: [`Proarrhythmic risk in structural/ischemic heart disease`, `Severe pulmonary fibrosis and thyroid toxicity`, `Lupus-like syndrome with anti-histone antibodies`],
+    correctIndex: 0,
+    explanation: `Correct: Class IC antiarrhythmics (flecainide, propafenone) strongly block fast Na+ channels and slow phase 0 depolarization; they are strictly contraindicated in structural or ischemic heart disease due to fatal proarrhythmic mortality ("Healthy Hearts Only"). Distractor exclusion: Pulmonary fibrosis/thyroid toxicity belongs to amiodarone (Class III); drug-induced lupus belongs to procainamide (Class IA).`,
+    secondOrderClue: `Class IC (Flecainide/Propafenone) = "Healthy Hearts Only" (contraindicated post-MI / structural HD).`,
+    phase1Pearl: `Class IC drugs exhibit strong use-dependence (slowest dissociation from Na+ channels), drastically slowing phase 0 and widening QRS without changing AP duration.`,
+    phase2Hallmark: `Marked QRS prolongation at fast heart rates; minimal change in QT/action potential duration.`,
+    phase3Secret: `Use amiodarone or dofetilide for rhythm control in structural/ischemic heart disease; amiodarone rarely causes Torsades.`,
+    dossierBullets: {
+      p1: [`• Class IC strongly binds open/inactivated Na+ channels`, `• Slows phase 0 upstroke without prolonging APD`],
+      p2: [`• Widens QRS complex with strong use-dependence`, `• Can convert AFib to 1:1 atrial flutter without AV nodal block`],
+      p3: [`• Contraindicated in prior MI or structural heart disease`, `• Always pair with AV nodal blocker if treating flutter`]
+    }
+  },
+  {
+    id: `CV04-Q3`, lo: 4, sector: `sector_2`, compartment: `Conduction System`, ageGroup: `Adult / Acquired`, behavior: `Electrical & Channelopathy`,
+    loTitle: `Sector II • AFib & AFlutter`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Atrial Flutter (2:1 Block)`,
+    stem: `A 60-year-old man with COPD presents with palpitations and a regular tachycardia of 150/min. ECG reveals negative sawtooth waves at 300/min in leads II, III, and aVF with narrow QRS complexes occurring after every second atrial wave. What is the underlying mechanism?`,
+    clue: `Regular ventricular rate of 150/min + sawtooth baseline at 300/min.`,
+    choices: [`Cavotricuspid macro-reentrant circuit in right atrium`, `Enhanced automaticity in the His-Purkinje fibers`, `Accessory pathway conduction via Bundle of Kent`],
+    correctIndex: 0,
+    explanation: `Correct: Atrial flutter results from a macro-reentrant circuit around the tricuspid annulus in the right atrium firing at ~300 bpm, classically conducted 2:1 through the AV node for a regular ventricular rate of ~150 bpm and sawtooth waves in inferior leads. Distractor exclusion: His-Purkinje automaticity causes ventricular rhythms; Bundle of Kent causes WPW pre-excitation.`,
+    secondOrderClue: `Regular HR ~150 bpm + sawtooth waves in II, III, aVF = Atrial Flutter with 2:1 AV block.`,
+    phase1Pearl: `Macro-reentry depends on unidirectional block and slow conduction around the cavotricuspid isthmus.`,
+    phase2Hallmark: `Sawtooth flutter waves best seen in leads II, III, aVF at ~300/min.`,
+    phase3Secret: `Rate control (beta-blocker/diltiazem), anticoagulate identically to AFib, and cure definitively with catheter ablation of cavotricuspid isthmus.`,
+    dossierBullets: {
+      p1: [`• Single macro-reentrant loop in right atrium (~300 bpm)`, `• AV node physiologic refractoriness creates 2:1 or 3:1 block`],
+      p2: [`• Classic sawtooth waves in inferior leads II, III, aVF`, `• Regular narrow-complex tachycardia at 150 bpm`],
+      p3: [`• Anticoagulation follows AFib CHA2DS2-VASc rules`, `• Radiofrequency ablation of cavotricuspid isthmus is curative`]
+    }
+  },
+
+  // LO 5: AV Blocks & WPW
+  {
+    id: `CV05-Q1`, lo: 5, sector: `sector_2`, compartment: `Conduction System`, ageGroup: `Young Adult / Genetic`, behavior: `Electrical & Channelopathy`,
+    loTitle: `Sector II • AV Blocks & WPW`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `WPW + AFib (Procainamide)`,
+    stem: `A 24-year-old man presents with dizziness and an irregularly irregular, wide-complex tachycardia at 210/min with varying QRS morphologies. His prior baseline ECG showed a PR interval of 90 ms and a slurred upstroke of the QRS complex. Which medication is indicated for immediate stabilization if he remains hemodynamically stable?`,
+    clue: `Baseline delta wave + irregularly irregular wide tachycardia = WPW with AFib; avoid AV nodal blockers.`,
+    choices: [`IV procainamide`, `IV verapamil`, `IV adenosine`],
+    correctIndex: 0,
+    explanation: `Correct: Baseline short PR (<120 ms) and delta wave indicate WPW syndrome. In AFib, blocking the AV node pushes all impulses down the rapid Bundle of Kent, precipitating VFib; IV procainamide (or ibutilide) slows accessory pathway conduction. Distractor exclusion: Verapamil and adenosine block the AV node and are strictly contraindicated in WPW + AFib.`,
+    secondOrderClue: `WPW + AFib (wide irregular tachycardia) -> Procainamide (or cardioversion if unstable); NEVER ABCD (Adenosine, Beta-blocker, CCB, Digoxin).`,
+    phase1Pearl: `Bundle of Kent is a congenital accessory myocardial bridge bypassing the physiologic AV nodal delay.`,
+    phase2Hallmark: `Triad on baseline ECG: short PR (<120 ms), slurred QRS upstroke (delta wave), and widened QRS.`,
+    phase3Secret: `Unstable WPW + AFib requires immediate synchronized cardioversion; definitive cure is catheter ablation of accessory pathway.`,
+    dossierBullets: {
+      p1: [`• Accessory pathway conducts antegrade without AV delay`, `• Rapid ventricular rates during AFib can trigger VFib`],
+      p2: [`• Short PR interval + delta wave + wide QRS`, `• Wide, irregularly irregular polymorphic-like QRS in AFib`],
+      p3: [`• Use procainamide (stable) or DC cardioversion (unstable)`, `• Strictly avoid adenosine, beta-blockers, diltiazem/verapamil, digoxin`]
+    }
+  },
+  {
+    id: `CV05-Q2`, lo: 5, sector: `sector_2`, compartment: `Conduction System`, ageGroup: `Adult / Acquired`, behavior: `Electrical & Channelopathy`,
+    loTitle: `Sector II • AV Blocks & WPW`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Mobitz II Infra-Nodal Block`,
+    stem: `A 72-year-old man presents after two episodes of unheralded syncope. Telemetry shows regular P waves at 80/min with a constant PR interval of 180 ms, followed intermittently by non-conducted P waves without prior PR prolongation. Which anatomic structure is diseased?`,
+    clue: `Constant PR interval + dropped QRS indicates pathology below the AV node.`,
+    choices: [`His-Purkinje system`, `Sinoatrial node`, `Atrioventricular node`],
+    correctIndex: 0,
+    explanation: `Correct: Mobitz type II second-degree AV block features constant PR intervals with sudden dropped beats, indicating structural disease below the AV node in the His-Purkinje system with high risk of complete heart block. Distractor exclusion: SA node dysfunction causes sinus pauses/bradycardia; AV nodal block produces Wenckebach (Mobitz I) progressive PR lengthening.`,
+    secondOrderClue: `Constant PR + dropped beat = Mobitz II (infra-nodal His-Purkinje -> pacemaker).`,
+    phase1Pearl: `Infra-nodal conduction relies on fast Na+ channels (all-or-none failure) rather than slow Ca2+ channels in the AV node.`,
+    phase2Hallmark: `Mobitz I: progressive PR lengthening until dropped beat; Mobitz II: fixed PR before dropped QRS; 3rd degree: complete AV dissociation.`,
+    phase3Secret: `Mobitz II and 3rd-degree AV block require permanent pacemaker placement; atropine is ineffective for infra-nodal blocks.`,
+    dossierBullets: {
+      p1: [`• Infra-nodal His-Purkinje disease fails abruptly without warning`, `• Contrast with vagal/Ca2+-dependent AV nodal fatigue in Mobitz I`],
+      p2: [`• Fixed PR interval followed by non-conducted P wave`, `• Often accompanied by bundle branch block widening`],
+      p3: [`• Urgent transcutaneous pacing if symptomatic -> permanent pacemaker`, `• Check Lyme titers in young patients with acute AV block`]
+    }
+  },
+  {
+    id: `CV05-Q3`, lo: 5, sector: `sector_2`, compartment: `Conduction System`, ageGroup: `Adult / Acquired`, behavior: `Electrical & Channelopathy`,
+    loTitle: `Sector II • AV Blocks & WPW`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `3rd-Degree AV Block (Cannon A)`,
+    stem: `A 76-year-old woman presents with profound fatigue and lightheadedness. Her HR is 34/min and BP is 88/54 mmHg. Neck exam reveals intermittent prominent jugular venous pulsations. ECG shows P waves at 86/min marching regularly and independently of wide QRS complexes at 34/min. What explains her intermittent neck pulsations?`,
+    clue: `P waves independent of QRS = complete AV dissociation; right atrium contracts against a closed valve.`,
+    choices: [`Atrial contraction against a closed tricuspid valve`, `Severe tricuspid regurgitation during systole`, `Loss of atrial contraction from atrial fibrillation`],
+    correctIndex: 0,
+    explanation: `Correct: Complete (3rd-degree) AV block dissociates atrial and ventricular contractions; whenever the right atrium contracts while the RV is in systole, blood surges backward against a closed tricuspid valve, creating cannon A waves. Distractor exclusion: Tricuspid regurgitation produces giant systolic V waves; AFib eliminates A waves altogether.`,
+    secondOrderClue: `Independent P & QRS rates + intermittent cannon A waves = 3rd-degree (complete) AV block.`,
+    phase1Pearl: `Complete interruption of AV conduction forces a slower ventricular escape pacemaker (20-40 bpm) to maintain cardiac output.`,
+    phase2Hallmark: `Atrial rate > ventricular rate with constant P-P and R-R intervals but completely variable PR intervals.`,
+    phase3Secret: `Immediate transcutaneous/transvenous pacing followed by permanent pacemaker; evaluate for RCA ischemia, Lyme, or digoxin toxicity.`,
+    dossierBullets: {
+      p1: [`• Complete failure of impulse transmission from atria to ventricles`, `• Infra-nodal escape rhythm is slow and wide`],
+      p2: [`• AV dissociation on ECG + intermittent cannon A waves`, `• Variable intensity of S1 on auscultation`],
+      p3: [`• Pacemaker implantation is definitive management`, `• Contrast cannon A waves (3rd-degree) with giant V waves (TR)`]
+    }
+  },
+
+  // LO 6: Long QT & Torsades
+  {
+    id: `CV06-Q1`, lo: 6, sector: `sector_2`, compartment: `Conduction System`, ageGroup: `Young Adult / Genetic`, behavior: `Electrical & Channelopathy`,
+    loTitle: `Sector II • Long QT & Torsades`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Jervell & Lange-Nielsen Syndrome`,
+    stem: `An 8-year-old boy with congenital bilateral sensorineural deafness experiences a syncopal episode while swimming. Resting ECG demonstrates a QTc of 530 ms. Which inherited syndrome and channel defect best explain his presentation?`,
+    clue: `Congenital long QT + sensorineural deafness = autosomal recessive K+ channel defect.`,
+    choices: [`Jervell and Lange-Nielsen syndrome (K+ channel)`, `Romano-Ward syndrome (Na+ channel)`, `Brugada syndrome (Na+ channel)`],
+    correctIndex: 0,
+    explanation: `Correct: Jervell and Lange-Nielsen syndrome is autosomal recessive, caused by a K+ channel mutation impairing both cardiac repolarization (long QT) and inner ear endolymph K+ secretion (sensorineural deafness). Distractor exclusion: Romano-Ward is autosomal dominant without deafness; Brugada presents with coved ST elevations in V1-V2.`,
+    secondOrderClue: `Congenital deafness + prolonged QTc + syncope = Jervell & Lange-Nielsen (AR K+ channel defect).`,
+    phase1Pearl: `Loss-of-function of delayed rectifier K+ channels (IKs) prolongs phase 3 repolarization, risking early afterdepolarizations.`,
+    phase2Hallmark: `QTc >470-500 ms on baseline ECG; congenital deafness on audiometry.`,
+    phase3Secret: `Treat with beta-blockers (nadolol/propranolol) and ICD if high risk; avoid QT-prolonging drugs and competitive swimming.`,
+    dossierBullets: {
+      p1: [`• AR KCNQ1/KCNE1 mutation impairs K+ efflux in heart & cochlea`, `• Prolonged phase 3 predisposes to early afterdepolarizations`],
+      p2: [`• Markedly prolonged QTc >500 ms`, `• Normal hearing distinguishes Romano-Ward (AD)`],
+      p3: [`• Nonselective beta-blockers reduce adrenergic Torsades triggers`, `• Strict avoidance of macrolides, fluoroquinolones, haloperidol`]
+    }
+  },
+  {
+    id: `CV06-Q2`, lo: 6, sector: `sector_2`, compartment: `Conduction System`, ageGroup: `Adult / Acquired`, behavior: `Electrical & Channelopathy`,
+    loTitle: `Sector II • Long QT & Torsades`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Early Afterdepolarizations (Phase 3)`,
+    stem: `A 55-year-old woman hospitalized for community-acquired pneumonia receives IV azithromycin and haloperidol for delirium. Telemetry subsequently shows QTc prolongation to 560 ms followed by polymorphic ventricular tachycardia twisting around the isoelectric line. Which cellular electrophysiological event initiates this arrhythmia?`,
+    clue: `QT prolongation reflects delayed repolarization during phase 2/3 of the ventricular action potential.`,
+    choices: [`Early afterdepolarizations via L-type Ca2+ reactivation`, `Delayed afterdepolarizations from digoxin Ca2+ overload`, `Vagal hyperpolarization of the SA node`],
+    correctIndex: 0,
+    explanation: `Correct: QT-prolonging agents (macrolides, haloperidol, Class IA/III antiarrhythmics) block phase 3 K+ channels, prolonging repolarization and allowing L-type Ca2+ channels to reactivate as early afterdepolarizations (EADs) that trigger Torsades de Pointes. Distractor exclusion: DADs occur in phase 4 from intracellular Ca2+ overload (digoxin); vagal hyperpolarization causes sinus bradycardia.`,
+    secondOrderClue: `QT prolongation -> phase 2/3 EADs (Ca2+ reactivation) -> Torsades de Pointes.`,
+    phase1Pearl: `Phase 3 delayed rectifier K+ block delays repolarization; hypokalemia and hypomagnesemia further reduce outward K+ current.`,
+    phase2Hallmark: `Polymorphic VT with QRS complexes undulating around the baseline ("twisting of the points").`,
+    phase3Secret: `Give IV magnesium sulfate immediately; note that amiodarone prolongs QT yet rarely triggers Torsades.`,
+    dossierBullets: {
+      p1: [`• Drug-induced hERG/IKr K+ blockade prolongs phase 3`, `• Slowed repolarization permits inward Ca2+ EADs`],
+      p2: [`• Sinusoidal twisting QRS complexes on telemetry`, `• Preceded by long-short R-R pause sequences`],
+      p3: [`• IV MgSO4 stabilizes membrane regardless of baseline Mg2+`, `• Stop offending drugs and replete K+ >4.0 mEq/L`]
+    }
+  },
+  {
+    id: `CV06-Q3`, lo: 6, sector: `sector_2`, compartment: `Conduction System`, ageGroup: `Adult / Acquired`, behavior: `Electrical & Channelopathy`,
+    loTitle: `Sector II • Long QT & Torsades`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `IV Magnesium Sulfate First-Line`,
+    stem: `A 49-year-old man with alcohol use disorder and severe hypokalemia develops recurrent nonsustained polymorphic ventricular tachycardia with waxing and waning QRS amplitudes around the baseline. His pulse is intact during runs, and his QTc between episodes is 540 ms. What is the most appropriate immediate pharmacologic therapy?`,
+    clue: `Stabilize the cardiac membrane in Torsades de Pointes even before lab Mg2+ returns.`,
+    choices: [`IV magnesium sulfate`, `IV amiodarone`, `IV lidocaine`],
+    correctIndex: 0,
+    explanation: `Correct: IV magnesium sulfate is first-line acute therapy for stable Torsades de Pointes, suppressing early afterdepolarizations even when serum magnesium is normal. Distractor exclusion: Amiodarone further prolongs QT and is avoided in Torsades; lidocaine is reserved for ischemic monomorphic VT.`,
+    secondOrderClue: `Torsades de Pointes (stable) -> IV MgSO4 immediately (+ K+ repletion & overdrive pacing if refractory).`,
+    phase1Pearl: `Magnesium inhibits L-type Ca2+ channels responsible for early afterdepolarizations without shortening QT itself.`,
+    phase2Hallmark: `Waxing and waning polymorphic QRS complexes + prolonged baseline QTc.`,
+    phase3Secret: `If pulseless or hemodynamically unstable, perform immediate unsynchronized defibrillation; isoproterenol or overdrive pacing raises HR to shorten QT.`,
+    dossierBullets: {
+      p1: [`• Mg2+ blocks L-type Ca2+ influx generating EADs`, `• Hypokalemia and bradycardia worsen phase 3 delay`],
+      p2: [`• Polymorphic VT twisting around baseline`, `• Baseline QTc >500 ms`],
+      p3: [`• IV MgSO4 first-line; defibrillate if pulseless`, `• Replete potassium and discontinue QT-prolonging meds`]
+    }
+  },
+
+  // LO 7: Aortic Stenosis & Regurgitation
+  {
+    id: `CV07-Q1`, lo: 7, sector: `sector_3`, compartment: `Valves & Septa`, ageGroup: `Older Adult / Degenerative`, behavior: `Structural & Pressure`,
+    loTitle: `Sector III • Aortic Valve`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Calcific Aortic Stenosis (Bicuspid)`,
+    stem: `A 56-year-old man presents with exertional syncope and substernal chest tightness that resolves with rest. Physical exam reveals a soft S2, a delayed and weak carotid upstroke, and a 3/6 harsh crescendo-decrescendo systolic murmur at the right second intercostal space radiating to the carotids. What congenital variant most likely accelerated his valvular disease?`,
+    clue: `Calcific aortic stenosis presenting before age 60 suggests an early congenital predisposition.`,
+    choices: [`Bicuspid aortic valve`, `Patent foramen ovale`, `Ventricular septal defect`],
+    correctIndex: 0,
+    explanation: `Correct: Age-related calcific AS normally presents >60-70 years; presentation at age 50-60 with SAD symptoms, pulsus parvus et tardus, and carotid-radiating crescendo-decrescendo murmur strongly points to early calcification of a bicuspid aortic valve. Distractor exclusion: PFO and VSD do not cause calcific aortic outflow obstruction.`,
+    secondOrderClue: `AS symptoms <60 years + pulsus parvus et tardus -> early calcification of bicuspid aortic valve.`,
+    phase1Pearl: `Turbulent shear across two unequal cusps induces early osteoblastic/dystrophic calcification -> pressure overload -> concentric LVH.`,
+    phase2Hallmark: `Crescendo-decrescendo systolic ejection murmur at R 2nd ICS radiating to carotids; soft/single S2; pulsus parvus et tardus.`,
+    phase3Secret: `Symptomatic severe AS requires surgical AVR or TAVR; avoid aggressive preload/afterload reduction (nitrates can cause syncope).`,
+    dossierBullets: {
+      p1: [`• Bicuspid valve (1-2% population) undergoes premature calcification`, `• LV pressure >> aortic pressure during systole`],
+      p2: [`• SAD triad (Syncope, Angina, Dyspnea) + S4 gallop`, `• Pulsus parvus et tardus + carotid radiation`],
+      p3: [`• AVR/TAVR is definitive once symptomatic`, `• Associated with coarctation of the aorta in Turner syndrome`]
+    }
+  },
+  {
+    id: `CV07-Q2`, lo: 7, sector: `sector_3`, compartment: `Valves & Septa`, ageGroup: `Adult / Acquired`, behavior: `Structural & Pressure`,
+    loTitle: `Sector III • Aortic Valve`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Aortic Regurgitation (Wide PP)`,
+    stem: `A 47-year-old man with Marfan syndrome presents with exertional dyspnea. Exam reveals a blood pressure of 158/46 mmHg, bounding femoral pulses, head bobbing with each heartbeat, and an early diastolic decrescendo blowing murmur at the left sternal border. Which hemodynamic change produces his wide pulse pressure?`,
+    clue: `Regurgitant flow backward during diastole alters both diastolic runoff and systolic stroke volume.`,
+    choices: [`Diastolic aortic runoff plus increased total stroke volume`, `Fixed systolic outflow obstruction lowering systolic pressure`, `Right-to-left shunting across an atrial defect`],
+    correctIndex: 0,
+    explanation: `Correct: In aortic regurgitation, blood regurgitates into the LV during diastole (dropping diastolic BP to 46 mmHg), while increased LV end-diastolic volume increases total forward stroke volume (raising systolic BP to 158 mmHg), creating a wide pulse pressure. Distractor exclusion: AS narrows pulse pressure (pulsus parvus); ASD does not cause bounding waterhammer pulses.`,
+    secondOrderClue: `Wide pulse pressure + head bobbing + early diastolic decrescendo murmur = Aortic Regurgitation (BEAR causes).`,
+    phase1Pearl: `Eccentric LV hypertrophy develops from chronic diastolic volume overload; causes follow BEAR (Bicuspid, Endocarditis, Aortic root dilation, Rheumatic).`,
+    phase2Hallmark: `Early diastolic decrescendo blowing murmur at LSB (valvular) or RSB (aortic root dilation); waterhammer pulse.`,
+    phase3Secret: `Treat chronic AR with afterload reduction (ACEi/ARB or nifedipine) and valve replacement before LVEF drops; handgrip increases AR murmur.`,
+    dossierBullets: {
+      p1: [`• Regurgitation lowers aortic DBP and boosts LVEDV/SBP`, `• Chronic volume overload drives eccentric hypertrophy`],
+      p2: [`• Early diastolic decrescendo murmur louder with handgrip`, `• Wide pulse pressure, pistol-shot femorals, de Musset head bobbing`],
+      p3: [`• Vasodilators reduce regurgitant fraction`, `• Marfan aortic root dilation requires beta-blocker/losartan + surveillance`]
+    }
+  },
+  {
+    id: `CV07-Q3`, lo: 7, sector: `sector_3`, compartment: `Valves & Septa`, ageGroup: `Older Adult / Degenerative`, behavior: `Structural & Pressure`,
+    loTitle: `Sector III • Aortic Valve`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Heyde Syndrome (vWF Cleavage)`,
+    stem: `A 78-year-old man with severe calcific aortic stenosis presents with painless melena and iron deficiency anemia. Colonoscopy reveals bleeding colonic angiodysplasias. Which hematologic mechanism links his severe valvular lesion to gastrointestinal bleeding?`,
+    clue: `High shear stress through a stenotic aortic orifice degrades a key hemostatic multimer.`,
+    choices: [`Shear-induced proteolysis of von Willebrand factor multimers`, `Autoimmune destruction of hepatic clotting factors`, `Splenic sequestration of platelets from portal hypertension`],
+    correctIndex: 0,
+    explanation: `Correct: Heyde syndrome occurs when high shear stress across a severely stenotic aortic valve unfolds large von Willebrand factor (vWF) multimers, exposing them to ADAMTS13 cleavage and causing bleeding from GI angiodysplasias. Distractor exclusion: Hepatic factor loss and splenic sequestration are not caused by isolated AS.`,
+    secondOrderClue: `Calcific AS + GI angiodysplasia bleeding = Heyde syndrome (shear cleavage of vWF multimers).`,
+    phase1Pearl: `Unfolded vWF multimers are cleaved by ADAMTS13, impairing platelet adhesion at high-flow mucosal angiodysplasias.`,
+    phase2Hallmark: `Loss of high-molecular-weight vWF multimers on gel electrophoresis + harsh crescendo-decrescendo AS murmur.`,
+    phase3Secret: `Aortic valve replacement resolves shear stress and typically stops recurrent angiodysplasia bleeding.`,
+    dossierBullets: {
+      p1: [`• High transvalvular shear unfolds large vWF multimers`, `• ADAMTS13 cleavage causes acquired type 2A vWD`],
+      p2: [`• Severe AS murmur + GI angiodysplasias on endoscopy`, `• Loss of HMW vWF multimers`],
+      p3: [`• Aortic valve replacement cures the coagulopathy`, `• Avoid chronic NSAIDs/anticoagulation unless strictly indicated`]
+    }
+  },
+
+  // LO 8: Mitral Stenosis & MVP
+  {
+    id: `CV08-Q1`, lo: 8, sector: `sector_3`, compartment: `Valves & Septa`, ageGroup: `Adult / Acquired`, behavior: `Structural & Pressure`,
+    loTitle: `Sector III • Mitral Valve`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Mitral Stenosis (Ortner Syndrome)`,
+    stem: `A 44-year-old woman who immigrated recently presents with progressive dyspnea, hemoptysis, and new hoarseness. Cardiac exam in the left lateral decubitus position reveals a loud S1, an opening snap shortly after S2, and a low-pitched diastolic rumble at the apex. Compression of which nerve causes her hoarseness?`,
+    clue: `Rheumatic mitral stenosis dilates the left atrium, compressing an adjacent mediastinal nerve.`,
+    choices: [`Left recurrent laryngeal nerve`, `Right phrenic nerve`, `Left vagus nerve trunk at the diaphragm`],
+    correctIndex: 0,
+    explanation: `Correct: Chronic rheumatic mitral stenosis causes marked left atrial dilation, which can compress the left recurrent laryngeal nerve as it loops under the aortic arch (Ortner syndrome), causing hoarseness. Distractor exclusion: Right phrenic nerve causes hemidiaphragm elevation; esophageal vagal trunks do not innervate vocal cords.`,
+    secondOrderClue: `Opening snap + diastolic apical rumble + hoarseness = Mitral Stenosis (Ortner syndrome: LA compresses L RLN).`,
+    phase1Pearl: `Late sequela of rheumatic fever causes commissural fusion ("fish-mouth" valve) -> LA >> LV diastolic pressure gradient.`,
+    phase2Hallmark: `Opening snap (shorter S2-OS interval = worse stenosis) + delayed rumbling mid-to-late diastolic murmur at apex.`,
+    phase3Secret: `Treat with diuretics, beta-blockers (lengthen diastolic filling), anticoagulation if AFib develops, and percutaneous balloon valvotomy.`,
+    dossierBullets: {
+      p1: [`• Rheumatic carditis fuses mitral commissures`, `• Chronic LA hypertension transmits back to pulmonary veins`],
+      p2: [`• Opening snap + low-pitched diastolic rumble at apex`, `• LA enlargement elevates left mainstem bronchus on CXR`],
+      p3: [`• Shorter S2-to-OS interval indicates higher LA pressure`, `• Balloon valvuloplasty preferred for pliable non-calcified valves`]
+    }
+  },
+  {
+    id: `CV08-Q2`, lo: 8, sector: `sector_3`, compartment: `Valves & Septa`, ageGroup: `Young Adult / Genetic`, behavior: `Structural & Pressure`,
+    loTitle: `Sector III • Mitral Valve`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Myxomatous MVP (Valsalva Shift)`,
+    stem: `A 29-year-old woman with joint hypermobility presents for a routine physical. Auscultation at the cardiac apex reveals a mid-systolic click followed by a late systolic crescendo murmur. When she performs a Valsalva maneuver, how do the timing and duration of her auscultatory findings change?`,
+    clue: `Decreased LV volume allows redundant mitral leaflets to prolapse sooner after S1.`,
+    choices: [`Click moves earlier toward S1 and murmur lengthens`, `Click moves later toward S2 and murmur shortens`, `Murmur softens and disappears completely`],
+    correctIndex: 0,
+    explanation: `Correct: MVP results from myxomatous degeneration of mitral leaflets/chordae; Valsalva reduces LV preload/volume, causing the leaflets to billow into the LA earlier in systole (click moves closer to S1, lengthening the late systolic murmur). Distractor exclusion: Squatting/leg raise increases preload, delaying the click toward S2 and shortening the murmur.`,
+    secondOrderClue: `Valsalva/standing (↓ preload) -> MVP click moves EARLIER (closer to S1) and murmur lengthens.`,
+    phase1Pearl: `Accumulation of proteoglycans (dermatan sulfate) weakens the fibrosa layer of mitral leaflets (primary or Marfan/EDS).`,
+    phase2Hallmark: `Mid-systolic click (sudden tensing of chordae tendineae) + late systolic crescendo murmur loudest before S2.`,
+    phase3Secret: `Usually benign; reassure and avoid unnecessary endocarditis prophylaxis unless prosthetic valve/prior IE.`,
+    dossierBullets: {
+      p1: [`• Myxomatous degeneration weakens valve connective tissue`, `• Chordae tendineae snap taut mid-systole`],
+      p2: [`• Mid-systolic click + late systolic murmur at apex`, `• Click occurs earlier with Valsalva/standing`],
+      p3: [`• Benign in most; monitor for progression to severe MR`, `• Squatting increases LV volume and delays click`]
+    }
+  },
+  {
+    id: `CV08-Q3`, lo: 8, sector: `sector_3`, compartment: `Valves & Septa`, ageGroup: `Adult / Acquired`, behavior: `Structural & Pressure`,
+    loTitle: `Sector III • Mitral Valve`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Mitral Stenosis Severity (S2-OS)`,
+    stem: `Two patients have rheumatic mitral stenosis. Patient A has an S2-to-opening snap (S2-OS) interval of 110 ms, whereas Patient B has an S2-OS interval of 50 ms and exertional hemoptysis. What hemodynamic difference explains Patient B's shorter S2-OS interval?`,
+    clue: `Higher left atrial pressure forces the stiff mitral valve open sooner after aortic closure.`,
+    choices: [`Higher left atrial pressure opening the mitral valve earlier`, `Lower left ventricular compliance delaying aortic closure`, `Severe pulmonary regurgitation masking S2`],
+    correctIndex: 0,
+    explanation: `Correct: In severe mitral stenosis, markedly elevated left atrial pressure exceeds falling LV pressure earlier during isovolumetric relaxation, snapping the fused valve open sooner after S2 (shorter S2-OS interval). Distractor exclusion: LV stiffness affects S4, not S2-OS; pulmonary regurgitation causes a Graham Steell murmur without shortening S2-OS.`,
+    secondOrderClue: `Shorter S2-to-opening snap interval = higher LA pressure = MORE SEVERE mitral stenosis.`,
+    phase1Pearl: `Elevated LA pressure backs up into bronchial veins, causing rupture and hemoptysis, and induces pulmonary arteriolar hypertrophy.`,
+    phase2Hallmark: `Narrow S2-OS interval (<60 ms) + prolonged diastolic rumble spanning diastole.`,
+    phase3Secret: `Maintain sinus rhythm or control ventricular rate so diastole remains long enough for LA emptying.`,
+    dossierBullets: {
+      p1: [`• Severe stenosis elevates LA pressure markedly`, `• Earlier crossover of LV and LA pressures shortens S2-OS`],
+      p2: [`• S2-OS interval inversely correlates with MS severity`, `• Double density sign and straight left heart border on CXR`],
+      p3: [`• Beta-blockers improve symptoms by slowing HR`, `• Warfarin preferred over DOACs in rheumatic MS with AFib`]
+    }
+  },
+
+  // LO 9: Congenital Shunts, TOF & Coarctation
+  {
+    id: `CV09-Q1`, lo: 9, sector: `sector_3`, compartment: `Valves & Septa`, ageGroup: `Pediatric / Congenital`, behavior: `Structural & Pressure`,
+    loTitle: `Sector III • Congenital CHD`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Tetralogy of Fallot (Squatting)`,
+    stem: `A 2-year-old boy with a history of a harsh systolic ejection murmur at the left upper sternal border develops sudden cyanosis and tachypnea while crying, then instinctively squats on the floor and rapidly improves. Chest radiograph shows a boot-shaped heart. Which embryologic defect underlies his four cardiac anomalies?`,
+    clue: `Boot-shaped heart + squatting relieves "tet" spells.`,
+    choices: [`Anterosuperior displacement of the infundibular septum`, `Failure of neural crest spiral aortopulmonary septation`, `Incomplete fusion of endocardial cushions`],
+    correctIndex: 0,
+    explanation: `Correct: Tetralogy of Fallot arises from anterosuperior displacement of the infundibular (conal) septum, causing pulmonary stenosis, RVH (boot-shaped heart), VSD, and an overriding aorta. Squatting increases SVR and reverses right-to-left shunting. Distractor exclusion: Spiral septum failure causes transposition of the great arteries; endocardial cushion defects cause AV canal defects (Down syndrome).`,
+    secondOrderClue: `"Tet" spell relieved by squatting (↑ SVR) + boot-shaped heart = TOF (infundibular septum displacement).`,
+    phase1Pearl: `Degree of right ventricular outflow tract (pulmonary) stenosis determines the severity of cyanosis and timing of presentation.`,
+    phase2Hallmark: `Boot-shaped heart (RVH lifting apex), harsh pulmonic systolic murmur, single S2.`,
+    phase3Secret: `Acute "tet" spell management: knee-to-chest positioning, O2, morphine, IV fluids, phenylephrine; surgical repair.`,
+    dossierBullets: {
+      p1: [`• Anterosuperior infundibular septum shift creates all 4 TOF features`, `• Associated with 22q11.2 deletion (DiGeorge)`],
+      p2: [`• Boot-shaped heart on CXR`, `• Right-to-left shunt across VSD worsens when PVR rises or SVR drops`],
+      p3: [`• Squatting/knee-chest raises SVR to force blood into lungs`, `• Phenylephrine raises SVR pharmacologically during spells`]
+    }
+  },
+  {
+    id: `CV09-Q2`, lo: 9, sector: `sector_3`, compartment: `Valves & Septa`, ageGroup: `Pediatric / Congenital`, behavior: `Structural & Pressure`,
+    loTitle: `Sector III • Congenital CHD`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `PDA (PGE1 vs Indomethacin)`,
+    stem: `A premature infant born at 29 weeks' gestation develops bounding pulses, a wide pulse pressure, and a continuous machine-like murmur best heard at the left infraclavicular area. Which endogenous mediator maintains patency of this fetal shunt, and which drug promotes its closure?`,
+    clue: `Continuous machine-like murmur = PDA; think prostaglandins vs NSAIDs.`,
+    choices: [`Prostaglandin E2 maintains patency; indomethacin closes it`, `Endothelin-1 maintains patency; alprostadil closes it`, `High arterial oxygen maintains patency; ibuprofen keeps it open`],
+    correctIndex: 0,
+    explanation: `Correct: In fetal life, low O2 tension and placental/local PGE2 maintain ductus arteriosus patency; indomethacin (or ibuprofen) inhibits COX to decrease PGE2 and close a symptomatic PDA. Distractor exclusion: Alprostadil (PGE1) keeps a PDA open for ductal-dependent lesions (e.g., TGA); rising arterial O2 triggers normal physiologic closure.`,
+    secondOrderClue: `PDA continuous machine-like murmur -> close with Indomethacin (↓ PGE2); keep open with Alprostadil (PGE1).`,
+    phase1Pearl: `Ductus arteriosus connects pulmonary trunk to descending aorta distal to left subclavian artery (6th aortic arch).`,
+    phase2Hallmark: `Continuous machine-like murmur loudest at S2 in left infraclavicular region; late Eisenmenger causes lower-extremity differential cyanosis.`,
+    phase3Secret: `Associated with prematurity and congenital rubella syndrome; indomethacin closes isolated PDA.`,
+    dossierBullets: {
+      p1: [`• PGE2 and low PaO2 keep ductus arteriosus relaxed`, `• Postnatal rise in PaO2 and drop in PGE2 induce smooth muscle closure`],
+      p2: [`• Continuous machine-like murmur loudest at S2`, `• Uncorrected large PDA -> differential cyanosis (blue toes, pink fingers)`],
+      p3: [`• Indomethacin/ibuprofen closes PDA`, `• Use PGE1 (alprostadil) in TGA or hypoplastic left heart`]
+    }
+  },
+  {
+    id: `CV09-Q3`, lo: 9, sector: `sector_3`, compartment: `Valves & Septa`, ageGroup: `Pediatric / Congenital`, behavior: `Structural & Pressure`,
+    loTitle: `Sector III • Congenital CHD`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Coarctation (Rib Notching)`,
+    stem: `A 14-year-old girl with short stature and a webbed neck has a blood pressure of 156/92 mmHg in her right arm and 94/60 mmHg in her legs, with delayed femoral pulses. Chest radiograph reveals inferior rib notching. What vascular adaptation explains the rib notching?`,
+    clue: `Turner syndrome + upper > lower BP + brachial-femoral delay = postductal coarctation.`,
+    choices: [`Dilated intercostal collateral arteries eroding inferior ribs`, `Elevated pulmonary venous pressure eroding superior ribs`, `Subclavian steal dilation of internal thoracic veins`],
+    correctIndex: 0,
+    explanation: `Correct: Postductal coarctation distal to the left subclavian artery drives collateral flow from the internal thoracic arteries through posterior intercostal arteries to bypass the stenosis, dilating them and eroding the inferior rib margins. Distractor exclusion: Pulmonary venous hypertension causes Kerley B lines, not rib notching; venous steal does not erode ribs.`,
+    secondOrderClue: `Turner syndrome + upper HTN / weak femoral pulses + inferior rib notching = Coarctation of the aorta.`,
+    phase1Pearl: `Juxtaductal/postductal aortic narrowing activates RAAS via reduced renal perfusion, worsening upper-body hypertension.`,
+    phase2Hallmark: `Brachial-femoral delay, "3 sign" on CXR, inferior rib notching, and frequent coexisting bicuspid aortic valve.`,
+    phase3Secret: `Balloon angioplasty or surgical repair; screen for bicuspid aortic valve and circle of Willis berry aneurysms.`,
+    dossierBullets: {
+      p1: [`• Narrowing near ligamentum arteriosum raises upper-body afterload`, `• Renal hypoperfusion activates RAAS`],
+      p2: [`• Inferior rib notching from collateral intercostal arteries`, `• Upper extremity HTN + weak/delayed femoral pulses`],
+      p3: [`• Strongly associated with Turner syndrome (45,X) & bicuspid valve`, `• Surgical/stent repair prevents early CAD, HF, and berry aneurysm rupture`]
+    }
+  },
+
+  // LO 10: Aortic Dissection & Aneurysm
+  {
+    id: `CV10-Q1`, lo: 10, sector: `sector_4`, compartment: `Aorta & Vasculature`, ageGroup: `Older Adult / Degenerative`, behavior: `Structural & Pressure`,
+    loTitle: `Sector IV • Aortic Syndromes`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Type A Aortic Dissection`,
+    stem: `A 64-year-old man with poorly controlled hypertension develops sudden, maximal-at-onset tearing chest pain radiating between his scapulae. BP is 196/104 mmHg in the right arm and 158/86 mmHg in the left arm, with a new early diastolic decrescendo murmur. Chest radiograph shows a widened mediastinum. What is the immediate first-line medication?`,
+    clue: `Control heart rate and shear stress (dP/dt) BEFORE giving a pure vasodilator.`,
+    choices: [`IV esmolol or labetalol`, `IV nitroprusside monotherapy`, `IV heparin and aspirin`],
+    correctIndex: 0,
+    explanation: `Correct: Aortic dissection presents with sudden tearing pain radiating to the back, >20 mmHg arm BP differential, widened mediastinum, and acute AR (Type A). IV beta-blockers (esmolol or labetalol) must be given FIRST to lower HR and shear stress (dP/dt) before vasodilators. Distractor exclusion: Nitroprusside alone triggers reflex tachycardia worsening dissection propagation; anticoagulation is catastrophic.`,
+    secondOrderClue: `Tearing back pain + BP differential + widened mediastinum -> IV beta-blocker FIRST (HR <60), then nicardipine/nitroprusside.`,
+    phase1Pearl: `Chronic hypertension induces hyaline arteriosclerosis of the vasa vasorum -> medial ischemia/cystic medial degeneration -> intimal tear.`,
+    phase2Hallmark: `Widened mediastinum (>8 cm) on CXR; false lumen intimal flap on CT angiography or TEE.`,
+    phase3Secret: `Stanford Type A (ascending aorta) requires emergent surgical repair; Type B (distal to left subclavian) is managed medically.`,
+    dossierBullets: {
+      p1: [`• HTN (most common) or Marfan/EDS weakens aortic media`, `• Intimal tear dissects media along false lumen`],
+      p2: [`• >20 mmHg BP difference + widened mediastinum`, `• Proximal extension causes acute AR, tamponade, or RCA MI`],
+      p3: [`• Beta-blocker before vasodilator to blunt reflex tachycardia`, `• Emergent surgery for Type A; medical control for uncomplicated Type B`]
+    }
+  },
+  {
+    id: `CV10-Q2`, lo: 10, sector: `sector_4`, compartment: `Aorta & Vasculature`, ageGroup: `Older Adult / Degenerative`, behavior: `Structural & Pressure`,
+    loTitle: `Sector IV • Aortic Syndromes`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Infrarenal AAA (Smoking)`,
+    stem: `A 71-year-old man with a 45-pack-year smoking history presents for a routine exam and is found to have a pulsatile, nontender mid-abdominal mass. Ultrasound confirms a 4.6 cm infrarenal abdominal aortic aneurysm. Which primary pathophysiologic mechanism drives aneurysm formation in this location?`,
+    clue: `Why is the infrarenal aorta uniquely vulnerable to atherosclerotic aneurysms?`,
+    choices: [`Atherosclerotic plaque compression of vasa vasorum`, `Autoimmune destruction of ascending elastin by Treponema`, `Cystic medial necrosis from fibrillin-1 deficiency`],
+    correctIndex: 0,
+    explanation: `Correct: Smoking-driven atherosclerosis is the main risk factor for infrarenal AAA; thick intimal plaque impairs oxygen diffusion while the infrarenal aorta lacks robust vasa vasorum, causing medial smooth muscle atrophy and wall weakening. Distractor exclusion: Tertiary syphilis causes ascending thoracic aneurysms ("tree-barking"); Marfan causes thoracic root aneurysms.`,
+    secondOrderClue: `Male smoker >65 -> infrarenal AAA (lack of vasa vasorum + atherosclerosis); Thoracic = HTN/Marfan/Syphilis.`,
+    phase1Pearl: `MMPs from macrophages degrade medial elastin and collagen; Laplace law (wall tension = P × r) accelerates expansion as diameter grows.`,
+    phase2Hallmark: `True aneurysm involves all 3 layers (intima, media, adventitia); ultrasound shows >3.0 cm focal dilation.`,
+    phase3Secret: `Screen men 65-75 who have ever smoked once with abdominal ultrasound; repair if >=5.5 cm, symptomatic, or growing >0.5 cm/6 months.`,
+    dossierBullets: {
+      p1: [`• Infrarenal aorta lacks dense vasa vasorum`, `• Smoking + atherosclerosis induce medial degeneration`],
+      p2: [`• Pulsatile abdominal mass + flank/back pain if rupturing`, `• True aneurysm retains all 3 vessel wall layers`],
+      p3: [`• One-time US screen for men 65-75 with smoking history`, `• Surgery/EVAR at >=5.5 cm or rapid expansion`]
+    }
+  },
+  {
+    id: `CV10-Q3`, lo: 10, sector: `sector_4`, compartment: `Aorta & Vasculature`, ageGroup: `Adult / Acquired`, behavior: `Structural & Pressure`,
+    loTitle: `Sector IV • Aortic Syndromes`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Syphilitic Aortitis (Tree-Barking)`,
+    stem: `A 68-year-old man with untreated remote sexually transmitted infection presents with dyspnea and a diastolic decrescendo murmur. Chest imaging shows a dilated ascending thoracic aorta with linear calcification. Pathology of the aortic root reveals obliterative endarteritis of the vasa vasorum and wrinkling of the intima. What is the gross hallmark?`,
+    clue: `Tertiary syphilis causes vasa vasorum endarteritis in the ascending aorta.`,
+    choices: [`Tree-bark appearance of the aortic intima`, `String-of-beads narrowing of the renal artery`, `Wire-loop capillary thickening of glomeruli`],
+    correctIndex: 0,
+    explanation: `Correct: Tertiary syphilis causes obliterative endarteritis of the vasa vasorum supplying the ascending thoracic aorta, leading to medial necrosis, scarring, and a characteristic "tree-bark" intimal appearance with aortic root dilation and AR. Distractor exclusion: String-of-beads characterizes fibromuscular dysplasia/PAN; wire-loop lesions occur in lupus nephritis.`,
+    secondOrderClue: `Ascending thoracic aneurysm + AR + obliterative endarteritis of vasa vasorum = Tertiary syphilis ("tree-bark" aorta).`,
+    phase1Pearl: `Treponema pallidum triggers plasma cell-rich obliterative endarteritis of vasa vasorum -> ischemic medial atrophy.`,
+    phase2Hallmark: `Intimal wrinkling ("tree-barking") + linear ascending aortic calcification.`,
+    phase3Secret: `Treat syphilis with IM benzathine penicillin G and evaluate surgical repair of ascending aneurysm/AR.`,
+    dossierBullets: {
+      p1: [`• Obliterative endarteritis narrows vasa vasorum of ascending aorta`, `• Medial elastic tissue necrosis weakens aortic root`],
+      p2: [`• "Tree-bark" intimal wrinkling + ascending aneurysm`, `• Causes aortic regurgitation via root dilation`],
+      p3: [`• Confirm with treponemal testing (FTA-ABS) + treat with penicillin`, `• Distinguish from atherosclerotic infrarenal AAA`]
+    }
+  },
+
+  // LO 11: Hypertension, RAAS & Hypertensive Crisis
+  {
+    id: `CV11-Q1`, lo: 11, sector: `sector_4`, compartment: `Aorta & Vasculature`, ageGroup: `Adult / Acquired`, behavior: `Hemodynamic & Autonomic`,
+    loTitle: `Sector IV • HTN & RAAS`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Fibromuscular Dysplasia (FMD)`,
+    stem: `A 29-year-old woman presents with new-onset hypertension (168/102 mmHg) refractory to two medications. Abdominal exam reveals a continuous lateralizing bruit over the right flank. Renal duplex shows elevated velocities, and angiography demonstrates alternating areas of stenosis and aneurysmal dilation in the distal right renal artery. What is the diagnosis?`,
+    clue: `Young woman + refractory HTN + flank bruit + "string-of-beads" renal angiogram.`,
+    choices: [`Fibromuscular dysplasia`, `Atherosclerotic renal artery stenosis`, `Primary hyperaldosteronism`],
+    correctIndex: 0,
+    explanation: `Correct: Fibromuscular dysplasia typically affects young-to-middle-aged women with medial fibroplasia of the distal/mid renal artery, producing a "string-of-beads" angiogram and renovascular HTN. Distractor exclusion: Atherosclerotic RAS affects older smokers at the proximal ostium; primary hyperaldosteronism lacks a renal bruit and suppresses renin.`,
+    secondOrderClue: `Young female + HTN + flank bruit + "string-of-beads" angiogram = Fibromuscular dysplasia (treat with angioplasty).`,
+    phase1Pearl: `Unilateral renal hypoperfusion activates JG cell renin -> ↑ Ang II and aldosterone -> secondary HTN + hypokalemic metabolic alkalosis.`,
+    phase2Hallmark: `"String-of-beads" appearance on renal angiography (medial fibroplasia).`,
+    phase3Secret: `Percutaneous transluminal renal angioplasty (without stent) is often curative; ACEi/ARB contraindicated in bilateral RAS.`,
+    dossierBullets: {
+      p1: [`• Unilateral renal ischemia elevates both renin and aldosterone`, `• Medial fibroplasia spares the proximal ostium`],
+      p2: [`• Flank bruit + "string-of-beads" angiogram`, `• Asymmetric smaller kidney on affected side`],
+      p3: [`• Balloon angioplasty for FMD; medical therapy + avoid ACEi in bilateral RAS`, `• Screen for carotid/cerebral FMD aneurysms`]
+    }
+  },
+  {
+    id: `CV11-Q2`, lo: 11, sector: `sector_4`, compartment: `Aorta & Vasculature`, ageGroup: `Adult / Acquired`, behavior: `Hemodynamic & Autonomic`,
+    loTitle: `Sector IV • HTN & RAAS`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Bilateral RAS + ACEi (↓ GFR)`,
+    stem: `A 68-year-old man with diffuse atherosclerosis and hypertension starts lisinopril. Four days later, his serum creatinine rises from 1.1 mg/dL to 2.9 mg/dL and urine output drops. Which glomerular hemodynamic mechanism explains this acute drop in GFR?`,
+    clue: `Angiotensin II preferentially maintains filtration pressure at one glomerular arteriole.`,
+    choices: [`Loss of Angiotensin II-mediated efferent arteriolar constriction`, `Excessive bradykinin-induced afferent arteriolar spasm`, `Aldosterone-mediated papillary necrosis`],
+    correctIndex: 0,
+    explanation: `Correct: In bilateral renal artery stenosis (or stenosis of a solitary kidney), GFR depends critically on Angiotensin II preferentially constricting the efferent arteriole. ACE inhibitors block Ang II formation, dilating the efferent arteriole and abruptly dropping glomerular filtration pressure. Distractor exclusion: Bradykinin dilates vessels and causes cough/angioedema; aldosterone does not cause papillary necrosis.`,
+    secondOrderClue: `Acute Cr rise >30% after starting ACEi/ARB = Bilateral renal artery stenosis (loss of efferent constriction).`,
+    phase1Pearl: `Ang II preferentially constricts the efferent arteriole -> raises glomerular capillary hydrostatic pressure (PGC) and filtration fraction (FF).`,
+    phase2Hallmark: `Proximal ostial atherosclerotic plaque on renal MRA/CTA + sudden creatinine spike post-ACEi.`,
+    phase3Secret: `Discontinue ACEi/ARB immediately and transition to CCB/thiazide/beta-blocker; avoid in pregnancy (fetal renal dysgenesis).`,
+    dossierBullets: {
+      p1: [`• Low RBF triggers renin -> Ang II constricts efferent arteriole`, `• Preserves GFR despite low afferent perfusion pressure`],
+      p2: [`• Acute azotemia + hyperkalemia days after ACEi/ARB initiation`, `• Ostial atherosclerotic narrowing on duplex/CTA`],
+      p3: [`• Stop ACEi/ARB; contraindicated in bilateral RAS and pregnancy`, `• Safe pregnancy antihypertensives: labetalol, nifedipine, methyldopa`]
+    }
+  },
+  {
+    id: `CV11-Q3`, lo: 11, sector: `sector_4`, compartment: `Aorta & Vasculature`, ageGroup: `Adult / Acquired`, behavior: `Hemodynamic & Autonomic`,
+    loTitle: `Sector IV • HTN & RAAS`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Malignant HTN (Onion-Skinning)`,
+    stem: `A 51-year-old man with untreated hypertension presents with headache, blurred vision, BP 232/134 mmHg, papilledema, and acute kidney injury. Renal biopsy in severe malignant hypertension classically demonstrates concentric laminated thickening of arteriolar walls and fibrinoid necrosis. What is this histologic lesion called?`,
+    clue: `Hypertensive emergency causes proliferative endarteritis of renal arterioles.`,
+    choices: [`Hyperplastic arteriolosclerosis ("onion-skinning")`, `Hyaline arteriolosclerosis of benign hypertension`, `Kimmelstiel-Wilson nodular glomerulosclerosis`],
+    correctIndex: 0,
+    explanation: `Correct: Hypertensive emergency (BP >180/120 with acute end-organ damage such as papilledema or AKI) causes hyperplastic arteriolosclerosis ("onion-skinning" smooth muscle hyperplasia) and fibrinoid necrosis ("flea-bitten" kidney). Distractor exclusion: Hyaline arteriolosclerosis occurs in benign chronic HTN/diabetes; Kimmelstiel-Wilson nodules occur in diabetic nephropathy.`,
+    secondOrderClue: `BP >180/120 + papilledema/AKI = Hypertensive emergency -> hyperplastic ("onion-skin") arteriolosclerosis + fibrinoid necrosis.`,
+    phase1Pearl: `Severe pressure damages endothelium, permitting plasma protein insudation (fibrinoid necrosis) and concentric smooth muscle proliferation.`,
+    phase2Hallmark: `Concentric "onion-skinning" of arterioles, fibrinoid necrosis, flame hemorrhages, papilledema.`,
+    phase3Secret: `Lower MAP by no more than 20-25% in the first hour using titratable IV agents (nicardipine, labetalol, clevidipine) to avoid watershed stroke.`,
+    dossierBullets: {
+      p1: [`• Extreme shear causes fibrinoid necrosis and hyperplastic remodeling`, `• Distinguishes hypertensive emergency from urgency`],
+      p2: [`• "Onion-skin" arterioles + papilledema on fundoscopy`, `• Microangiopathic hemolytic anemia (schistocytes) may coexist`],
+      p3: [`• Gradual IV BP reduction (max 25% in 1st hour, except dissection)`, `• Oral meds only for hypertensive urgency (no organ damage)`]
+    }
+  },
+
+  // LO 12: DVT/PE & Vasculitides
+  {
+    id: `CV12-Q1`, lo: 12, sector: `sector_4`, compartment: `Aorta & Vasculature`, ageGroup: `Older Adult / Degenerative`, behavior: `Inflammatory & Vascular`,
+    loTitle: `Sector IV • Thrombo & Vasculitis`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Temporal Arteritis (Immediate Steroids)`,
+    stem: `A 73-year-old woman presents with 2 weeks of unilateral throbbing temporal headache, pain while chewing tough foods, and morning shoulder stiffness. ESR is 98 mm/hr. Today she noticed transient blurring in her right eye. What is the most appropriate immediate next step?`,
+    clue: `Visual symptoms in suspected giant cell arteritis cannot wait for pathology.`,
+    choices: [`Start high-dose corticosteroids immediately, then biopsy`, `Await temporal artery biopsy before starting therapy`, `Order ANCA panel and start cyclophosphamide`],
+    correctIndex: 0,
+    explanation: `Correct: Headache, jaw claudication, polymyalgia rheumatica symptoms, elevated ESR, and visual disturbance in a patient >50 indicate giant cell (temporal) arteritis. High-dose systemic steroids must be started immediately to prevent irreversible blindness from ophthalmic artery occlusion, followed by temporal artery biopsy. Distractor exclusion: Delaying steroids risks permanent blindness; ANCA/cyclophosphamide targets small-vessel vasculitis.`,
+    secondOrderClue: `Age >50 + jaw claudication + ↑ ESR + vision changes = GCA -> High-dose steroids IMMEDIATELY before biopsy.`,
+    phase1Pearl: `Granulomatous inflammation of large/medium branches of the carotid (temporal, ophthalmic) causes focal skip lesions and luminal thrombosis.`,
+    phase2Hallmark: `Fragmented internal elastic lamina with multinucleated giant cells and mononuclear infiltrates (skip lesions require long biopsy).`,
+    phase3Secret: `Start IV/oral high-dose glucocorticoids immediately; biopsy remains positive for ~1-2 weeks after steroid initiation.`,
+    dossierBullets: {
+      p1: [`• Granulomatous vasculitis of aortic arch/carotid branches`, `• Associated with polymyalgia rheumatica (proximal stiffness)`],
+      p2: [`• Elevated ESR/CRP + multinucleated giant cells`, `• Segmental skip lesions along temporal artery`],
+      p3: [`• Never delay steroids for biopsy if GCA suspected`, `• Contrast with Takayasu (<40y, weak upper pulses)]`]
+    }
+  },
+  {
+    id: `CV12-Q2`, lo: 12, sector: `sector_4`, compartment: `Aorta & Vasculature`, ageGroup: `Pediatric / Congenital`, behavior: `Inflammatory & Vascular`,
+    loTitle: `Sector IV • Thrombo & Vasculitis`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Kawasaki Coronary Aneurysm`,
+    stem: `A 3-year-old boy has had a high fever for 6 days despite acetaminophen, accompanied by bilateral nonexudative conjunctivitis, strawberry tongue, erythematous palms/soles, and cervical lymphadenopathy. If left untreated, which fatal cardiovascular complication is he at highest risk of developing?`,
+    clue: `Mucocutaneous lymph node syndrome targets medium-sized muscular arteries of the heart.`,
+    choices: [`Coronary artery aneurysms and thrombosis`, `Ascending thoracic aortic dissection`, `Pulmonary capillary hemorrhage`],
+    correctIndex: 0,
+    explanation: `Correct: Kawasaki disease (CRASH & Burn: Conjunctivitis, Rash, Adenopathy, Strawberry tongue, Hand/foot swelling + fever >=5 days) causes medium-vessel necrotizing vasculitis with a predilection for coronary arteries, risking aneurysms and pediatric MI. Distractor exclusion: Thoracic dissection occurs in Marfan/HTN; pulmonary hemorrhage occurs in Goodpasture/ANCA vasculitides.`,
+    secondOrderClue: `Child <5 + fever >=5 days + CRASH = Kawasaki -> IVIG + high-dose aspirin to prevent coronary aneurysms.`,
+    phase1Pearl: `Immune-mediated endothelial damage and MMP activation degrade internal elastic lamina of coronary arteries.`,
+    phase2Hallmark: `Transmural inflammation of medium muscular arteries with fibrinoid necrosis and saccular coronary aneurysms on echo.`,
+    phase3Secret: `Treat promptly with IVIG + high-dose aspirin (classic board exception where aspirin is given to a child despite Reye risk).`,
+    dossierBullets: {
+      p1: [`• Medium-vessel vasculitis in children <5 years`, `• Targets coronary arteries leading to ectasia/aneurysm`],
+      p2: [`• Fever >=5d + 4/5 CRASH criteria + thrombocytosis`, `• Echocardiogram screens baseline and follow-up coronaries`],
+      p3: [`• IVIG + aspirin reduces coronary aneurysm rate dramatically`, `• Avoid live vaccines temporarily after high-dose IVIG`]
+    }
+  },
+  {
+    id: `CV12-Q3`, lo: 12, sector: `sector_4`, compartment: `Aorta & Vasculature`, ageGroup: `Adult / Acquired`, behavior: `Inflammatory & Vascular`,
+    loTitle: `Sector IV • Thrombo & Vasculitis`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Pulmonary Embolism (S1Q3T3)`,
+    stem: `A 59-year-old woman develops sudden pleuritic chest pain, dyspnea, and tachycardia (118/min) 5 days after total knee arthroplasty. Pulse oximetry is 88% on room air, and ABG shows respiratory alkalosis. ECG demonstrates sinus tachycardia, a deep S wave in lead I, and a Q wave with inverted T wave in lead III. What chest radiograph sign reflects focal pulmonary infarction?`,
+    clue: `Post-op DVT -> PE with acute RV strain (S1Q3T3) and peripheral wedge opacity.`,
+    choices: [`Hampton hump (wedge-shaped peripheral opacity)`, `Boot-shaped cardiac silhouette`, `Egg-on-a-string mediastinum`],
+    correctIndex: 0,
+    explanation: `Correct: Acute PE after orthopedic surgery causes V/Q mismatch, hypoxemia, sinus tachycardia, and S1Q3T3 RV strain pattern; pulmonary infarction yields a peripheral wedge-shaped opacity abutting the pleura (Hampton hump). Distractor exclusion: Boot-shaped heart is TOF; egg-on-a-string is transposition of the great arteries.`,
+    secondOrderClue: `Post-op dyspnea + S1Q3T3 -> PE; Hampton hump (wedge infarct) & Westermark sign (oligemia) on CXR.`,
+    phase1Pearl: `Virchow triad (venous stasis post-op, endothelial trauma, hypercoagulability) forms deep iliofemoral thrombus that embolizes to pulmonary arteries.`,
+    phase2Hallmark: `Sinus tachycardia (most common ECG), S1Q3T3 (RV strain), CT pulmonary angiography filling defect.`,
+    phase3Secret: `Anticoagulate immediately (LMWH/UFH/DOAC) if high suspicion; systemic thrombolysis (alteplase) if massive PE with hypotension.`,
+    dossierBullets: {
+      p1: [`• Virchow triad drives DVT -> acute increase in PVR`, `• Dead-space ventilation causes hypoxemia & tachypnea`],
+      p2: [`• CTPA is gold standard; D-dimer useful if low pretest probability`, `• Hampton hump and Westermark sign on CXR`],
+      p3: [`• Immediate anticoagulation unless active major bleeding`, `• Thrombolytics/embolectomy for obstructive shock`]
+    }
+  },
+
+  // LO 13: Auscultation, Heart Sounds & Maneuvers
+  {
+    id: `CV13-Q1`, lo: 13, sector: `sector_5`, compartment: `Valves & Septa`, ageGroup: `Adult / Acquired`, behavior: `Hemodynamic & Autonomic`,
+    loTitle: `Sector V • Exam & Maneuvers`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Tricuspid Regurgitation (Inspiration)`,
+    stem: `A 28-year-old man who injects heroin presents with fever, pleuritic chest pain, and multiple cavitary pulmonary nodules on chest CT. Cardiac exam demonstrates a holosystolic murmur at the left lower sternal border that becomes notably louder during deep inspiration. Which valve and organism are most likely involved?`,
+    clue: `Carvallo sign (louder with inspiration) localizes to the right heart; IVDU favors a catalase/coagulase+ organism.`,
+    choices: [`Tricuspid valve — Staphylococcus aureus`, `Mitral valve — Streptococcus viridans`, `Aortic valve — Streptococcus gallolyticus`],
+    correctIndex: 0,
+    explanation: `Correct: Inspiration lowers intrathoracic pressure, increasing venous return to the right heart and augmenting right-sided murmurs (Carvallo sign). IV drug use classically seeds the tricuspid valve with Staphylococcus aureus, causing septic pulmonary emboli. Distractor exclusion: Mitral/aortic murmurs soften or stay unchanged with inspiration and are left-sided.`,
+    secondOrderClue: `IVDU + septic pulmonary emboli + holosystolic murmur louder with inspiration = Tricuspid S. aureus endocarditis.`,
+    phase1Pearl: `Deep inspiration increases right atrial/ventricular preload (and delays P2, widening S2 split) while transiently pooling blood in pulmonary veins.`,
+    phase2Hallmark: `Carvallo sign (↑ right-sided murmur intensity on inspiration), giant systolic V waves in JVP, bilateral cavitary lung nodules.`,
+    phase3Secret: `Start empiric IV vancomycin immediately after drawing 3 sets of blood cultures; narrow to nafcillin/cefazolin if MSSA.`,
+    dossierBullets: {
+      p1: [`• Inspiration augments RV preload -> louder TR/TS/PS/PR murmurs`, `• S. aureus protein A binds Fc and causes acute destructive endocarditis`],
+      p2: [`• Holosystolic LSB murmur louder with inspiration`, `• Septic pulmonary emboli on CT`],
+      p3: [`• Vancomycin empirically for MRSA coverage`, `• S. gallolyticus bacteremia warrants colonoscopy for colon cancer`]
+    }
+  },
+  {
+    id: `CV13-Q2`, lo: 13, sector: `sector_5`, compartment: `Valves & Septa`, ageGroup: `Adult / Acquired`, behavior: `Hemodynamic & Autonomic`,
+    loTitle: `Sector V • Exam & Maneuvers`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `S4 Gallop (Atrial Kick)`,
+    stem: `A 67-year-old man with long-standing hypertension has an extra low-pitched heart sound heard best with the bell at the apex immediately before S1 ("Tennessee" cadence). Two weeks later, he develops new-onset atrial fibrillation, and the extra sound disappears. Which physiologic event generated the sound prior to his arrhythmia?`,
+    clue: `Only one extra heart sound depends directly on organized atrial contraction in late diastole.`,
+    choices: [`Atrial contraction against a stiff, noncompliant ventricle`, `Rapid passive ventricular filling in early diastole`, `Sudden tensing of redundant mitral chordae in mid-systole`],
+    correctIndex: 0,
+    explanation: `Correct: S4 occurs in late diastole immediately before S1 when the atrial kick forces blood into a stiff, hypertrophied, noncompliant LV (e.g., chronic HTN, AS, HCM). Because it requires atrial contraction, S4 vanishes during atrial fibrillation. Distractor exclusion: Rapid early passive filling creates S3; chordae tensing creates an MVP click.`,
+    secondOrderClue: `Pre-S1 extra sound disappearing in AFib = S4 gallop (atrial kick into stiff LV).`,
+    phase1Pearl: `Concentric LVH reduces ventricular compliance, raising late-diastolic pressure during atrial systole.`,
+    phase2Hallmark: `Low-frequency sound best heard with stethoscope bell at apex in left lateral decubitus immediately before S1.`,
+    phase3Secret: `Control hypertension with ACEi/ARB or CCB to regress LVH; S3 ("Kentucky") indicates volume overload/systolic HF in older adults.`,
+    dossierBullets: {
+      p1: [`• S4 = active atrial contraction into stiff ventricle`, `• Absent in atrial fibrillation due to loss of atrial kick`],
+      p2: [`• Heard with bell at apex just before S1 ("Ten-nes-see")`, `• Contrast with early-diastolic S3 ("Ken-tuc-ky")`],
+      p3: [`• S4 is always pathologic in hypertension/AS/HCM`, `• S3 can be physiologic in children, athletes, and pregnancy`]
+    }
+  },
+  {
+    id: `CV13-Q3`, lo: 13, sector: `sector_5`, compartment: `Valves & Septa`, ageGroup: `Adult / Acquired`, behavior: `Hemodynamic & Autonomic`,
+    loTitle: `Sector V • Exam & Maneuvers`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Sustained Handgrip (↑ Afterload)`,
+    stem: `A 61-year-old man has a systolic murmur at the apex radiating to the axilla. When asked to perform a sustained isometric handgrip maneuver, the murmur becomes appreciably louder. Which hemodynamic response explains why handgrip intensifies this specific murmur?`,
+    clue: `Handgrip compresses peripheral muscular arteries, raising systemic vascular resistance.`,
+    choices: [`Increased afterload augments backward flow across the mitral valve`, `Increased venous return augments right-sided preload`, `Decreased LV volume narrows the outflow tract`],
+    correctIndex: 0,
+    explanation: `Correct: Sustained handgrip increases SVR (afterload), raising LV systolic pressure and driving a larger regurgitant fraction backward into the LA in mitral regurgitation (also louder in AR and VSD). Conversely, handgrip softens AS and HCM murmurs. Distractor exclusion: Inspiration raises right-sided preload; Valsalva/standing decreases LV volume.`,
+    secondOrderClue: `Handgrip (↑ SVR/afterload) -> LOUDER MR, AR, VSD; SOFTER AS & HCM.`,
+    phase1Pearl: `Peripheral arterial compression increases total peripheral resistance -> elevated aortic and LV systolic pressures.`,
+    phase2Hallmark: `Holosystolic blowing murmur at apex radiating to axilla that intensifies with handgrip or squatting.`,
+    phase3Secret: `Use afterload reduction (ACEi/hydralazine) to decrease regurgitant volume in chronic MR; evaluate surgical repair if EF declines.`,
+    dossierBullets: {
+      p1: [`• Handgrip raises SVR -> widens LV-LA systolic pressure gradient`, `• Reduces transaortic gradient in AS and expands LV in HCM`],
+      p2: [`• Louder MR, AR, and VSD murmurs`, `• Softer AS and HCM murmurs`],
+      p3: [`• Vasodilators reduce regurgitant fraction in MR/AR`, `• Combine handgrip with Valsalva to separate AS vs HCM vs MR`]
+    }
+  },
+
+  // LO 14: JVP Waveforms, Digoxin & Endocarditis
+  {
+    id: `CV14-Q1`, lo: 14, sector: `sector_5`, compartment: `Aorta & Vasculature`, ageGroup: `Adult / Acquired`, behavior: `Hemodynamic & Autonomic`,
+    loTitle: `Sector V • JVP & Endocarditis`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Streptococcus gallolyticus (Colonoscopy)`,
+    stem: `A 69-year-old man presents with 3 weeks of low-grade fevers, night sweats, and painless erythematous macules on his palms. Echocardiography reveals a mitral valve vegetation, and blood cultures grow gram-positive, catalase-negative cocci that grow in 6.5% bile-esculin and are PYR-negative. After initiating IV antibiotics, what diagnostic study is mandatory?`,
+    clue: `"Bovis in the blood = cancer in the colon."`,
+    choices: [`Colonoscopy to evaluate for colorectal carcinoma`, `Renal biopsy for immune-complex glomerulonephritis`, `Bronchoscopy for occult bronchogenic carcinoma`],
+    correctIndex: 0,
+    explanation: `Correct: Painless Janeway lesions + subacute endocarditis with Streptococcus gallolyticus (formerly S. bovis) carries a strong association with colonic neoplasia ("Bovis in the blood = cancer in the colon"), mandating colonoscopy. Distractor exclusion: Renal/lung biopsies are not indicated unless focal abnormalities exist; Osler nodes are painful whereas Janeway lesions are painless.`,
+    secondOrderClue: `S. gallolyticus (S. bovis) endocarditis + Janeway lesions -> mandatory colonoscopy.`,
+    phase1Pearl: `Colonic mucosal ulceration from adenomas/carcinoma facilitates translocation of S. gallolyticus into the portal and systemic circulation.`,
+    phase2Hallmark: `Janeway lesions (painless palmar/plantar macules from septic microemboli) vs Osler nodes (painful immune-complex nodules on finger pads).`,
+    phase3Secret: `Treat sensitive S. gallolyticus with IV penicillin G or ceftriaxone and schedule diagnostic colonoscopy.`,
+    dossierBullets: {
+      p1: [`• Colorectal tumors disrupt mucosal barrier for S. gallolyticus`, `• Enterococci grow in 6.5% NaCl & bile; S. bovis grows in bile only`],
+      p2: [`• Janeway = painless macules; Osler = painful nodules`, `• Roth spots = retinal hemorrhages with pale centers`],
+      p3: [`• Perform colonoscopy in all S. gallolyticus bacteremia/IE`, `• Enterococcus IE often follows GI/GU instrumentation`]
+    }
+  },
+  {
+    id: `CV14-Q2`, lo: 14, sector: `sector_5`, compartment: `Aorta & Vasculature`, ageGroup: `Older Adult / Degenerative`, behavior: `Hemodynamic & Autonomic`,
+    loTitle: `Sector V • JVP & Endocarditis`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Digoxin Toxicity (Hypokalemia/HyperK)`,
+    stem: `A 75-year-old woman taking digoxin and furosemide for HFrEF and atrial fibrillation presents with nausea, yellow-green halos around lights, and atrial tachycardia with 2:1 block. How do potassium levels differentially interact with chronic versus acute digoxin toxicity?`,
+    clue: `K+ competes with digoxin at the Na+/K+-ATPase binding site; acute overdose paralyzes all pumps.`,
+    choices: [`Chronic hypokalemia precipitates toxicity; acute overdose causes hyperkalemia`, `Chronic hyperkalemia precipitates toxicity; acute overdose causes hypokalemia`, `Potassium levels do not affect digoxin binding or toxicity`],
+    correctIndex: 0,
+    explanation: `Correct: Potassium competes with digoxin for the extracellular binding site on Na+/K+-ATPase, so loop-diuretic-induced hypokalemia increases digoxin binding (chronic toxicity). Conversely, acute massive overdose inhibits Na+/K+-ATPase systemically, trapping K+ extracellularly and causing dangerous hyperkalemia. Distractor exclusion: Hyperkalemia does not trigger chronic digoxin binding.`,
+    secondOrderClue: `Furosemide -> ↓ K+ -> ↑ digoxin binding (chronic toxicity); Acute overdose -> ↑↑ K+ (bad prognosis).`,
+    phase1Pearl: `Inhibition of Na+/K+-ATPase raises intracellular Na+, slowing NCX Ca2+ extrusion -> ↑ SR Ca2+ (+ inotropy) + vagal AV node slowing.`,
+    phase2Hallmark: `Scooped ("hockey-stick") ST segments on ECG (therapeutic effect), yellow-green xanthopsia, atrial tachycardia with block.`,
+    phase3Secret: `Treat severe toxicity with anti-digoxin Fab fragments, normalize K+ (if low/normal) and Mg2+, and avoid quinidine/verapamil (displace digoxin).`,
+    dossierBullets: {
+      p1: [`• Digoxin binds K+ site on Na+/K+-ATPase`, `• Direct vagal nerve stimulation slows AV node conduction`],
+      p2: [`• Scooped ST depression = digoxin use; arrhythmias = toxicity`, `• Hyperkalemia in acute overdose reflects degree of pump block`],
+      p3: [`• Digoxin immune Fab is definitive antidote`, `• Renal failure and verapamil/amiodarone raise digoxin levels`]
+    }
+  },
+  {
+    id: `CV14-Q3`, lo: 14, sector: `sector_5`, compartment: `Aorta & Vasculature`, ageGroup: `Adult / Acquired`, behavior: `Hemodynamic & Autonomic`,
+    loTitle: `Sector V • JVP & Endocarditis`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Constrictive Pericarditis (Kussmaul)`,
+    stem: `A 58-year-old man with prior chest radiation for Hodgkin lymphoma presents with ascites, peripheral edema, and dyspnea. On inspiration, his jugular venous pressure paradoxically rises. Neck vein tracing shows a steep, deep Y descent, and cardiac exam notes an early diastolic pericardial knock. What accounts for his deep Y descent?`,
+    clue: `Unlike cardiac tamponade (blunted Y descent), a rigid pericardial shell permits rapid early filling until hitting a wall.`,
+    choices: [`Rapid early ventricular filling halted abruptly by rigid pericardium`, `Continuous pericardial fluid compression blocking all diastolic filling`, `Systolic regurgitant jet through an incompetent tricuspid valve`],
+    correctIndex: 0,
+    explanation: `Correct: Constrictive pericarditis (from prior radiation, TB, or cardiac surgery) encases the heart in a rigid calcified shell. Ventricles fill rapidly in early diastole (producing a steep Y descent and pericardial knock) before abruptly hitting the rigid shell, and inspiration increases JVP (Kussmaul sign). Distractor exclusion: Tamponade blunts the Y descent; TR produces giant V waves.`,
+    secondOrderClue: `Kussmaul sign + deep Y descent + pericardial knock + radiation/TB history = Constrictive pericarditis (vs tamponade blunted Y).`,
+    phase1Pearl: `Fibrotic/calcified pericardium prevents outward expansion during inspiration, elevating RV/RA pressures.`,
+    phase2Hallmark: `Pericardial calcification on CXR/CT, steep X and Y descents ("W/M" waveform), "square-root" dip-and-plateau ventricular pressure tracing.`,
+    phase3Secret: `Definitive therapy is surgical pericardiectomy (diuretics for temporary symptom relief).`,
+    dossierBullets: {
+      p1: [`• Rigid pericardium uncouples intrathoracic pressure changes`, `• Rapid early filling stops abruptly at pericardial limit`],
+      p2: [`• Kussmaul sign + deep Y descent + pericardial knock`, `• Contrast with tamponade: pulsus paradoxus + blunted Y descent`],
+      p3: [`• Pericardiectomy is definitive cure for chronic constriction`, `• Radiation and TB are classic board etiologies`]
+    }
+  },
+
+  // LO 15: OMT Integration (T1-T5/T6, Chapman, OA-AA)
+  {
+    id: `CV15-Q1`, lo: 15, sector: `sector_5`, compartment: `Autonomic & OMT`, ageGroup: `Adult / Acquired`, behavior: `Hemodynamic & Autonomic`,
+    loTitle: `Sector V • OMT & Autonomics`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Left T1-T4 Viscerosomatic Reflex`,
+    stem: `A 59-year-old man with known stable angina presents with exertional chest tightness that improves with sublingual nitroglycerin. On osteopathic structural exam, you palpate warm, boggy paraspinal tissue texture changes and hypertonicity most prominently on the left side of the upper thoracic spine. Which spinal levels correspond to the sympathetic viscerosomatic reflex of the myocardium?`,
+    clue: `Cardiac sympathetic preganglionic cell bodies synapse across the upper thoracic cord with left-sided predominance.`,
+    choices: [`T1-T4 (left > right)`, `T5-T9 (right > left)`, `T10-L2 (bilateral)`],
+    correctIndex: 0,
+    explanation: `Correct: Cardiac sympathetic innervation arises from T1-T4/T5 (predominantly left-sided for myocardium/coronaries, extending up to T5-T6 for pericardium), producing left > right upper thoracic viscerosomatic tissue texture changes. Distractor exclusion: T5-T9 innervates foregut organs via greater splanchnic nerve; T10-L2 innervates lower GI/GU structures.`,
+    secondOrderClue: `Heart viscerosomatic reflex = T1-T4/T5 (left > right); Acute MI is a contraindication to thoracic HVLA.`,
+    phase1Pearl: `Visceral cardiac afferents travel with sympathetic nerves back to the T1-T5 dorsal horn, facilitating somatic motor & sympathetic efferents.`,
+    phase2Hallmark: `Warm, boggy, edematous paraspinal tissues in acute ischemia vs fibrotic, ropy tissues in chronic heart disease.`,
+    phase3Secret: `Always rule out acute ACS first; use gentle rib raising at T1-T5 to normalize sympathetic tone and reduce myocardial O2 demand.`,
+    dossierBullets: {
+      p1: [`• Sympathetic cardiac afferents converge on T1-T5 dorsal horn`, `• Left > right paraspinal somatovisceral/viscerosomatic pairing`],
+      p2: [`• Acute = boggy/warm; Chronic = ropy/cool tissue texture`, `• Coronary/pericardial reflexes may reach T5-T6`],
+      p3: [`• Rule out STEMI/ACS before OMT; avoid HVLA in unstable patients`, `• Rib raising balances thoracic sympathetic outflow`]
+    }
+  },
+  {
+    id: `CV15-Q2`, lo: 15, sector: `sector_5`, compartment: `Autonomic & OMT`, ageGroup: `Adult / Acquired`, behavior: `Hemodynamic & Autonomic`,
+    loTitle: `Sector V • OMT & Autonomics`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `OA-AA Vagal Parasympathetic Tone`,
+    stem: `A 48-year-old woman with recurrent supraventricular tachycardia and neck tension after a whiplash injury has somatic dysfunction at the occipitoatlantal (OA) junction. How does normalizing somatic dysfunction at the OA-AA region influence cardiac conduction?`,
+    clue: `The cranial nerve exiting the jugular foramen modulates the SA and AV nodes.`,
+    choices: [`Enhances vagal (CN X) parasympathetic outflow to slow SA/AV nodes`, `Stimulates T1-T4 sympathetics to accelerate ventricular conduction`, `Directly blocks L-type calcium channels in the Purkinje fibers`],
+    correctIndex: 0,
+    explanation: `Correct: Parasympathetic innervation to the heart travels via the vagus nerve (CN X), which exits the jugular foramen adjacent to the OA/AA complex. Suboccipital/OA release relieves tissue tension around CN X, enhancing parasympathetic tone to slow SA automaticity and AV nodal conduction. Distractor exclusion: Sympathetics arise from T1-T5; OMT does not directly block Purkinje Ca2+ channels.`,
+    secondOrderClue: `OA / AA / C2 somatic dysfunction -> vagus nerve (CN X) irritation -> OA release ↑ parasympathetic tone to SA/AV nodes.`,
+    phase1Pearl: `Right vagus predominantly innervates the SA node; left vagus predominantly innervates the AV node (ACh -> M2 Gi -> ↑ K+ efflux, ↓ cAMP).`,
+    phase2Hallmark: `Suboccipital hypertonicity, OA restriction (flexion/extension/sidebending-rotation opposite), and elevated resting HR.`,
+    phase3Secret: `Pair gentle OA decompression/suboccipital release with thoracic rib raising (T1-T5) to restore autonomic balance in stable tachyarrhythmias.`,
+    dossierBullets: {
+      p1: [`• Vagus nerve exits jugular foramen near OA junction`, `• M2 receptor activation slows SA/AV nodal depolarization`],
+      p2: [`• OA-AA restriction correlates with reduced vagal tone`, `• Right vagus = SA node; Left vagus = AV node`],
+      p3: [`• Suboccipital release augments parasympathetic control`, `• Combine with T1-T5 rib raising for complete autonomic OMT`]
+    }
+  },
+  {
+    id: `CV15-Q3`, lo: 15, sector: `sector_5`, compartment: `Autonomic & OMT`, ageGroup: `Adult / Acquired`, behavior: `Hemodynamic & Autonomic`,
+    loTitle: `Sector V • OMT & Autonomics`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `2nd ICS Parasternal Chapman Point`,
+    stem: `During a physical exam on a 61-year-old man recovering from stable myocardial ischemia, an osteopathic physician palpates a small, discrete, tender "ganglioform" nodule in the anterior chest wall near the sternum. What is the exact anatomical location of the anterior and posterior Chapman reflex points for the myocardium?`,
+    clue: `Match the anterior intercostal space near the sternum with the corresponding upper thoracic posterior landmark.`,
+    choices: [`Anterior: 2nd intercostal space parasternal; Posterior: T2-T3`, `Anterior: 5th intercostal space midclavicular; Posterior: T5-T6`, `Anterior: 1st rib costochondral junction; Posterior: C7`],
+    correctIndex: 0,
+    explanation: `Correct: The myocardial Chapman reflex point is located anteriorly in the 2nd intercostal space close to the sternum (left > right) and posteriorly between the transverse/spinous processes of T2 and T3. Distractor exclusion: 5th-6th ICS points correspond to stomach/liver/gallbladder; 1st rib relates to sinus/lung/upper airway.`,
+    secondOrderClue: `Heart Chapman point: Anterior 2nd ICS parasternal; Posterior T2-T3 (treat with gentle rotary friction).`,
+    phase1Pearl: `Chapman points represent localized myofascial lymphatic congestion triggered by viscerosomatic autonomic reflexes.`,
+    phase2Hallmark: `2-3 mm firm, pearl-like, shotty, tender subcutaneous nodules without erythema at 2nd ICS parasternal and T2-T3.`,
+    phase3Secret: `Apply light rotary stimulation for 15-30 seconds until tissue softens; never use Chapman points as a substitute for emergent ACS workup.`,
+    dossierBullets: {
+      p1: [`• Viscerosomatic lymphatic stasis creates ganglioform nodules`, `• Reflects myocardial autonomic stress (T1-T5)`],
+      p2: [`• Anterior: 2nd ICS next to sternum; Posterior: T2-T3`, `• Distinguish from tender points (strain-counterstrain)`],
+      p3: [`• Gentle rotary treatment helps reduce local congestion`, `• Always obtain ECG/troponin first if chest pain is acute`]
+    }
+  }
+];
+
+/* =========================================================
+   RUNTIME STATE & PERSISTENCE (notebookAppApi)
+   ========================================================= */
+let appState = {
+  hp: 100,
+  xp: 0,
+  streak: 0,
+  masteredIds: [],
+  sectorFilter: `all`,
+  compartmentFilter: `all`,
+  ageFilter: `all`,
+  behaviorFilter: `all`,
+  phaseFilter: `all`,
+  loFilter: null,
+  timerEnabled: true,
+  timeoutCountsWrong: true,
+  hintsVisible: false,
+  soundEnabled: true,
+  bgmEnabled: false,
+  volume: 0.55
+};
+
+let activeDeck = [];
+let deckIndex = 0;
+let currentQuestion = null;
+let shuffledOptions = [];
+let lockedAnswer = false;
+let timeRemaining = GAME_CONFIG.timerSeconds;
+let timerIntervalId = null;
+let metaFadeTimeoutId = null;
+let codexSectorFilter = `all`;
+
+/* =========================================================
+   WEB AUDIO ENGINE (SFX + KINO-INSPIRED ZOMBIES SYNTH BGM)
+   ========================================================= */
+let audioCtx = null;
+let masterGain = null;
+let bgmTimerId = null;
+let bgmStep = 0;
+let customAudioEl = null;
+let customAudioUrl = null;
+
+function ensureAudio() {
+  if (!audioCtx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return null;
+    audioCtx = new AudioContextClass();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = appState.soundEnabled ? appState.volume : 0;
+    masterGain.connect(audioCtx.destination);
+  }
+  if (audioCtx.state === `suspended`) {
+    audioCtx.resume().catch(() => {});
+  }
+  return audioCtx;
+}
+
+function playSfx(type) {
+  if (!appState.soundEnabled) return;
+  const ctx = ensureAudio();
+  if (!ctx || !masterGain) return;
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(masterGain);
+
+  if (type === `correct`) {
+    osc.type = `triangle`;
+    osc.frequency.setValueAtTime(523.25, now);
+    osc.frequency.exponentialRampToValueAtTime(1046.5, now + 0.16);
+    gain.gain.setValueAtTime(0.24, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+    osc.start(now);
+    osc.stop(now + 0.29);
+  } else if (type === `wrong`) {
+    osc.type = `sawtooth`;
+    osc.frequency.setValueAtTime(185, now);
+    osc.frequency.exponentialRampToValueAtTime(75, now + 0.26);
+    gain.gain.setValueAtTime(0.22, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+    osc.start(now);
+    osc.stop(now + 0.31);
+  } else {
+    osc.type = `sine`;
+    osc.frequency.setValueAtTime(640, now);
+    gain.gain.setValueAtTime(0.1, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+    osc.start(now);
+    osc.stop(now + 0.09);
+  }
+}
+
+function startSynthBgm() {
+  stopSynthBgm();
+  if (!appState.bgmEnabled || !appState.soundEnabled) return;
+  if (customAudioEl) {
+    customAudioEl.volume = appState.volume;
+    customAudioEl.play().catch(() => {});
+    return;
+  }
+  const ctx = ensureAudio();
+  if (!ctx || !masterGain) return;
+  // Kino der Toten-inspired minor eerie arpeggio (D minor / Phrygian synthwave pulse)
+  const notes = [146.83, 174.61, 220.0, 233.08, 220.0, 174.61, 138.59, 146.83];
+  bgmTimerId = setInterval(() => {
+    if (!appState.bgmEnabled || !appState.soundEnabled || !audioCtx) return;
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = `sawtooth`;
+    osc.frequency.setValueAtTime(notes[bgmStep % notes.length], now);
+    g.gain.setValueAtTime(0.045, now);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.26);
+    osc.connect(g);
+    g.connect(masterGain);
+    osc.start(now);
+    osc.stop(now + 0.27);
+    bgmStep++;
+  }, 290);
+}
+
+function stopSynthBgm() {
+  if (bgmTimerId) {
+    clearInterval(bgmTimerId);
+    bgmTimerId = null;
+  }
+  if (customAudioEl) {
+    customAudioEl.pause();
+  }
+}
+
+function toggleMasterSound() {
+  appState.soundEnabled = !appState.soundEnabled;
+  if (masterGain && audioCtx) {
+    masterGain.gain.setValueAtTime(appState.soundEnabled ? appState.volume : 0, audioCtx.currentTime);
+  }
+  if (!appState.soundEnabled) stopSynthBgm();
+  else if (appState.bgmEnabled) startSynthBgm();
+  updateAudioButtons();
+  persistAppState();
+}
+
+function toggleBgm() {
+  appState.bgmEnabled = !appState.bgmEnabled;
+  if (appState.bgmEnabled && appState.soundEnabled) startSynthBgm();
+  else stopSynthBgm();
+  updateAudioButtons();
+  persistAppState();
+}
+
+function setMasterVolume(val) {
+  appState.volume = Number(val);
+  if (masterGain && audioCtx && appState.soundEnabled) {
+    masterGain.gain.setValueAtTime(appState.volume, audioCtx.currentTime);
+  }
+  if (customAudioEl) {
+    customAudioEl.volume = appState.volume;
+  }
+  persistAppState();
+}
+
+function loadCustomAudio(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  if (customAudioUrl) URL.revokeObjectURL(customAudioUrl);
+  customAudioUrl = URL.createObjectURL(file);
+  customAudioEl = new Audio(customAudioUrl);
+  customAudioEl.loop = true;
+  customAudioEl.volume = appState.volume;
+  appState.bgmEnabled = true;
+  startSynthBgm();
+  updateAudioButtons();
+  const statusEl = document.getElementById(`drawer-status`);
+  if (statusEl) statusEl.textContent = `Loaded custom track: ${file.name}`;
+}
+
+function updateAudioButtons() {
+  const sBtn = document.getElementById(`sound-toggle-btn`);
+  const bBtn = document.getElementById(`bgm-toggle-btn`);
+  const vEl = document.getElementById(`volume-slider`);
+  if (sBtn) {
+    sBtn.textContent = `SOUND: ${appState.soundEnabled ? `ON` : `OFF`}`;
+    sBtn.classList.toggle(`is-active`, appState.soundEnabled);
+  }
+  if (bBtn) {
+    bBtn.textContent = `ZOMBIES BGM: ${appState.bgmEnabled ? `ON` : `OFF`}`;
+    bBtn.classList.toggle(`is-active`, appState.bgmEnabled);
+  }
+  if (vEl) vEl.value = String(appState.volume);
+}
+
+/* =========================================================
+   3D SYNTHWAVE RUNNER CANVAS (150 PARTICLES + 3 PORTALS)
+   ========================================================= */
+const canvas = document.getElementById(`xr-canvas`);
+const ctx2d = canvas ? canvas.getContext(`2d`) : null;
+const particles = [];
+for (let i = 0; i < 150; i++) {
+  particles.push({
+    x: (Math.random() - 0.5) * 2.2,
+    y: Math.random() * 0.85,
+    z: Math.random(),
+    size: 1.5 + Math.random() * 2.5,
+    colorIdx: i % 3
+  });
+}
+let gridOffset = 0;
+let runnerBoost = 0;
+let animFrameId = null;
+
+function resizeCanvas() {
+  if (!canvas) return;
+  const rect = canvas.parentElement ? canvas.parentElement.getBoundingClientRect() : { width: 800, height: 400 };
+  canvas.width = Math.max(300, Math.floor(rect.width));
+  canvas.height = Math.max(180, Math.floor(rect.height));
+}
+
+function drawRunnerScene() {
+  if (!canvas || !ctx2d) return;
+  const w = canvas.width;
+  const h = canvas.height;
+  const horizonY = h * 0.34;
+  const cx = w * 0.5;
+  const theme = currentQuestion ? (LO_VISUAL_THEMES[currentQuestion.lo] || LO_VISUAL_THEMES[1]) : LO_VISUAL_THEMES[1];
+
+  ctx2d.fillStyle = `#0a0a12`;
+  ctx2d.fillRect(0, 0, w, h);
+
+  // Synthwave horizon glow
+  const grad = ctx2d.createLinearGradient(0, horizonY - 50, 0, h);
+  grad.addColorStop(0, `rgba(255, 45, 120, 0.16)`);
+  grad.addColorStop(0.4, `rgba(0, 255, 204, 0.08)`);
+  grad.addColorStop(1, `rgba(10, 10, 18, 0.95)`);
+  ctx2d.fillStyle = grad;
+  ctx2d.fillRect(0, horizonY - 50, w, h - horizonY + 50);
+
+  // 150 Square pixel-dust particles
+  const pColors = [`#ff2d78`, `#00ffcc`, `#ffe04a`];
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    p.z -= 0.004 + runnerBoost * 0.018;
+    if (p.z <= 0.02) {
+      p.z = 1;
+      p.x = (Math.random() - 0.5) * 2.2;
+      p.y = Math.random() * 0.85;
+    }
+    const scale = 1 / (p.z + 0.15);
+    const sx = cx + p.x * w * 0.36 * scale;
+    const sy = horizonY - p.y * h * 0.32 * scale + (1 - p.z) * 18;
+    if (sx >= 0 && sx <= w && sy >= 0 && sy <= h) {
+      ctx2d.fillStyle = pColors[p.colorIdx];
+      ctx2d.globalAlpha = Math.max(0.15, 1 - p.z);
+      ctx2d.fillRect(sx, sy, p.size, p.size);
+    }
+  }
+  ctx2d.globalAlpha = 1;
+
+  // Perspective floor grid & teal lane rails
+  gridOffset = (gridOffset + 0.015 + runnerBoost * 0.06) % 1;
+  ctx2d.strokeStyle = `rgba(0, 255, 204, 0.28)`;
+  ctx2d.lineWidth = 1.2;
+  const railFracs = [-0.46, -0.155, 0.155, 0.46];
+  for (let r = 0; r < railFracs.length; r++) {
+    ctx2d.beginPath();
+    ctx2d.moveTo(cx + railFracs[r] * w * 0.18, horizonY);
+    ctx2d.lineTo(cx + railFracs[r] * w * 0.98, h);
+    ctx2d.stroke();
+  }
+
+  for (let g = 0; g < 10; g++) {
+    const t = ((g + gridOffset) / 10);
+    const y = horizonY + Math.pow(t, 2.1) * (h - horizonY);
+    ctx2d.strokeStyle = `rgba(255, 45, 120, ${0.12 + t * 0.25})`;
+    ctx2d.beginPath();
+    ctx2d.moveTo(0, y);
+    ctx2d.lineTo(w, y);
+    ctx2d.stroke();
+  }
+
+  // 3 Glowing Portals aligned to 3 lanes (Hot Pink, Electric Cyan, Neon Yellow)
+  const portalColors = [`#ff2d78`, `#00ffcc`, `#ffe04a`];
+  const laneOffsets = [-0.305, 0, 0.305];
+  for (let l = 0; l < 3; l++) {
+    const px = cx + laneOffsets[l] * w * 0.9;
+    const py = horizonY + (h - horizonY) * 0.28;
+    const pw = Math.min(130, w * 0.18);
+    const ph = Math.min(82, (h - horizonY) * 0.42);
+    ctx2d.save();
+    ctx2d.strokeStyle = portalColors[l];
+    ctx2d.lineWidth = 2.4;
+    ctx2d.shadowColor = portalColors[l];
+    ctx2d.shadowBlur = 14;
+    ctx2d.strokeRect(px - pw / 2, py - ph / 2, pw, ph);
+    ctx2d.fillStyle = l === 0 ? `rgba(255,45,120,0.08)` : l === 1 ? `rgba(0,255,204,0.08)` : `rgba(255,224,74,0.08)`;
+    ctx2d.fillRect(px - pw / 2, py - ph / 2, pw, ph);
+    ctx2d.restore();
+  }
+
+  // Corridor horizon pulse line
+  ctx2d.strokeStyle = theme.rail;
+  ctx2d.lineWidth = 1.8;
+  ctx2d.beginPath();
+  ctx2d.moveTo(0, horizonY);
+  ctx2d.lineTo(w, horizonY);
+  ctx2d.stroke();
+
+  runnerBoost *= 0.92;
+  animFrameId = requestAnimationFrame(drawRunnerScene);
+}
+
+/* =========================================================
+   DECK FILTERING, QUESTION LOADING & OUTCOME DOSSIER
+   ========================================================= */
+function shuffleArray(arr) {
+  const copy = arr.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = copy[i];
+    copy[i] = copy[j];
+    copy[j] = tmp;
+  }
+  return copy;
+}
+
+function buildDeck(shouldShuffle = false) {
+  let filtered = ALL_QUESTIONS.filter((q) => {
+    if (appState.sectorFilter !== `all` && q.sector !== appState.sectorFilter) return false;
+    if (appState.compartmentFilter !== `all` && q.compartment !== appState.compartmentFilter) return false;
+    if (appState.ageFilter !== `all` && q.ageGroup !== appState.ageFilter) return false;
+    if (appState.behaviorFilter !== `all` && q.behavior !== appState.behaviorFilter) return false;
+    if (appState.phaseFilter !== `all` && q.phaseFocus !== appState.phaseFilter) return false;
+    if (appState.loFilter !== null && q.lo !== appState.loFilter) return false;
+    return true;
+  });
+  if (filtered.length === 0) {
+    filtered = ALL_QUESTIONS.slice();
+    const statusEl = document.getElementById(`drawer-status`);
+    if (statusEl) statusEl.textContent = `No gates matched combined filter — showing full 45-gate deck.`;
+  }
+  activeDeck = shouldShuffle ? shuffleArray(filtered) : filtered;
+  deckIndex = 0;
+  loadCurrentQuestion();
+}
+
+function loadCurrentQuestion() {
+  if (!activeDeck.length) return;
+  if (deckIndex >= activeDeck.length) deckIndex = 0;
+  currentQuestion = activeDeck[deckIndex];
+  lockedAnswer = false;
+  runnerBoost = 0.65;
+
+  const q = currentQuestion;
+  const theme = LO_VISUAL_THEMES[q.lo] || LO_VISUAL_THEMES[1];
+
+  const loBadge = document.getElementById(`lo-badge`);
+  const angleBadge = document.getElementById(`angle-badge`);
+  const phaseBadge = document.getElementById(`phase-badge`);
+  const corridorBadge = document.getElementById(`corridor-badge`);
+  const metaStrip = document.getElementById(`meta-strip`);
+  const stemEl = document.getElementById(`q-stem-text`);
+  const hintEl = document.getElementById(`q-hint-text`);
+
+  if (loBadge) loBadge.textContent = q.loTitle.toUpperCase();
+  if (angleBadge) angleBadge.textContent = q.angle.toUpperCase();
+  if (phaseBadge) phaseBadge.textContent = q.phaseFocus.toUpperCase();
+  if (corridorBadge) corridorBadge.textContent = theme.corridor;
+  if (stemEl) stemEl.textContent = q.stem;
+  if (hintEl) hintEl.textContent = q.clue;
+
+  if (metaStrip) {
+    metaStrip.classList.remove(`is-collapsed`);
+    clearTimeout(metaFadeTimeoutId);
+    metaFadeTimeoutId = setTimeout(() => {
+      metaStrip.classList.add(`is-collapsed`);
+    }, GAME_CONFIG.metaFadeMs);
+  }
+
+  // Shuffle 3 symmetric choices while tracking correct item
+  const indexed = q.choices.map((text, idx) => ({ text, isCorrect: idx === q.correctIndex }));
+  shuffledOptions = shuffleArray(indexed);
+
+  for (let i = 0; i < 3; i++) {
+    const btn = document.getElementById(`lane-btn-${i}`);
+    const txt = document.getElementById(`lane-text-${i}`);
+    if (txt) txt.textContent = shuffledOptions[i] ? shuffledOptions[i].text : ``;
+    if (btn) {
+      btn.disabled = false;
+      btn.classList.remove(`is-correct`, `is-wrong`);
+    }
+  }
+
+  updateTelemetry();
+  resetAndStartTimer();
+}
+
+function updateTelemetry() {
+  const hpEl = document.getElementById(`hp-text`);
+  const xpEl = document.getElementById(`xp-text`);
+  const streakEl = document.getElementById(`streak-text`);
+  const gateEl = document.getElementById(`gate-text`);
+  if (hpEl) hpEl.textContent = String(appState.hp);
+  if (xpEl) xpEl.textContent = String(appState.xp);
+  if (streakEl) streakEl.textContent = String(appState.streak);
+  if (gateEl) gateEl.textContent = `${deckIndex + 1}/${activeDeck.length}`;
+}
+
+function resetAndStartTimer() {
+  clearInterval(timerIntervalId);
+  timeRemaining = GAME_CONFIG.timerSeconds;
+  renderTimerDisplay();
+  if (!appState.timerEnabled) return;
+  timerIntervalId = setInterval(() => {
+    if (lockedAnswer) return;
+    if (timeRemaining > 0) {
+      timeRemaining--;
+      renderTimerDisplay();
+    }
+    if (timeRemaining <= 0) {
+      clearInterval(timerIntervalId);
+      if (appState.timeoutCountsWrong) {
+        handleOutcome(`timeout`, -1);
+      }
+    }
+  }, 1000);
+}
+
+function renderTimerDisplay() {
+  const tEl = document.getElementById(`timer-text`);
+  const chip = document.getElementById(`timer-chip`);
+  if (tEl) tEl.textContent = appState.timerEnabled ? `${timeRemaining}s` : `OFF`;
+  if (chip) chip.classList.toggle(`is-urgent`, appState.timerEnabled && timeRemaining <= 10);
+}
+
+function chooseLane(laneIdx) {
+  if (lockedAnswer || !currentQuestion || !shuffledOptions[laneIdx]) return;
+  const chosen = shuffledOptions[laneIdx];
+  handleOutcome(chosen.isCorrect ? `correct` : `wrong`, laneIdx);
+}
+
+function handleOutcome(status, chosenIdx) {
+  lockedAnswer = true;
+  clearInterval(timerIntervalId);
+  const q = currentQuestion;
+  if (!q) return;
+
+  for (let i = 0; i < 3; i++) {
+    const btn = document.getElementById(`lane-btn-${i}`);
+    if (!btn) continue;
+    btn.disabled = true;
+    if (shuffledOptions[i] && shuffledOptions[i].isCorrect) {
+      btn.classList.add(`is-correct`);
+    } else if (i === chosenIdx && status === `wrong`) {
+      btn.classList.add(`is-wrong`);
+    }
+  }
+
+  if (status === `correct`) {
+    appState.streak++;
+    appState.xp += 100 + Math.min(100, appState.streak * 15);
+    appState.hp = Math.min(100, appState.hp + 5);
+    if (!appState.masteredIds.includes(q.id)) {
+      appState.masteredIds.push(q.id);
+    }
+    playSfx(`correct`);
+  } else {
+    appState.streak = 0;
+    appState.hp = Math.max(0, appState.hp - 15);
+    if (appState.hp === 0) appState.hp = 100; // Seamless restart without blocking modal
+    playSfx(`wrong`);
+  }
+
+  updateTelemetry();
+  renderSkillTreeGrid();
+  persistAppState();
+  openOutcomeModal(status, q);
+}
+
+function renderDossierBullets(q) {
+  const ul = document.getElementById(`out-bullets`);
+  if (!ul || !q || !q.dossierBullets) return;
+  ul.innerHTML = ``;
+  const allBullets = [
+    ...(q.dossierBullets.p1 || []),
+    ...(q.dossierBullets.p2 || []),
+    ...(q.dossierBullets.p3 || [])
+  ];
+  allBullets.forEach((line) => {
+    const li = document.createElement(`li`);
+    const clean = line.startsWith(`• `) ? line : `• ${line}`;
+    li.textContent = clean;
+    ul.appendChild(li);
+  });
+}
+
+function openOutcomeModal(status, q) {
+  const verdictEl = document.getElementById(`outcome-verdict`);
+  const expEl = document.getElementById(`out-explanation`);
+  const secEl = document.getElementById(`out-second-order`);
+  const p1El = document.getElementById(`out-p1-pearl`);
+  const p2El = document.getElementById(`out-p2-hallmark`);
+  const p3El = document.getElementById(`out-p3-secret`);
+  const modal = document.getElementById(`outcome-modal`);
+
+  if (verdictEl) {
+    verdictEl.classList.remove(`is-wrong`, `is-timeout`);
+    if (status === `correct`) {
+      verdictEl.textContent = `✔ CORRECT — ${q.shortAnswer}`;
+    } else if (status === `timeout`) {
+      verdictEl.textContent = `⏱ TIME'S UP — ${q.shortAnswer}`;
+      verdictEl.classList.add(`is-timeout`);
+    } else {
+      verdictEl.textContent = `✖ INCORRECT — ${q.shortAnswer}`;
+      verdictEl.classList.add(`is-wrong`);
+    }
+  }
+
+  if (expEl) expEl.textContent = q.explanation;
+  if (secEl) secEl.textContent = q.secondOrderClue;
+  if (p1El) p1El.textContent = q.phase1Pearl;
+  if (p2El) p2El.textContent = q.phase2Hallmark;
+  if (p3El) p3El.textContent = q.phase3Secret;
+  renderDossierBullets(q);
+
+  if (modal) modal.classList.add(`is-open`);
+}
+
+function nextQuestion() {
+  const modal = document.getElementById(`outcome-modal`);
+  if (modal) modal.classList.remove(`is-open`);
+  deckIndex = (deckIndex + 1) % activeDeck.length;
+  loadCurrentQuestion();
+}
+
+function skipQuestion() {
+  playSfx(`click`);
+  deckIndex = (deckIndex + 1) % activeDeck.length;
+  loadCurrentQuestion();
+}
+
+function toggleHints() {
+  const root = document.getElementById(`xr-app`);
+  if (!root) return;
+  appState.hintsVisible = !appState.hintsVisible;
+  root.classList.toggle(`hints-hidden`, !appState.hintsVisible);
+  root.classList.toggle(`hints-visible`, appState.hintsVisible);
+  playSfx(`click`);
+  persistAppState();
+}
+
+/* =========================================================
+   DRAWER, SKILL TREE, FILTERS & CODEX MODAL
+   ========================================================= */
+function toggleMenuDrawer() {
+  const bd = document.getElementById(`menu-backdrop`);
+  const btn = document.getElementById(`menu-toggle-btn`);
+  if (!bd) return;
+  const open = !bd.classList.contains(`is-open`);
+  bd.classList.toggle(`is-open`, open);
+  if (btn) btn.setAttribute(`aria-expanded`, String(open));
+}
+
+function closeMenuDrawer() {
+  const bd = document.getElementById(`menu-backdrop`);
+  const btn = document.getElementById(`menu-toggle-btn`);
+  if (bd) bd.classList.remove(`is-open`);
+  if (btn) btn.setAttribute(`aria-expanded`, `false`);
+}
+
+function handleBackdropClick(event, backdropId, closeFn) {
+  if (event.target && event.target.id === backdropId && typeof closeFn === `function`) {
+    closeFn();
+  }
+}
+
+function onFilterChange() {
+  const sEl = document.getElementById(`sector-filter`);
+  const cEl = document.getElementById(`compartment-filter`);
+  const aEl = document.getElementById(`age-filter`);
+  const bEl = document.getElementById(`behavior-filter`);
+  appState.sectorFilter = sEl ? sEl.value : `all`;
+  appState.compartmentFilter = cEl ? cEl.value : `all`;
+  appState.ageFilter = aEl ? aEl.value : `all`;
+  appState.behaviorFilter = bEl ? bEl.value : `all`;
+  buildDeck(false);
+  persistAppState();
+}
+
+function setPhaseFilter(phase) {
+  appState.phaseFilter = phase;
+  document.querySelectorAll(`.phase-pills .phase-pill[data-phase]`).forEach((btn) => {
+    btn.classList.toggle(`is-active`, btn.dataset.phase === phase);
+  });
+  buildDeck(false);
+  persistAppState();
+}
+
+function selectLoFilter(loNum) {
+  appState.loFilter = appState.loFilter === loNum ? null : loNum;
+  renderSkillTreeGrid();
+  buildDeck(false);
+  persistAppState();
+}
+
+function renderSkillTreeGrid() {
+  const grid = document.getElementById(`skill-tree-grid`);
+  if (!grid) return;
+  grid.innerHTML = ``;
+  CODEX_DATA.forEach((item) => {
+    const loQs = ALL_QUESTIONS.filter((q) => q.lo === item.lo);
+    const doneCount = loQs.filter((q) => appState.masteredIds.includes(q.id)).length;
+    const node = document.createElement(`button`);
+    node.type = `button`;
+    node.className = `skill-node${appState.loFilter === item.lo ? ` is-selected` : ``}`;
+    node.onclick = () => selectLoFilter(item.lo);
+    node.innerHTML = `
+      <span class="skill-node-id">LO ${item.lo} • ${item.tag}</span>
+      <span class="skill-node-name">${item.entity}</span>
+      <span class="skill-node-prog">${doneCount}/${loQs.length} MASTERED</span>
+    `;
+    grid.appendChild(node);
+  });
+}
+
+function toggleTimerEnabled() {
+  appState.timerEnabled = !appState.timerEnabled;
+  const btn = document.getElementById(`timer-toggle-btn`);
+  if (btn) btn.textContent = `TIMER ${appState.timerEnabled ? `ON` : `OFF`} [T]`;
+  resetAndStartTimer();
+  persistAppState();
+}
+
+function toggleTimeoutMode() {
+  appState.timeoutCountsWrong = !appState.timeoutCountsWrong;
+  const btn = document.getElementById(`timeout-mode-btn`);
+  if (btn) btn.textContent = appState.timeoutCountsWrong ? `TIME'S UP = WRONG` : `HOLD AT 0S`;
+  persistAppState();
+}
+
+function shuffleAndRestart() {
+  buildDeck(true);
+  closeMenuDrawer();
+  playSfx(`click`);
+}
+
+function resetMastery(btn) {
+  if (!btn) return;
+  if (btn.dataset.armed !== `true`) {
+    btn.dataset.armed = `true`;
+    btn.textContent = `TAP AGAIN TO CONFIRM`;
+    setTimeout(() => {
+      if (btn.dataset.armed === `true`) {
+        btn.dataset.armed = `false`;
+        btn.textContent = `RESET MASTERY`;
+      }
+    }, 3500);
+    return;
+  }
+  btn.dataset.armed = `false`;
+  btn.textContent = `RESET MASTERY`;
+  appState.hp = 100;
+  appState.xp = 0;
+  appState.streak = 0;
+  appState.masteredIds = [];
+  appState.loFilter = null;
+  updateTelemetry();
+  renderSkillTreeGrid();
+  buildDeck(false);
+  persistAppState();
+  const statusEl = document.getElementById(`drawer-status`);
+  if (statusEl) statusEl.textContent = `Mastery progress cleared.`;
+}
+
+function openCodexModal() {
+  closeMenuDrawer();
+  renderCodexTable();
+  const modal = document.getElementById(`codex-modal`);
+  if (modal) modal.classList.add(`is-open`);
+}
+
+function openCodexFromOutcome() {
+  const outModal = document.getElementById(`outcome-modal`);
+  if (outModal) outModal.classList.remove(`is-open`);
+  openCodexModal();
+}
+
+function closeCodexModal() {
+  const modal = document.getElementById(`codex-modal`);
+  if (modal) modal.classList.remove(`is-open`);
+}
+
+function setCodexSector(sec) {
+  codexSectorFilter = sec;
+  document.querySelectorAll(`#codex-sector-pills .phase-pill`).forEach((btn) => {
+    btn.classList.toggle(`is-active`, btn.dataset.sector === sec);
+  });
+  renderCodexTable();
+}
+
+function renderCodexTable() {
+  const tbody = document.getElementById(`codex-tbody`);
+  const searchEl = document.getElementById(`codex-search`);
+  if (!tbody) return;
+  const term = (searchEl ? searchEl.value : ``).trim().toLowerCase();
+
+  const rows = CODEX_DATA.filter((row) => {
+    if (codexSectorFilter !== `all` && row.sector !== codexSectorFilter) return false;
+    if (!term) return true;
+    const blob = `${row.entity} ${row.tag} ${row.etiology} ${row.pathogenesis} ${row.hallmarks} ${row.clinical} ${row.management}`.toLowerCase();
+    return blob.includes(term);
+  });
+
+  tbody.innerHTML = ``;
+  rows.forEach((row) => {
+    const tr = document.createElement(`tr`);
+    tr.innerHTML = `
+      <td class="amboss-scan-target"><strong>${row.entity}</strong><br><span style="color:var(--secondary);font-family:var(--font-label);font-size:0.68rem;">${row.tag}</span></td>
+      <td class="amboss-scan-target">${row.etiology}</td>
+      <td class="amboss-scan-target">${row.pathogenesis}</td>
+      <td class="amboss-scan-target">${row.hallmarks}</td>
+      <td class="amboss-scan-target">${row.clinical}</td>
+      <td class="amboss-scan-target">${row.management}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+/* =========================================================
+   KEYBOARD SHORTCUTS
+   ========================================================= */
+document.addEventListener(`keydown`, (e) => {
+  const tag = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : ``;
+  if (tag === `input` || tag === `select` || tag === `textarea`) {
+    if (e.key === `Escape`) closeCodexModal();
+    return;
+  }
+  const outcomeOpen = document.getElementById(`outcome-modal`)?.classList.contains(`is-open`);
+  const codexOpen = document.getElementById(`codex-modal`)?.classList.contains(`is-open`);
+  const menuOpen = document.getElementById(`menu-backdrop`)?.classList.contains(`is-open`);
+
+  if (e.key === `Escape`) {
+    if (codexOpen) closeCodexModal();
+    else if (menuOpen) closeMenuDrawer();
+    else if (outcomeOpen) nextQuestion();
+    return;
+  }
+  if (outcomeOpen && (e.key === ` ` || e.key === `Enter`)) {
+    e.preventDefault();
+    nextQuestion();
+    return;
+  }
+  if (outcomeOpen || codexOpen) return;
+
+  const k = e.key.toLowerCase();
+  if (k === `1` || k === `a` || e.key === `ArrowLeft`) chooseLane(0);
+  else if (k === `2` || k === `w` || e.key === `ArrowUp`) chooseLane(1);
+  else if (k === `3` || k === `d` || e.key === `ArrowRight`) chooseLane(2);
+  else if (k === `h`) toggleHints();
+  else if (k === `m`) toggleMenuDrawer();
+  else if (k === `c`) openCodexModal();
+  else if (k === `s`) skipQuestion();
+  else if (k === `t`) toggleTimerEnabled();
+});
+
+/* =========================================================
+   STATE PERSISTENCE VIA notebookAppApi
+   ========================================================= */
+async function persistAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.setAppState !== `function`) return;
+  try {
+    await window.notebookAppApi.setAppState({
+      hp: appState.hp,
+      xp: appState.xp,
+      streak: appState.streak,
+      masteredIds: appState.masteredIds,
+      sectorFilter: appState.sectorFilter,
+      compartmentFilter: appState.compartmentFilter,
+      ageFilter: appState.ageFilter,
+      behaviorFilter: appState.behaviorFilter,
+      phaseFilter: appState.phaseFilter,
+      loFilter: appState.loFilter,
+      timerEnabled: appState.timerEnabled,
+      timeoutCountsWrong: appState.timeoutCountsWrong,
+      hintsVisible: appState.hintsVisible,
+      soundEnabled: appState.soundEnabled,
+      bgmEnabled: appState.bgmEnabled,
+      volume: appState.volume
+    });
+  } catch (_) {}
+}
+
+async function restoreAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.getAppState !== `function`) return;
+  try {
+    const saved = await window.notebookAppApi.getAppState();
+    if (!saved || typeof saved !== `object`) return;
+    Object.assign(appState, saved);
+  } catch (_) {}
+}
+
+function applyRestoredUi() {
+  const root = document.getElementById(`xr-app`);
+  if (root) {
+    root.classList.toggle(`hints-hidden`, !appState.hintsVisible);
+    root.classList.toggle(`hints-visible`, Boolean(appState.hintsVisible));
+  }
+  const sEl = document.getElementById(`sector-filter`);
+  const cEl = document.getElementById(`compartment-filter`);
+  const aEl = document.getElementById(`age-filter`);
+  const bEl = document.getElementById(`behavior-filter`);
+  if (sEl) sEl.value = appState.sectorFilter || `all`;
+  if (cEl) cEl.value = appState.compartmentFilter || `all`;
+  if (aEl) aEl.value = appState.ageFilter || `all`;
+  if (bEl) bEl.value = appState.behaviorFilter || `all`;
+
+  document.querySelectorAll(`.phase-pills .phase-pill[data-phase]`).forEach((btn) => {
+    btn.classList.toggle(`is-active`, btn.dataset.phase === appState.phaseFilter);
+  });
+
+  const tBtn = document.getElementById(`timer-toggle-btn`);
+  const mBtn = document.getElementById(`timeout-mode-btn`);
+  if (tBtn) tBtn.textContent = `TIMER ${appState.timerEnabled ? `ON` : `OFF`} [T]`;
+  if (mBtn) mBtn.textContent = appState.timeoutCountsWrong ? `TIME'S UP = WRONG` : `HOLD AT 0S`;
+
+  updateAudioButtons();
+}
+
+async function initApp() {
+  await restoreAppState();
+  applyRestoredUi();
+  renderSkillTreeGrid();
+  renderCodexTable();
+  buildDeck(false);
+  resizeCanvas();
+  window.addEventListener(`resize`, resizeCanvas);
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  drawRunnerScene();
+  if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === `function`) {
+    window.notebookAppApi.notifyAppReady();
+  }
+}
+
+initApp();
+</script>
+</body>
+</html>
