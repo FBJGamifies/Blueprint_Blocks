@@ -1,0 +1,2217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="artifact-type" content="tool">
+  <meta name="design-style" content="neon_noir">
+  <title>Renal COMLEX-USA XR 3-Lane Diagnostic Runner (v3.8)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      --background: #0a0a12;
+      --surface-container-low: #111118;
+      --surface-container: #141422;
+      --surface-container-high: #1e1e30;
+      --surface-overlay: color-mix(in srgb, #0a0a12 84%, transparent);
+      --on-surface: #e8e0f0;
+      --on-surface-variant: #a098b0;
+      --outline: #5a5068;
+      --outline-variant: #302840;
+      --primary: #ff2d78;
+      --on-primary: #1a0010;
+      --primary-container: #b3004e;
+      --on-primary-container: #ffe0ec;
+      --secondary: #00ffcc;
+      --tertiary: #ffe04a;
+      --error: #ff4444;
+      --on-error: #1a0000;
+      --positive: #00ffcc;
+      --warning: #ffe04a;
+      --focus: #ff2d78;
+      --data-1: #ff2d78;
+      --data-2: #00ffcc;
+      --data-3: #ffe04a;
+      --data-4: #b388ff;
+      --data-context: #6e6680;
+      --font-headline: 'Sora', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --font-label: 'Space Mono', monospace;
+      --display-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+      --headline-size: clamp(1.15rem, 1rem + 0.45vw, 1.45rem);
+      --subhead-size: clamp(0.98rem, 0.92rem + 0.2vw, 1.12rem);
+      --body-size: clamp(0.9rem, 0.86rem + 0.14vw, 0.98rem);
+      --label-size: 0.75rem;
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 0.85rem;
+      --space-lg: 1.25rem;
+      --space-xl: 2rem;
+      --space-2xl: 3rem;
+      --rounded: 0.125rem;
+      --rounded-lg: 0.25rem;
+      --rounded-full: 0.75rem;
+      --glow-text: 0 0 8px currentColor;
+      --glow-primary: 0 0 16px color-mix(in srgb, var(--primary) 42%, transparent);
+      --glow-secondary: 0 0 16px color-mix(in srgb, var(--secondary) 38%, transparent);
+      --glow-tertiary: 0 0 16px color-mix(in srgb, var(--tertiary) 38%, transparent);
+      --neon-border: 1px solid color-mix(in srgb, var(--primary) 32%, transparent);
+      --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 55%, transparent);
+      --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+      --scanlines: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in srgb, var(--on-surface) 3%, transparent) 3px 4px);
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+      --dur-long: 420ms;
+      --q-pad: var(--space-md);
+      --q-font: clamp(0.92rem, 0.86rem + 0.22vw, 1.06rem);
+      --card-pad: var(--space-md);
+      --card-min-h: 150px;
+      --card-font: clamp(0.86rem, 0.82rem + 0.18vw, 0.98rem);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; height: 100%; overflow: hidden; overflow-x: clip;
+      background: var(--background); color: var(--on-surface);
+      font-family: var(--font-body); font-size: var(--body-size); line-height: 1.5;
+    }
+    button, input, select { font-family: inherit; color: inherit; }
+    button:focus-visible, select:focus-visible, input:focus-visible {
+      outline: 2px solid var(--focus); outline-offset: 2px;
+    }
+
+    #xr-app {
+      position: relative; width: 100%; height: 100dvh; display: flex; flex-direction: column;
+      justify-content: space-between; overflow: hidden;
+      background-color: var(--background); background-image: var(--scanlines);
+    }
+    #xr-app.hints-visible {
+      --q-pad: var(--space-sm);
+      --q-font: clamp(0.84rem, 0.8rem + 0.16vw, 0.94rem);
+      --card-pad: var(--space-sm);
+      --card-min-h: 112px;
+      --card-font: clamp(0.8rem, 0.77rem + 0.14vw, 0.9rem);
+    }
+    #xr-app.hints-hidden #hints-bar { display: none; }
+
+    #runner-canvas {
+      position: fixed; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none;
+    }
+
+    /* BAND 1: ULTRA-SLIM TOP MINI BAR */
+    .top-mini-bar {
+      position: relative; z-index: 20; display: flex; align-items: center; justify-content: space-between;
+      gap: var(--space-sm); padding: var(--space-xs) var(--space-md);
+      background: color-mix(in srgb, var(--surface-container-low) 88%, transparent);
+      border-bottom: 1px solid var(--outline-variant); backdrop-filter: blur(6px);
+      min-height: 44px; flex-shrink: 0;
+    }
+    .menu-mini-btn {
+      background: var(--surface-container); color: var(--primary); border: var(--neon-border-lit);
+      border-radius: var(--rounded); padding: 0.35rem 0.7rem; min-height: 36px;
+      font-family: var(--font-label); font-size: var(--label-size); font-weight: 700;
+      letter-spacing: 0.08em; cursor: pointer; text-transform: uppercase;
+      transition: box-shadow var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
+    }
+    .menu-mini-btn:hover { border-color: var(--primary); box-shadow: var(--glow-primary); text-shadow: var(--glow-text); }
+
+    .mini-telemetry { display: flex; align-items: center; gap: var(--space-xs); flex-wrap: wrap; justify-content: flex-end; }
+    .tele-chip {
+      font-family: var(--font-label); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 0.22rem 0.5rem; border-radius: var(--rounded); background: var(--surface-container);
+      border: 1px solid var(--outline-variant); color: var(--on-surface); white-space: nowrap;
+    }
+    .tele-chip.is-hp { border-color: color-mix(in srgb, var(--primary) 45%, transparent); color: var(--primary); }
+    .tele-chip.is-xp { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+    .tele-chip.is-streak { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+    .tele-chip.is-timer.is-urgent { border-color: var(--error); color: var(--error); box-shadow: 0 0 10px color-mix(in srgb, var(--error) 45%, transparent); }
+
+    /* MAIN PLAYFIELD OVERLAY */
+    .cockpit-main {
+      position: relative; z-index: 15; flex: 1 1 auto; min-height: 0;
+      display: flex; flex-direction: column; justify-content: space-between;
+      padding: var(--space-sm) var(--space-md); gap: var(--space-sm);
+      max-width: 1120px; width: 100%; margin: 0 auto;
+    }
+
+    /* BAND 2: QUESTION + 3-SECOND AUTO-HIDING METADATA */
+    .question-band {
+      background: color-mix(in srgb, var(--surface-container) 90%, transparent);
+      border: var(--neon-border); box-shadow: var(--neon-inset);
+      border-radius: var(--rounded-lg); padding: var(--q-pad);
+      backdrop-filter: blur(8px); flex-shrink: 0;
+    }
+    .q-meta-row {
+      display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-bottom: var(--space-xs);
+      max-height: 48px; opacity: 1; overflow: hidden;
+      transition: opacity var(--dur-long) var(--ease-out), max-height var(--dur-long) var(--ease-out), margin-bottom var(--dur-long) var(--ease-out);
+    }
+    .q-meta-row.is-faded { max-height: 0; opacity: 0; margin-bottom: 0; }
+    .meta-pill {
+      font-family: var(--font-label); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 0.16rem 0.45rem; border-radius: var(--rounded); border: 1px solid var(--outline);
+      color: var(--secondary); background: var(--surface-container-low);
+    }
+    .meta-pill.is-pink { color: var(--primary); border-color: color-mix(in srgb, var(--primary) 50%, transparent); }
+    .meta-pill.is-yellow { color: var(--tertiary); border-color: color-mix(in srgb, var(--tertiary) 50%, transparent); }
+    .question-stem {
+      margin: 0; font-size: var(--q-font); line-height: 1.45; color: var(--on-surface);
+      font-weight: 500;
+    }
+
+    /* BAND 3: CENTER 3 ANSWER CARDS (1:1 PORTAL FUSION) */
+    .lanes-stage {
+      flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center;
+    }
+    .lanes-grid {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-md); width: 100%; align-items: stretch;
+    }
+    .lane-card {
+      position: relative; display: flex; flex-direction: column; justify-content: space-between;
+      gap: var(--space-xs); min-height: var(--card-min-h); padding: var(--card-pad);
+      background: color-mix(in srgb, var(--surface-container) 86%, transparent);
+      border-radius: var(--rounded-lg); cursor: pointer; text-align: left;
+      backdrop-filter: blur(6px);
+      transition: transform var(--dur-micro) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+    }
+    .lane-card[data-lane="0"] { border: 1px solid color-mix(in srgb, var(--primary) 55%, transparent); }
+    .lane-card[data-lane="1"] { border: 1px solid color-mix(in srgb, var(--secondary) 55%, transparent); }
+    .lane-card[data-lane="2"] { border: 1px solid color-mix(in srgb, var(--tertiary) 55%, transparent); }
+
+    .lane-card[data-lane="0"]:hover, .lane-card[data-lane="0"].is-selected {
+      border-color: var(--primary); box-shadow: var(--glow-primary); transform: translateY(-2px);
+      background: color-mix(in srgb, var(--surface-container-high) 92%, transparent);
+    }
+    .lane-card[data-lane="1"]:hover, .lane-card[data-lane="1"].is-selected {
+      border-color: var(--secondary); box-shadow: var(--glow-secondary); transform: translateY(-2px);
+      background: color-mix(in srgb, var(--surface-container-high) 92%, transparent);
+    }
+    .lane-card[data-lane="2"]:hover, .lane-card[data-lane="2"].is-selected {
+      border-color: var(--tertiary); box-shadow: var(--glow-tertiary); transform: translateY(-2px);
+      background: color-mix(in srgb, var(--surface-container-high) 92%, transparent);
+    }
+    .lane-card.is-correct { border-color: var(--positive); box-shadow: var(--glow-secondary); }
+    .lane-card.is-wrong { border-color: var(--error); box-shadow: 0 0 18px color-mix(in srgb, var(--error) 50%, transparent); }
+
+    .lane-head {
+      display: flex; align-items: center; justify-content: space-between;
+      font-family: var(--font-label); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .lane-card[data-lane="0"] .lane-head { color: var(--primary); }
+    .lane-card[data-lane="1"] .lane-head { color: var(--secondary); }
+    .lane-card[data-lane="2"] .lane-head { color: var(--tertiary); }
+
+    .lane-choice-text {
+      font-size: var(--card-font); font-weight: 600; color: var(--on-surface); line-height: 1.35;
+      margin: auto 0;
+    }
+    .lane-foot {
+      font-family: var(--font-label); font-size: 0.66rem; color: var(--on-surface-variant);
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+
+    /* BAND 4: BOTTOM HINTS BAR */
+    .hints-bar {
+      position: relative; z-index: 16; flex-shrink: 0;
+      background: color-mix(in srgb, var(--surface-container-low) 94%, transparent);
+      border-top: 1px solid color-mix(in srgb, var(--secondary) 40%, transparent);
+      padding: var(--space-sm) var(--space-md);
+    }
+    .hints-inner { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 2px; }
+    .hints-kicker {
+      font-family: var(--font-label); font-size: 0.68rem; color: var(--secondary);
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .hints-text { margin: 0; font-size: clamp(0.84rem, 0.8rem + 0.14vw, 0.94rem); color: var(--on-surface); line-height: 1.38; }
+
+    /* MENU & SKILL TREE DRAWER */
+    .menu-backdrop {
+      position: fixed; inset: 0; z-index: 80; background: var(--surface-overlay);
+      display: none; backdrop-filter: blur(4px);
+    }
+    .menu-backdrop.is-open { display: block; }
+    #top-menu-drawer {
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 90; width: min(440px, 94vw);
+      background: var(--surface-container); border-right: var(--neon-border-lit);
+      transform: translateX(-104%); transition: transform var(--dur-short) var(--ease-out);
+      display: flex; flex-direction: column; overflow-y: auto; padding: var(--space-md); gap: var(--space-md);
+    }
+    #top-menu-drawer.is-open { transform: translateX(0); }
+    .drawer-header { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-sm); border-bottom: 1px solid var(--outline-variant); padding-bottom: var(--space-sm); }
+    .drawer-kicker { font-family: var(--font-label); font-size: 0.7rem; color: var(--secondary); letter-spacing: 0.1em; text-transform: uppercase; text-shadow: var(--glow-text); }
+    .drawer-title { margin: 2px 0 0; font-family: var(--font-headline); font-size: var(--headline-size); font-weight: 700; color: var(--on-surface); line-height: 1.15; }
+    .drawer-section { display: flex; flex-direction: column; gap: var(--space-xs); border-bottom: 1px solid var(--outline-variant); padding-bottom: var(--space-sm); }
+    .section-label { font-family: var(--font-label); font-size: 0.7rem; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: 0.08em; }
+    .btn-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-xs); }
+    .btn-neon {
+      background: var(--surface-container-low); color: var(--on-surface); border: 1px solid var(--outline);
+      border-radius: var(--rounded); padding: 0.45rem 0.65rem; min-height: 38px; cursor: pointer;
+      font-family: var(--font-label); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em;
+      transition: border-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out);
+    }
+    .btn-neon:hover { border-color: var(--primary); box-shadow: var(--glow-primary); }
+    .btn-neon.is-cyan { border-color: color-mix(in srgb, var(--secondary) 50%, transparent); color: var(--secondary); }
+    .btn-neon.is-pink { border-color: color-mix(in srgb, var(--primary) 55%, transparent); color: var(--primary); }
+    .btn-neon.is-yellow { border-color: color-mix(in srgb, var(--tertiary) 55%, transparent); color: var(--tertiary); }
+    .btn-neon.is-active { background: var(--primary-container); color: var(--on-primary-container); border-color: var(--primary); }
+
+    .filter-field { display: flex; flex-direction: column; gap: 3px; }
+    .filter-field label { font-family: var(--font-label); font-size: 0.68rem; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: 0.06em; }
+    .filter-field select, .codex-search {
+      background: var(--surface-container-low); color: var(--on-surface); border: 1px solid var(--outline);
+      border-radius: var(--rounded); padding: 0.4rem 0.6rem; min-height: 38px; font-size: 0.82rem;
+    }
+    .phase-pills { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+    .phase-pill {
+      background: var(--surface-container-low); color: var(--on-surface-variant); border: 1px solid var(--outline);
+      border-radius: var(--rounded); padding: 0.3rem 0.5rem; font-family: var(--font-label); font-size: 0.66rem;
+      cursor: pointer; text-transform: uppercase;
+    }
+    .phase-pill.is-active { border-color: var(--secondary); color: var(--secondary); box-shadow: var(--glow-secondary); }
+
+    .skill-tree-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-xs); }
+    .skill-node {
+      background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: var(--rounded);
+      padding: 0.38rem; cursor: pointer; text-align: left; display: flex; flex-direction: column; gap: 2px;
+    }
+    .skill-node:hover { border-color: var(--secondary); }
+    .skill-node.is-mastered { border-color: var(--positive); }
+    .skill-node-id { font-family: var(--font-label); font-size: 0.64rem; color: var(--secondary); }
+    .skill-node-name { font-size: 0.72rem; color: var(--on-surface); font-weight: 600; line-height: 1.2; }
+    .skill-node-stat { font-family: var(--font-label); font-size: 0.62rem; color: var(--tertiary); }
+
+    .audio-row { display: flex; align-items: center; gap: var(--space-sm); }
+    .audio-row input[type="range"] { flex: 1; accent-color: var(--primary); }
+    .status-note { font-family: var(--font-label); font-size: 0.7rem; color: var(--secondary); min-height: 1.1em; }
+
+    /* MODALS (OUTCOME DOSSIER & LOOT CODEX) */
+    .modal-backdrop {
+      position: fixed; inset: 0; z-index: 100; background: var(--surface-overlay);
+      display: none; align-items: center; justify-content: center; padding: var(--space-md);
+      backdrop-filter: blur(6px);
+    }
+    .modal-backdrop.is-open { display: flex; }
+    .modal-panel {
+      width: min(920px, 100%); max-height: 90dvh; overflow-y: auto;
+      background: var(--surface-container); border: var(--neon-border-lit);
+      border-radius: var(--rounded-lg); padding: var(--space-lg);
+      display: flex; flex-direction: column; gap: var(--space-md);
+    }
+    .modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-sm); border-bottom: 1px solid var(--outline-variant); padding-bottom: var(--space-sm); }
+    .verdict-banner {
+      font-family: var(--font-headline); font-size: var(--headline-size); font-weight: 700;
+      padding: var(--space-sm) var(--space-md); border-radius: var(--rounded);
+      border: 1px solid var(--secondary); color: var(--secondary); background: var(--surface-container-low);
+    }
+    .verdict-banner.is-wrong { border-color: var(--error); color: var(--error); }
+    .dossier-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-sm); }
+    .dossier-card {
+      background: var(--surface-container-low); border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded); padding: var(--space-sm);
+    }
+    .dossier-card h4 {
+      margin: 0 0 4px; font-family: var(--font-label); font-size: 0.7rem; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--primary);
+    }
+    .dossier-card.is-cyan h4 { color: var(--secondary); }
+    .dossier-card.is-yellow h4 { color: var(--tertiary); }
+    .dossier-card p, .dossier-card ul { margin: 0; font-size: 0.84rem; color: var(--on-surface); line-height: 1.42; }
+    .dossier-card ul { padding-left: 1.1rem; }
+
+    /* 6-COLUMN LOOT CODEX TABLE */
+    .codex-controls { display: flex; flex-wrap: wrap; gap: var(--space-xs); align-items: center; }
+    .codex-table-wrap { overflow-x: auto; border: 1px solid var(--outline-variant); border-radius: var(--rounded); }
+    .codex-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 780px; }
+    .codex-table th {
+      background: var(--surface-container-high); color: var(--secondary); text-align: left;
+      font-family: var(--font-label); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 0.55rem; border-bottom: 1px solid var(--outline);
+    }
+    .codex-table td {
+      padding: 0.55rem; border-bottom: 1px solid var(--outline-variant); vertical-align: top; color: var(--on-surface);
+    }
+    .codex-table tr:nth-child(even) td { background: var(--surface-container-low); }
+
+    @media (max-width: 760px) {
+      .lanes-grid { grid-template-columns: 1fr; gap: var(--space-xs); }
+      .lane-card { min-height: 74px; }
+      .skill-tree-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+      .cockpit-main { padding: var(--space-xs) var(--space-sm); }
+      .tele-chip { font-size: 0.66rem; padding: 0.16rem 0.38rem; }
+      .modal-panel { padding: var(--space-md); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="xr-app" class="hints-hidden">
+    <canvas id="runner-canvas" aria-hidden="true"></canvas>
+
+    <!-- BAND 1: ULTRA-SLIM TOP BAR -->
+    <header class="top-mini-bar">
+      <button type="button" class="menu-mini-btn" id="menu-toggle-btn" onclick="toggleMenuDrawer()" aria-expanded="false" aria-controls="top-menu-drawer">☰ MENU</button>
+      <div class="mini-telemetry" aria-label="Game Status">
+        <span class="tele-chip is-hp">HP <span id="hp-text">100</span></span>
+        <span class="tele-chip is-xp">XP <span id="xp-text">0</span></span>
+        <span class="tele-chip is-streak">⚡<span id="streak-text">0</span></span>
+        <span class="tele-chip">Gate <span id="gate-text">1/45</span></span>
+        <span class="tele-chip is-timer" id="timer-chip">⏱ <span id="timer-text">OFF</span></span>
+      </div>
+    </header>
+
+    <main class="cockpit-main">
+      <!-- BAND 2: TOP QUESTION + 3-SECOND AUTO-HIDING METADATA -->
+      <section class="question-band" aria-live="polite">
+        <div class="q-meta-row" id="q-meta-row">
+          <span class="meta-pill is-pink" id="meta-lo">LO 1</span>
+          <span class="meta-pill" id="meta-angle">Presentation -&gt; Diagnosis</span>
+          <span class="meta-pill is-yellow" id="meta-phase">Phase 1</span>
+          <span class="meta-pill" id="meta-corridor">CORRIDOR: TUBULAR-ISCHEMIA</span>
+        </div>
+        <p class="question-stem" id="question-stem">Loading Renal COMLEX-USA XR Raid...</p>
+      </section>
+
+      <!-- BAND 3: CENTER 3 ANSWER CARDS (1:1 PORTAL FUSION) -->
+      <section class="lanes-stage" aria-label="Diagnostic Lanes">
+        <div class="lanes-grid" id="lanes-grid">
+          <button type="button" class="lane-card" data-lane="0" id="lane-card-0" onclick="chooseLane(0)">
+            <div class="lane-head"><span>LANE 1 // PINK</span><span>[1 / ←]</span></div>
+            <div class="lane-choice-text" id="lane-text-0">Loading…</div>
+            <div class="lane-foot">PORTAL ALPHA</div>
+          </button>
+          <button type="button" class="lane-card" data-lane="1" id="lane-card-1" onclick="chooseLane(1)">
+            <div class="lane-head"><span>LANE 2 // CYAN</span><span>[2 / ↑]</span></div>
+            <div class="lane-choice-text" id="lane-text-1">Loading…</div>
+            <div class="lane-foot">PORTAL BETA</div>
+          </button>
+          <button type="button" class="lane-card" data-lane="2" id="lane-card-2" onclick="chooseLane(2)">
+            <div class="lane-head"><span>LANE 3 // YELLOW</span><span>[3 / →]</span></div>
+            <div class="lane-choice-text" id="lane-text-2">Loading…</div>
+            <div class="lane-foot">PORTAL GAMMA</div>
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <!-- BAND 4: BOTTOM HINTS BAR -->
+    <aside class="hints-bar" id="hints-bar" aria-label="Tactical Hint">
+      <div class="hints-inner">
+        <span class="hints-kicker">TACTICAL HINT [H]</span>
+        <p class="hints-text" id="hints-text"></p>
+      </div>
+    </aside>
+  </div>
+
+  <!-- FULL MENU & SKILL TREE DRAWER -->
+  <div class="menu-backdrop" id="menu-backdrop" onclick="toggleMenuDrawer(false)"></div>
+  <aside id="top-menu-drawer" aria-label="Command Drawer">
+    <div class="drawer-header">
+      <div>
+        <div class="drawer-kicker">NBOME COMLEX-USA CP-6 &amp; OMT DOMAIN 1</div>
+        <h1 class="drawer-title">Renal COMLEX-USA XR 3-Lane Diagnostic Runner</h1>
+      </div>
+      <button type="button" class="btn-neon" onclick="toggleMenuDrawer(false)">✕</button>
+    </div>
+
+    <div class="drawer-section">
+      <span class="section-label">Raid Actions &amp; Hotkeys</span>
+      <div class="btn-grid">
+        <button type="button" class="btn-neon is-cyan" onclick="toggleHints()">Hints [H]</button>
+        <button type="button" class="btn-neon is-pink" onclick="openCodexModal()">Loot Codex [C]</button>
+        <button type="button" class="btn-neon" onclick="skipGate()">Skip Gate [S]</button>
+        <button type="button" class="btn-neon is-yellow" id="timer-toggle-btn" onclick="toggleTimerMode()">50s Timer [T]: OFF</button>
+        <button type="button" class="btn-neon is-pink" onclick="startTimedRun()">Start 50s Timed Run</button>
+        <button type="button" class="btn-neon" onclick="restartDeck(false)">Restart Ordered</button>
+        <button type="button" class="btn-neon is-cyan" onclick="restartDeck(true)">Shuffle Deck</button>
+        <button type="button" class="btn-neon" id="reset-mastery-btn" onclick="handleResetMastery(this)">Reset Mastery</button>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <span class="section-label">COMLEX-USA Renal Skill Tree Filters</span>
+      <div class="filter-field">
+        <label for="sector-filter">Sector / Mastery Filter</label>
+        <select id="sector-filter" onchange="onFilterChange()">
+          <option value="all">All 5 CP-6 Sectors (45 Gates)</option>
+          <option value="missed">🎯 Missed Gates Only</option>
+          <option value="sector_1">Sector I — Nephropathies, AKI, CKD &amp; Tubular</option>
+          <option value="sector_2">Sector II — Glomerulonephritides &amp; Nephrotic</option>
+          <option value="sector_3">Sector III — Fluid, Electrolytes, Acid-Base &amp; Diuretics</option>
+          <option value="sector_4">Sector IV — UTIs, Nephrolithiasis &amp; Outflow</option>
+          <option value="sector_5">Sector V — Exam, Diagnostics &amp; OMT (T10–L2)</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label for="angle-filter">Diagnostic Angle</label>
+        <select id="angle-filter" onchange="onFilterChange()">
+          <option value="all">All 3 Angles</option>
+          <option value="Presentation -> Diagnosis">Presentation -&gt; Diagnosis</option>
+          <option value="Mechanism -> Pathophysiology">Mechanism -&gt; Pathophysiology</option>
+          <option value="Hallmarks -> Management">Hallmarks -&gt; Management</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label for="compartment-filter">Nephron / Urinary Tract Region</label>
+        <select id="compartment-filter" onchange="onFilterChange()">
+          <option value="all">All Regions</option>
+          <option value="glomerular_vascular">Glomerular &amp; Vascular</option>
+          <option value="proximal_loop_tubule">Proximal &amp; Loop Tubule</option>
+          <option value="distal_collecting_acid_base">Distal / Collecting &amp; Acid-Base</option>
+          <option value="lower_tract_stones_neoplasm">Lower Tract, Stones &amp; Neoplasm</option>
+          <option value="exam_diagnostics_omt">Exam, Diagnostics &amp; OMT</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label for="age-filter">Demographics</label>
+        <select id="age-filter" onchange="onFilterChange()">
+          <option value="all">All Demographics</option>
+          <option value="all_ages">All Ages</option>
+          <option value="pediatric">Pediatric</option>
+          <option value="adult_elderly">Adult &amp; Elderly</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label for="behavior-filter">Pathologic Mechanism</label>
+        <select id="behavior-filter" onchange="onFilterChange()">
+          <option value="all">All Mechanisms</option>
+          <option value="immune_glomerular">Immune / Glomerular</option>
+          <option value="ischemic_nephrotoxic">Ischemic / Nephrotoxic</option>
+          <option value="metabolic_electrolyte">Metabolic / Electrolyte</option>
+          <option value="infectious_obstructive">Infectious / Obstructive</option>
+          <option value="neoplastic_congenital">Neoplastic / Congenital</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label for="timesup-mode">Time's Up Mode</label>
+        <select id="timesup-mode" onchange="onTimesUpModeChange()">
+          <option value="reveal">Reveal Dossier &amp; Mark Missed</option>
+          <option value="auto_advance">Take Damage &amp; Auto-Advance</option>
+        </select>
+      </div>
+      <div>
+        <span class="section-label">3-Phase Raid Mix (30% / 35% / 35%)</span>
+        <div class="phase-pills" id="phase-pills">
+          <button type="button" class="phase-pill is-active" data-phase="all" onclick="setPhaseFilter('all')">All (100%)</button>
+          <button type="button" class="phase-pill" data-phase="Phase 1" onclick="setPhaseFilter('Phase 1')">P1 Phys/Pharm (30%)</button>
+          <button type="button" class="phase-pill" data-phase="Phase 2" onclick="setPhaseFilter('Phase 2')">P2 Casts/Stones/IF (35%)</button>
+          <button type="button" class="phase-pill" data-phase="Phase 3" onclick="setPhaseFilter('Phase 3')">P3 Mgmt &amp; OMT (35%)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <span class="section-label">Procedural Web Audio &amp; Custom BGM</span>
+      <div class="btn-grid">
+        <button type="button" class="btn-neon is-cyan" id="master-sound-btn" onclick="toggleMasterSound()">Master Sound: ON</button>
+        <button type="button" class="btn-neon" id="sfx-btn" onclick="toggleSfx()">SFX: ON</button>
+        <button type="button" class="btn-neon is-pink" id="bgm-btn" onclick="toggleBgm()">Synth BGM: OFF</button>
+        <label class="btn-neon" style="display:flex;align-items:center;justify-content:center;cursor:pointer;">
+          Load MP3/WAV
+          <input type="file" id="custom-bgm-input" accept="audio/*" style="display:none" onchange="loadCustomBgm(event)">
+        </label>
+      </div>
+      <div class="audio-row">
+        <label for="bgm-volume" class="section-label">BGM Vol</label>
+        <input type="range" id="bgm-volume" min="0" max="1" step="0.05" value="0.35" oninput="setBgmVolume(this.value)">
+      </div>
+      <div class="status-note" id="drawer-status-note"></div>
+    </div>
+
+    <div class="drawer-section">
+      <span class="section-label">15 Renal Entities Skill Tree (Click to Focus LO)</span>
+      <div class="skill-tree-grid" id="skill-tree-grid"></div>
+    </div>
+  </aside>
+
+  <!-- 7-PART OUTCOME DOSSIER MODAL -->
+  <div class="modal-backdrop" id="outcome-modal" role="dialog" aria-modal="true" aria-labelledby="outcome-verdict">
+    <div class="modal-panel">
+      <div class="modal-head">
+        <div>
+          <div class="drawer-kicker" id="outcome-meta">SECTOR DOSSIER</div>
+          <div class="verdict-banner" id="outcome-verdict">VERDICT</div>
+        </div>
+        <button type="button" class="btn-neon is-cyan" onclick="nextGate()">Next Gate [Enter]</button>
+      </div>
+      <div class="dossier-grid">
+        <div class="dossier-card is-cyan">
+          <h4>1. Verdict &amp; Distractor Exclusion</h4>
+          <p id="dossier-explanation"></p>
+        </div>
+        <div class="dossier-card">
+          <h4>2. Second-Order Board Logic</h4>
+          <p id="dossier-second-order"></p>
+        </div>
+        <div class="dossier-card">
+          <h4>3. Phase 1 Pearl (Physiology / Pharm)</h4>
+          <p id="dossier-p1"></p>
+        </div>
+        <div class="dossier-card is-cyan">
+          <h4>4. Phase 2 Hallmark (UA / IF / EM / Labs)</h4>
+          <p id="dossier-p2"></p>
+        </div>
+        <div class="dossier-card is-yellow">
+          <h4>5. Phase 3 &amp; OMT Guild Master Secret</h4>
+          <p id="dossier-p3"></p>
+        </div>
+        <div class="dossier-card">
+          <h4>6. Board Review Reference Lookup</h4>
+          <p id="amboss-ref-text">Search AMBOSS / First Aid / Pathoma reference library in your study tab for: <strong id="amboss-topic-label"></strong></p>
+        </div>
+      </div>
+      <div class="dossier-card">
+        <h4>7. Structured Phase Synthesis Bullets</h4>
+        <div class="dossier-grid" id="dossier-bullets-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6-COLUMN LOOT CODEX MODAL -->
+  <div class="modal-backdrop" id="codex-modal" role="dialog" aria-modal="true" aria-labelledby="codex-title">
+    <div class="modal-panel" style="width:min(1080px,100%)">
+      <div class="modal-head">
+        <div>
+          <div class="drawer-kicker">CP-6 RENAL &amp; OMT LOOT CODEX (15 ENTITIES)</div>
+          <h2 class="drawer-title" id="codex-title">6-Column Diagnostic Compendium</h2>
+        </div>
+        <button type="button" class="btn-neon" onclick="closeCodexModal()">Close [Esc]</button>
+      </div>
+      <div class="codex-controls">
+        <input type="text" class="codex-search" id="codex-search" placeholder="Filter entities, casts, stones, OMT levels…" oninput="renderCodexTable()" aria-label="Search Loot Codex">
+        <div class="phase-pills" id="codex-sector-pills">
+          <button type="button" class="phase-pill is-active" data-sector="all" onclick="setCodexSector('all')">All Sectors</button>
+          <button type="button" class="phase-pill" data-sector="sector_1" onclick="setCodexSector('sector_1')">I: AKI/CKD</button>
+          <button type="button" class="phase-pill" data-sector="sector_2" onclick="setCodexSector('sector_2')">II: GN/Nephrotic</button>
+          <button type="button" class="phase-pill" data-sector="sector_3" onclick="setCodexSector('sector_3')">III: Lyte/Acid/Diur</button>
+          <button type="button" class="phase-pill" data-sector="sector_4" onclick="setCodexSector('sector_4')">IV: UTI/Stone/Outflow</button>
+          <button type="button" class="phase-pill" data-sector="sector_5" onclick="setCodexSector('sector_5')">V: Exam/UA/OMT</button>
+        </div>
+      </div>
+      <div class="codex-table-wrap">
+        <table class="codex-table">
+          <thead>
+            <tr>
+              <th>Entity &amp; CP-6 Meta</th>
+              <th>Etiology &amp; Trigger</th>
+              <th>Phase 1: Pathogenesis &amp; Pharm</th>
+              <th>Phase 2: Hallmarks (UA/IF/EM)</th>
+              <th>Phase 3: Clinical &amp; DDx</th>
+              <th>Management &amp; OMT Secret</th>
+            </tr>
+          </thead>
+          <tbody id="codex-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <api-shim></api-shim>
+  <script>
+    const GAME_CONFIG = {
+      title: `Renal COMLEX-USA XR 3-Lane Diagnostic Runner`,
+      metaFadeMs: 3000,
+      timerSeconds: 50
+    };
+
+    const LO_VISUAL_THEMES = {
+      1: { corridor: `TUBULAR-ISCHEMIA`, hue: 335 },
+      2: { corridor: `HYPERSENSITIVITY-INTERSTITIUM`, hue: 170 },
+      3: { corridor: `CYSTIC-OSTEODYSTROPHY`, hue: 48 },
+      4: { corridor: `PODOCYTE-EFFACEMENT`, hue: 325 },
+      5: { corridor: `SUBEPITHELIAL-SPIKE`, hue: 185 },
+      6: { corridor: `CRESCENTIC-SYNDROME`, hue: 12 },
+      7: { corridor: `SYNERGISTIC-MESANGIAL`, hue: 280 },
+      8: { corridor: `OSMOLAL-COUNTERCURRENT`, hue: 195 },
+      9: { corridor: `TUBULAR-ACIDOSIS`, hue: 52 },
+      10: { corridor: `NEPHRON-DIURETIC`, hue: 160 },
+      11: { corridor: `ASCENDING-UREASE`, hue: 340 },
+      12: { corridor: `CRYSTAL-OBSTRUCTION`, hue: 42 },
+      13: { corridor: `OUTFLOW-UROTHELIUM`, hue: 265 },
+      14: { corridor: `CAST-MICROSCOPY`, hue: 175 },
+      15: { corridor: `SOMATOVISCERAL-T10-L2`, hue: 330 }
+    };
+
+    const CODEX_DATA = [
+      {
+        lo: 1, sector: `sector_1`, tag: `I: AKI/CKD`, compartment: `proximal_loop_tubule`, ageGroup: `adult_elderly`, behavior: `ischemic_nephrotoxic`,
+        entity: `Prerenal Azotemia vs. Acute Tubular Necrosis (ATN)`, badgeMeta: `CP 6.1 • Proximal / mTAL`,
+        etiology: `Prerenal: hypovolemia, ↓ cardiac output, ↓ effective circulating volume. ATN: prolonged ischemia or nephrotoxins (aminoglycosides, radiocontrast, myoglobin, ethylene glycol, urate, lead).`,
+        pathogenesis: `Prerenal preserves tubular reabsorption (↑ ADH/RAAS → avid Na+/H2O/urea uptake). ATN necroses PCT & medullary TAL cells → necrotic debris plugs tubules → ↓ GFR.`,
+        hallmarks: `Prerenal: FENa < 1%, BUN:Cr > 15, Urine Na < 20, Uosm > 500. ATN: Muddy brown granular casts, FENa > 2%, BUN:Cr < 15, Urine Na > 40, Uosm < 350.`,
+        clinical: `Oliguria, rising BUN/Cr, hyperkalemia, metabolic acidosis. ATN oliguria lasts 2–3 weeks while stable tubular cells regenerate.`,
+        management: `Prerenal: isotonic fluid resuscitation. ATN: supportive care/dialysis for fatal AEIOU emergencies. Hydration + allopurinol before chemo prevents urate ATN.`
+      },
+      {
+        lo: 2, sector: `sector_1`, tag: `I: AKI/CKD`, compartment: `proximal_loop_tubule`, ageGroup: `adult_elderly`, behavior: `ischemic_nephrotoxic`,
+        entity: `Acute Interstitial Nephritis (AIN)`, badgeMeta: `CP 6.1 • Interstitium`,
+        etiology: `Drug-induced hapten hypersensitivity ("DRAINS": Diuretics, Rifampin, Antibiotics [PCN/cephalosporins], PPIs, NSAIDs, Sulfa drugs); less often SLE, sarcoidosis, Mycoplasma.`,
+        pathogenesis: `Type I/IV drug-induced immune reaction causing acute tubulointerstitial inflammation and edema without primary glomerular injury.`,
+        hallmarks: `Sterile pyuria, eosinophiluria, WBC casts, peripheral eosinophilia, azotemia.`,
+        clinical: `Fever, maculopapular rash, CVA tenderness, oliguria days–weeks after starting offending drug (may be asymptomatic).`,
+        management: `Immediately withdraw offending drug; corticosteroids if severe/refractory. Guild Master Secret: Pyuria + rash + eosinophils after PPI/beta-lactam/NSAID = AIN.`
+      },
+      {
+        lo: 3, sector: `sector_1`, tag: `I: AKI/CKD`, compartment: `glomerular_vascular`, ageGroup: `adult_elderly`, behavior: `metabolic_electrolyte`,
+        entity: `ADPKD, ARPKD & CKD Complications`, badgeMeta: `CP 6.4 • Cystic & CKD`,
+        etiology: `ADPKD: PKD1 (85%, chr 16) or PKD2 (15%, chr 4) polycystin mutations. ARPKD: PKHD1 fibrocystin mutation. CKD: diabetes (Kimmelstiel-Wilson), HTN.`,
+        pathogenesis: `ADPKD: bilateral cortical/medullary cysts compress parenchyma & ↑ renin. CKD: ↓ 1α-hydroxylase → ↓ calcitriol → ↓ Ca2+, ↑ PO4 → 2° hyperparathyroidism (renal osteodystrophy) & ↓ EPO anemia.`,
+        hallmarks: `ADPKD: huge bilateral cystic kidneys, berry aneurysms, hepatic cysts, MVP. ARPKD: infantile collecting duct cysts + congenital hepatic fibrosis/Potter. CKD: waxy broad casts, subperiosteal bone resorption.`,
+        clinical: `Flank pain, hematuria, HTN, UTIs, progressive CKD in ADPKD; uremic pericarditis/asterixis/bleeding in ESRD.`,
+        management: `ACEi/ARB for HTN/proteinuria in ADPKD & diabetic CKD; phosphate binders, vitamin D analogs (calcitriol), EPO. Check MRA if thunderclap headache in ADPKD.`
+      },
+      {
+        lo: 4, sector: `sector_2`, tag: `II: GN/Nephrotic`, compartment: `glomerular_vascular`, ageGroup: `pediatric`, behavior: `immune_glomerular`,
+        entity: `Minimal Change Disease & FSGS`, badgeMeta: `CP 6.1 • Podocyte`,
+        etiology: `MCD: most common nephrotic syndrome in children; idiopathic or Hodgkin lymphoma. FSGS: MCC nephrotic in African Americans/Hispanics; idiopathic, HIV, heroin, sickle cell.`,
+        pathogenesis: `MCD: T-cell cytokines damage podocytes → loss of GBM negative charge → selective albuminuria. FSGS: podocyte injury with focal (<50% glomeruli) segmental sclerosis.`,
+        hallmarks: `Nephrotic (>3.5 g/day proteinuria, pitting edema, hypoalbuminemia, hyperlipidemia, fatty casts, AT-III loss). MCD: normal H&E, negative IF, EM foot process effacement. FSGS: focal segmental hyalinosis on H&E, negative IF, EM effacement.`,
+        clinical: `Periorbital/generalized pitting edema, frothy urine, DVT/renal vein thrombosis (AT-III loss), encapsulated bacterial infections (Ig loss).`,
+        management: `MCD: dramatic response to corticosteroids. FSGS: poor steroid response, progresses to CKD; ACEi/ARB + immunosuppression.`
+      },
+      {
+        lo: 5, sector: `sector_2`, tag: `II: GN/Nephrotic`, compartment: `glomerular_vascular`, ageGroup: `adult_elderly`, behavior: `immune_glomerular`,
+        entity: `Membranous Nephropathy & Diabetic Glomerulosclerosis`, badgeMeta: `CP 6.1 • GBM Thickening`,
+        etiology: `Membranous: MCC nephrotic in Caucasian adults; idiopathic (anti-PLA2R), HBV/HCV, solid tumors, SLE (class V), NSAIDs, penicillamine. Diabetic: chronic hyperglycemia.`,
+        pathogenesis: `Membranous: subepithelial immune complex deposition thickens GBM. Diabetic: nonenzymatic glycation of efferent arteriole → hyperfiltration → mesangial expansion.`,
+        hallmarks: `Membranous: diffuse GBM thickening on H&E, granular IF, EM subepithelial deposits with "spike and dome" appearance. Diabetic: Kimmelstiel-Wilson acellular eosinophilic nodules.`,
+        clinical: `Insidious nephrotic syndrome (>3.5 g/day), hypercoagulability (renal vein thrombosis), poor steroid response.`,
+        management: `ACEi/ARB to ↓ intraglomerular pressure (efferent dilation), statins, anticoagulation if thrombosed; screen older adults with membranous nephropathy for occult solid malignancy.`
+      },
+      {
+        lo: 6, sector: `sector_2`, tag: `II: GN/Nephrotic`, compartment: `glomerular_vascular`, ageGroup: `all_ages`, behavior: `immune_glomerular`,
+        entity: `Rapidly Progressive GN (RPGN) & Vasculitides`, badgeMeta: `CP 6.1 • Crescentic`,
+        etiology: `Type I (Linear IF): Goodpasture syndrome (anti-type IV collagen α3). Type II (Granular IF): PSGN, SLE DPGN. Type III (Pauci-immune): GPA (PR3/c-ANCA), MPA & EGPA (MPO/p-ANCA).`,
+        pathogenesis: `Severe GBM breaks leak fibrin & plasma proteins into Bowman space, recruiting parietal cells & macrophages to form crescents.`,
+        hallmarks: `Crescent moons on H&E; dysmorphic RBCs & RBC casts. Linear IgG IF = Goodpasture; Granular IF = PSGN/SLE ("wire loop" DPGN); Negative IF = ANCA vasculitis.`,
+        clinical: `Rapid renal failure over days–weeks with hematuria, HTN; hemoptysis in Goodpasture & GPA (plus sinus/saddle-nose); asthma/eosinophilia in EGPA.`,
+        management: `Emergent high-dose IV corticosteroids + cyclophosphamide/rituximab; plasmapheresis for Goodpasture syndrome.`
+      },
+      {
+        lo: 7, sector: `sector_2`, tag: `II: GN/Nephrotic`, compartment: `glomerular_vascular`, ageGroup: `pediatric`, behavior: `immune_glomerular`,
+        entity: `PSGN, IgA Nephropathy & Alport Syndrome`, badgeMeta: `CP 6.1 • Nephritic DDx`,
+        etiology: `PSGN: 2–4 wks after GAS pharyngitis/impetigo. IgA (Berger): concurrent/days after mucosal URI/GI infection. Alport: X-linked COL4A5 type IV collagen mutation.`,
+        pathogenesis: `PSGN: Type III HSR with consumptive ↓ C3. IgA: mucosal IgA immune complex deposition in mesangium (normal C3). Alport: defective GBM type IV collagen splitting.`,
+        hallmarks: `PSGN: hypercellular glomeruli, granular "starry-sky" IF, EM subepithelial humps. IgA: mesangial proliferation & IgA IF. Alport: EM "basket-weave" GBM splitting.`,
+        clinical: `Cola-colored urine, RBC casts, HTN, periorbital edema. Alport adds sensorineural deafness & ocular lens defects.`,
+        management: `PSGN: supportive (children rarely progress; ~25% adults → RPGN). IgA: ACEi/ARB, steroids if progressive. Alport: ACEi/ARB.`
+      },
+      {
+        lo: 8, sector: `sector_3`, tag: `III: Lyte/Acid/Diur`, compartment: `distal_collecting_acid_base`, ageGroup: `all_ages`, behavior: `metabolic_electrolyte`,
+        entity: `Sodium, Osmolality, SIADH vs. Diabetes Insipidus`, badgeMeta: `CP 6.1 • Water Balance`,
+        etiology: `SIADH: SCLC, CNS trauma, carbamazepine, SSRIs, cyclophosphamide. Central DI: pituitary trauma/tumor. Nephrogenic DI: lithium, demeclocycline, hypercalcemia, hypokalemia.`,
+        pathogenesis: `ADH binds V2 receptors on principal cells → ↑ cAMP → AQP2 insertion in collecting duct → free water reabsorption & urine concentration.`,
+        hallmarks: `SIADH: euvolemic hyponatremia, Posm < 275, Uosm > 100, UNa > 40. DI: hypernatremia, polyuria/polydipsia, Uosm < 300; desmopressin ↑ Uosm >50% in central DI, no change in nephrogenic DI.`,
+        clinical: `Rapid hyponatremia causes cerebral edema/seizures; rapid overcorrection causes osmotic demyelination syndrome (locked-in).`,
+        management: `SIADH: fluid restriction, salt tablets, demeclocycline/tolvaptan; correct Na+ ≤ 8–10 mEq/L per 24h. Central DI: desmopressin. Nephrogenic DI: thiazides, amiloride (for lithium), NSAIDs.`
+      },
+      {
+        lo: 9, sector: `sector_3`, tag: `III: Lyte/Acid/Diur`, compartment: `distal_collecting_acid_base`, ageGroup: `all_ages`, behavior: `metabolic_electrolyte`,
+        entity: `Acid-Base, MUDPILES & Renal Tubular Acidosis (1, 2, 4)`, badgeMeta: `CP 6.13 • Acid-Base`,
+        etiology: `HAGMA (MUDPILES): Methanol, Uremia, DKA, Propylene glycol, INH/Iron, Lactic acidosis, Ethylene glycol, Salicylates. NAGMA: diarrhea, RTA Types 1, 2, 4.`,
+        pathogenesis: `Type 1 (Distal): α-intercalated cell H+ secretion failure (urine pH > 5.5, hypokalemia, Ca-phosphate stones). Type 2 (Proximal): PCT HCO3- reabsorption defect (urine pH < 5.5 once depleted, Fanconi). Type 4: hypoaldosteronism/resistance (hyperkalemia, ↓ NH3).`,
+        hallmarks: `Anion Gap = Na+ - (Cl- + HCO3-) [normal 8–12]. Winter formula: expected PaCO2 = 1.5(HCO3-) + 8 ± 2. Ethylene glycol → envelope Ca-oxalate crystals.`,
+        clinical: `Kussmaul respirations in metabolic acidosis; rickets/osteomalacia in Type 2 RTA; diabetic hyporeninemic hypoaldosteronism in Type 4 RTA.`,
+        management: `Treat underlying cause (fomepizole for methanol/ethylene glycol; NaHCO3 for RTA 1/2; fludrocortisone or K+ binder/loop for RTA 4).`
+      },
+      {
+        lo: 10, sector: `sector_3`, tag: `III: Lyte/Acid/Diur`, compartment: `proximal_loop_tubule`, ageGroup: `all_ages`, behavior: `metabolic_electrolyte`,
+        entity: `Diuretic Pharmacology, Potassium & RAAS`, badgeMeta: `CP 6.1 • Nephron Pharm`,
+        etiology: `Acetazolamide (PCT), Loops (TAL NKCC2), Thiazides (DCT NCC), K+-sparing (collecting duct ENaC/MR: spironolactone, eplerenone, amiloride, triamterene).`,
+        pathogenesis: `Loops block NKCC2 → abolish lumen-positive potential → ↑ Ca2+/Mg2+ excretion. Thiazides block NCC → ↑ basolateral Na+/Ca2+ exchange → ↓ urine Ca2+. K+-sparing block aldosterone/ENaC → ↓ K+ & H+ secretion.`,
+        hallmarks: `Loops/Thiazides: hypokalemic metabolic alkalosis. Acetazolamide & K+-sparing: NAGMA (hyperkalemia with K+-sparing; hypokalemia with acetazolamide).`,
+        clinical: `Loop ototoxicity + sulfa allergy (use ethacrynic acid if sulfa-allergic). Spironolactone causes gynecomastia (eplerenone spares AR). Hyperkalemia causes peaked T waves → sine wave.`,
+        management: `Acute hyperkalemia: 1) IV Calcium gluconate (stabilizes myocardium), 2) Insulin + glucose / albuterol (shifts K+ intracellularly), 3) Loop/patiromer/dialysis (removes K+).`
+      },
+      {
+        lo: 11, sector: `sector_4`, tag: `IV: UTI/Stone/Outflow`, compartment: `lower_tract_stones_neoplasm`, ageGroup: `all_ages`, behavior: `infectious_obstructive`,
+        entity: `Cystitis, Pyelonephritis & Interstitial Cystitis`, badgeMeta: `CP 6.2 • Urinary Infection`,
+        etiology: `E. coli (MCC, P-fimbriae), S. saprophyticus (young sexually active women), Klebsiella, Proteus (urease+), Enterococcus. Interstitial cystitis: chronic noninfectious pelvic pain.`,
+        pathogenesis: `Urethral colonization ascends bladder (cystitis) → ureters/renal parenchyma (pyelonephritis).`,
+        hallmarks: `Pyuria (+ leukocyte esterase), nitrites (Gram-negative Enterobacteriaceae), WBC casts + CVA tenderness + fever = pyelonephritis. Cystitis lacks systemic signs/WBC casts.`,
+        clinical: `Dysuria, urgency, frequency, suprapubic pain; interstitial cystitis worsens with bladder filling & relieves with voiding (Hunner ulcers on cystoscopy).`,
+        management: `Uncomplicated cystitis: nitrofurantoin or TMP-SMX. Acute pyelonephritis: IV fluoroquinolone or ceftriaxone. Pregnancy UTI: nitrofurantoin/cephalexin/amoxicillin (avoid fluoroquinolones/TMP-SMX in 1st tri).`
+      },
+      {
+        lo: 12, sector: `sector_4`, tag: `IV: UTI/Stone/Outflow`, compartment: `lower_tract_stones_neoplasm`, ageGroup: `all_ages`, behavior: `metabolic_electrolyte`,
+        entity: `Nephrolithiasis (Ca-Oxalate, Struvite, Uric Acid, Cystine)`, badgeMeta: `CP 6.10 • Renal Calculi`,
+        etiology: `Ca-oxalate/phosphate (MCC, idiopathic hypercalciuria, Crohn fat malabsorption, ethylene glycol); Struvite (urease+ Proteus/Klebsiella/Staph); Uric acid (gout, TLS, acidic urine); Cystine (autosomal recessive COLA transporter defect).`,
+        pathogenesis: `Supersaturation of urine solutes precipitates crystals; urease splits urea → NH3 + alkaline urine → Mg-NH4-PO4 staghorn calculi.`,
+        hallmarks: `Ca-oxalate: envelope/dumbbell, radiopaque. Struvite: coffin-lid, radiopaque staghorn. Uric acid: rhomboid/rosette, RADIOLUCENT on XR (seen on CT/US). Cystine: hexagonal, + sodium nitroprusside test.`,
+        clinical: `Severe flank pain radiating to groin ("loin to groin"), gross/microscopic hematuria, restlessness (writhing in pain).`,
+        management: `Hydration + analgesia; tamsulosin for <10 mm passage; thiazides for recurrent Ca stones; K-citrate/allopurinol for uric acid; acetazolamide/penicillamine for cystine; antibiotics + surgical removal for struvite.`
+      },
+      {
+        lo: 13, sector: `sector_4`, tag: `IV: UTI/Stone/Outflow`, compartment: `lower_tract_stones_neoplasm`, ageGroup: `adult_elderly`, behavior: `neoplastic_congenital`,
+        entity: `BPH, Incontinence, Renal Cell & Urothelial Carcinoma`, badgeMeta: `CP 6.3 • Outflow & Neoplasms`,
+        etiology: `BPH: DHT hyperplasia of periurethral transition zone. RCC: VHL (chr 3p) → ↑ HIF → ↑ VEGF/EPO; smoking. Urothelial (TCC): smoking, aniline dyes, cyclophosphamide, phenacetin. Squamous bladder: Schistosoma haematobium.`,
+        pathogenesis: `BPH compresses prostatic urethra → bladder hypertrophy → postrenal AKI. RCC arises from PCT epithelium; Wilms tumor (WT1, pediatric) vs RCC (adult).`,
+        hallmarks: `RCC: polygonal clear cells filled with lipid/glycogen, invasion of renal vein/IVC (left-sided varicocele that fails to empty supine). Incontinence: stress (urethral hypermobility), urge (detrusor overactivity), overflow (↑ post-void residual).`,
+        clinical: `Painless hematuria = urothelial carcinoma until proven otherwise; RCC classic triad (hematuria, flank mass, flank pain) + paraneoplastic ↑ EPO/PTHrP.`,
+        management: `BPH: α1-blockers (tamsulosin) or 5α-reductase inhibitors (finasteride). Stress incontinence: pelvic floor exercises; Urge: oxybutynin; Overflow: catheterize/treat BPH. RCC: nephrectomy (resistant to chemo/RT).`
+      },
+      {
+        lo: 14, sector: `sector_5`, tag: `V: Exam/UA/OMT`, compartment: `exam_diagnostics_omt`, ageGroup: `all_ages`, behavior: `ischemic_nephrotoxic`,
+        entity: `Urinalysis Casts, FENa & Renal Ultrasound`, badgeMeta: `CP 6.12 • Diagnostics`,
+        etiology: `Tamm-Horsfall mucoprotein secreted by TAL/DCT forms the matrix of all urinary casts, trapping cells or debris present in the tubule.`,
+        pathogenesis: `Cast morphology directly localizes nephron pathology: RBC = glomerulonephritis; WBC = pyelonephritis/AIN; Muddy brown = ATN; Fatty = nephrotic; Waxy/broad = ESRD; Hyaline = concentrated/prerenal/exercise.`,
+        hallmarks: `FENa = (UNa × PCr) / (PNa × UCr) × 100 (<1% prerenal, >2% ATN; use FEUrea <35% if on diuretics). Hydronephrosis on renal US confirms postrenal obstruction.`,
+        clinical: `Painless gross hematuria with RBC casts vs isomorphic RBCs (stones/malignancy). CVA tenderness localizes acute pyelonephritis, nephrolithiasis, or AIN.`,
+        management: `First imaging test for oliguric AKI or suspected postrenal obstruction = non-invasive renal ultrasound. Guild Master Secret: Never order IV contrast CT in ATN/CKD if US answers obstruction.`
+      },
+      {
+        lo: 15, sector: `sector_5`, tag: `V: Exam/UA/OMT`, compartment: `exam_diagnostics_omt`, ageGroup: `all_ages`, behavior: `metabolic_electrolyte`,
+        entity: `OMT Viscerosomatic & Chapman Reflexes (T10–L2)`, badgeMeta: `Domain 1 • Osteopathic`,
+        etiology: `Sympathetic visceral afferents from kidneys, ureters, and bladder synapse in thoracolumbar spinal cord segments causing paraspinal tissue texture changes.`,
+        pathogenesis: `Kidney: T10–T11. Upper Ureter: T10–L1. Lower Ureter & Bladder: T12–L2 (parasympathetics: vagus for kidney/upper ureter; S2–S4 pelvic splanchnic for lower ureter/bladder).`,
+        hallmarks: `Anterior Chapman points: Kidney = 1 inch superior & 1 inch lateral to umbilicus; Bladder = periumbilical / pubic symphysis region; Posterior Kidney = T12–L1 intertransverse space.`,
+        clinical: `Bilateral or unilateral boggy, warm, hypertonic paraspinal muscles at T10–L2 alongside flank pain, dysuria, or stone passage.`,
+        management: `Treat acute somatic dysfunction gently (rib raising T10–L2 to balance sympathetics, myofascial release, sacral rocking S2–S4) AFTER ruling out surgical emergencies (obstructing infected stone).`
+      }
+    ];
+
+    const ALL_QUESTIONS = [
+      // LO 1: Prerenal vs ATN (Q1-Q3)
+      {
+        id: `RN01-Q1`, lo: 1, sector: `sector_1`, compartment: `proximal_loop_tubule`, ageGroup: `adult_elderly`, behavior: `ischemic_nephrotoxic`,
+        loTitle: `Sector I • Prerenal Azotemia vs. ATN`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: UA Casts, Stones, Acid-Base/FENa & IF/EM`,
+        shortAnswer: `Acute Tubular Necrosis`,
+        stem: `A 68-year-old man develops oliguria 48 hours after repair of an abdominal aortic aneurysm complicated by intraoperative hypotension. Serum creatinine is 3.4 mg/dL, BUN is 38 mg/dL, FENa is 3.1%, and urinalysis shows muddy brown granular casts. What is the most likely diagnosis?`,
+        clue: `Look for BUN:Cr < 15, FENa > 2%, and pigmented granular casts following prolonged renal hypoperfusion.`,
+        choices: [`Ischemic acute tubular necrosis`, `Prerenal azotemia`, `Acute interstitial nephritis`],
+        correctIndex: 0,
+        explanation: `Correct: Prolonged intraoperative hypotension caused ischemic necrosis of tubular epithelial cells, producing muddy brown granular casts, FENa > 2%, and BUN:Cr < 15. Distractor exclusion: Prerenal azotemia preserves tubular reabsorption (FENa < 1%, BUN:Cr > 15, hyaline casts); AIN presents with fever, rash, and eosinophiluria/WBC casts.`,
+        secondOrderClue: `Prolonged prerenal ischemia → ATN: FENa flips <1% → >2%, BUN:Cr flips >15 → <15.`,
+        phase1Pearl: `The proximal convoluted tubule and medullary thick ascending limb (mTAL) have the highest metabolic oxygen demand and are most vulnerable to ischemia.`,
+        phase2Hallmark: `Muddy brown granular casts + urine osmolality < 350 mOsm/kg + urine Na > 40 mEq/L.`,
+        phase3Secret: `Supportive fluid/electrolyte balance and dialysis for AEIOU indications; oliguria lasts 2–3 weeks as stable tubular cells regenerate.`
+      },
+      {
+        id: `RN01-Q2`, lo: 1, sector: `sector_1`, compartment: `proximal_loop_tubule`, ageGroup: `adult_elderly`, behavior: `ischemic_nephrotoxic`,
+        loTitle: `Sector I • Prerenal Azotemia vs. ATN`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Renal Physiology, Embryology & Diuretics`,
+        shortAnswer: `Proximal Tubule & mTAL Necrosis`,
+        stem: `A patient receiving high-dose gentamicin for Gram-negative bacteremia develops nonoliguric acute kidney injury with FENa of 2.8% and granular casts. Which nephron segments are primarily injured by aminoglycoside nephrotoxicity and ischemia, respectively?`,
+        clue: `Aminoglycosides accumulate in the initial resorptive segment, while hypoxia also targets the outer medullary segment.`,
+        choices: [`Proximal tubule (toxin) and mTAL (ischemia)`, `Distal convoluted tubule and cortical collecting duct`, `Glomerular mesangium and juxtaglomerular apparatus`],
+        correctIndex: 0,
+        explanation: `Correct: Nephrotoxins like aminoglycosides selectively damage the proximal convoluted tubule, whereas ischemia injures both the PCT and medullary thick ascending limb (mTAL). Distractor exclusion: DCT and collecting duct are spared early in ATN; mesangium/JGA are affected in glomerulonephritis and renovascular disease.`,
+        secondOrderClue: `Gentamicin = most common nephrotoxic ATN culprit → PCT necrosis → sloughed casts plug lumen → ↓ GFR.`,
+        phase1Pearl: `Tubular debris obstruction increases Bowman space hydrostatic pressure, directly opposing net glomerular filtration pressure.`,
+        phase2Hallmark: `Necrotic epithelial cells detach into tubular lumen forming muddy brown casts and losing concentrating ability.`,
+        phase3Secret: `Monitor aminoglycoside troughs and avoid concurrent loop diuretics or NSAIDs; treat urate ATN prophylaxis with hydration + allopurinol before chemotherapy.`
+      },
+      {
+        id: `RN01-Q3`, lo: 1, sector: `sector_1`, compartment: `proximal_loop_tubule`, ageGroup: `adult_elderly`, behavior: `ischemic_nephrotoxic`,
+        loTitle: `Sector I • Prerenal Azotemia vs. ATN`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Management, Electrolyte Emergencies & OMT`,
+        shortAnswer: `Isotonic Saline Resuscitation`,
+        stem: `A 54-year-old woman with 4 days of severe vomiting and diarrhea has BP 88/56 mmHg, BUN 44 mg/dL, Cr 1.6 mg/dL, urine osmolality 640 mOsm/kg, urine Na 12 mEq/L, and FENa 0.4%. What is the most appropriate immediate management?`,
+        clue: `High BUN:Cr (>15), high urine osmolality (>500), and FENa < 1% indicate intact tubular function.`,
+        choices: [`Immediate isotonic saline resuscitation`, `Emergent hemodialysis`, `Oral prednisone therapy`],
+        correctIndex: 0,
+        explanation: `Correct: Volume depletion produces prerenal azotemia (BUN:Cr 27.5, FENa 0.4%, Uosm 640), which rapidly reverses with isotonic crystalloid volume expansion. Distractor exclusion: Emergent dialysis is reserved for refractory ATN/ESRD AEIOU complications; prednisone treats AIN or steroid-sensitive GN.`,
+        secondOrderClue: `Intact tubules + ↓ RBF → ↑ RAAS/ADH → avid Na+, H2O, and passive urea reabsorption (BUN:Cr > 15).`,
+        phase1Pearl: `NSAIDs worsen prerenal AKI by blocking prostaglandin-mediated afferent arteriole vasodilation, dropping GFR.`,
+        phase2Hallmark: `FENa < 1%, Urine Na < 20 mEq/L, Urine Osm > 500 mOsm/kg, bland or hyaline casts.`,
+        phase3Secret: `Restore effective arterial blood volume early before prerenal hypoperfusion progresses to irreversible ischemic ATN.`
+      },
+
+      // LO 2: AIN (Q1-Q3)
+      {
+        id: `RN02-Q1`, lo: 2, sector: `sector_1`, compartment: `proximal_loop_tubule`, ageGroup: `adult_elderly`, behavior: `ischemic_nephrotoxic`,
+        loTitle: `Sector I • Acute Interstitial Nephritis`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: UA Casts, Stones, Acid-Base/FENa & IF/EM`,
+        shortAnswer: `Acute Interstitial Nephritis`,
+        stem: `Ten days after starting omeprazole and cephalexin, a 49-year-old woman develops fever, a maculopapular trunk rash, mild CVA tenderness, and serum Cr 2.6 mg/dL. Urinalysis shows sterile pyuria, WBC casts, and eosinophiluria. What is the diagnosis?`,
+        clue: `Remember the "DRAINS" drug mnemonic + triad of fever, rash, and eosinophils.`,
+        choices: [`Acute interstitial nephritis`, `Acute pyelonephritis`, `Poststreptococcal glomerulonephritis`],
+        correctIndex: 0,
+        explanation: `Correct: Fever, rash, azotemia, sterile pyuria, WBC casts, and eosinophiluria after beta-lactams or PPIs are classic for drug-induced AIN. Distractor exclusion: Acute pyelonephritis has bacteriuria/nitrites without rash or eosinophils; PSGN shows RBC casts and hematuria.`,
+        secondOrderClue: `DRAINS drugs (Diuretics, Rifampin, Antibiotics, PPIs, NSAIDs, Sulfa) → sterile pyuria + WBC casts + eosinophils.`,
+        phase1Pearl: `Offending drugs act as haptens that bind renal tubular basement membrane proteins, triggering Type I/IV hypersensitivity.`,
+        phase2Hallmark: `Interstitial mononuclear/eosinophilic infiltrate with tubular invasion; urine shows WBC casts and eosinophiluria.`,
+        phase3Secret: `Immediate cessation of the offending agent is the cornerstone; add systemic steroids if renal function fails to improve.`
+      },
+      {
+        id: `RN02-Q2`, lo: 2, sector: `sector_1`, compartment: `proximal_loop_tubule`, ageGroup: `adult_elderly`, behavior: `ischemic_nephrotoxic`,
+        loTitle: `Sector I • Acute Interstitial Nephritis`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Renal Physiology, Embryology & Diuretics`,
+        shortAnswer: `Drug-Induced Hapten Hypersensitivity`,
+        stem: `A 61-year-old man started trimethoprim-sulfamethoxazole 12 days ago and now has peripheral eosinophilia, elevated serum IgE, and acute kidney injury with interstitial edema on biopsy. Which immune mechanism drives this renal injury?`,
+        clue: `Small drug molecules must bind endogenous renal proteins to become immunogenic.`,
+        choices: [`Drug-hapten mediated interstitial hypersensitivity`, `Linear anti-GBM Type II autoantibody binding`, `Circulating immune complex subepithelial humps`],
+        correctIndex: 0,
+        explanation: `Correct: Sulfonamides and beta-lactams act as haptens that provoke cell-mediated (Type IV) and IgE-associated interstitial nephritis. Distractor exclusion: Linear anti-GBM antibodies cause Goodpasture RPGN; subepithelial humps characterize PSGN.`,
+        secondOrderClue: `Sulfonamide/PPI/NSAID + 1–2 week lag → hapten presentation → interstitial T-cell & eosinophil infiltration.`,
+        phase1Pearl: `NSAID-induced AIN often lacks fever, rash, and eosinophilia and can overlap with minimal change nephrotic proteinuria.`,
+        phase2Hallmark: `Renal biopsy reveals interstitial edema and eosinophil-rich lymphocytic infiltrate sparing glomeruli.`,
+        phase3Secret: `Screen medication lists carefully—PPIs and NSAIDs are frequently overlooked culprits in unexplained subacute AKI.`
+      },
+      {
+        id: `RN02-Q3`, lo: 2, sector: `sector_1`, compartment: `proximal_loop_tubule`, ageGroup: `adult_elderly`, behavior: `ischemic_nephrotoxic`,
+        loTitle: `Sector I • Acute Interstitial Nephritis`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Management, Electrolyte Emergencies & OMT`,
+        shortAnswer: `Stop Offending Drug`,
+        stem: `A 37-year-old man taking daily ibuprofen and amoxicillin develops Cr 2.9 mg/dL, peripheral eosinophilia, and WBC casts on urinalysis with negative urine cultures. What is the single most important first step in management?`,
+        clue: `Removing the antigenic hapten trigger halts ongoing interstitial inflammation.`,
+        choices: [`Discontinue offending medications`, `Initiate IV vancomycin and gentamicin`, `Perform emergent renal biopsy before stopping drugs`],
+        correctIndex: 0,
+        explanation: `Correct: Discontinuing all potential culprit drugs ("DRAINS") is the immediate primary treatment for AIN, reserving steroids for non-recovery. Distractor exclusion: Gentamicin worsens nephrotoxicity and cultures are negative; delaying cessation for biopsy risks irreversible interstitial fibrosis.`,
+        secondOrderClue: `Negative urine culture + WBC casts + eosinophils → stop culprit drug immediately.`,
+        phase1Pearl: `Interstitial inflammation impairs distal tubular acidification and K+ secretion, predisposing to hyperkalemic metabolic acidosis.`,
+        phase2Hallmark: `Sterile pyuria (WBCs + WBC casts without bacteria) differentiates AIN from infectious pyelonephritis.`,
+        phase3Secret: `Guild Master Secret: In patients needing acid suppression after PPI-induced AIN, switch to an H2 blocker rather than another PPI.`
+      },
+
+      // LO 3: ADPKD / ARPKD / CKD (Q1-Q3)
+      {
+        id: `RN03-Q1`, lo: 3, sector: `sector_1`, compartment: `glomerular_vascular`, ageGroup: `adult_elderly`, behavior: `neoplastic_congenital`,
+        loTitle: `Sector I • Cystic Disease & CKD`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: UA Casts, Stones, Acid-Base/FENa & IF/EM`,
+        shortAnswer: `Autosomal Dominant PKD`,
+        stem: `A 41-year-old man presents with bilateral flank masses, microscopic hematuria, and blood pressure 164/98 mmHg. Ultrasound shows massively enlarged kidneys filled with cortical and medullary cysts plus benign hepatic cysts. Which extrarenal vascular complication carries the highest fatal risk?`,
+        clue: `PKD1/PKD2 mutations affect vascular smooth muscle integrity in the cerebral circulation.`,
+        choices: [`Circle of Willis berry aneurysm rupture`, `Thoracic aortic coarctation`, `Portal hypertension from hepatic fibrosis`],
+        correctIndex: 0,
+        explanation: `Correct: ADPKD (PKD1 on chr 16 or PKD2 on chr 4) is strongly associated with intracranial berry aneurysms (subarachnoid hemorrhage), mitral valve prolapse, and diverticulosis. Distractor exclusion: Coarctation is linked to Turner syndrome; congenital hepatic fibrosis with portal HTN occurs in infantile ARPKD.`,
+        secondOrderClue: `Adult + bilateral flank masses + HTN + hepatic cysts = ADPKD → screen thunderclap headache for berry aneurysm.`,
+        phase1Pearl: `Polycystin-1/-2 defects disrupt primary cilium mechanosensation, causing progressive cyst expansion and renin-driven hypertension.`,
+        phase2Hallmark: `Bilateral enlarged kidneys with diffuse cortical and medullary cysts on ultrasound.`,
+        phase3Secret: `Control HTN aggressively with ACE inhibitors or ARBs to slow nephron loss; perform MRA in patients with family history of SAH.`
+      },
+      {
+        id: `RN03-Q2`, lo: 3, sector: `sector_1`, compartment: `glomerular_vascular`, ageGroup: `adult_elderly`, behavior: `metabolic_electrolyte`,
+        loTitle: `Sector I • Cystic Disease & CKD`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Renal Physiology, Embryology & Diuretics`,
+        shortAnswer: `Secondary Hyperparathyroidism`,
+        stem: `A 63-year-old woman with stage 4 CKD (eGFR 22 mL/min) has serum Ca2+ 7.9 mg/dL, phosphate 6.2 mg/dL, and elevated PTH. Which proximal tubular defect directly initiates this mineral bone disorder alongside phosphate retention?`,
+        clue: `The kidney is the site of the final enzymatic activation step of vitamin D.`,
+        choices: [`Decreased 1-alpha-hydroxylation of 25-OH vitamin D`, `Increased renal calcitonin degradation`, `Direct PTH receptor autoantibody blockade`],
+        correctIndex: 0,
+        explanation: `Correct: Loss of renal parenchyma reduces 1α-hydroxylase activity (↓ 1,25-(OH)2D3), decreasing gut Ca2+ absorption; combined with hyperphosphatemia binding Ca2+, hypocalcemia drives 2° hyperparathyroidism. Distractor exclusion: Calcitonin and PTH receptor autoantibodies do not cause renal osteodystrophy.`,
+        secondOrderClue: `CKD → ↓ 1α-hydroxylase (↓ calcitriol) + ↑ PO4 → ↓ Ca2+ → ↑ PTH (renal osteodystrophy).`,
+        phase1Pearl: `High serum phosphate directly complexes with free Ca2+ (metastatic calcification) and stimulates FGF-23, further suppressing 1α-hydroxylase.`,
+        phase2Hallmark: `Subperiosteal bone resorption (radial aspect of middle phalanges), osteitis fibrosa cystica, and broad waxy casts.`,
+        phase3Secret: `Manage with dietary phosphate restriction, non-calcium phosphate binders (sevelamer), and active vitamin D (calcitriol).`
+      },
+      {
+        id: `RN03-Q3`, lo: 3, sector: `sector_1`, compartment: `glomerular_vascular`, ageGroup: `pediatric`, behavior: `neoplastic_congenital`,
+        loTitle: `Sector I • Cystic Disease & CKD`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Management, Electrolyte Emergencies & OMT`,
+        shortAnswer: `PKHD1 Fibrocystin / Potter Sequence`,
+        stem: `A newborn delivered after severe oligohydramnios exhibits flattened facies, limb deformities, and fatal pulmonary hypoplasia. Autopsy reveals bilateral spongy kidneys with radial cystic dilation of the collecting ducts and congenital hepatic fibrosis. Which gene is mutated?`,
+        clue: `Infantile cystic kidney disease + congenital hepatic fibrosis = autosomal recessive form.`,
+        choices: [`PKHD1 encoding fibrocystin`, `PKD1 encoding polycystin-1`, `WT1 encoding Wilms tumor transcription factor`],
+        correctIndex: 0,
+        explanation: `Correct: Autosomal recessive PKD is caused by PKHD1 mutations (fibrocystin), presenting with prenatal oligohydramnios (Potter sequence), collecting duct cysts, and congenital hepatic fibrosis. Distractor exclusion: PKD1 causes adult-onset ADPKD; WT1 causes Wilms tumor/Denys-Drash.`,
+        secondOrderClue: `Oligohydramnios → Potter sequence (pulmonary hypoplasia MCC death) + radial collecting duct cysts + hepatic fibrosis = ARPKD.`,
+        phase1Pearl: `Fetal urine forms the majority of amniotic fluid after 16 weeks; in utero oliguric renal failure prevents normal lung branching.`,
+        phase2Hallmark: `Cystic dilation specifically of medullary collecting ducts perpendicular to the capsule.`,
+        phase3Secret: `Survivors beyond the neonatal period require monitoring for portal hypertension (hepatic fibrosis) and systemic hypertension.`
+      },
+
+      // LO 4: MCD & FSGS (Q1-Q3)
+      {
+        id: `RN04-Q1`, lo: 4, sector: `sector_2`, compartment: `glomerular_vascular`, ageGroup: `pediatric`, behavior: `immune_glomerular`,
+        loTitle: `Sector II • Minimal Change & FSGS`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: UA Casts, Stones, Acid-Base/FENa & IF/EM`,
+        shortAnswer: `Minimal Change Disease`,
+        stem: `A 5-year-old boy develops periorbital and scrotal pitting edema 1 week after a mild viral URI. Urinalysis shows 4+ proteinuria (4.8 g/day), oval fat bodies, and no hematuria. Renal biopsy shows normal glomeruli on H&E, negative IF, and podocyte foot process effacement on EM. What is the diagnosis?`,
+        clue: `Most common childhood nephrotic syndrome with normal light microscopy and negative IF.`,
+        choices: [`Minimal change disease`, `Focal segmental glomerulosclerosis`, `Membranous nephropathy`],
+        correctIndex: 0,
+        explanation: `Correct: Childhood selective albuminuria with normal H&E glomeruli, negative IF, and effaced podocyte foot processes on EM defines minimal change disease. Distractor exclusion: FSGS shows segmental sclerosis on H&E; membranous nephropathy shows thickened GBM and granular subepithelial spikes.`,
+        secondOrderClue: `Child + viral trigger + selective albuminuria + normal H&E + EM effacement = MCD.`,
+        phase1Pearl: `T-cell cytokines strip heparan sulfate negative charge from the GBM, permitting selective albumin leakage while retaining larger immunoglobulins.`,
+        phase2Hallmark: `Normal glomeruli on H&E (lipid in PCT cells), negative IF, foot process effacement on EM, fatty casts/Maltese cross.`,
+        phase3Secret: `Excellent prognosis with rapid remission on oral corticosteroids; in adults with MCD, always evaluate for underlying Hodgkin lymphoma.`
+      },
+      {
+        id: `RN04-Q2`, lo: 4, sector: `sector_2`, compartment: `glomerular_vascular`, ageGroup: `adult_elderly`, behavior: `immune_glomerular`,
+        loTitle: `Sector II • Minimal Change & FSGS`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Renal Physiology, Embryology & Diuretics`,
+        shortAnswer: `Antithrombin III Urinary Loss`,
+        stem: `A 34-year-old African American man with HIV and nephrotic-range proteinuria (6.2 g/day) develops sudden left flank pain, gross hematuria, and asymmetric left varicocele. Biopsy shows segmental sclerosis of scattered glomeruli with negative IF. Which urinary protein loss explains his acute vascular complication?`,
+        clue: `Nephrotic syndrome induces a hypercoagulable state predisposing to renal vein thrombosis.`,
+        choices: [`Urinary loss of antithrombin III`, `Excess hepatic synthesis of factor V Leiden`, `Increased renal erythropoietin secretion`],
+        correctIndex: 0,
+        explanation: `Correct: Massive nonselective proteinuria in FSGS causes urinary wasting of antithrombin III, inducing a hypercoagulable state that precipitates renal vein thrombosis (flank pain, hematuria, left varicocele). Distractor exclusion: Factor V Leiden is inherited, not caused by nephrosis; EPO does not drive antithrombin deficiency.`,
+        secondOrderClue: `FSGS (HIV/heroin/sickle cell) → AT-III loss → hypercoagulable → left renal vein thrombosis (varicocele).`,
+        phase1Pearl: `Hypoalbuminemia reduces plasma oncotic pressure, stimulating compensatory hepatic synthesis of lipoproteins (hyperlipidemia) and clotting factors.`,
+        phase2Hallmark: `Focal (<50% glomeruli) and segmental hyalinosis/sclerosis on H&E, negative IF, foot process effacement on EM.`,
+        phase3Secret: `Unlike MCD, FSGS responds poorly to steroids and frequently progresses to ESRD; initiate ACEi/ARB, anticoagulate RVT, and treat HIV.`
+      },
+      {
+        id: `RN04-Q3`, lo: 4, sector: `sector_2`, compartment: `glomerular_vascular`, ageGroup: `pediatric`, behavior: `immune_glomerular`,
+        loTitle: `Sector II • Minimal Change & FSGS`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Management, Electrolyte Emergencies & OMT`,
+        shortAnswer: `Oral Corticosteroid Therapy`,
+        stem: `A 6-year-old girl presents with generalized anasarca, serum albumin 1.8 g/dL, total cholesterol 340 mg/dL, and selective albuminuria without RBC casts or hypertension. What is the first-line treatment?`,
+        clue: `Empiric therapy is initiated in children with classic MCD presentation without waiting for biopsy.`,
+        choices: [`Oral corticosteroids (prednisone)`, `Immediate cyclophosphamide infusion`, `Chronic hemodialysis`],
+        correctIndex: 0,
+        explanation: `Correct: Classic childhood nephrotic syndrome is empirically treated with oral corticosteroids because >90% of MCD cases remit rapidly. Distractor exclusion: Cyclophosphamide is reserved for steroid-resistant/frequently relapsing cases or RPGN; dialysis is unnecessary without ESRD.`,
+        secondOrderClue: `Childhood selective proteinuria + normal BP + no hematuria → empiric prednisone without biopsy.`,
+        phase1Pearl: `Nonselective proteinuria in FSGS also wastes immunoglobulins, creating susceptibility to encapsulated bacteria (Strep pneumoniae spontaneous peritonitis).`,
+        phase2Hallmark: `Selective proteinuria (albumin > globulins) and lipid-laden proximal tubular cells ("lipoid nephrosis").`,
+        phase3Secret: `Guild Master Secret: Children who fail to respond to steroids require renal biopsy to rule out steroid-resistant FSGS.`
+      },
+
+      // LO 5: Membranous & Diabetic Nephropathy (Q1-Q3)
+      {
+        id: `RN05-Q1`, lo: 5, sector: `sector_2`, compartment: `glomerular_vascular`, ageGroup: `adult_elderly`, behavior: `immune_glomerular`,
+        loTitle: `Sector II • Membranous & Diabetic`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: UA Casts, Stones, Acid-Base/FENa & IF/EM`,
+        shortAnswer: `Membranous Nephropathy`,
+        stem: `A 58-year-old Caucasian man with chronic hepatitis B presents with peripheral edema and 5.1 g/day proteinuria. Light microscopy shows uniformly thickened glomerular capillary loops, IF is granular for IgG and C3, and EM reveals subepithelial deposits with a "spike and dome" pattern. What is the diagnosis?`,
+        clue: `Most common cause of nephrotic syndrome in Caucasian adults; associated with HBV, solid tumors, and NSAIDs.`,
+        choices: [`Membranous nephropathy`, `Minimal change disease`, `Diffuse proliferative glomerulonephritis`],
+        correctIndex: 0,
+        explanation: `Correct: Thickened GBM on H&E, granular IF, and subepithelial "spike and dome" deposits on EM are pathognomonic for membranous nephropathy. Distractor exclusion: MCD has normal H&E and negative IF; DPGN shows subendothelial "wire-loop" deposits and nephritic hematuria.`,
+        secondOrderClue: `Caucasian adult + HBV/solid tumor + subepithelial "spike and dome" = Membranous nephropathy.`,
+        phase1Pearl: `Subepithelial immune complexes form in situ (often anti-PLA2R antibodies) and activate complement C5b-9, injuring podocytes without recruiting neutrophils.`,
+        phase2Hallmark: `H&E diffuse GBM thickening; granular IF; EM subepithelial electron-dense deposits separated by GBM spikes.`,
+        phase3Secret: `Always perform age-appropriate cancer screening (colonoscopy, CXR) in older adults with idiopathic membranous nephropathy.`
+      },
+      {
+        id: `RN05-Q2`, lo: 5, sector: `sector_2`, compartment: `glomerular_vascular`, ageGroup: `adult_elderly`, behavior: `metabolic_electrolyte`,
+        loTitle: `Sector II • Membranous & Diabetic`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Renal Physiology, Embryology & Diuretics`,
+        shortAnswer: `Efferent Arteriole Hyaline Arteriolosclerosis`,
+        stem: `A 59-year-old man with poorly controlled type 2 diabetes develops microalbuminuria progressing to nephrotic proteinuria. Biopsy shows Kimmelstiel-Wilson nodules. Which microvascular alteration initially drives glomerular hyperfiltration in this disease?`,
+        clue: `Preferential stiffening of the outflow vessel elevates intraglomerular capillary pressure.`,
+        choices: [`Nonenzymatic glycation of the efferent arteriole`, `Afferent arteriole vasoconstriction from thromboxane`, `Subendothelial immune complex deposition`],
+        correctIndex: 0,
+        explanation: `Correct: Nonenzymatic glycosylation preferentially narrows the efferent arteriole (hyaline arteriolosclerosis), increasing glomerular capillary hydrostatic pressure and driving hyperfiltration/mesangial expansion. Distractor exclusion: Afferent constriction decreases GFR; diabetic nephropathy is non-immune.`,
+        secondOrderClue: `DM → efferent arteriole glycation → ↑ intraglomerular pressure → hyperfiltration → Kimmelstiel-Wilson nodules.`,
+        phase1Pearl: `Angiotensin II preferentially constricts the efferent arteriole; therefore, ACE inhibitors/ARBs dilate the efferent arteriole and lower intraglomerular pressure.`,
+        phase2Hallmark: `Acellular eosinophilic nodular glomerulosclerosis (Kimmelstiel-Wilson nodules) and thickened GBM.`,
+        phase3Secret: `Start an ACE inhibitor or ARB at the earliest detection of microalbuminuria (30–300 mg/day) even in normotensive diabetic patients.`
+      },
+      {
+        id: `RN05-Q3`, lo: 5, sector: `sector_2`, compartment: `glomerular_vascular`, ageGroup: `adult_elderly`, behavior: `immune_glomerular`,
+        loTitle: `Sector II • Membranous & Diabetic`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Management, Electrolyte Emergencies & OMT`,
+        shortAnswer: `Occult Solid Malignancy Screen & ACEi`,
+        stem: `A 66-year-old smoker is diagnosed with membranous nephropathy on kidney biopsy after presenting with 4.9 g/day proteinuria and edema. In addition to starting an ACE inhibitor and statin, what crucial diagnostic evaluation is indicated?`,
+        clue: `Secondary membranous nephropathy in older adults is a classic paraneoplastic marker.`,
+        choices: [`Screen for occult solid malignancy (lung/colon)`, `Test for anti-streptolysin O titers`, `Immediate high-dose IV methylprednisolone`],
+        correctIndex: 0,
+        explanation: `Correct: Membranous nephropathy in older adults is linked to underlying solid tumors (lung, colon, breast), requiring targeted malignancy screening alongside ACEi/ARB antiproteinuric therapy. Distractor exclusion: ASO titers diagnose PSGN; membranous responds poorly to steroids alone.`,
+        secondOrderClue: `Older adult + membranous nephropathy → rule out solid tumor, HBV/HCV, SLE, NSAIDs/penicillamine.`,
+        phase1Pearl: `Heavy proteinuria reduces serum albumin and increases hepatic VLDL/LDL synthesis, necessitating statin therapy.`,
+        phase2Hallmark: `Granular IgG/C3 IF along capillary loops + EM subepithelial spikes.`,
+        phase3Secret: `Guild Master Secret: SLE patients can present with pure nephrotic syndrome due to Class V membranous lupus nephritis.`
+      },
+
+      // LO 6: RPGN & Vasculitides (Q1-Q3)
+      {
+        id: `RN06-Q1`, lo: 6, sector: `sector_2`, compartment: `glomerular_vascular`, ageGroup: `all_ages`, behavior: `immune_glomerular`,
+        loTitle: `Sector II • RPGN & Vasculitides`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: UA Casts, Stones, Acid-Base/FENa & IF/EM`,
+        shortAnswer: `Goodpasture Syndrome (Linear IF)`,
+        stem: `A 26-year-old man presents with hemoptysis, dyspnea, hematuria, and serum Cr rising from 1.0 to 4.2 mg/dL over 10 days. Renal biopsy shows crescentic glomerulonephritis with bright linear IgG fluorescence along the GBM. What is the diagnosis?`,
+        clue: `Type II hypersensitivity against type IV collagen α3 chains in both lung and kidney.`,
+        choices: [`Goodpasture syndrome`, `Granulomatosis with polyangiitis`, `Microscopic polyangiitis`],
+        correctIndex: 0,
+        explanation: `Correct: Pulmonary hemorrhage + crescentic RPGN + linear IgG IF defines Goodpasture syndrome (anti-GBM antibodies). Distractor exclusion: GPA (c-ANCA/PR3) and MPA (p-ANCA/MPO) both present with pauci-immune (negative IF) crescentic RPGN.`,
+        secondOrderClue: `Hemoptysis + hematuria + LINEAR IgG IF = Goodpasture; negative IF = ANCA vasculitis.`,
+        phase1Pearl: `Type II hypersensitivity targeting non-collagenous domain of α3 chain of type IV collagen causes GBM breaks and alveolar hemorrhage.`,
+        phase2Hallmark: `Crescents of fibrin + parietal epithelial cells + macrophages on H&E; linear IF; no immune deposits on EM.`,
+        phase3Secret: `Treat emergently with plasmapheresis (removes circulating anti-GBM antibodies) + high-dose steroids + cyclophosphamide.`
+      },
+      {
+        id: `RN06-Q2`, lo: 6, sector: `sector_2`, compartment: `glomerular_vascular`, ageGroup: `adult_elderly`, behavior: `immune_glomerular`,
+        loTitle: `Sector II • RPGN & Vasculitides`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Renal Physiology, Embryology & Diuretics`,
+        shortAnswer: `Pauci-Immune c-ANCA (PR3) Vasculitis`,
+        stem: `A 52-year-old man with chronic refractory sinusitis, nasal septal perforation, and cavitary lung nodules develops rapidly rising creatinine and RBC casts. Biopsy shows crescentic glomerulonephritis with absent immunoglobulin and complement staining on IF. Which autoantibody is expected?`,
+        clue: `Upper respiratory granulomas + lung + kidney + negative IF = GPA.`,
+        choices: [`PR3-ANCA (c-ANCA)`, `Anti-dsDNA`, `MPO-ANCA (p-ANCA) with asthma`],
+        correctIndex: 0,
+        explanation: `Correct: Granulomatosis with polyangiitis (GPA) causes necrotizing granulomatous inflammation of upper/lower airways and pauci-immune crescentic RPGN driven by PR3-ANCA (c-ANCA). Distractor exclusion: Anti-dsDNA causes granular "wire-loop" DPGN in SLE; asthma + eosinophilia + MPO-ANCA describes EGPA.`,
+        secondOrderClue: `Sinusitis + lung nodules + RPGN + negative IF (pauci-immune) = GPA → PR3/c-ANCA.`,
+        phase1Pearl: `ANCA activates primed neutrophils to release ROS and proteolytic enzymes inside small vessel walls without immune complex deposition.`,
+        phase2Hallmark: `Crescent moons on H&E; negative IF ("pauci-immune"); no EM deposits.`,
+        phase3Secret: `Induce remission with high-dose corticosteroids + cyclophosphamide or rituximab.`
+      },
+      {
+        id: `RN06-Q3`, lo: 6, sector: `sector_2`, compartment: `glomerular_vascular`, ageGroup: `adult_elderly`, behavior: `immune_glomerular`,
+        loTitle: `Sector II • RPGN & Vasculitides`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Management, Electrolyte Emergencies & OMT`,
+        shortAnswer: `Plasmapheresis + Steroids + Cyclophosphamide`,
+        stem: `A 29-year-old smoker with rapidly worsening renal failure and diffuse alveolar hemorrhage has linear IgG immunofluorescence on renal biopsy and positive serum anti-GBM antibodies. What is the optimal emergent treatment regimen?`,
+        clue: `Circulating pathogenic IgG must be physically cleared while suppressing new antibody synthesis.`,
+        choices: [`Plasmapheresis plus corticosteroids and cyclophosphamide`, `ACE inhibitor monotherapy and observation`, `Oral prednisone taper alone`],
+        correctIndex: 0,
+        explanation: `Correct: Goodpasture syndrome requires urgent plasmapheresis to clear circulating anti-GBM IgG combined with pulse corticosteroids and cyclophosphamide to halt ongoing antibody production. Distractor exclusion: ACEi monotherapy or prednisone alone fails to prevent irreversible ESRD or fatal pulmonary hemorrhage.`,
+        secondOrderClue: `Anti-GBM RPGN = medical emergency → plasmapheresis + IV steroids + cyclophosphamide.`,
+        phase1Pearl: `Crescent formation occurs when severe GBM ruptures allow fibrinogen and C3b into Bowman space, triggering parietal cell proliferation.`,
+        phase2Hallmark: `SLE DPGN (Type II RPGN) contrasts with "wire-loop" subendothelial thickening and granular IF.`,
+        phase3Secret: `Guild Master Secret: Always check anti-GBM, ANCA, ANA/dsDNA, and C3/C4 simultaneously in any patient presenting with RPGN.`
+      },
+
+      // LO 7: PSGN, IgA & Alport (Q1-Q3)
+      {
+        id: `RN07-Q1`, lo: 7, sector: `sector_2`, compartment: `glomerular_vascular`, ageGroup: `pediatric`, behavior: `immune_glomerular`,
+        loTitle: `Sector II • PSGN, IgA & Alport`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: UA Casts, Stones, Acid-Base/FENa & IF/EM`,
+        shortAnswer: `Poststreptococcal Glomerulonephritis`,
+        stem: `A 9-year-old boy develops tea-colored urine, periorbital edema, and blood pressure 148/92 mmHg three weeks after impetigo. Serum C3 is markedly decreased and ASO/anti-DNase B titers are elevated. What will electron microscopy demonstrate?`,
+        clue: `Type III hypersensitivity 2–4 weeks post-GAS with low C3 and granular "starry-sky" IF.`,
+        choices: [`Subepithelial electron-dense humps`, `Subepithelial spikes and domes`, `GBM basket-weave splitting`],
+        correctIndex: 0,
+        explanation: `Correct: PSGN presents 2–4 weeks after GAS pharyngitis or impetigo with low C3, hypercellular glomeruli, granular ("lumpy-bumpy") IF, and subepithelial humps on EM. Distractor exclusion: Spike-and-dome indicates membranous nephropathy; basket-weave GBM splitting indicates Alport syndrome.`,
+        secondOrderClue: `2–4 weeks post-GAS + ↓ C3 + cola urine = PSGN → granular IF + subepithelial humps.`,
+        phase1Pearl: `Circulating immune complexes activate classical/alternative complement, generating C5a that recruits neutrophils to damage glomerular capillaries.`,
+        phase2Hallmark: `Enlarged hypercellular glomeruli on H&E; granular IgG/C3 ("starry sky") IF; subepithelial EM humps.`,
+        phase3Secret: `Management is supportive (salt/fluid restriction, loop diuretics for HTN/edema); >95% of children recover completely, whereas 25% of adults may develop RPGN.`
+      },
+      {
+        id: `RN07-Q2`, lo: 7, sector: `sector_2`, compartment: `glomerular_vascular`, ageGroup: `pediatric`, behavior: `immune_glomerular`,
+        loTitle: `Sector II • PSGN, IgA & Alport`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Renal Physiology, Embryology & Diuretics`,
+        shortAnswer: `IgA Nephropathy (Mesangial IC)`,
+        stem: `A 19-year-old man experiences painless gross hematuria 2 days after the onset of viral pharyngitis. Serum C3 and C4 are normal, and urinalysis shows dysmorphic RBCs and RBC casts. Where do the pathogenic immune complexes deposit?`,
+        clue: `Synpharyngitic hematuria (1–3 days) with normal complement distinguishes Berger disease from PSGN.`,
+        choices: [`Glomerular mesangium`, `Subepithelial space as humps`, `Linearly along glomerular basement membrane`],
+        correctIndex: 0,
+        explanation: `Correct: IgA nephropathy (Berger disease) occurs concurrently with mucosal respiratory or GI infections due to mucosal IgA immune complex deposition in the mesangium, with normal C3. Distractor exclusion: Subepithelial humps occur 2–4 weeks post-infection in PSGN; linear GBM binding is Goodpasture.`,
+        secondOrderClue: `Concurrent (1–3 days) URI/GI + normal C3 = IgA nephropathy; 2–4 weeks post-GAS + ↓ C3 = PSGN.`,
+        phase1Pearl: `IgA is secreted by mucosal linings; defective galactose-deficient IgA1 triggers autoantibodies forming mesangial deposits (also seen in IgA vasculitis/HSP).`,
+        phase2Hallmark: `Mesangial proliferation on H&E and bright mesangial IgA immunofluorescence.`,
+        phase3Secret: `Treat persistent proteinuria/HTN with ACE inhibitors or ARBs; corticosteroids if progressive decline.`
+      },
+      {
+        id: `RN07-Q3`, lo: 7, sector: `sector_2`, compartment: `glomerular_vascular`, ageGroup: `pediatric`, behavior: `neoplastic_congenital`,
+        loTitle: `Sector II • PSGN, IgA & Alport`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: UA Casts, Stones, Acid-Base/FENa & IF/EM`,
+        shortAnswer: `Alport Syndrome (COL4A5)`,
+        stem: `A 12-year-old boy has recurrent microscopic hematuria, bilateral high-frequency sensorineural hearing loss, and anterior lenticonus. His maternal uncle progressed to ESRD at age 28. What is the characteristic electron microscopy finding?`,
+        clue: `X-linked defect in type IV collagen α5 chains affects glomerular, cochlear, and ocular basement membranes.`,
+        choices: [`Irregular thinning and basket-weave splitting of GBM`, `Subepithelial spike-and-dome deposits`, `Diffuse effacement of podocyte foot processes`],
+        correctIndex: 0,
+        explanation: `Correct: Alport syndrome (X-linked COL4A5 mutation) presents with hematuria, sensorineural deafness, and ocular abnormalities ("can't see, can't pee, can't hear a bee") with irregular GBM splitting ("basket-weave") on EM. Distractor exclusion: Spike-and-dome is membranous; foot process effacement is MCD/FSGS.`,
+        secondOrderClue: `Hematuria + sensorineural deafness + lenticonus + X-linked family history = Alport → COL4A5 → basket-weave EM.`,
+        phase1Pearl: `Type IV collagen α3/α4/α5 heterotrimers provide structural tensile strength to glomerular, cochlear, and lens capsule basement membranes.`,
+        phase2Hallmark: `Alternating thickening/thinning with lamellation ("basket-weave") of the lamina densa on EM.`,
+        phase3Secret: `No curative therapy exists; initiate ACEi/ARB early to reduce intraglomerular pressure and delay ESRD.`
+      },
+
+      // LO 8: Sodium, SIADH vs DI (Q1-Q3)
+      {
+        id: `RN08-Q1`, lo: 8, sector: `sector_3`, compartment: `distal_collecting_acid_base`, ageGroup: `adult_elderly`, behavior: `metabolic_electrolyte`,
+        loTitle: `Sector III • Sodium, SIADH vs. DI`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: UA Casts, Stones, Acid-Base/FENa & IF/EM`,
+        shortAnswer: `SIADH`,
+        stem: `A 64-year-old smoker with a central lung mass is euvolemic with serum Na+ 121 mEq/L, serum osmolality 254 mOsm/kg, urine osmolality 510 mOsm/kg, and urine Na+ 62 mEq/L. Thyroid and adrenal function are normal. What is the diagnosis?`,
+        clue: `Hypotonic euvolemic hyponatremia with inappropriately concentrated urine (>100 mOsm/kg) and high urine Na (>40).`,
+        choices: [`Syndrome of inappropriate ADH (SIADH)`, `Central diabetes insipidus`, `Primary polydipsia`],
+        correctIndex: 0,
+        explanation: `Correct: Ectopic ADH from small cell lung cancer causes water retention, hypotonic hyponatremia, and concentrated urine (Uosm > 100, UNa > 40) in a euvolemic patient. Distractor exclusion: DI presents with hypernatremia and dilute urine (Uosm < 300); primary polydipsia has maximally dilute urine (Uosm < 100).`,
+        secondOrderClue: `SCLC + euvolemic ↓ Na+ + Uosm > 100 + UNa > 40 = SIADH.`,
+        phase1Pearl: `Excess ADH increases V2-mediated AQP2 insertion in collecting ducts; mild volume expansion suppresses aldosterone, causing natriuresis (UNa > 40).`,
+        phase2Hallmark: `Low serum osmolality (<275) paired with high urine osmolality (>100) and elevated urine sodium (>40).`,
+        phase3Secret: `First-line for mild/moderate SIADH is free water restriction; severe symptomatic hyponatremia uses 3% hypertonic saline cautiously (≤8–10 mEq/L/24h).`
+      },
+      {
+        id: `RN08-Q2`, lo: 8, sector: `sector_3`, compartment: `distal_collecting_acid_base`, ageGroup: `all_ages`, behavior: `metabolic_electrolyte`,
+        loTitle: `Sector III • Sodium, SIADH vs. DI`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Renal Physiology, Embryology & Diuretics`,
+        shortAnswer: `Nephrogenic Diabetes Insipidus`,
+        stem: `A 44-year-old man on chronic lithium therapy for bipolar disorder develops polyuria (5 L/day), polydipsia, serum Na+ 149 mEq/L, and urine osmolality 140 mOsm/kg. After water deprivation and desmopressin administration, urine osmolality remains 145 mOsm/kg. What is the mechanism?`,
+        clue: `Lithium enters principal cells via ENaC and disrupts V2 receptor intracellular signaling.`,
+        choices: [`Collecting duct resistance to ADH (AQP2 downregulation)`, `Destruction of hypothalamic supraoptic nuclei`, `Inhibition of NKCC2 in the thick ascending limb`],
+        correctIndex: 0,
+        explanation: `Correct: Lithium induces nephrogenic DI by inhibiting principal cell adenylyl cyclase/GSK-3β signaling, preventing AQP2 translocation even with exogenous desmopressin. Distractor exclusion: Supraoptic destruction causes central DI (responds >50% to desmopressin); NKCC2 inhibition is loop diuretic action.`,
+        secondOrderClue: `Lithium + polyuria + ↑ Na+ + no response to DDAVP = Nephrogenic DI.`,
+        phase1Pearl: `ADH normally binds basolateral V2 receptors (Gs) → ↑ cAMP → PKA phosphorylates AQP2 vesicles to insert into apical collecting duct membrane.`,
+        phase2Hallmark: `Desmopressin challenge: >50% rise in Uosm = Central DI; <10% change = Nephrogenic DI.`,
+        phase3Secret: `Treat lithium-induced nephrogenic DI with amiloride (blocks lithium entry via ENaC) and/or thiazides + NSAIDs.`
+      },
+      {
+        id: `RN08-Q3`, lo: 8, sector: `sector_3`, compartment: `distal_collecting_acid_base`, ageGroup: `adult_elderly`, behavior: `metabolic_electrolyte`,
+        loTitle: `Sector III • Sodium, SIADH vs. DI`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Management, Electrolyte Emergencies & OMT`,
+        shortAnswer: `Osmotic Demyelination Prevention`,
+        stem: `A 55-year-old woman with chronic alcohol use disorder presents with asymptomatic serum Na+ 114 mEq/L. She is given hypertonic saline rapidly, raising Na+ to 132 mEq/L in 16 hours, and develops quadriparesis and dysarthria. What pathophysiologic complication occurred?`,
+        clue: `Overly rapid correction (>8–10 mEq/L in 24h) of chronic hyponatremia shrinks brain cells abruptly.`,
+        choices: [`Osmotic demyelination syndrome (central pontine myelinolysis)`, `Acute cerebral herniation from brain edema`, `Wernicke encephalopathy from thiamine toxicity`],
+        correctIndex: 0,
+        explanation: `Correct: Rapid correction of chronic hyponatremia (>8–10 mEq/L per 24h) draws water out of adapted astrocytes/oligodendrocytes, causing pontine osmotic demyelination ("locked-in" quadriparesis). Distractor exclusion: Cerebral edema occurs from rapid fall in Na+; thiamine deficiency (not toxicity) causes Wernicke.`,
+        secondOrderClue: `Rapid ↑ Na+ (>10 mEq/L/24h) → pontine demyelination; rapid ↓ Na+ → cerebral edema/seizures.`,
+        phase1Pearl: `During chronic hyponatremia, neurons extrude intracellular organic osmolytes to avoid swelling; reaccumulating them takes >48 hours.`,
+        phase2Hallmark: `Brain MRI shows symmetric pontine T2 hyperintensity; clinical locked-in syndrome.`,
+        phase3Secret: `Guild Master Secret: Correct chronic hyponatremia slowly (≤8 mEq/L/24h); use desmopressin + D5W if Na+ rises too fast.`
+      },
+
+      // LO 9: Acid-Base & RTA 1/2/4 (Q1-Q3)
+      {
+        id: `RN09-Q1`, lo: 9, sector: `sector_3`, compartment: `distal_collecting_acid_base`, ageGroup: `all_ages`, behavior: `metabolic_electrolyte`,
+        loTitle: `Sector III • Acid-Base & RTA Types 1/2/4`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: UA Casts, Stones, Acid-Base/FENa & IF/EM`,
+        shortAnswer: `Type 1 (Distal) RTA`,
+        stem: `A 32-year-old woman with Sjögren syndrome presents with recurrent calcium phosphate kidney stones, serum K+ 2.8 mEq/L, HCO3- 15 mEq/L, Cl- 114 mEq/L, Na+ 138 mEq/L, and urine pH 6.4 despite acidemia. What is the diagnosis?`,
+        clue: `Non-anion gap metabolic acidosis + hypokalemia + inability to acidify urine below 5.5 + Ca-phosphate stones.`,
+        choices: [`Type 1 (distal) renal tubular acidosis`, `Type 2 (proximal) renal tubular acidosis`, `Type 4 (hyperkalemic) renal tubular acidosis`],
+        correctIndex: 0,
+        explanation: `Correct: Anion gap is 138 - (114 + 15) = 9 (normal). Distal α-intercalated cell H+ secretion failure keeps urine pH > 5.5, causing hypokalemia and calcium phosphate stones (Sjögren/SLE/amphotericin B). Distractor exclusion: Type 2 RTA acidifies urine < 5.5 once HCO3- drops below threshold; Type 4 causes hyperkalemia.`,
+        secondOrderClue: `NAGMA + ↓ K+ + urine pH > 5.5 + Ca-phosphate stones = Type 1 Distal RTA.`,
+        phase1Pearl: `Alkaline urine reduces calcium phosphate solubility and lowers urinary citrate excretion, promoting nephrocalcinosis.`,
+        phase2Hallmark: `Normal anion gap (8–12), urine pH persistently > 5.5, positive urine anion gap.`,
+        phase3Secret: `Treat with oral potassium citrate or sodium bicarbonate to correct acidosis and prevent recurrent stone formation.`
+      },
+      {
+        id: `RN09-Q2`, lo: 9, sector: `sector_3`, compartment: `distal_collecting_acid_base`, ageGroup: `adult_elderly`, behavior: `metabolic_electrolyte`,
+        loTitle: `Sector III • Acid-Base & RTA Types 1/2/4`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Renal Physiology, Embryology & Diuretics`,
+        shortAnswer: `Type 4 RTA (Hypoaldosteronism)`,
+        stem: `A 67-year-old man with long-standing type 2 diabetes mellitus has serum Na+ 137 mEq/L, K+ 5.9 mEq/L, Cl- 111 mEq/L, HCO3- 17 mEq/L, and urine pH 5.1. Which mechanism explains this acid-base and potassium disturbance?`,
+        clue: `Only RTA associated with hyperkalemia; common in diabetic hyporeninemic hypoaldosteronism.`,
+        choices: [`Decreased aldosterone → ↓ collecting duct H+ secretion and ↓ NH3 synthesis`, `Proximal tubular HCO3- wasting from carbonic anhydrase inhibition`, `Ingestion of ethylene glycol generating glycolic/oxalic acid`],
+        correctIndex: 0,
+        explanation: `Correct: Type 4 RTA results from hypoaldosteronism or aldosterone resistance (e.g., diabetic nephropathy, K+-sparing diuretics, ACEi), causing hyperkalemia which suppresses proximal ammoniagenesis (NH3) and reduces α-intercalated H+ secretion. Distractor exclusion: Proximal RTA causes hypokalemia; ethylene glycol causes high-anion-gap acidosis.`,
+        secondOrderClue: `Diabetes + NAGMA + HYPERKALEMIA + urine pH < 5.5 = Type 4 RTA.`,
+        phase1Pearl: `Hyperkalemia directly inhibits NH4+ production in the proximal tubule, limiting net urinary acid excretion even though urine pH can still drop < 5.5.`,
+        phase2Hallmark: `Normal anion gap (9), hyperkalemia, and intact distal acidification (urine pH < 5.5).`,
+        phase3Secret: `Treat with fludrocortisone (if aldosterone-deficient) or loop diuretics/potassium binders/dietary K+ restriction.`
+      },
+      {
+        id: `RN09-Q3`, lo: 9, sector: `sector_3`, compartment: `distal_collecting_acid_base`, ageGroup: `all_ages`, behavior: `metabolic_electrolyte`,
+        loTitle: `Sector III • Acid-Base & RTA Types 1/2/4`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: UA Casts, Stones, Acid-Base/FENa & IF/EM`,
+        shortAnswer: `Mixed HAGMA & Respiratory Alkalosis`,
+        stem: `A 24-year-old woman presents with tinnitus, tachypnea, and confusion after an overdose. Labs show pH 7.46, PaCO2 20 mmHg, Na+ 140 mEq/L, Cl- 104 mEq/L, and HCO3- 14 mEq/L. Using Winter formula, what is the acid-base status?`,
+        clue: `Expected PaCO2 = 1.5(14) + 8 ± 2 = 29 ± 2 mmHg; measured PaCO2 is 20 mmHg.`,
+        choices: [`High-anion-gap metabolic acidosis + primary respiratory alkalosis`, `Compensated high-anion-gap metabolic acidosis alone`, `Non-anion-gap metabolic acidosis + respiratory acidosis`],
+        correctIndex: 0,
+        explanation: `Correct: Anion gap = 140 - (104 + 14) = 22 (HAGMA). Expected PaCO2 by Winter formula is 27–31 mmHg; measured PaCO2 of 20 mmHg is lower than expected, indicating a concurrent primary respiratory alkalosis (classic salicylate toxicity). Distractor exclusion: Pure compensation would yield PaCO2 ~29 mmHg; AG is elevated.`,
+        secondOrderClue: `Tinnitus + HAGMA + PaCO2 < Winter expected = Salicylate toxicity (mixed HAGMA + resp alkalosis).`,
+        phase1Pearl: `Salicylates directly stimulate the medullary respiratory center (early respiratory alkalosis) and uncouple oxidative phosphorylation (lactic/keto HAGMA).`,
+        phase2Hallmark: `Anion gap > 12 + Winter formula divergence (measured PaCO2 < 1.5[HCO3-] + 8 - 2).`,
+        phase3Secret: `Alkalinize urine with IV NaHCO3 (traps salicylate in ionized form to prevent tubular reabsorption) and give hemodialysis if severe.`
+      },
+
+      // LO 10: Diuretics & K+ Emergencies (Q1-Q3)
+      {
+        id: `RN10-Q1`, lo: 10, sector: `sector_3`, compartment: `proximal_loop_tubule`, ageGroup: `all_ages`, behavior: `metabolic_electrolyte`,
+        loTitle: `Sector III • Diuretics & Potassium`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 1: Renal Physiology, Embryology & Diuretics`,
+        shortAnswer: `Ethacrynic Acid (Non-Sulfa Loop)`,
+        stem: `A 69-year-old man with acute decompensated heart failure and pulmonary edema needs IV loop diuretic therapy, but his chart documents anaphylaxis to sulfamethoxazole. Which loop diuretic avoids sulfa cross-reactivity while carrying the highest risk of ototoxicity?`,
+        clue: `All loop diuretics except one are sulfonamide derivatives.`,
+        choices: [`Ethacrynic acid`, `Bumetanide`, `Torsemide`],
+        correctIndex: 0,
+        explanation: `Correct: Ethacrynic acid is the only non-sulfa loop diuretic (inhibits TAL NKCC2) and is safe in severe sulfa allergy, though it carries the greatest risk of ototoxicity. Distractor exclusion: Bumetanide, torsemide, and furosemide are all sulfonamide derivatives.`,
+        secondOrderClue: `Sulfa anaphylaxis + need loop diuretic = Ethacrynic acid (also useful in gout? No—it still causes hyperuricemia!).`,
+        phase1Pearl: `Loop diuretics inhibit NKCC2 in the TAL, abolishing the lumen-positive electrical gradient and increasing urinary Ca2+ and Mg2+ excretion ("Loops Lose Calcium").`,
+        phase2Hallmark: `Hypokalemic, hypomagnesemic, hypocalcemic metabolic alkalosis with elevated urine Cl- and hyperuricemia.`,
+        phase3Secret: `Avoid co-administering loop diuretics with aminoglycosides because ototoxicity risk is synergistic.`
+      },
+      {
+        id: `RN10-Q2`, lo: 10, sector: `sector_3`, compartment: `distal_collecting_acid_base`, ageGroup: `adult_elderly`, behavior: `metabolic_electrolyte`,
+        loTitle: `Sector III • Diuretics & Potassium`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Renal Physiology, Embryology & Diuretics`,
+        shortAnswer: `Thiazide-Induced Calcium Reabsorption`,
+        stem: `A 56-year-old man with hypertension and recurrent calcium oxalate nephrolithiasis is started on chlorthalidone. How does this medication simultaneously lower blood pressure and prevent future calcium stones?`,
+        clue: `Inhibiting apical NaCl cotransport in the DCT lowers intracellular Na+, driving basolateral Ca2+ exchange.`,
+        choices: [`Inhibits DCT NCC, enhancing basolateral Na+/Ca2+ exchange`, `Blocks TAL NKCC2 to increase medullary calcium trapping`, `Directly inhibits proximal carbonic anhydrase`],
+        correctIndex: 0,
+        explanation: `Correct: Thiazides inhibit the apical Na+/Cl- cotransporter (NCC) in the DCT; lower intracellular Na+ enhances basolateral Na+/Ca2+ exchanger activity, increasing Ca2+ reabsorption and reducing calciuria. Distractor exclusion: Loop diuretics increase Ca2+ excretion; acetazolamide inhibits PCT carbonic anhydrase.`,
+        secondOrderClue: `Thiazides = hypercalcemia / hypocalciuria ("Thiazides retain Ca2+"); Loops = hypocalcemia / hypercalciuria.`,
+        phase1Pearl: `Thiazides also cause HyperGLUC side effects: Hyperglycemia, Hyperlipidemia, Hyperuricemia, Hypercalcemia, plus hyponatremia and hypokalemic metabolic alkalosis.`,
+        phase2Hallmark: `Decreased 24-hour urinary calcium excretion on metabolic stone workup.`,
+        phase3Secret: `Switch gynecomastia-inducing spironolactone to eplerenone in HFrEF patients; monitor K+ closely with ACE inhibitors.`
+      },
+      {
+        id: `RN10-Q3`, lo: 10, sector: `sector_3`, compartment: `distal_collecting_acid_base`, ageGroup: `adult_elderly`, behavior: `metabolic_electrolyte`,
+        loTitle: `Sector III • Diuretics & Potassium`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Management, Electrolyte Emergencies & OMT`,
+        shortAnswer: `IV Calcium Gluconate First`,
+        stem: `A 71-year-old man with CKD taking lisinopril and spironolactone presents with weakness, serum K+ 7.3 mEq/L, and an ECG showing peaked T waves and widened QRS complexes. What is the immediate first medication to administer?`,
+        clue: `Stabilize the cardiac membrane before shifting or removing potassium.`,
+        choices: [`Intravenous calcium gluconate`, `Oral patiromer`, `Intravenous furosemide alone`],
+        correctIndex: 0,
+        explanation: `Correct: ECG changes (peaked T waves, widened QRS) in severe hyperkalemia require immediate IV calcium gluconate to stabilize the myocardial resting-to-threshold membrane potential gradient. Distractor exclusion: Patiromer and furosemide act too slowly to prevent imminent ventricular fibrillation; insulin+glucose/albuterol follow calcium.`,
+        secondOrderClue: `Hyperkalemia + ECG changes → 1) Ca gluconate (stabilize), 2) Insulin+D50/albuterol (shift), 3) Loop/dialysis (remove).`,
+        phase1Pearl: `ACE inhibitors (↓ Ang II → ↓ aldosterone) plus K+-sparing diuretics (block aldosterone/ENaC) synergistically impair principal cell K+ excretion ("Elevated Bananas").`,
+        phase2Hallmark: `ECG progression: Peaked T waves → prolonged PR / flattened P → widened QRS → sine-wave → VF/asystole.`,
+        phase3Secret: `Guild Master Secret: K+-sparing diuretics also cause a non-anion-gap metabolic acidosis ("Acid Spill") by inhibiting collecting duct H+-ATPase.`
+      },
+
+      // LO 11: UTIs & Interstitial Cystitis (Q1-Q3)
+      {
+        id: `RN11-Q1`, lo: 11, sector: `sector_4`, compartment: `lower_tract_stones_neoplasm`, ageGroup: `all_ages`, behavior: `infectious_obstructive`,
+        loTitle: `Sector IV • UTIs & Interstitial Cystitis`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: UA Casts, Stones, Acid-Base/FENa & IF/EM`,
+        shortAnswer: `Acute Pyelonephritis`,
+        stem: `A 27-year-old woman presents with 2 days of fever (39.1°C), chills, nausea, dysuria, and right costovertebral angle tenderness. Urinalysis reveals positive leukocyte esterase, positive nitrites, and WBC casts. What is the diagnosis?`,
+        clue: `Fever + CVA tenderness + WBC casts localize infection above the bladder.`,
+        choices: [`Acute pyelonephritis`, `Uncomplicated cystitis`, `Interstitial cystitis`],
+        correctIndex: 0,
+        explanation: `Correct: Systemic fever, CVA tenderness, positive nitrites (Enterobacteriaceae like E. coli), and WBC casts confirm renal parenchymal infection (pyelonephritis). Distractor exclusion: Cystitis lacks fever, CVA tenderness, and WBC casts; interstitial cystitis is noninfectious with negative cultures/nitrites.`,
+        secondOrderClue: `WBC casts + fever + CVA tenderness = Pyelonephritis (vs sterile WBC casts + rash/drugs = AIN).`,
+        phase1Pearl: `Uropathogenic E. coli uses P-fimbriae to ascend the ureters against urinary flow and adhere to urothelial cells.`,
+        phase2Hallmark: `WBC casts + positive leukocyte esterase + positive nitrites; renal cortex neutrophilic abscesses on histology.`,
+        phase3Secret: `Treat outpatient mild pyelonephritis with fluoroquinolones (or ceftriaxone IV if hospitalized/pregnant); nitrofurantoin does NOT achieve adequate renal parenchymal levels.`
+      },
+      {
+        id: `RN11-Q2`, lo: 11, sector: `sector_4`, compartment: `lower_tract_stones_neoplasm`, ageGroup: `adult_elderly`, behavior: `infectious_obstructive`,
+        loTitle: `Sector IV • UTIs & Interstitial Cystitis`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Renal Physiology, Embryology & Diuretics`,
+        shortAnswer: `Staphylococcus saprophyticus`,
+        stem: `A 22-year-old sexually active woman presents with dysuria, urinary frequency, and suprapubic discomfort without fever. Urinalysis shows positive leukocyte esterase, negative nitrites, and >100,000 CFU/mL of catalase-positive, novobiocin-resistant Gram-positive cocci. Which organism is responsible?`,
+        clue: `Second most common cause of uncomplicated cystitis in young women; Gram-positive cocci do not reduce nitrates.`,
+        choices: [`Staphylococcus saprophyticus`, `Escherichia coli`, `Proteus mirabilis`],
+        correctIndex: 0,
+        explanation: `Correct: Staphylococcus saprophyticus is a catalase-positive, novobiocin-resistant, Gram-positive coccus causing honeymoon cystitis with negative nitrites. Distractor exclusion: E. coli and Proteus are Gram-negative rods that reduce urinary nitrates to nitrites.`,
+        secondOrderClue: `Young woman cystitis + negative nitrites + novobiocin-resistant GPC = S. saprophyticus.`,
+        phase1Pearl: `Enterobacteriaceae express nitrate reductase (positive nitrite test); Gram-positive cocci (S. saprophyticus, Enterococcus) lack this enzyme.`,
+        phase2Hallmark: `Pyuria (+ leukocyte esterase), negative nitrites, absence of WBC casts.`,
+        phase3Secret: `First-line uncomplicated cystitis regimens include nitrofurantoin (5 days) or TMP-SMX (3 days); avoid nitrofurantoin at term pregnancy (hemolysis risk in G6PD/neonates).`
+      },
+      {
+        id: `RN11-Q3`, lo: 11, sector: `sector_4`, compartment: `lower_tract_stones_neoplasm`, ageGroup: `adult_elderly`, behavior: `infectious_obstructive`,
+        loTitle: `Sector IV • UTIs & Interstitial Cystitis`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Management, Electrolyte Emergencies & OMT`,
+        shortAnswer: `Interstitial Cystitis (Painful Bladder)`,
+        stem: `A 38-year-old woman reports 18 months of chronic suprapubic pain, urgency, and frequency. Her pain worsens as the bladder fills and improves immediately after voiding. Repeated urine cultures are negative, and cystoscopy shows Hunner ulcers and glomerulations. What is the diagnosis?`,
+        clue: `Noninfectious chronic pelvic pain relieved by voiding with negative cultures.`,
+        choices: [`Interstitial cystitis (painful bladder syndrome)`, `Chronic bacterial prostatitis`, `Urothelial carcinoma in situ`],
+        correctIndex: 0,
+        explanation: `Correct: Chronic suprapubic pain aggravated by bladder filling and relieved by voiding, negative cultures, and Hunner ulcers on cystoscopy define interstitial cystitis. Distractor exclusion: Chronic prostatitis occurs in men; urothelial carcinoma causes painless hematuria rather than filling-related relief.`,
+        secondOrderClue: `Pain worse with filling + relieved by voiding + negative cultures + Hunner ulcers = Interstitial cystitis.`,
+        phase1Pearl: `Defective urothelial glycosaminoglycan (GAG) layer exposes submucosal nerves to urinary irritants and mast cell activation.`,
+        phase2Hallmark: `Sterile urinalysis; cystoscopy hydrodistention reveals pinpoint glomerulations and Hunner ulcers.`,
+        phase3Secret: `Manage with behavioral bladder training, trigger avoidance, amitriptyline, or pentosan polysulfate; address pelvic floor/T12–L2 somatic dysfunction.`
+      },
+
+      // LO 12: Nephrolithiasis (Q1-Q3)
+      {
+        id: `RN12-Q1`, lo: 12, sector: `sector_4`, compartment: `lower_tract_stones_neoplasm`, ageGroup: `all_ages`, behavior: `metabolic_electrolyte`,
+        loTitle: `Sector IV • Nephrolithiasis`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: UA Casts, Stones, Acid-Base/FENa & IF/EM`,
+        shortAnswer: `Uric Acid Radiolucent Stone`,
+        stem: `A 58-year-old man undergoing chemotherapy for acute lymphoblastic leukemia develops acute severe right flank pain radiating to the groin and hematuria. KUB abdominal X-ray shows no radiopaque calculus, but noncontrast CT confirms a 6-mm ureteral stone. Urine pH is 5.0 with rhomboid/rosette crystals. What is the stone composition?`,
+        clue: `Only common stone type that is radiolucent on plain X-ray; forms in acidic urine with high cell turnover.`,
+        choices: [`Uric acid`, `Calcium oxalate`, `Magnesium ammonium phosphate (struvite)`],
+        correctIndex: 0,
+        explanation: `Correct: Uric acid stones are radiolucent on plain radiograph (visible on CT/ultrasound), form in acidic urine (pH < 5.5) during tumor lysis or gout, and show rhomboid crystals. Distractor exclusion: Calcium oxalate (envelope) and struvite (coffin-lid staghorn) are radiopaque on KUB X-ray.`,
+        secondOrderClue: `Gout/chemo + acidic urine + RADIOLUCENT on XR + CT positive = Uric acid stone.`,
+        phase1Pearl: `Acidic urine shifts urate toward insoluble uric acid; aggressive hydration + allopurinol/rasburicase + urine alkalinization prevent precipitation.`,
+        phase2Hallmark: `Rhomboid or rosette birefringent crystals; radiolucent on plain X-ray.`,
+        phase3Secret: `Alkalinize urine with potassium citrate (target pH 6.5) and treat hyperuricemia with allopurinol.`
+      },
+      {
+        id: `RN12-Q2`, lo: 12, sector: `sector_4`, compartment: `lower_tract_stones_neoplasm`, ageGroup: `all_ages`, behavior: `infectious_obstructive`,
+        loTitle: `Sector IV • Nephrolithiasis`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Renal Physiology, Embryology & Diuretics`,
+        shortAnswer: `Urease Alkalescence (Struvite Staghorn)`,
+        stem: `A 46-year-old woman with recurrent UTIs has a large branching staghorn calculus filling the left renal pelvis on CT. Urine pH is 8.1 and microscopy shows rectangular "coffin-lid" crystals. What bacterial enzymatic activity caused this stone?`,
+        clue: `Proteus, Klebsiella, and Staphylococcus saprophyticus share a key virulence enzyme.`,
+        choices: [`Urease hydrolyzing urea into ammonia and alkaline urine`, `Oxalate decarboxylase raising calcium absorption`, `Enteric fat malabsorption binding luminal calcium`],
+        correctIndex: 0,
+        explanation: `Correct: Urease-positive organisms (Proteus mirabilis, Klebsiella) split urea into NH3 + CO2, alkalinizing urine (pH > 7.2) and precipitating magnesium ammonium phosphate (struvite) staghorn calculi. Distractor exclusion: Enteric fat malabsorption (Crohn disease) binds Ca2+ in the gut, leaving free oxalate to form calcium oxalate stones.`,
+        secondOrderClue: `Proteus/Klebsiella + urine pH > 7.5 + coffin-lid + staghorn = Struvite.`,
+        phase1Pearl: `Crohn disease/ileal resection causes fat malabsorption → free fatty acids saponify Ca2+ in the bowel → excess unbound oxalate absorbed → Ca-oxalate stones.`,
+        phase2Hallmark: `Coffin-lid prism crystals; radiopaque branching staghorn calculus.`,
+        phase3Secret: `Struvite stones cannot be dissolved medically—treat with targeted antibiotics plus surgical extraction (PCNL).`
+      },
+      {
+        id: `RN12-Q3`, lo: 12, sector: `sector_4`, compartment: `lower_tract_stones_neoplasm`, ageGroup: `pediatric`, behavior: `metabolic_electrolyte`,
+        loTitle: `Sector IV • Nephrolithiasis`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Management, Electrolyte Emergencies & OMT`,
+        shortAnswer: `Cystinuria (Hexagonal Crystals)`,
+        stem: `A 14-year-old boy presents with recurrent staghorn stones, positive urinary cyanide-nitroprusside test, and flat hexagonal crystals on urinalysis. After confirming defective PCT reabsorption of dibasic amino acids (COLA), what is the cornerstone of medical prevention?`,
+        clue: `Cystine precipitates in acidic urine; solubility improves markedly with alkalinization and hydration.`,
+        choices: [`Aggressive hydration, urine alkalinization (acetazolamide/citrate), and penicillamine`, `Low-calcium diet and loop diuretic therapy`, `Oral allopurinol monotherapy`],
+        correctIndex: 0,
+        explanation: `Correct: Cystinuria (AR defect in Cystine, Ornithine, Lysine, Arginine PCT transporter) forms hexagonal crystals; prevention relies on high fluid intake, urine alkalinization (K-citrate/acetazolamide), and thiol-binding chelators (tiopronin/penicillamine). Distractor exclusion: Loop diuretics worsen stones via hypercalciuria; allopurinol treats uric acid stones.`,
+        secondOrderClue: `Child + hexagonal crystals + cyanide-nitroprusside (+) = Cystinuria → hydrate + alkalinize + penicillamine.`,
+        phase1Pearl: `Defective PCT dibasic amino acid transporter impairs reabsorption of Cystine, Ornithine, Lysine, and Arginine (COLA).`,
+        phase2Hallmark: `Hexagonal crystals on UA; positive sodium cyanide-nitroprusside test.`,
+        phase3Secret: `Guild Master Secret: Never restrict dietary calcium for calcium oxalate stones (it worsens gut oxalate absorption); restrict dietary sodium and animal protein instead.`
+      },
+
+      // LO 13: BPH, Incontinence, RCC & Urothelial Ca (Q1-Q3)
+      {
+        id: `RN13-Q1`, lo: 13, sector: `sector_4`, compartment: `lower_tract_stones_neoplasm`, ageGroup: `adult_elderly`, behavior: `neoplastic_congenital`,
+        loTitle: `Sector IV • BPH, Incontinence & Neoplasms`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: UA Casts, Stones, Acid-Base/FENa & IF/EM`,
+        shortAnswer: `Renal Cell Carcinoma (VHL / Clear Cell)`,
+        stem: `A 63-year-old male smoker presents with painless gross hematuria, right flank pain, a palpable abdominal mass, and hemoglobin 18.9 g/dL. Renal mass biopsy demonstrates nests of polygonal cells with abundant clear cytoplasm. Which tumor suppressor gene is most commonly inactivated?`,
+        clue: `Clear cell RCC arises from PCT cells, produces paraneoplastic EPO/PTHrP, and links to chr 3p loss.`,
+        choices: [`VHL (chromosome 3p)`, `WT1 (chromosome 11p)`, `RB1 (chromosome 13q)`],
+        correctIndex: 0,
+        explanation: `Correct: Clear cell renal cell carcinoma is driven by VHL tumor suppressor inactivation (chr 3p), stabilizing HIF-1α and upregulating VEGF and EPO (polycythemia). Distractor exclusion: WT1 causes pediatric Wilms tumor (nephroblastoma); RB1 causes retinoblastoma/osteosarcoma.`,
+        secondOrderClue: `Smoker + hematuria + flank mass + polycythemia (EPO) + clear cells = RCC → VHL (3p).`,
+        phase1Pearl: `RCC frequently invades the renal vein and IVC; left renal vein invasion obstructs the left gonadal vein, causing an acute non-reducible left varicocele.`,
+        phase2Hallmark: `Golden-yellow gross tumor with hemorrhage/necrosis; polygonal clear cells rich in lipid and glycogen.`,
+        phase3Secret: `Surgical nephrectomy is curative for localized RCC; tumors are notoriously resistant to conventional chemotherapy and radiation.`
+      },
+      {
+        id: `RN13-Q2`, lo: 13, sector: `sector_4`, compartment: `lower_tract_stones_neoplasm`, ageGroup: `adult_elderly`, behavior: `neoplastic_congenital`,
+        loTitle: `Sector IV • BPH, Incontinence & Neoplasms`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Renal Physiology, Embryology & Diuretics`,
+        shortAnswer: `Schistosoma haematobium Squamous Bladder Ca`,
+        stem: `A 48-year-old Egyptian immigrant presents with painless terminal hematuria. Cystoscopy shows a keratinizing squamous cell carcinoma of the bladder rather than urothelial carcinoma. Chronic infection with which organism predisposed him to this malignancy?`,
+        clue: `Urothelial carcinoma is MCC in smokers/dye workers; squamous bladder cancer links to chronic parasitic cystitis.`,
+        choices: [`Schistosoma haematobium`, `Clonorchis sinensis`, `Helicobacter pylori`],
+        correctIndex: 0,
+        explanation: `Correct: Chronic bladder wall egg deposition by Schistosoma haematobium induces squamous metaplasia and squamous cell carcinoma of the bladder. Distractor exclusion: Clonorchis sinensis causes cholangiocarcinoma; H. pylori causes gastric adenocarcinoma/MALToma.`,
+        secondOrderClue: `Middle East/Africa + painless hematuria + keratin pearls = Squamous bladder Ca → Schistosoma haematobium.`,
+        phase1Pearl: `By contrast, urothelial (transitional cell) carcinoma arises from smoking, aniline dyes (2-naphthylamine), phenacetin, and cyclophosphamide (acrolein).`,
+        phase2Hallmark: `Squamous cell nests with keratin pearls on bladder biopsy; calcified bladder wall eggs.`,
+        phase3Secret: `Treat active schistosomiasis with praziquantel; any adult with painless gross hematuria requires cystoscopy + upper-tract CT urography.`
+      },
+      {
+        id: `RN13-Q3`, lo: 13, sector: `sector_4`, compartment: `lower_tract_stones_neoplasm`, ageGroup: `adult_elderly`, behavior: `infectious_obstructive`,
+        loTitle: `Sector IV • BPH, Incontinence & Neoplasms`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Management, Electrolyte Emergencies & OMT`,
+        shortAnswer: `BPH Overflow Incontinence / Tamsulosin`,
+        stem: `A 74-year-old man reports weak urinary stream, hesitancy, nocturia, and continuous small-volume dribbling. Bladder ultrasound after voiding reveals 460 mL post-void residual and mild bilateral hydronephrosis. Digital rectal exam shows a smooth, symmetrically enlarged prostate. What is the mechanism and immediate medication?`,
+        clue: `Incomplete bladder emptying (high PVR) from DHT-driven transition zone hyperplasia causes overflow incontinence.`,
+        choices: [`Overflow incontinence; decompress bladder and start tamsulosin`, `Urgency incontinence; start oxybutynin`, `Stress incontinence; pelvic floor exercises alone`],
+        correctIndex: 0,
+        explanation: `Correct: High post-void residual (460 mL) and hydronephrosis indicate overflow incontinence secondary to BPH bladder outlet obstruction; treat with decompression and α1A-selective blocker (tamsulosin) to relax prostatic smooth muscle. Distractor exclusion: Oxybutynin (antimuscarinic) worsens urinary retention in overflow incontinence; stress incontinence has normal PVR.`,
+        secondOrderClue: `High PVR + dribbling + smooth enlarged prostate = BPH overflow → NEVER give antimuscarinics; give α1-blocker (tamsulosin).`,
+        phase1Pearl: `BPH involves DHT-stimulated hyperplasia of the periurethral transition zone (whereas prostate adenocarcinoma favors the posterior peripheral zone).`,
+        phase2Hallmark: `Elevated post-void residual (>200 mL), bladder wall trabeculation, and bilateral hydronephrosis on ultrasound.`,
+        phase3Secret: `Guild Master Secret: Tamsulosin relieves symptoms rapidly; finasteride (5α-reductase inhibitor) takes 6–12 months to shrink prostate size and lowers PSA by ~50%.`
+      },
+
+      // LO 14: UA Casts, FENa & Renal US (Q1-Q3)
+      {
+        id: `RN14-Q1`, lo: 14, sector: `sector_5`, compartment: `exam_diagnostics_omt`, ageGroup: `all_ages`, behavior: `ischemic_nephrotoxic`,
+        loTitle: `Sector V • UA Casts, FENa & Ultrasound`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: UA Casts, Stones, Acid-Base/FENa & IF/EM`,
+        shortAnswer: `Waxy Broad Casts (ESRD)`,
+        stem: `A 67-year-old man with 20 years of poorly controlled hypertension and diabetes has eGFR 11 mL/min, small bilaterally echogenic kidneys (7.5 cm) on ultrasound, and severe uremia. Which urinary cast finding is most characteristic of his advanced chronic renal failure?`,
+        clue: `Dilated, atrophic tubules with stagnant urinary flow form wide, homogeneous, refractile casts.`,
+        choices: [`Broad waxy casts`, `Muddy brown granular casts`, `Hyaline casts`],
+        correctIndex: 0,
+        explanation: `Correct: Broad waxy casts form in dilated, scarred collecting tubules with extremely low flow, serving as the hallmark of chronic kidney disease/ESRD. Distractor exclusion: Muddy brown casts indicate acute tubular necrosis; hyaline casts (Tamm-Horsfall protein alone) occur in dehydration, prerenal states, or vigorous exercise.`,
+        secondOrderClue: `Small echogenic kidneys + uremia = CKD/ESRD → broad waxy casts.`,
+        phase1Pearl: `All urinary casts share a matrix of Tamm-Horsfall mucoprotein (uromodulin) secreted by TAL and early DCT epithelial cells.`,
+        phase2Hallmark: `Cast localization map: RBC = GN; WBC = pyelo/AIN; Fatty = nephrotic; Muddy brown = ATN; Waxy broad = ESRD.`,
+        phase3Secret: `Check BUN/Cr, K+, HCO3-, and ECG promptly in ESRD; dialysis is indicated for AEIOU (Acidosis, Electrolytes/K+, Ingestion, Overload, Uremia pericarditis/encephalopathy).`
+      },
+      {
+        id: `RN14-Q2`, lo: 14, sector: `sector_5`, compartment: `exam_diagnostics_omt`, ageGroup: `all_ages`, behavior: `metabolic_electrolyte`,
+        loTitle: `Sector V • UA Casts, FENa & Ultrasound`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 2: UA Casts, Stones, Acid-Base/FENa & IF/EM`,
+        shortAnswer: `FEUrea < 35% (Prerenal on Diuretics)`,
+        stem: `A 72-year-old woman with heart failure taking daily furosemide presents with orthostasis and serum Cr rising from 1.0 to 2.2 mg/dL. Her FENa is 2.6% despite clear clinical volume depletion. Which test accurately distinguishes prerenal azotemia from ATN in a patient on loop diuretics?`,
+        clue: `Loop diuretics artificially elevate urinary sodium excretion, invalidating FENa.`,
+        choices: [`Fractional excretion of urea (FEUrea < 35%)`, `24-hour urine calcium excretion`, `Serum anti-PLA2R antibody titer`],
+        correctIndex: 0,
+        explanation: `Correct: Loop and thiazide diuretics block Na+ reabsorption and falsely raise FENa > 2%; proximal urea reabsorption remains intact in prerenal states, making FEUrea (< 35% prerenal vs > 50% ATN) reliable. Distractor exclusion: Urine calcium and anti-PLA2R do not differentiate prerenal AKI from ATN.`,
+        secondOrderClue: `On diuretics + AKI → FENa unreliable → order FEUrea (<35% = prerenal; >50% = ATN).`,
+        phase1Pearl: `Proximal urea reabsorption is passively coupled to volume-driven Na+/water uptake and is unaffected by loop/distal diuretics.`,
+        phase2Hallmark: `FENa = (UNa × PCr) / (PNa × UCr) × 100; FEUrea = (UUrea × PCr) / (PUrea × UCr) × 100.`,
+        phase3Secret: `Hold diuretics and administer cautious fluid challenge if prerenal hypoperfusion is confirmed.`
+      },
+      {
+        id: `RN14-Q3`, lo: 14, sector: `sector_5`, compartment: `exam_diagnostics_omt`, ageGroup: `all_ages`, behavior: `infectious_obstructive`,
+        loTitle: `Sector V • UA Casts, FENa & Ultrasound`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Management, Electrolyte Emergencies & OMT`,
+        shortAnswer: `Renal Ultrasound First`,
+        stem: `A 76-year-old man presents with anuria and serum creatinine 4.8 mg/dL after starting an anticholinergic cold medication. Bladder catheterization yields minimal urine, raising concern for bilateral ureteral obstruction. What is the single best initial imaging study?`,
+        clue: `Non-invasive, avoids nephrotoxic contrast, and immediately detects hydronephrosis.`,
+        choices: [`Renal and bladder ultrasound`, `Contrast-enhanced abdominal CT`, `Intravenous pyelogram`],
+        correctIndex: 0,
+        explanation: `Correct: Renal ultrasound is the gold-standard initial test in unexplained oliguric/anuric AKI to rapidly rule out postrenal hydronephrosis without radiation or nephrotoxic contrast. Distractor exclusion: IV contrast CT and IV pyelography risk contrast-induced ATN in acute renal failure.`,
+        secondOrderClue: `Anuric AKI → rule out postrenal obstruction FIRST with Foley + bedside renal ultrasound (hydronephrosis).`,
+        phase1Pearl: `Early postrenal obstruction forces tubular urea back into blood (BUN:Cr > 15, FENa < 1%), whereas prolonged obstruction damages tubules (FENa > 2%).`,
+        phase2Hallmark: `Anechoic dilation of renal pelvis and calyces (hydronephrosis) on ultrasound.`,
+        phase3Secret: `Guild Master Secret: Relieve obstruction immediately (Foley, ureteral stent, or percutaneous nephrostomy) to prevent permanent nephron loss; watch for post-obstructive diuresis.`
+      },
+
+      // LO 15: OMT Viscerosomatic & Chapman Reflexes (Q1-Q3)
+      {
+        id: `RN15-Q1`, lo: 15, sector: `sector_5`, compartment: `exam_diagnostics_omt`, ageGroup: `all_ages`, behavior: `metabolic_electrolyte`,
+        loTitle: `Sector V • OMT Viscerosomatic & Chapman`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Management, Electrolyte Emergencies & OMT`,
+        shortAnswer: `T10–T11 Kidney Viscerosomatic`,
+        stem: `A 31-year-old woman with acute right pyelonephritis has warm, boggy, hypertonic paraspinal tissue texture changes on the right side during osteopathic structural exam. Which spinal cord sympathetic levels correspond directly to the kidney?`,
+        clue: `Upper renal parenchyma maps higher than the lower ureter and bladder.`,
+        choices: [`T10–T11`, `T5–T9`, `L3–S1`],
+        correctIndex: 0,
+        explanation: `Correct: Renal sympathetic viscerosomatic reflexes localize to T10–T11 (upper ureter T10–L1; lower ureter/bladder T12–L2). Distractor exclusion: T5–T9 maps foregut/upper GI (liver/stomach/duodenum); L3–S1 is outside thoracolumbar sympathetic outflow.`,
+        secondOrderClue: `Kidney = T10–T11 | Upper Ureter = T10–L1 | Lower Ureter & Bladder = T12–L2.`,
+        phase1Pearl: `Renal sympathetic fibers originate at T10–T11 via lesser/least splanchnic nerves; parasympathetic input comes from CN X (kidney/upper ureter) and S2–S4 (lower ureter/bladder).`,
+        phase2Hallmark: `Acute viscerosomatic somatic dysfunction: boggy, edematous, erythematous, warm, tender paraspinal muscles at T10–T11.`,
+        phase3Secret: `Use gentle myofascial release or rib raising at T10–T11 to normalize sympathetic tone alongside antibiotics.`
+      },
+      {
+        id: `RN15-Q2`, lo: 15, sector: `sector_5`, compartment: `exam_diagnostics_omt`, ageGroup: `all_ages`, behavior: `metabolic_electrolyte`,
+        loTitle: `Sector V • OMT Viscerosomatic & Chapman`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 3: Management, Electrolyte Emergencies & OMT`,
+        shortAnswer: `Anterior Kidney Chapman (1" Sup/Lat)`,
+        stem: `An osteopathic physician palpates a 2-mm shotty, tender anterior myofascial nodule located 1 inch superior and 1 inch lateral to the umbilicus in a patient with flank pain and hematuria. Which organ does this anterior Chapman reflex point represent?`,
+        clue: `Compare periumbilical bladder/ureter vs 1 inch above and 1 inch lateral to the umbilicus.`,
+        choices: [`Kidney (posterior correlate at T12–L1 intertransverse space)`, `Urinary bladder (posterior correlate at L2)`, `Adrenal gland (T11–T12)`],
+        correctIndex: 0,
+        explanation: `Correct: The anterior kidney Chapman point lies 1 inch superior and 1 inch lateral to the umbilicus (posterior at T12–L1 intertransverse space). Distractor exclusion: Urinary bladder anterior Chapman point is periumbilical/pubic symphysis region; adrenal anterior point is 2 inches superior and 1 inch lateral to umbilicus.`,
+        secondOrderClue: `Kidney Chapman = 1" sup + 1" lat to umbilicus (post T12–L1); Adrenal = 2" sup + 1" lat.`,
+        phase1Pearl: `Chapman points reflect viscerosomatic sympathetic myofascial gangliform contractions linked to lymphatic stasis in the corresponding organ.`,
+        phase2Hallmark: `Discrete, pea-sized, tender, smooth nodules in deep fascia without overlying skin erythema.`,
+        phase3Secret: `Treat Chapman points with gentle rotary stimulation for 10–30 seconds until tissue softening occurs; never substitute OMT for stone/infection workup.`
+      },
+      {
+        id: `RN15-Q3`, lo: 15, sector: `sector_5`, compartment: `exam_diagnostics_omt`, ageGroup: `all_ages`, behavior: `infectious_obstructive`,
+        loTitle: `Sector V • OMT Viscerosomatic & Chapman`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Management, Electrolyte Emergencies & OMT`,
+        shortAnswer: `T12–L2 Sympathetic & S2–S4 Pelvic`,
+        stem: `A 45-year-old man with distal ureterolithiasis near the ureterovesical junction and urinary urgency has somatic dysfunction at T12–L2 and the sacrum. Which OMT combination appropriately addresses both sympathetic and parasympathetic autonomic innervation to the lower ureter and bladder?`,
+        clue: `Lower ureter/bladder sympathetics = T12–L2; parasympathetics = pelvic splanchnics (S2–S4).`,
+        choices: [`Thoracolumbar T12–L2 myofascial release + sacral rocking (S2–S4)`, `Occipitoatlantal decompression + T1–T4 rib raising`, `Cranial CV4 + T5–T9 celiac ganglion release`],
+        correctIndex: 0,
+        explanation: `Correct: Sympathetic innervation to the lower ureter and bladder originates at T12–L2, while parasympathetic pelvic splanchnic nerves arise from S2–S4; treating T12–L2 and the sacrum balances both autonomic limbs. Distractor exclusion: OA/T1–T4 target cardiopulmonary/vagus upper viscera; T5–T9 targets foregut.`,
+        secondOrderClue: `Lower ureter & bladder = Sympathetics T12–L2 + Parasympathetics S2–S4 (pelvic splanchnic).`,
+        phase1Pearl: `Distal ureteral stones lodge at three anatomical narrowings: ureteropelvic junction, pelvic brim (iliac vessels), and ureterovesical junction (UVJ).`,
+        phase2Hallmark: `T12–L2 paraspinal hypertonicity + sacral base dysfunction + microscopic hematuria on UA.`,
+        phase3Secret: `Guild Master Secret: Always confirm absence of urosepsis (fever + obstructing stone = emergent decompression) before performing OMT.`
+      }
+    ];
+
+    // Attach structured dossierBullets cleanly to every question
+    ALL_QUESTIONS.forEach((q) => {
+      q.dossierBullets = {
+        p1: [q.phase1Pearl, q.secondOrderClue],
+        p2: [q.phase2Hallmark, `Angle: ${q.angle}`],
+        p3: [q.phase3Secret, `Sector Focus: ${q.loTitle}`]
+      };
+    });
+
+    // GAME STATE
+    let appState = {
+      hp: 100,
+      xp: 0,
+      streak: 0,
+      masteredIds: [],
+      missedIds: [],
+      sectorFilter: `all`,
+      angleFilter: `all`,
+      compartmentFilter: `all`,
+      ageFilter: `all`,
+      behaviorFilter: `all`,
+      phaseFilter: `all`,
+      timesUpMode: `reveal`,
+      hintsVisible: false,
+      timerEnabled: false,
+      masterSound: true,
+      sfxEnabled: true,
+      bgmEnabled: false,
+      bgmVolume: 0.35
+    };
+
+    let activeDeck = [];
+    let deckIndex = 0;
+    let currentShuffledChoices = [];
+    let currentCorrectLane = 0;
+    let gateLocked = false;
+    let metaFadeTimeout = null;
+    let countdownInterval = null;
+    let secondsRemaining = GAME_CONFIG.timerSeconds;
+    let codexSectorFilter = `all`;
+
+    // AUDIO ENGINE (Procedural Web Audio + Custom File)
+    let audioCtx = null;
+    let bgmGainNode = null;
+    let bgmTimer = null;
+    let customAudioEl = null;
+    let customAudioUrl = null;
+
+    function ensureAudioCtx() {
+      if (!audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) audioCtx = new AC();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+      }
+      return audioCtx;
+    }
+
+    function playTone(freq, dur, type, vol) {
+      if (!appState.masterSound || !appState.sfxEnabled) return;
+      const ctx = ensureAudioCtx();
+      if (!ctx) return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type || 'triangle';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      gain.gain.setValueAtTime(vol || 0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + dur);
+    }
+
+    function playCorrectSfx() {
+      playTone(523.25, 0.12, 'triangle', 0.12);
+      setTimeout(() => playTone(659.25, 0.14, 'triangle', 0.12), 70);
+      setTimeout(() => playTone(783.99, 0.22, 'sine', 0.14), 140);
+    }
+
+    function playWrongSfx() {
+      playTone(196, 0.18, 'sawtooth', 0.11);
+      setTimeout(() => playTone(146.83, 0.26, 'sawtooth', 0.11), 110);
+    }
+
+    function stopProceduralBgm() {
+      if (bgmTimer) {
+        clearInterval(bgmTimer);
+        bgmTimer = null;
+      }
+    }
+
+    function startProceduralBgm() {
+      stopProceduralBgm();
+      if (!appState.masterSound || !appState.bgmEnabled) return;
+      if (customAudioEl) {
+        customAudioEl.volume = appState.bgmVolume;
+        customAudioEl.play().catch(() => {});
+        return;
+      }
+      const ctx = ensureAudioCtx();
+      if (!ctx) return;
+      if (!bgmGainNode) {
+        bgmGainNode = ctx.createGain();
+        bgmGainNode.connect(ctx.destination);
+      }
+      bgmGainNode.gain.setValueAtTime(appState.bgmVolume * 0.22, ctx.currentTime);
+      const bassSeq = [110, 110, 130.81, 146.83, 98, 98, 123.47, 130.81];
+      let step = 0;
+      bgmTimer = setInterval(() => {
+        if (!appState.masterSound || !appState.bgmEnabled || !audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(bassSeq[step % bassSeq.length], audioCtx.currentTime);
+        g.gain.setValueAtTime(0.18, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.22);
+        osc.connect(g);
+        g.connect(bgmGainNode);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.23);
+        step++;
+      }, 260);
+    }
+
+    // 3D SYNTHWAVE CANVAS + 1:1 PORTAL FUSION
+    let canvasAnimId = null;
+    let gridOffset = 0;
+    let portalProgress = 0;
+    let currentCorridorHue = 335;
+
+    function drawRunnerFrame() {
+      const canvas = document.getElementById('runner-canvas');
+      if (!canvas) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      if (canvas.width !== Math.floor(w * dpr) || canvas.height !== Math.floor(h * dpr)) {
+        canvas.width = Math.floor(w * dpr);
+        canvas.height = Math.floor(h * dpr);
+      }
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.save();
+      ctx.scale(dpr, dpr);
+
+      // Sky gradient
+      const sky = ctx.createLinearGradient(0, 0, 0, h);
+      sky.addColorStop(0, '#07070f');
+      sky.addColorStop(0.45, '#120d24');
+      sky.addColorStop(1, '#090912');
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, w, h);
+
+      const horizonY = h * 0.34;
+      const cx = w * 0.5;
+
+      // Retro horizon sun
+      const sunR = Math.min(w, h) * 0.13;
+      const sunGrad = ctx.createLinearGradient(0, horizonY - sunR, 0, horizonY + sunR * 0.4);
+      sunGrad.addColorStop(0, `hsla(${currentCorridorHue}, 95%, 62%, 0.42)`);
+      sunGrad.addColorStop(1, 'rgba(0, 255, 204, 0.08)');
+      ctx.fillStyle = sunGrad;
+      ctx.beginPath();
+      ctx.arc(cx, horizonY, sunR, Math.PI, 0);
+      ctx.fill();
+
+      // Perspective floor grid
+      gridOffset = (gridOffset + (gateLocked ? 0.004 : 0.014)) % 1;
+      ctx.strokeStyle = `hsla(${currentCorridorHue}, 85%, 58%, 0.25)`;
+      ctx.lineWidth = 1;
+      for (let i = -8; i <= 8; i++) {
+        ctx.beginPath();
+        ctx.moveTo(cx + i * 18, horizonY);
+        ctx.lineTo(cx + i * (w * 0.22), h);
+        ctx.stroke();
+      }
+      for (let j = 0; j < 14; j++) {
+        const t = (j + gridOffset) / 14;
+        const y = horizonY + Math.pow(t, 2.2) * (h - horizonY);
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+
+      // Live 1:1 Portal Fusion around the 3 centered answer cards
+      portalProgress = Math.min(1, portalProgress + (gateLocked ? 0 : 0.0045));
+      const laneColors = ['#ff2d78', '#00ffcc', '#ffe04a'];
+      for (let lane = 0; lane < 3; lane++) {
+        const card = document.getElementById(`lane-card-${lane}`);
+        if (!card) continue;
+        const rect = card.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) continue;
+        const targetCx = rect.left + rect.width / 2;
+        const targetCy = rect.top + rect.height / 2;
+        const startCx = cx + (lane - 1) * 34;
+        const startCy = horizonY + 12;
+
+        const curCx = startCx + (targetCx - startCx) * portalProgress;
+        const curCy = startCy + (targetCy - startCy) * portalProgress;
+        const curW = 36 + (rect.width + 10 - 36) * portalProgress;
+        const curH = 26 + (rect.height + 10 - 26) * portalProgress;
+
+        ctx.strokeStyle = laneColors[lane];
+        ctx.globalAlpha = 0.22 + 0.45 * portalProgress;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(curCx - curW / 2, curCy - curH / 2, curW, curH);
+        ctx.globalAlpha = 1;
+      }
+
+      ctx.restore();
+      canvasAnimId = requestAnimationFrame(drawRunnerFrame);
+    }
+
+    // DECK FILTERING & QUESTION LIFECYCLE
+    function buildDeck(shuffle) {
+      const filtered = ALL_QUESTIONS.filter((q) => {
+        if (appState.sectorFilter === 'missed') {
+          if (!appState.missedIds.includes(q.id)) return false;
+        } else if (appState.sectorFilter !== 'all' && q.sector !== appState.sectorFilter) {
+          return false;
+        }
+        if (appState.angleFilter !== 'all' && q.angle !== appState.angleFilter) return false;
+        if (appState.compartmentFilter !== 'all' && q.compartment !== appState.compartmentFilter) return false;
+        if (appState.ageFilter !== 'all' && q.ageGroup !== appState.ageFilter) return false;
+        if (appState.behaviorFilter !== 'all' && q.behavior !== appState.behaviorFilter) return false;
+        if (appState.phaseFilter !== 'all' && !q.phaseFocus.startsWith(appState.phaseFilter)) return false;
+        return true;
+      });
+
+      activeDeck = filtered.length > 0 ? filtered.slice() : ALL_QUESTIONS.slice();
+      if (shuffle) {
+        for (let i = activeDeck.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const tmp = activeDeck[i];
+          activeDeck[i] = activeDeck[j];
+          activeDeck[j] = tmp;
+        }
+      }
+      deckIndex = 0;
+      const note = document.getElementById('drawer-status-note');
+      if (note) {
+        note.textContent = filtered.length === 0
+          ? `No gates matched filter — reset to full 45-gate deck.`
+          : `Active deck: ${activeDeck.length} gates loaded.`;
+      }
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      if (activeDeck.length === 0) buildDeck(false);
+      if (deckIndex >= activeDeck.length) deckIndex = 0;
+      const q = activeDeck[deckIndex];
+      if (!q) return;
+
+      gateLocked = false;
+      portalProgress = 0.35;
+      const theme = LO_VISUAL_THEMES[q.lo] || { corridor: `RENAL-CORRIDOR`, hue: 335 };
+      currentCorridorHue = theme.hue;
+
+      // Shuffle 3 choices cleanly while tracking correctIndex (0 in source)
+      const indexed = q.choices.map((text, idx) => ({ text, isCorrect: idx === q.correctIndex }));
+      for (let i = indexed.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = indexed[i];
+        indexed[i] = indexed[j];
+        indexed[j] = tmp;
+      }
+      currentShuffledChoices = indexed;
+      currentCorrectLane = indexed.findIndex((item) => item.isCorrect);
+
+      const stemEl = document.getElementById('question-stem');
+      if (stemEl) stemEl.textContent = q.stem;
+
+      const metaLo = document.getElementById('meta-lo');
+      const metaAngle = document.getElementById('meta-angle');
+      const metaPhase = document.getElementById('meta-phase');
+      const metaCorr = document.getElementById('meta-corridor');
+      const metaRow = document.getElementById('q-meta-row');
+
+      if (metaLo) metaLo.textContent = q.loTitle;
+      if (metaAngle) metaAngle.textContent = q.angle;
+      if (metaPhase) metaPhase.textContent = q.phaseFocus.split(':')[0];
+      if (metaCorr) metaCorr.textContent = `CORRIDOR: ${theme.corridor}`;
+      if (metaRow) {
+        metaRow.classList.remove('is-faded');
+        if (metaFadeTimeout) clearTimeout(metaFadeTimeout);
+        metaFadeTimeout = setTimeout(() => {
+          metaRow.classList.add('is-faded');
+        }, GAME_CONFIG.metaFadeMs);
+      }
+
+      for (let lane = 0; lane < 3; lane++) {
+        const card = document.getElementById(`lane-card-${lane}`);
+        const txt = document.getElementById(`lane-text-${lane}`);
+        if (card) card.classList.remove('is-selected', 'is-correct', 'is-wrong');
+        if (txt && indexed[lane]) txt.textContent = indexed[lane].text;
+      }
+
+      const hintsText = document.getElementById('hints-text');
+      if (hintsText) hintsText.textContent = q.clue;
+
+      updateTelemetry();
+      startQuestionTimer();
+    }
+
+    function updateTelemetry() {
+      const hpEl = document.getElementById('hp-text');
+      const xpEl = document.getElementById('xp-text');
+      const stEl = document.getElementById('streak-text');
+      const gtEl = document.getElementById('gate-text');
+      if (hpEl) hpEl.textContent = String(appState.hp);
+      if (xpEl) xpEl.textContent = String(appState.xp);
+      if (stEl) stEl.textContent = String(appState.streak);
+      if (gtEl) gtEl.textContent = `${deckIndex + 1}/${activeDeck.length}`;
+      renderSkillTree();
+    }
+
+    function startQuestionTimer() {
+      if (countdownInterval) clearInterval(countdownInterval);
+      const chip = document.getElementById('timer-chip');
+      const txt = document.getElementById('timer-text');
+      if (!appState.timerEnabled) {
+        if (txt) txt.textContent = `OFF`;
+        if (chip) chip.classList.remove('is-urgent');
+        return;
+      }
+      secondsRemaining = GAME_CONFIG.timerSeconds;
+      if (txt) txt.textContent = `${secondsRemaining}s`;
+      if (chip) chip.classList.remove('is-urgent');
+
+      countdownInterval = setInterval(() => {
+        if (gateLocked) return;
+        secondsRemaining--;
+        if (txt) txt.textContent = `${secondsRemaining}s`;
+        if (chip) chip.classList.toggle('is-urgent', secondsRemaining <= 10);
+        if (secondsRemaining <= 0) {
+          clearInterval(countdownInterval);
+          handleTimesUp();
+        }
+      }, 1000);
+    }
+
+    function handleTimesUp() {
+      const q = activeDeck[deckIndex];
+      if (!q || gateLocked) return;
+      gateLocked = true;
+      appState.hp = Math.max(0, appState.hp - 15);
+      appState.streak = 0;
+      if (!appState.missedIds.includes(q.id)) appState.missedIds.push(q.id);
+      playWrongSfx();
+      updateTelemetry();
+      persistAppState();
+
+      if (appState.timesUpMode === 'auto_advance') {
+        nextGate();
+      } else {
+        openOutcomeModal(q, false, `TIME EXPIRED • ${q.shortAnswer}`);
+      }
+    }
+
+    function chooseLane(laneIdx) {
+      if (gateLocked) return;
+      const q = activeDeck[deckIndex];
+      if (!q) return;
+      gateLocked = true;
+      if (countdownInterval) clearInterval(countdownInterval);
+
+      const isCorrect = laneIdx === currentCorrectLane;
+      const chosenCard = document.getElementById(`lane-card-${laneIdx}`);
+      const correctCard = document.getElementById(`lane-card-${currentCorrectLane}`);
+      if (chosenCard) chosenCard.classList.add('is-selected', isCorrect ? 'is-correct' : 'is-wrong');
+      if (!isCorrect && correctCard) correctCard.classList.add('is-correct');
+
+      if (isCorrect) {
+        appState.streak++;
+        appState.xp += 100 + Math.min(100, appState.streak * 15);
+        appState.hp = Math.min(100, appState.hp + 5);
+        if (!appState.masteredIds.includes(q.id)) appState.masteredIds.push(q.id);
+        appState.missedIds = appState.missedIds.filter((id) => id !== q.id);
+        playCorrectSfx();
+      } else {
+        appState.streak = 0;
+        appState.hp = Math.max(0, appState.hp - 15);
+        if (!appState.missedIds.includes(q.id)) appState.missedIds.push(q.id);
+        playWrongSfx();
+      }
+
+      if (appState.hp === 0) appState.hp = 100; // Revive smoothly on clinical raid loop
+      updateTelemetry();
+      persistAppState();
+
+      const verdictPrefix = isCorrect ? `PORTAL CLEARED` : `PATHOLOGY BREACH`;
+      openOutcomeModal(q, isCorrect, `${verdictPrefix} • ${q.shortAnswer}`);
+    }
+
+    function renderDossierBullets(q) {
+      const grid = document.getElementById('dossier-bullets-grid');
+      if (!grid) return;
+      const b = q.dossierBullets || { p1: [], p2: [], p3: [] };
+      const sections = [
+        { title: `Phase 1: Pathogenesis / Pharm`, items: b.p1, cls: `` },
+        { title: `Phase 2: Histology / Labs / UA`, items: b.p2, cls: `is-cyan` },
+        { title: `Phase 3: Clinical / Mgmt / OMT`, items: b.p3, cls: `is-yellow` }
+      ];
+      grid.innerHTML = sections.map((sec) => `
+        <div class="dossier-card ${sec.cls}">
+          <h4>${sec.title}</h4>
+          <ul>${sec.items.map((pt) => `<li>${pt}</li>`).join('')}</ul>
+        </div>
+      `).join('');
+    }
+
+    function openOutcomeModal(q, isCorrect, bannerText) {
+      const modal = document.getElementById('outcome-modal');
+      const verdict = document.getElementById('outcome-verdict');
+      const meta = document.getElementById('outcome-meta');
+      const exp = document.getElementById('dossier-explanation');
+      const sec = document.getElementById('dossier-second-order');
+      const p1 = document.getElementById('dossier-p1');
+      const p2 = document.getElementById('dossier-p2');
+      const p3 = document.getElementById('dossier-p3');
+      const amboss = document.getElementById('amboss-topic-label');
+
+      if (meta) meta.textContent = `${q.id} • ${q.loTitle} • ${q.phaseFocus}`;
+      if (verdict) {
+        verdict.textContent = bannerText;
+        verdict.classList.toggle('is-wrong', !isCorrect);
+      }
+      if (exp) exp.textContent = q.explanation;
+      if (sec) sec.textContent = q.secondOrderClue;
+      if (p1) p1.textContent = q.phase1Pearl;
+      if (p2) p2.textContent = q.phase2Hallmark;
+      if (p3) p3.textContent = q.phase3Secret;
+      if (amboss) amboss.textContent = `${q.shortAnswer} — ${q.loTitle}`;
+      renderDossierBullets(q);
+      if (modal) modal.classList.add('is-open');
+    }
+
+    function nextGate() {
+      const modal = document.getElementById('outcome-modal');
+      if (modal) modal.classList.remove('is-open');
+      deckIndex = (deckIndex + 1) % activeDeck.length;
+      renderQuestion();
+    }
+
+    function skipGate() {
+      if (countdownInterval) clearInterval(countdownInterval);
+      deckIndex = (deckIndex + 1) % activeDeck.length;
+      toggleMenuDrawer(false);
+      renderQuestion();
+    }
+
+    // DRAWER, HINTS, CODEX & FILTERS
+    function toggleMenuDrawer(forceState) {
+      const drawer = document.getElementById('top-menu-drawer');
+      const backdrop = document.getElementById('menu-backdrop');
+      const btn = document.getElementById('menu-toggle-btn');
+      if (!drawer || !backdrop) return;
+      const open = typeof forceState === 'boolean' ? forceState : !drawer.classList.contains('is-open');
+      drawer.classList.toggle('is-open', open);
+      backdrop.classList.toggle('is-open', open);
+      if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    function toggleHints() {
+      const app = document.getElementById('xr-app');
+      if (!app) return;
+      appState.hintsVisible = !appState.hintsVisible;
+      app.classList.toggle('hints-visible', appState.hintsVisible);
+      app.classList.toggle('hints-hidden', !appState.hintsVisible);
+      persistAppState();
+    }
+
+    function toggleTimerMode() {
+      appState.timerEnabled = !appState.timerEnabled;
+      const btn = document.getElementById('timer-toggle-btn');
+      if (btn) btn.textContent = `50s Timer [T]: ${appState.timerEnabled ? 'ON' : 'OFF'}`;
+      startQuestionTimer();
+      persistAppState();
+    }
+
+    function startTimedRun() {
+      appState.timerEnabled = true;
+      const btn = document.getElementById('timer-toggle-btn');
+      if (btn) btn.textContent = `50s Timer [T]: ON`;
+      toggleMenuDrawer(false);
+      buildDeck(true);
+      persistAppState();
+    }
+
+    function restartDeck(shuffle) {
+      toggleMenuDrawer(false);
+      buildDeck(shuffle);
+    }
+
+    function handleResetMastery(btn) {
+      if (!btn) return;
+      if (btn.dataset.armed !== 'true') {
+        btn.dataset.armed = 'true';
+        btn.textContent = `Tap Again to Confirm`;
+        setTimeout(() => {
+          btn.dataset.armed = 'false';
+          btn.textContent = `Reset Mastery`;
+        }, 3500);
+        return;
+      }
+      btn.dataset.armed = 'false';
+      btn.textContent = `Reset Mastery`;
+      appState.hp = 100;
+      appState.xp = 0;
+      appState.streak = 0;
+      appState.masteredIds = [];
+      appState.missedIds = [];
+      updateTelemetry();
+      persistAppState();
+      const note = document.getElementById('drawer-status-note');
+      if (note) note.textContent = `Mastery, XP, and missed gates reset.`;
+    }
+
+    function onFilterChange() {
+      const sf = document.getElementById('sector-filter');
+      const af = document.getElementById('angle-filter');
+      const cf = document.getElementById('compartment-filter');
+      const agf = document.getElementById('age-filter');
+      const bf = document.getElementById('behavior-filter');
+      if (sf) appState.sectorFilter = sf.value;
+      if (af) appState.angleFilter = af.value;
+      if (cf) appState.compartmentFilter = cf.value;
+      if (agf) appState.ageFilter = agf.value;
+      if (bf) appState.behaviorFilter = bf.value;
+      buildDeck(false);
+      persistAppState();
+    }
+
+    function onTimesUpModeChange() {
+      const tm = document.getElementById('timesup-mode');
+      if (tm) appState.timesUpMode = tm.value;
+      persistAppState();
+    }
+
+    function setPhaseFilter(phase) {
+      appState.phaseFilter = phase;
+      const pills = document.querySelectorAll('#phase-pills .phase-pill');
+      pills.forEach((p) => p.classList.toggle('is-active', p.dataset.phase === phase));
+      buildDeck(false);
+      persistAppState();
+    }
+
+    function focusEntityLo(loNum) {
+      const loQuestions = ALL_QUESTIONS.filter((q) => q.lo === loNum);
+      if (loQuestions.length > 0) {
+        activeDeck = loQuestions;
+        deckIndex = 0;
+        toggleMenuDrawer(false);
+        renderQuestion();
+      }
+    }
+
+    function renderSkillTree() {
+      const grid = document.getElementById('skill-tree-grid');
+      if (!grid) return;
+      grid.innerHTML = CODEX_DATA.map((item) => {
+        const qs = ALL_QUESTIONS.filter((q) => q.lo === item.lo);
+        const done = qs.filter((q) => appState.masteredIds.includes(q.id)).length;
+        const mastered = done === qs.length && qs.length > 0;
+        return `
+          <button type="button" class="skill-node ${mastered ? 'is-mastered' : ''}" onclick="focusEntityLo(${item.lo})">
+            <span class="skill-node-id">LO ${item.lo} • ${item.tag}</span>
+            <span class="skill-node-name">${item.entity}</span>
+            <span class="skill-node-stat">${done}/${qs.length} MASTERED</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    // LOOT CODEX MODAL
+    function openCodexModal() {
+      toggleMenuDrawer(false);
+      renderCodexTable();
+      const modal = document.getElementById('codex-modal');
+      if (modal) modal.classList.add('is-open');
+    }
+
+    function closeCodexModal() {
+      const modal = document.getElementById('codex-modal');
+      if (modal) modal.classList.remove('is-open');
+    }
+
+    function setCodexSector(sector) {
+      codexSectorFilter = sector;
+      const pills = document.querySelectorAll('#codex-sector-pills .phase-pill');
+      pills.forEach((p) => p.classList.toggle('is-active', p.dataset.sector === sector));
+      renderCodexTable();
+    }
+
+    function renderCodexTable() {
+      const tbody = document.getElementById('codex-tbody');
+      const searchEl = document.getElementById('codex-search');
+      if (!tbody) return;
+      const q = (searchEl ? searchEl.value : '').trim().toLowerCase();
+      const rows = CODEX_DATA.filter((row) => {
+        if (codexSectorFilter !== 'all' && row.sector !== codexSectorFilter) return false;
+        if (!q) return true;
+        return `${row.entity} ${row.badgeMeta} ${row.etiology} ${row.pathogenesis} ${row.hallmarks} ${row.clinical} ${row.management}`.toLowerCase().includes(q);
+      });
+      tbody.innerHTML = rows.map((r) => `
+        <tr>
+          <td><strong>${r.entity}</strong><br><span class="skill-node-id">${r.badgeMeta}</span></td>
+          <td>${r.etiology}</td>
+          <td>${r.pathogenesis}</td>
+          <td>${r.hallmarks}</td>
+          <td>${r.clinical}</td>
+          <td>${r.management}</td>
+        </tr>
+      `).join('');
+    }
+
+    // AUDIO CONTROLS
+    function toggleMasterSound() {
+      appState.masterSound = !appState.masterSound;
+      const btn = document.getElementById('master-sound-btn');
+      if (btn) btn.textContent = `Master Sound: ${appState.masterSound ? 'ON' : 'OFF'}`;
+      if (!appState.masterSound) {
+        stopProceduralBgm();
+        if (customAudioEl) customAudioEl.pause();
+      } else if (appState.bgmEnabled) {
+        startProceduralBgm();
+      }
+      persistAppState();
+    }
+
+    function toggleSfx() {
+      appState.sfxEnabled = !appState.sfxEnabled;
+      const btn = document.getElementById('sfx-btn');
+      if (btn) btn.textContent = `SFX: ${appState.sfxEnabled ? 'ON' : 'OFF'}`;
+      persistAppState();
+    }
+
+    function toggleBgm() {
+      appState.bgmEnabled = !appState.bgmEnabled;
+      const btn = document.getElementById('bgm-btn');
+      if (btn) btn.textContent = `Synth BGM: ${appState.bgmEnabled ? 'ON' : 'OFF'}`;
+      if (appState.bgmEnabled) {
+        startProceduralBgm();
+      } else {
+        stopProceduralBgm();
+        if (customAudioEl) customAudioEl.pause();
+      }
+      persistAppState();
+    }
+
+    function loadCustomBgm(event) {
+      const file = event && event.target && event.target.files ? event.target.files[0] : null;
+      if (!file) return;
+      if (customAudioUrl) URL.revokeObjectURL(customAudioUrl);
+      customAudioUrl = URL.createObjectURL(file);
+      customAudioEl = new Audio(customAudioUrl);
+      customAudioEl.loop = true;
+      customAudioEl.volume = appState.bgmVolume;
+      appState.bgmEnabled = true;
+      const btn = document.getElementById('bgm-btn');
+      if (btn) btn.textContent = `Custom BGM: ON`;
+      startProceduralBgm();
+    }
+
+    function setBgmVolume(val) {
+      appState.bgmVolume = parseFloat(val) || 0.35;
+      if (customAudioEl) customAudioEl.volume = appState.bgmVolume;
+      if (bgmGainNode && audioCtx) bgmGainNode.gain.setValueAtTime(appState.bgmVolume * 0.22, audioCtx.currentTime);
+      persistAppState();
+    }
+
+    // KEYBOARD SHORTCUTS
+    document.addEventListener('keydown', (e) => {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) return;
+      const outcomeOpen = document.getElementById('outcome-modal')?.classList.contains('is-open');
+      const codexOpen = document.getElementById('codex-modal')?.classList.contains('is-open');
+
+      if (e.key === 'Escape') {
+        if (codexOpen) closeCodexModal();
+        else toggleMenuDrawer(false);
+        return;
+      }
+      if (outcomeOpen) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          nextGate();
+        }
+        return;
+      }
+      if (e.key === '1' || e.key === 'ArrowLeft') chooseLane(0);
+      else if (e.key === '2' || e.key === 'ArrowUp') chooseLane(1);
+      else if (e.key === '3' || e.key === 'ArrowRight') chooseLane(2);
+      else if (e.key.toLowerCase() === 'h') toggleHints();
+      else if (e.key.toLowerCase() === 'c') {
+        if (codexOpen) closeCodexModal();
+        else openCodexModal();
+      }
+      else if (e.key.toLowerCase() === 's') skipGate();
+      else if (e.key.toLowerCase() === 't') toggleTimerMode();
+    });
+
+    // STATE PERSISTENCE VIA NOTEBOOK APP SHIM
+    async function persistAppState() {
+      if (window.notebookAppApi && typeof window.notebookAppApi.setAppState === 'function') {
+        try {
+          await window.notebookAppApi.setAppState(appState);
+        } catch (err) {
+          // Ignore transient host save error
+        }
+      }
+    }
+
+    function applyRestoredState(saved) {
+      if (!saved || typeof saved !== 'object') return;
+      appState = Object.assign(appState, saved);
+      const app = document.getElementById('xr-app');
+      if (app) {
+        app.classList.toggle('hints-visible', Boolean(appState.hintsVisible));
+        app.classList.toggle('hints-hidden', !appState.hintsVisible);
+      }
+      const sf = document.getElementById('sector-filter');
+      const af = document.getElementById('angle-filter');
+      const cf = document.getElementById('compartment-filter');
+      const agf = document.getElementById('age-filter');
+      const bf = document.getElementById('behavior-filter');
+      const tm = document.getElementById('timesup-mode');
+      const vol = document.getElementById('bgm-volume');
+      const tbtn = document.getElementById('timer-toggle-btn');
+      const mbtn = document.getElementById('master-sound-btn');
+      const sbtn = document.getElementById('sfx-btn');
+      const bbtn = document.getElementById('bgm-btn');
+
+      if (sf && appState.sectorFilter) sf.value = appState.sectorFilter;
+      if (af && appState.angleFilter) af.value = appState.angleFilter;
+      if (cf && appState.compartmentFilter) cf.value = appState.compartmentFilter;
+      if (agf && appState.ageFilter) agf.value = appState.ageFilter;
+      if (bf && appState.behaviorFilter) bf.value = appState.behaviorFilter;
+      if (tm && appState.timesUpMode) tm.value = appState.timesUpMode;
+      if (vol) vol.value = String(appState.bgmVolume);
+      if (tbtn) tbtn.textContent = `50s Timer [T]: ${appState.timerEnabled ? 'ON' : 'OFF'}`;
+      if (mbtn) mbtn.textContent = `Master Sound: ${appState.masterSound ? 'ON' : 'OFF'}`;
+      if (sbtn) sbtn.textContent = `SFX: ${appState.sfxEnabled ? 'ON' : 'OFF'}`;
+      if (bbtn) bbtn.textContent = `Synth BGM: ${appState.bgmEnabled ? 'ON' : 'OFF'}`;
+
+      const pills = document.querySelectorAll('#phase-pills .phase-pill');
+      pills.forEach((p) => p.classList.toggle('is-active', p.dataset.phase === appState.phaseFilter));
+    }
+
+    async function initApp() {
+      if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === 'function') {
+        try {
+          const saved = await window.notebookAppApi.getAppState();
+          if (saved) applyRestoredState(saved);
+        } catch (err) {
+          // Proceed with defaults
+        }
+      }
+      buildDeck(false);
+      renderCodexTable();
+      if (canvasAnimId) cancelAnimationFrame(canvasAnimId);
+      drawRunnerFrame();
+      if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === 'function') {
+        window.notebookAppApi.notifyAppReady();
+      }
+    }
+
+    initApp();
+  </script>
+</body>
+</html>
