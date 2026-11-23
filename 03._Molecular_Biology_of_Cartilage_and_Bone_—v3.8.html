@@ -1,0 +1,4006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="artifact-type" content="tool">
+<meta name="design-style" content="neon_noir">
+<title>Lecture 03: Molecular Biology of Cartilage and Bone — XR 3-Lane Diagnostic Runner</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --background: #0a0a12;
+  --surface-container-low: #111118;
+  --surface-container: #141422;
+  --surface-container-high: #1e1e30;
+  --surface-overlay: rgba(10, 10, 18, 0.92);
+  --surface-glass: rgba(16, 16, 28, 0.96);
+  --surface-stem: rgba(24, 12, 26, 0.86);
+  --surface-lane-card: rgba(16, 16, 30, 0.88);
+  --surface-lane-card-hover: rgba(24, 20, 42, 0.94);
+
+  --on-surface: #e8e0f0;
+  --on-surface-bright: #ffffff;
+  --on-surface-variant: #a098b0;
+  --outline: #5a5068;
+  --outline-variant: #302840;
+
+  --primary: #ff2d78;
+  --on-primary: #1a0010;
+  --secondary: #00ffcc;
+  --on-secondary: #001a14;
+  --tertiary: #ffe04a;
+  --on-tertiary: #1a1500;
+  --data-4: #b388ff;
+  --positive: #00e6a8;
+  --warning: #ffe04a;
+  --error: #ff4444;
+  --focus: #00ffcc;
+
+  --font-headline: 'Sora', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-label: 'Space Mono', monospace;
+
+  --game-headline-size: clamp(1.15rem, 1rem + 0.45vw, 1.48rem);
+  --game-stem-size: clamp(1.04rem, 0.98rem + 0.28vw, 1.24rem);
+  --game-body-size: clamp(0.98rem, 0.94rem + 0.16vw, 1.08rem);
+  --game-label-size: 0.78rem;
+  --game-micro-size: 0.68rem;
+
+  --card-min-h: 158px;
+  --card-pad-y: 1.25rem;
+  --card-pad-x: 1.2rem;
+  --card-font: clamp(1.06rem, 1.0rem + 0.24vw, 1.24rem);
+  --card-gap: 1rem;
+  --stem-pad-y: 0.62rem;
+  --stem-pad-x: 1.1rem;
+
+  --modal-display-size: clamp(1.25rem, 1.1rem + 0.7vw, 1.75rem);
+  --modal-headline-size: clamp(1rem, 0.94rem + 0.3vw, 1.22rem);
+  --modal-body-size: clamp(0.875rem, 0.85rem + 0.12vw, 0.96rem);
+  --modal-label-size: 0.72rem;
+
+  --space-xs: 0.25rem;
+  --space-sm: 0.45rem;
+  --space-md: 0.85rem;
+  --space-lg: 1.25rem;
+  --rounded: 0.18rem;
+  --rounded-lg: 0.38rem;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+
+  --glow-text: 0 0 8px currentColor;
+  --glow-primary: 0 0 18px color-mix(in srgb, var(--primary) 48%, transparent);
+  --glow-secondary: 0 0 18px color-mix(in srgb, var(--secondary) 44%, transparent);
+  --glow-tertiary: 0 0 18px color-mix(in srgb, var(--tertiary) 46%, transparent);
+  --neon-border: 1px solid color-mix(in srgb, var(--primary) 32%, transparent);
+  --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 58%, transparent);
+  --neon-border-cyan: 1px solid color-mix(in srgb, var(--secondary) 42%, transparent);
+  --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+  --neon-inset-cyan: inset 0 0 12px color-mix(in srgb, var(--secondary) 10%, transparent);
+  --scanlines: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in srgb, var(--on-surface) 2.5%, transparent) 3px 4px);
+  --vignette-damage: radial-gradient(circle at center, transparent 45%, color-mix(in srgb, var(--error) 65%, transparent) 100%);
+  --vignette-heal: radial-gradient(circle at center, transparent 45%, color-mix(in srgb, var(--positive) 55%, transparent) 100%);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--background);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: var(--game-body-size);
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+}
+
+button, input, select {
+  font-family: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+#xr-app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background);
+  background-image: var(--scanlines);
+  overflow: hidden;
+}
+
+#xr-app.hints-visible {
+  --card-min-h: 90px;
+  --card-pad-y: 0.6rem;
+  --card-pad-x: 0.9rem;
+  --card-font: clamp(0.94rem, 0.9rem + 0.16vw, 1.06rem);
+  --card-gap: 0.7rem;
+  --stem-pad-y: 0.4rem;
+  --stem-pad-x: 0.95rem;
+  --game-stem-size: clamp(0.95rem, 0.91rem + 0.2vw, 1.1rem);
+}
+
+.top-mini-bar {
+  flex-shrink: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.28rem 0.65rem;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.menu-mini-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 32px;
+  padding: 0.22rem 0.65rem;
+  background: var(--surface-container);
+  color: var(--secondary);
+  border: var(--neon-border-cyan);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+}
+.menu-mini-btn:hover,
+.menu-mini-btn.is-active {
+  border-color: var(--secondary);
+  background: var(--surface-container-high);
+  box-shadow: var(--glow-secondary);
+  text-shadow: var(--glow-text);
+}
+
+.mini-telemetry {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.45rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--on-surface-variant);
+}
+.mini-telemetry::-webkit-scrollbar { display: none; }
+
+.tele-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.24rem;
+  white-space: nowrap;
+  padding: 0.14rem 0.42rem;
+  border-radius: var(--rounded);
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+}
+.tele-chip.is-hp { color: var(--positive); border-color: color-mix(in srgb, var(--positive) 40%, transparent); }
+.tele-chip.is-hp.is-low { color: var(--error); border-color: var(--error); }
+.tele-chip.is-xp { color: var(--secondary); }
+.tele-chip.is-streak { color: var(--tertiary); }
+.tele-chip.is-timer { color: var(--secondary); border-color: color-mix(in srgb, var(--secondary) 40%, transparent); }
+.tele-chip.is-timer.is-off { color: var(--on-surface-variant); border-color: var(--outline-variant); }
+.tele-chip.is-timer.is-hold { color: var(--tertiary); border-color: var(--tertiary); }
+.tele-chip.is-timer.is-urgent { color: var(--error); border-color: var(--error); }
+
+.question-stage {
+  flex-shrink: 0;
+  z-index: 12;
+  background: linear-gradient(180deg, rgba(17, 17, 24, 0.96) 0%, rgba(10, 10, 18, 0.84) 100%);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 0.4rem 0.85rem 0.48rem;
+  text-align: center;
+  transition: padding var(--dur-short) var(--ease-out);
+}
+
+#xr-app.hints-visible .question-stage {
+  padding: 0.28rem 0.75rem 0.34rem;
+}
+
+.question-container {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.question-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  max-height: 92px;
+  opacity: 1;
+  margin-bottom: 0.34rem;
+  overflow: hidden;
+  transition: opacity 400ms var(--ease-out), max-height 400ms var(--ease-out), margin-bottom 400ms var(--ease-out);
+}
+
+.question-meta-row.is-faded {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+}
+
+.meta-badge {
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  padding: 0.14rem 0.46rem;
+  border-radius: var(--rounded);
+  border: 1px solid var(--outline);
+  background: var(--surface-container);
+  color: var(--secondary);
+}
+.meta-badge.is-angle {
+  border-color: color-mix(in srgb, var(--primary) 54%, transparent);
+  color: var(--primary);
+}
+.meta-badge.is-phase {
+  border-color: color-mix(in srgb, var(--tertiary) 54%, transparent);
+  color: var(--tertiary);
+}
+.meta-badge.is-corridor {
+  border-color: color-mix(in srgb, var(--data-4) 55%, transparent);
+  color: var(--data-4);
+}
+
+.question-stem-box {
+  width: 100%;
+  max-width: 1020px;
+  margin: 0 auto;
+  background: var(--surface-stem);
+  border: var(--neon-border-lit);
+  box-shadow: var(--neon-inset);
+  border-radius: var(--rounded-lg);
+  padding: var(--stem-pad-y) var(--stem-pad-x);
+  max-height: 30dvh;
+  overflow-y: auto;
+  text-align: center;
+  transition: padding var(--dur-short) var(--ease-out);
+}
+
+#xr-app.hints-visible .question-stem-box {
+  max-height: 23dvh;
+}
+
+.question-stem {
+  margin: 0 auto;
+  font-family: var(--font-body);
+  font-size: var(--game-stem-size);
+  font-weight: 600;
+  color: var(--on-surface-bright);
+  text-align: center;
+  line-height: 1.4;
+  transition: font-size var(--dur-short) var(--ease-out);
+}
+
+.viewport-shell {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  background: var(--background);
+  overflow: hidden;
+}
+
+#xr-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.lane-overlay-container {
+  position: absolute;
+  top: 52%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(1120px, calc(100% - 1.5rem));
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--card-gap);
+  z-index: 10;
+  pointer-events: none;
+  transition: gap var(--dur-short) var(--ease-out);
+}
+
+.lane-dom-card {
+  --lane-color: var(--secondary);
+  pointer-events: auto;
+  position: relative;
+  background: rgba(14, 17, 27, 0.76);
+  backdrop-filter: blur(8px);
+  border: 1px solid color-mix(in srgb, var(--secondary) 38%, transparent);
+  border-radius: 0.45rem;
+  padding: var(--card-pad-y) var(--card-pad-x);
+  min-height: var(--card-min-h);
+  text-align: center;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--card-font);
+  font-weight: 700;
+  color: var(--on-surface-bright);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55),
+              inset 0 0 12px rgba(0, 255, 204, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+  line-height: 1.35;
+  touch-action: manipulation;
+  transition: min-height var(--dur-short) var(--ease-out),
+              padding var(--dur-short) var(--ease-out),
+              font-size var(--dur-short) var(--ease-out),
+              transform var(--dur-micro) var(--ease-out),
+              border-color var(--dur-short) var(--ease-out),
+              box-shadow var(--dur-short) var(--ease-out),
+              background-color var(--dur-short) var(--ease-out);
+}
+
+.lane-dom-card.lane-0 { --lane-color: var(--primary); }
+.lane-dom-card.lane-1 { --lane-color: var(--secondary); }
+.lane-dom-card.lane-2 { --lane-color: var(--tertiary); }
+
+.lane-dom-card:hover,
+.lane-dom-card.is-targeted {
+  border-color: color-mix(in srgb, var(--lane-color) 85%, transparent);
+  background: rgba(18, 22, 36, 0.92);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--lane-color) 32%, transparent),
+              inset 0 0 14px color-mix(in srgb, var(--lane-color) 10%, transparent);
+  transform: translateY(-2px);
+}
+
+.lane-dom-card.is-fused {
+  border-color: color-mix(in srgb, var(--lane-color) 78%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--lane-color) 28%, transparent),
+              inset 0 0 12px color-mix(in srgb, var(--lane-color) 10%, transparent);
+}
+
+.lane-dom-card.is-fused.is-targeted {
+  border-color: var(--lane-color);
+  box-shadow: 0 0 26px color-mix(in srgb, var(--lane-color) 42%, transparent),
+              inset 0 0 16px color-mix(in srgb, var(--lane-color) 14%, transparent);
+}
+
+.lane-dom-card.is-selected {
+  background: color-mix(in srgb, var(--lane-color) 20%, rgba(14, 17, 27, 0.96));
+  border-color: var(--lane-color);
+  box-shadow: 0 0 30px color-mix(in srgb, var(--lane-color) 65%, transparent);
+  transform: scale(1.015);
+}
+
+.lane-card-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.lane-portal-name {
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  opacity: 0.88;
+}
+
+.lane-key-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 0.06em;
+  padding: 0.12rem 0.45rem;
+  border-radius: 0.22rem;
+  border: 1px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  background: rgba(255, 45, 120, 0.08);
+}
+
+.lane-choice-body {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  text-align: center;
+}
+
+.fusion-lock-tag {
+  font-family: var(--font-label);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+  text-align: center;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity 220ms var(--ease-out), max-height 220ms var(--ease-out);
+}
+
+.lane-dom-card.is-fused .fusion-lock-tag {
+  opacity: 0.72;
+  max-height: 20px;
+}
+
+.vignette-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 12;
+  transition: opacity var(--dur-short) var(--ease-out);
+}
+.vignette-overlay.is-damage { background: var(--vignette-damage); opacity: 1; }
+.vignette-overlay.is-heal { background: var(--vignette-heal); opacity: 1; }
+
+.heal-toast {
+  position: absolute;
+  top: 0.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface-glass);
+  border: 1px solid var(--positive);
+  color: var(--positive);
+  font-family: var(--font-label);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.25rem 0.7rem;
+  border-radius: var(--rounded);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-short) var(--ease-out);
+  z-index: 15;
+}
+.heal-toast.is-visible { opacity: 1; }
+
+#hints-bar {
+  flex-shrink: 0;
+  z-index: 15;
+  background: var(--surface-container);
+  border-top: 2px solid color-mix(in srgb, var(--tertiary) 55%, transparent);
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.45);
+  padding: 0.48rem 0.85rem;
+  max-height: 22dvh;
+  overflow-y: auto;
+  text-align: center;
+}
+
+#xr-app.hints-hidden #hints-bar {
+  display: none;
+}
+
+.hints-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  text-align: center;
+}
+
+.hints-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.hints-tag {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tertiary);
+}
+
+.hints-subtag {
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  color: var(--secondary);
+  opacity: 0.9;
+}
+
+.hints-text {
+  margin: 0 auto;
+  font-size: clamp(0.88rem, 0.84rem + 0.16vw, 0.98rem);
+  color: var(--on-surface);
+  text-align: center;
+  line-height: 1.4;
+}
+
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: var(--surface-overlay);
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0.75rem;
+  overflow-y: auto;
+}
+.menu-backdrop.is-open { display: flex; }
+
+#top-menu-drawer {
+  width: min(1040px, 100%);
+  max-height: calc(100dvh - 1.5rem);
+  overflow-y: auto;
+  background: var(--surface-glass);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--secondary);
+  box-shadow: var(--glow-secondary);
+  border-radius: var(--rounded-lg);
+  padding: 1rem 1.15rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  text-align: center;
+}
+
+.menu-top-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  text-align: left;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.menu-title-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.brand-kicker {
+  display: inline-block;
+  align-self: flex-start;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  text-shadow: var(--glow-text);
+}
+
+.brand-title {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: var(--game-headline-size);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--on-surface-bright);
+}
+
+.menu-section-label {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--secondary);
+  text-align: left;
+  margin-bottom: 0.35rem;
+}
+
+.btn-neon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  background: var(--surface-container);
+  color: var(--primary);
+  border: var(--neon-border-lit);
+  border-radius: var(--rounded);
+  padding: 0.42rem 0.8rem;
+  min-height: 40px;
+  font-family: var(--font-label);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: box-shadow var(--dur-short) var(--ease-out),
+              border-color var(--dur-short) var(--ease-out),
+              background-color var(--dur-short) var(--ease-out);
+}
+.btn-neon:hover:not(:disabled) {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+  background: var(--surface-container-high);
+  text-shadow: var(--glow-text);
+}
+.btn-neon:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-neon.is-cyan { color: var(--secondary); border-color: color-mix(in srgb, var(--secondary) 48%, transparent); }
+.btn-neon.is-cyan:hover:not(:disabled) { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.btn-neon.is-yellow { color: var(--tertiary); border-color: color-mix(in srgb, var(--tertiary) 48%, transparent); }
+.btn-neon.is-yellow:hover:not(:disabled) { border-color: var(--tertiary); box-shadow: var(--glow-tertiary); }
+.btn-neon.is-purple { color: var(--data-4); border-color: color-mix(in srgb, var(--data-4) 52%, transparent); }
+.btn-neon.is-purple:hover:not(:disabled) { border-color: var(--data-4); box-shadow: 0 0 14px color-mix(in srgb, var(--data-4) 40%, transparent); }
+.btn-neon.is-active { background: var(--surface-container-high); box-shadow: var(--glow-secondary); }
+
+.menu-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+  gap: 0.45rem;
+}
+
+.controls-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: flex-start;
+  gap: 0.65rem;
+}
+
+.control-field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  flex: 1 1 200px;
+}
+
+.control-field label {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--on-surface-variant);
+}
+
+.neon-select {
+  width: 100%;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-bottom: 2px solid var(--secondary);
+  border-radius: var(--rounded);
+  padding: 0.35rem 0.6rem;
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  min-height: 40px;
+  cursor: pointer;
+}
+
+.volume-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 40px;
+}
+.volume-slider {
+  flex: 1 1 auto;
+  accent-color: var(--secondary);
+  cursor: pointer;
+}
+
+.phase-mix-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.phase-mix-pill {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  padding: 0.35rem 0.65rem;
+  min-height: 36px;
+  border-radius: var(--rounded);
+  border: 1px solid var(--outline);
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.phase-mix-pill.is-selected {
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: var(--glow-primary);
+}
+
+.menu-divider {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--outline-variant);
+  margin: 0.1rem 0;
+}
+
+.skill-tree-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: 0.45rem;
+}
+
+.skill-node {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.55rem 0.65rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.skill-node:hover { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.skill-node.is-mastered { border-color: var(--positive); }
+.skill-node.is-active-filter { border-color: var(--primary); background: var(--surface-container-high); }
+
+.skill-node-top {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  color: var(--secondary);
+}
+.skill-node-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--on-surface);
+  line-height: 1.3;
+}
+.skill-node-meta {
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  color: var(--on-surface-variant);
+}
+
+.hotkey-guide {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  color: var(--on-surface-variant);
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.45rem 0.65rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.inline-toast {
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  color: var(--tertiary);
+  text-align: left;
+  min-height: 1.1em;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--surface-overlay);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+}
+.modal-backdrop.is-open { display: flex; }
+
+#outcome-popup-modal {
+  width: 80vw;
+  height: 80vh;
+  max-width: 1120px;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-align: center;
+  font-size: var(--modal-body-size);
+}
+
+.popup-header {
+  flex-shrink: 0;
+  background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 0.55rem 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.popup-header-centered {
+  justify-content: center;
+  flex-wrap: wrap;
+  text-align: center;
+}
+.popup-verdict {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: var(--modal-headline-size);
+  font-weight: 800;
+  text-align: center;
+}
+.popup-verdict.is-correct { color: var(--positive); }
+.popup-verdict.is-wrong { color: var(--error); }
+.popup-verdict.is-cyan { color: var(--secondary); }
+
+.popup-question-pin {
+  flex-shrink: 0;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 0.45rem 0.85rem;
+  max-height: 18vh;
+  overflow-y: auto;
+  text-align: center;
+}
+.popup-question-pin-label {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  color: var(--secondary);
+  margin-bottom: 2px;
+  text-align: center;
+}
+.popup-question-pin-text {
+  margin: 0 auto;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--on-surface);
+  text-align: center;
+  line-height: 1.45;
+}
+
+.popup-scroll-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  text-align: center;
+}
+
+.dossier-block {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  padding: 0.65rem 0.85rem;
+  text-align: center;
+}
+.dossier-block.is-highlight {
+  border-color: color-mix(in srgb, var(--secondary) 45%, transparent);
+  box-shadow: var(--neon-inset-cyan);
+}
+.dossier-block-title {
+  margin: 0 0 0.25rem 0;
+  font-family: var(--font-label);
+  font-size: var(--modal-label-size);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--secondary);
+  text-align: center;
+}
+.dossier-block p,
+.dossier-line {
+  margin: 0 auto;
+  font-size: 0.88rem;
+  color: var(--on-surface);
+  text-align: center;
+  line-height: 1.5;
+}
+.dossier-line + .dossier-line { margin-top: 0.25rem; }
+
+.choice-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.choice-box {
+  background: var(--surface-container);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  padding: 0.5rem;
+  text-align: center;
+}
+.choice-box p {
+  margin: 0 auto;
+  text-align: center;
+}
+.choice-box.is-right { border-color: var(--positive); }
+.choice-box.is-wrong { border-color: var(--error); }
+.choice-box-tag {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+  margin-bottom: 2px;
+  text-align: center;
+}
+
+.angle-dossier-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.angle-mini-card {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.65rem 0.55rem;
+  text-align: center;
+}
+.angle-mini-card strong {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--primary);
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.popup-footer {
+  flex-shrink: 0;
+  background: var(--surface-container-high);
+  border-top: 1px solid var(--outline-variant);
+  padding: 0.5rem 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+#codex-modal {
+  width: min(94vw, 1340px);
+  height: 85vh;
+  background: var(--surface-container);
+  border: var(--neon-border-cyan);
+  box-shadow: var(--glow-secondary);
+  border-radius: var(--rounded-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-align: center;
+  font-size: var(--modal-body-size);
+}
+.codex-controls {
+  flex-shrink: 0;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 0.6rem 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: center;
+  gap: 0.55rem;
+}
+.codex-search-input {
+  width: 100%;
+  background: var(--surface-container);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-bottom: 2px solid var(--secondary);
+  border-radius: var(--rounded);
+  padding: 0.35rem 0.7rem;
+  min-width: 220px;
+  min-height: 38px;
+  font-size: var(--modal-body-size);
+}
+.codex-table-wrap {
+  flex: 1 1 auto;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.55rem 0.85rem;
+}
+.codex-table {
+  width: 100%;
+  min-width: 820px;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+  text-align: left;
+}
+.codex-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-container-high);
+  color: var(--secondary);
+  font-family: var(--font-label);
+  font-size: var(--modal-label-size);
+  text-transform: uppercase;
+  padding: 0.55rem;
+  border-bottom: 2px solid var(--outline);
+}
+.codex-table td {
+  padding: 0.55rem;
+  border-bottom: 1px solid var(--outline-variant);
+  vertical-align: top;
+  line-height: 1.45;
+}
+.codex-table tbody tr:nth-child(even) { background: var(--surface-container-low); }
+
+#run-summary-modal {
+  width: min(92vw, 840px);
+  max-height: 86vh;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  padding: 1.15rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  overflow: hidden;
+  font-size: var(--modal-body-size);
+}
+.summary-subtitle { margin: 0; color: var(--on-surface-variant); text-align: center; }
+.summary-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.summary-tile {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  padding: 0.55rem;
+  text-align: center;
+}
+.summary-tile-val {
+  display: block;
+  font-family: var(--font-headline);
+  font-size: var(--modal-display-size);
+  font-weight: 800;
+  color: var(--secondary);
+}
+.summary-tile-label {
+  font-family: var(--font-label);
+  font-size: var(--modal-label-size);
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+.missed-review-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.55rem;
+  text-align: left;
+  min-height: 110px;
+}
+.missed-item {
+  background: var(--surface-container);
+  border-left: 3px solid var(--error);
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--rounded);
+  font-size: 0.86rem;
+  margin-bottom: 0.4rem;
+  line-height: 1.45;
+}
+.missed-empty {
+  color: var(--positive);
+  font-family: var(--font-label);
+  font-size: var(--modal-label-size);
+  text-align: center;
+  padding: 1rem;
+}
+
+.shake-anim { animation: viewport-shake 300ms var(--ease-out); }
+@keyframes viewport-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); }
+  40% { transform: translateX(7px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+@media (max-width: 600px) {
+  :root {
+    --game-stem-size: 0.96rem;
+    --card-min-h: 96px;
+    --card-pad-y: 0.78rem;
+    --card-pad-x: 0.9rem;
+    --card-font: 0.97rem;
+    --card-gap: 0.65rem;
+    --stem-pad-y: 0.48rem;
+    --stem-pad-x: 0.75rem;
+  }
+
+  #xr-app.hints-visible {
+    --game-stem-size: 0.88rem;
+    --card-min-h: 60px;
+    --card-pad-y: 0.44rem;
+    --card-pad-x: 0.75rem;
+    --card-font: 0.88rem;
+    --card-gap: 0.42rem;
+    --stem-pad-y: 0.34rem;
+    --stem-pad-x: 0.65rem;
+  }
+
+  .top-mini-bar { padding: 0.24rem 0.45rem; }
+  .menu-mini-btn { min-height: 34px; padding: 0.2rem 0.55rem; font-size: 0.72rem; }
+  .mini-telemetry { gap: 0.3rem; font-size: 0.68rem; }
+  .tele-chip.is-xp { display: none; }
+
+  .question-stage { padding: 0.34rem 0.5rem 0.4rem; }
+  .question-stem-box { max-height: 30dvh; }
+  #xr-app.hints-visible .question-stem-box { max-height: 22dvh; }
+
+  .lane-overlay-container {
+    top: 44%;
+    width: calc(100% - 1rem);
+    grid-template-columns: 1fr;
+  }
+  .lane-card-head, .lane-key-label { display: none; }
+
+  #hints-bar { padding: 0.4rem 0.65rem; max-height: 22dvh; }
+  .hints-text { font-size: 0.84rem; line-height: 1.35; }
+
+  .menu-backdrop { padding: 0.35rem; }
+  #top-menu-drawer { max-height: calc(100dvh - 0.7rem); padding: 0.8rem; }
+  .menu-actions-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .choice-compare-grid,
+  .angle-dossier-grid { grid-template-columns: 1fr; }
+  .summary-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .modal-backdrop { padding: 0.35rem; }
+  #outcome-popup-modal,
+  #codex-modal,
+  #run-summary-modal {
+    width: 96vw;
+    height: 92dvh;
+    max-height: 92dvh;
+  }
+  .popup-question-pin { max-height: 20dvh; }
+  .codex-table { min-width: 680px; font-size: 0.8rem; }
+}
+
+@media (max-height: 500px) and (pointer: coarse) {
+  :root {
+    --game-stem-size: 0.88rem;
+    --card-min-h: 82px;
+    --card-pad-y: 0.5rem;
+    --card-pad-x: 0.68rem;
+    --card-font: 0.86rem;
+    --card-gap: 0.55rem;
+    --stem-pad-y: 0.3rem;
+    --stem-pad-x: 0.7rem;
+  }
+
+  #xr-app.hints-visible {
+    --game-stem-size: 0.82rem;
+    --card-min-h: 54px;
+    --card-pad-y: 0.32rem;
+    --card-pad-x: 0.55rem;
+    --card-font: 0.8rem;
+    --card-gap: 0.45rem;
+    --stem-pad-y: 0.24rem;
+    --stem-pad-x: 0.6rem;
+  }
+
+  .top-mini-bar { padding: 0.16rem 0.5rem; }
+  .menu-mini-btn { min-height: 28px; padding: 0.14rem 0.5rem; font-size: 0.68rem; }
+  .question-stage { padding: 0.2rem 0.55rem; }
+  .question-stem-box { max-height: 25dvh; }
+  #xr-app.hints-visible .question-stem-box { max-height: 20dvh; }
+  .lane-overlay-container {
+    top: 46%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: calc(100% - 1rem);
+  }
+  .lane-card-head, .lane-key-label { display: none; }
+  #hints-bar { padding: 0.26rem 0.6rem; max-height: 20dvh; }
+  .hints-text { font-size: 0.78rem; line-height: 1.3; }
+  #outcome-popup-modal,
+  #codex-modal,
+  #run-summary-modal {
+    width: 96vw;
+    height: 94dvh;
+    max-height: 94dvh;
+  }
+}
+
+@media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+  html { font-size: 200%; }
+  .lane-overlay-container {
+    top: 44%;
+    width: calc(100% - 1rem);
+    grid-template-columns: 1fr;
+  }
+  .lane-card-head, .lane-key-label { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+<div id="xr-app" class="hints-hidden">
+
+  <div class="top-mini-bar">
+    <button type="button" class="menu-mini-btn" id="menu-toggle-btn" onclick="toggleMenuDrawer()" aria-expanded="false" aria-controls="top-menu-drawer">☰ MENU</button>
+    <div class="mini-telemetry" aria-label="Game Status">
+      <span class="tele-chip is-hp" id="hp-chip">HP <span id="hp-text">100</span></span>
+      <span class="tele-chip is-xp">XP <span id="xp-text">0</span></span>
+      <span class="tele-chip is-streak">⚡<span id="streak-text">0</span></span>
+      <span class="tele-chip"><span id="progress-text">1/30</span></span>
+      <span class="tele-chip is-timer is-off" id="timer-chip">⏱ OFF</span>
+    </div>
+  </div>
+
+  <div class="question-stage">
+    <div class="question-container">
+      <div class="question-meta-row" id="question-meta-row">
+        <span class="meta-badge" id="lo-badge">LO 1</span>
+        <span class="meta-badge is-angle" id="angle-badge">PRESENTATION → DIAGNOSIS</span>
+        <span class="meta-badge is-phase" id="phase-badge">PHASE 1: PATHOGENESIS</span>
+        <span class="meta-badge is-corridor" id="corridor-badge">CORRIDOR</span>
+      </div>
+      <div class="question-stem-box">
+        <p class="question-stem amboss-scan-target" id="q-stem-text">Loading diagnostic corridor…</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="viewport-shell" id="viewport-shell">
+    <canvas id="xr-canvas" aria-label="3D Perspective Diagnostic Corridor"></canvas>
+    <div class="lane-overlay-container" id="lane-overlay-container">
+      <div id="lane-0-card" class="lane-dom-card lane-0" role="button" tabindex="0"
+           onmouseenter="previewLaneTarget(0)" onpointerenter="previewLaneTarget(0)" onfocus="previewLaneTarget(0)"
+           onclick="selectLaneAndResolve(0)"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(0);}">
+        <div class="lane-card-head">
+          <span class="lane-portal-name">LEFT PORTAL</span>
+          <span class="lane-key-label">1 / A / ←</span>
+        </div>
+        <div class="lane-choice-body">
+          <span id="lane-0-text" class="amboss-scan-target">Option A</span>
+        </div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+      <div id="lane-1-card" class="lane-dom-card lane-1 is-targeted" role="button" tabindex="0"
+           onmouseenter="previewLaneTarget(1)" onpointerenter="previewLaneTarget(1)" onfocus="previewLaneTarget(1)"
+           onclick="selectLaneAndResolve(1)"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(1);}">
+        <div class="lane-card-head">
+          <span class="lane-portal-name">CENTER PORTAL</span>
+          <span class="lane-key-label">2 / W / ↑</span>
+        </div>
+        <div class="lane-choice-body">
+          <span id="lane-1-text" class="amboss-scan-target">Option B</span>
+        </div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+      <div id="lane-2-card" class="lane-dom-card lane-2" role="button" tabindex="0"
+           onmouseenter="previewLaneTarget(2)" onpointerenter="previewLaneTarget(2)" onfocus="previewLaneTarget(2)"
+           onclick="selectLaneAndResolve(2)"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(2);}">
+        <div class="lane-card-head">
+          <span class="lane-portal-name">RIGHT PORTAL</span>
+          <span class="lane-key-label">3 / D / →</span>
+        </div>
+        <div class="lane-choice-body">
+          <span id="lane-2-text" class="amboss-scan-target">Option C</span>
+        </div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+    </div>
+    <div class="vignette-overlay" id="vignette-overlay"></div>
+    <div class="heal-toast" id="heal-toast">✚ STREAK BONUS +25 HP</div>
+  </div>
+
+  <div id="hints-bar" aria-live="polite">
+    <div class="hints-inner">
+      <div class="hints-header-row">
+        <span class="hints-tag">💡 HINT [H]</span>
+        <span class="hints-subtag" id="hints-meta-ref">LO 1 • Phase 1</span>
+      </div>
+      <p class="hints-text amboss-scan-target" id="q-clue-text">—</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="menu-backdrop" id="menu-backdrop" onclick="if(event.target===this)toggleMenuDrawer()">
+  <div id="top-menu-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+    <div class="menu-top-header">
+      <div class="menu-title-stack">
+        <span class="brand-kicker" id="drawer-kicker">MSK2 • Dr. Steven J. Ontiveros // Interactive XR Raid</span>
+        <h1 class="brand-title" id="drawer-title">Lecture 03: Molecular Biology of Cartilage and Bone — XR 3-Lane Diagnostic Runner</h1>
+      </div>
+      <button type="button" class="btn-neon" onclick="toggleMenuDrawer()">✕ Close</button>
+    </div>
+
+    <div>
+      <div class="menu-section-label">Quick Actions &amp; Session Controls</div>
+      <div class="menu-actions-grid">
+        <button type="button" class="btn-neon is-yellow" id="menu-hints-btn" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+        <button type="button" class="btn-neon is-cyan" onclick="openCodexFromMenu()">📖 Loot Codex [C]</button>
+        <button type="button" class="btn-neon is-yellow" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+        <button type="button" class="btn-neon is-cyan" id="menu-timer-btn" onclick="toggleTimerActive()">⏱ 50s Timer: OFF [T]</button>
+        <button type="button" class="btn-neon" onclick="startTimedSession()">⚡ Start 50s Timed Run</button>
+        <button type="button" class="btn-neon is-yellow" id="master-sound-btn" onclick="toggleMasterSound()">🔊 Sound: ON</button>
+        <button type="button" class="btn-neon is-cyan" id="audio-toggle-btn" onclick="toggleSfx()">🔊 SFX: ON</button>
+        <button type="button" class="btn-neon is-purple" id="menu-bgm-btn" onclick="toggleBgm()">🎵 Zombies BGM: OFF</button>
+        <button type="button" class="btn-neon is-cyan" onclick="document.getElementById('bgm-file-input').click()">📂 Custom MP3/WAV</button>
+        <button type="button" class="btn-neon" onclick="restartOrdered()">↺ Restart Ordered</button>
+        <button type="button" class="btn-neon is-cyan" onclick="restartRandomized()">🔀 Shuffle Deck</button>
+        <button type="button" class="btn-neon is-yellow" id="reset-run-btn" onclick="handleResetMastery(this)">⚠ Reset Mastery</button>
+      </div>
+      <input type="file" id="bgm-file-input" accept="audio/*" style="display:none" onchange="handleCustomBgmUpload(event)">
+    </div>
+
+    <hr class="menu-divider">
+
+    <div class="controls-strip">
+      <div class="control-field">
+        <label for="sector-filter">Dungeon Sector (LO / Review Queue)</label>
+        <select id="sector-filter" class="neon-select" onchange="applyFilters()">
+          <option value="all">All Sectors</option>
+          <option value="missed" id="missed-sector-option">🎯 Missed Gates Only (0)</option>
+        </select>
+      </div>
+      <div class="control-field">
+        <label for="angle-filter">Question Angle</label>
+        <select id="angle-filter" class="neon-select" onchange="applyFilters()">
+          <option value="all">All 3 Angles</option>
+          <option value="Presentation -> Diagnosis">Angle 1: Presentation → Diagnosis</option>
+          <option value="Mechanism -> Pathophysiology">Angle 2: Mechanism → Pathophysiology</option>
+          <option value="Hallmarks -> Management">Angle 3: Hallmarks → Management</option>
+        </select>
+      </div>
+      <div class="control-field">
+        <label for="times-up-select">Time's Up Mode (50s Timer)</label>
+        <select id="times-up-select" class="neon-select" onchange="applyTimerSettings()">
+          <option value="fail">Time's Up = Wrong → Review Screen</option>
+          <option value="hold">Hold at 0s (No Penalty)</option>
+        </select>
+      </div>
+      <div class="control-field">
+        <label for="bgm-volume-slider">BGM Volume</label>
+        <div class="volume-row">
+          <input type="range" id="bgm-volume-slider" class="volume-slider" min="0" max="100" value="35" oninput="updateBgmVolume(this.value)">
+          <span style="font-family:var(--font-label);font-size:0.74rem;color:var(--secondary)" id="bgm-vol-label">35%</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="menu-section-label">Phase Distribution Filter (30% / 35% / 35%)</div>
+      <div class="phase-mix-strip">
+        <button type="button" class="phase-mix-pill is-selected" data-phase="all" onclick="setPhaseFilter('all')">All Phases (30/35/35%)</button>
+        <button type="button" class="phase-mix-pill" data-phase="Phase 1: Pathogenesis" onclick="setPhaseFilter('Phase 1: Pathogenesis')">Phase 1: Pathogenesis (30%)</button>
+        <button type="button" class="phase-mix-pill" data-phase="Phase 2: Histology / Structure" onclick="setPhaseFilter('Phase 2: Histology / Structure')">Phase 2: Histology / Structure (35%)</button>
+        <button type="button" class="phase-mix-pill" data-phase="Phase 3: Clinical & Management" onclick="setPhaseFilter('Phase 3: Clinical & Management')">Phase 3: Clinical &amp; Management (35%)</button>
+      </div>
+    </div>
+
+    <div class="inline-toast" id="menu-status-msg" role="status" aria-live="polite"></div>
+    <hr class="menu-divider">
+
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;flex-wrap:wrap;gap:0.4rem;">
+        <span class="menu-section-label" style="margin:0;">Objective Skill Tree (Tap to Deploy)</span>
+        <span style="font-family:var(--font-label);font-size:0.7rem;color:var(--on-surface-variant);" id="mastery-summary">Mastered: 0 / 5 LOs • Accuracy: --%</span>
+      </div>
+      <div class="skill-tree-grid" id="skill-tree-grid"></div>
+    </div>
+
+    <div class="hotkey-guide">
+      <strong>Keyboard Shortcuts:</strong> [1 / 2 / 3] or [A / W / D] or [← / ↑ / →] Select Portal • [H] Toggle Bottom Hints • [M] Menu • [C] Loot Codex • [S] Skip • [T] Toggle 50s Timer • [Space / Enter] Continue Review
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="outcome-backdrop" role="dialog" aria-modal="true" aria-labelledby="outcome-verdict">
+  <div id="outcome-popup-modal">
+    <div class="popup-header popup-header-centered">
+      <h2 class="popup-verdict" id="outcome-verdict">✔ CORRECT — Answer</h2>
+      <span class="meta-badge" id="outcome-xp-delta">+100 XP</span>
+      <span class="meta-badge is-phase" id="outcome-hp-delta">+5 HP</span>
+    </div>
+    <div class="popup-question-pin">
+      <span class="popup-question-pin-label" id="outcome-lo-ref">Original Board Vignette</span>
+      <p class="popup-question-pin-text amboss-scan-target" id="outcome-question-text"></p>
+    </div>
+    <div class="popup-scroll-body" id="outcome-scroll-body">
+      <div class="dossier-block is-highlight">
+        <h3 class="dossier-block-title">1. Your Choice vs. Correct Answer</h3>
+        <div class="choice-compare-grid">
+          <div class="choice-box" id="your-choice-box">
+            <span class="choice-box-tag">Your Selected Lane</span>
+            <p id="your-choice-text" class="amboss-scan-target"></p>
+          </div>
+          <div class="choice-box is-right">
+            <span class="choice-box-tag">Correct Answer</span>
+            <p id="correct-choice-text" class="amboss-scan-target"></p>
+          </div>
+        </div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">2. Concise Explanation &amp; Distractor Exclusion</h3>
+        <div id="dossier-explanation" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">3. Second-Order Vignette Clue</h3>
+        <div id="dossier-board-clue" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">4. Core Mechanism &amp; Pathogenesis Pearls (Phase 1)</h3>
+        <div id="dossier-pathogenesis" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">5. High-Yield Morphology &amp; Structural Hallmarks (Phase 2)</h3>
+        <div id="dossier-morphology" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">6. Guild Master's Secret &amp; Clinical Management (Phase 3)</h3>
+        <div id="dossier-epi-tx" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block is-highlight">
+        <h3 class="dossier-block-title">7. Complete 3-Phase Topic Dossier</h3>
+        <div class="angle-dossier-grid">
+          <div class="angle-mini-card">
+            <strong>Phase 1: Pathogenesis</strong>
+            <div id="dossier-angle-1" class="amboss-scan-target"></div>
+          </div>
+          <div class="angle-mini-card">
+            <strong>Phase 2: Histology / Structure</strong>
+            <div id="dossier-angle-2" class="amboss-scan-target"></div>
+          </div>
+          <div class="angle-mini-card">
+            <strong>Phase 3: Clinical / Tx</strong>
+            <div id="dossier-angle-3" class="amboss-scan-target"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="popup-footer">
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(-180)">▲ Up</button>
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(180)">▼ Down</button>
+      <button type="button" class="btn-neon" id="continue-runner-btn" onclick="continueToNextGate()">▶ Continue Runner [Space / Enter]</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="codex-backdrop" role="dialog" aria-modal="true" aria-labelledby="codex-title">
+  <div id="codex-modal">
+    <div class="popup-header">
+      <h2 class="popup-verdict is-cyan" id="codex-title">Master Raid Loot Codex</h2>
+      <button type="button" class="btn-neon" onclick="closeCodex()">✕ Close [Esc]</button>
+    </div>
+    <div class="codex-controls">
+      <div class="control-field" style="flex:1 1 240px;">
+        <label for="codex-search">Search Entity, Mechanism, Sign, or Countermeasure</label>
+        <input type="text" id="codex-search" class="codex-search-input" placeholder="Search keyword…" oninput="renderCodexTable()">
+      </div>
+      <div class="phase-mix-strip">
+        <button type="button" class="phase-mix-pill is-selected" data-codex-tag="all" onclick="setCodexTag('all')">All Objectives</button>
+        <button type="button" class="phase-mix-pill" data-codex-tag="cat_1" onclick="setCodexTag('cat_1')">Normal Cartilage &amp; Bone</button>
+        <button type="button" class="phase-mix-pill" data-codex-tag="cat_2" onclick="setCodexTag('cat_2')">Skeletal Dysplasias</button>
+        <button type="button" class="phase-mix-pill" data-codex-tag="cat_3" onclick="setCodexTag('cat_3')">Ectopic Ossification</button>
+      </div>
+    </div>
+    <div class="codex-table-wrap">
+      <table class="codex-table">
+        <thead>
+          <tr>
+            <th>LO &amp; Entity / Boss</th>
+            <th>Etiology / Trigger</th>
+            <th>Pathogenesis Cascade</th>
+            <th>Gross &amp; Histology Hallmarks</th>
+            <th>Clinical Presentation</th>
+            <th>Management &amp; Guild Secret</th>
+          </tr>
+        </thead>
+        <tbody id="codex-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="summary-backdrop" role="dialog" aria-modal="true" aria-labelledby="summary-title">
+  <div id="run-summary-modal">
+    <h2 class="popup-verdict is-cyan" id="summary-title">DIAGNOSTIC RUN COMPLETE</h2>
+    <p class="summary-subtitle" id="summary-subtitle">Lecture 03: Molecular Biology of Cartilage and Bone</p>
+    <div class="summary-metrics">
+      <div class="summary-tile"><span class="summary-tile-val" id="sum-xp">0</span><span class="summary-tile-label">Total XP</span></div>
+      <div class="summary-tile"><span class="summary-tile-val" id="sum-acc">0%</span><span class="summary-tile-label">Accuracy</span></div>
+      <div class="summary-tile"><span class="summary-tile-val" id="sum-streak">0</span><span class="summary-tile-label">Best Streak</span></div>
+      <div class="summary-tile"><span class="summary-tile-val" id="sum-hp">100</span><span class="summary-tile-label">Final HP</span></div>
+    </div>
+    <div class="missed-review-list" id="missed-review-list"></div>
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:0.5rem;">
+      <button type="button" class="btn-neon is-yellow" id="retry-missed-btn" onclick="retryMissedOnly()">🎯 Retry Missed Gates</button>
+      <button type="button" class="btn-neon" onclick="restartOrdered()">↺ Restart In Order</button>
+      <button type="button" class="btn-neon is-cyan" onclick="restartRandomized()">🔀 Shuffle All</button>
+    </div>
+  </div>
+</div>
+
+<audio id="custom-bgm-audio" loop></audio>
+<api-shim></api-shim>
+<script>
+const GAME_CONFIG = {
+  title: `Lecture 03: Molecular Biology of Cartilage and Bone — XR 3-Lane Diagnostic Runner`,
+  kicker: `MSK2 • Dr. Steven J. Ontiveros // Interactive XR Raid`,
+  maxHp: 100,
+  hpPenalty: 15,
+  hpReward: 5,
+  healAmount: 25,
+  healStreakStep: 4,
+  stopDistanceMeters: 5,
+  gateStartDistance: 95,
+  gateApproachSpeed: 24,
+  timerSeconds: 50,
+  metaFadeMs: 3000
+};
+
+const LANE_COLORS = ['#ff2d78', '#00ffcc', '#ffe04a'];
+
+const DEFAULT_THEME_CYCLE = [
+  { tag: `DIAGNOSTIC VOID • GOLDEN PIXEL DUST`, particleColor: `#e8cf58`, gridRgb: `108, 92, 172`, railColor: `#34a88f` },
+  { tag: `DIAGNOSTIC VOID • AMBER SPARK DUST`, particleColor: `#f2a86b`, gridRgb: `122, 82, 160`, railColor: `#34a88f` },
+  { tag: `DIAGNOSTIC VOID • COOL CYAN PIXELS`, particleColor: `#66e6d6`, gridRgb: `92, 108, 174`, railColor: `#34a88f` },
+  { tag: `DIAGNOSTIC VOID • CRIMSON-GOLD DUST`, particleColor: `#ff6b8b`, gridRgb: `132, 78, 148`, railColor: `#34a88f` },
+  { tag: `DIAGNOSTIC VOID • VIOLET-GOLD PIXELS`, particleColor: `#c8a8ff`, gridRgb: `118, 92, 184`, railColor: `#34a88f` }
+];
+
+const LO_VISUAL_THEMES = {
+  1: { tag: `CHONDRO-MATRIX & HOMEOSTASIS`, particleColor: `#66e6d6`, gridRgb: `92, 108, 174`, railColor: `#34a88f` },
+  2: { tag: `SOX-TRIO & WNT/RUNX2 AXIS`, particleColor: `#f5dc62`, gridRgb: `112, 96, 168`, railColor: `#34a88f` },
+  3: { tag: `CAMPOMELIC SOX-9 CORRIDOR`, particleColor: `#ff6b8b`, gridRgb: `132, 78, 148`, railColor: `#34a88f` },
+  4: { tag: `GNAS / cAMP-PKA DYSPLASIA`, particleColor: `#f2a86b`, gridRgb: `122, 82, 160`, railColor: `#34a88f` },
+  5: { tag: `ECTOPIC OSSIFICATION MATRIX`, particleColor: `#c8a8ff`, gridRgb: `118, 92, 184`, railColor: `#34a88f` }
+};
+
+const CODEX_DATA = [
+  {
+    lo: 1,
+    tag: `cat_1`,
+    entity: `Cartilage & Bone Tissue Maintenance`,
+    badgeMeta: `Normal Histology & Growth`,
+    etiology: `Mesenchymal stem cells (MSCs) in perichondrium and bone matrix; mechanical loading & remodeling balance.`,
+    pathogenesis: `Appositional growth (MSC differentiation in perichondrium at surface) vs. Interstitial growth (chondrocyte mitosis inside existing mass). Bone homeostasis balances osteoblast deposition and osteoclast resorption.`,
+    hallmarks: `Cartilage: avascular, resilient, hyaline/elastic/fibrocartilage; elliptical chondroblasts; cuboidal chondrocytes in lacunae (isogenous groups up to 8) secreting Type II collagen, GAGs, proteoglycans. Osteocytes have dendritic processes in canaliculi linked by gap junctions.`,
+    clinical: `Disruption of osteoblast-osteoclast deposition/resorption balance drives structural skeletal disease; osteocytes act as mechanosensors coordinating remodeling.`,
+    management: `Guild Master's Secret: Distinguish appositional (perichondrial differentiation at surface) from interstitial (chondrocyte division in lacunae) and remember osteocytes communicate via gap junctions inside canaliculi.`
+  },
+  {
+    lo: 2,
+    tag: `cat_1`,
+    entity: `Chondrogenesis & Osteogenesis Molecular Factors`,
+    badgeMeta: `Lineage Transcription`,
+    etiology: `Osteo-chondro-progenitor MSCs responding to BMP signaling vs. Wnt/β-catenin signaling.`,
+    pathogenesis: `BMP signaling activates Sox-9 (DNA-binding protein), upregulating Sox-5/Sox-6 (Sox Trio) to drive chondroblast maturation, Type II collagen, and aggrecan. Wnt/β-catenin upregulates Runx2 for pre-osteoblast -> osteoblast -> osteocyte differentiation.`,
+    hallmarks: `Osteoblasts secrete Type I collagen, osteonectin (Ca2+-binding glycoprotein), osteocalcin (Ca2+-binding protein), and alkaline phosphatase (ALP, raises local PO4^3- ions), packaging matrix vesicles for crystallization.`,
+    clinical: `Sox-9 also regulates male sexual development and overall skeletal development (pelvic bones, vertebral column, long bones, cranial bones).`,
+    management: `Guild Master's Secret: Cartilage = Sox-9/5/6 + Type II collagen + aggrecan; Bone = Wnt/β-catenin + Runx2 + Type I collagen + ALP/osteonectin/osteocalcin.`
+  },
+  {
+    lo: 3,
+    tag: `cat_2`,
+    entity: `Campomelic Dysplasia (Bent-Limb Dysplasia)`,
+    badgeMeta: `Autosomal Dominant • Sox-9`,
+    etiology: `Autosomal dominant mutation in the Sox-9 transcription factor gene.`,
+    pathogenesis: `Sox-9 loss prevents chondrogenic cell maturation, hindering Sox-5 and Sox-6 expression and disrupting cartilage ECM synthesis (reduced Type II collagen and proteoglycan aggrecan).`,
+    hallmarks: `27-week radiograph shows ventral bowing or shortened tibia and femur with a hypoplastic or fully absent fibula; craniofacial defects and weak airway/lung cartilage.`,
+    clinical: `Bowing/angulation of long bones, craniofacial abnormalities, male sexual development disruption, and lethal neonatal respiratory insufficiency from weak lung cartilage.`,
+    management: `Guild Master's Secret: Most newborns do not survive due to respiratory insufficiency from weak cartilage in the lungs; always look for absent/hypoplastic fibula + Sox-9 autosomal dominant inheritance.`
+  },
+  {
+    lo: 4,
+    tag: `cat_2`,
+    entity: `Fibrous Dysplasia`,
+    badgeMeta: `GNAS • Gs / cAMP-PKA`,
+    etiology: `Activating mutation in GNAS (Guanine Nucleotide Binding alpha stimulating) gene encoding a Gs protein; Monostotic (20s–30s, most common) vs. Polyostotic (children).`,
+    pathogenesis: `Constitutive Gs and cAMP/PKA activation crosstalks with Wnt/β-catenin inhibitory complex to cause excessive Runx2 activation, impairing osteoblast differentiation and maturation.`,
+    hallmarks: `Infiltration of immature fibrous tissue (ft) within bony trabeculae (b), excessive osteoid, and under-mineralized bone; most common in tibia, femur, humerus, and ribs.`,
+    clinical: `Chronic bone pain, bony deformities, bowing of long bones, unequal limb length, and structurally weak bone with a high fracture rate.`,
+    management: `Palliative care (managing fractures and deformities); pathway therapeutic interventions inhibit the Frizzled receptor or inhibit Adenylyl Cyclase (AC).`
+  },
+  {
+    lo: 5,
+    tag: `cat_3`,
+    entity: `Heterotopic Ossification (HO)`,
+    badgeMeta: `Ectopic Bone • BMP/Wnt`,
+    etiology: `Genetic (FOP, POH, GNAS-based; hypersensitive BMP receptor) or Nongenetic (severe trauma, TBI/SCI, burns, amputations, joint arthroplasty, or low-energy contusions/overuse).`,
+    pathogenesis: `Injury/insult triggers inflammation, mast cell recruitment, and abnormal BMP signaling in MSCs/progenitors, driving Endochondral ossification (Sox Trio -> cartilage intermediate -> bone) or Intramembranous ossification (Wnt/β-catenin + Runx2 -> direct bone).`,
+    hallmarks: `Ectopic bone outside the skeleton (radiographs of knee/elbow): large movement-restricting masses in deep muscles/tendons/near joints (endochondral, severe trauma/genetic) vs. smaller stabilizing masses in superficial muscle/fascia (intramembranous, low-energy trauma).`,
+    clinical: `Painful or movement-restricting ossified masses in muscles and soft tissues following trauma, neurological injury, surgery, or genetic BMP hypersensitivity.`,
+    management: `2 major strategies: improve symptoms or removal via surgical excision. Guild Master's Secret: 41% of surgical excision cases require additional excision procedures due to recurrence.`
+  }
+];
+
+const ALL_QUESTIONS = [
+  // ================= LO 1: Cartilage & Bone ECM Components & Normal Growth =================
+  {
+    id: `LO01-Q1`,
+    lo: 1,
+    loTitle: `LO 1: Cartilage & Bone Maintenance`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Osteocyte Mechanosensory Failure`,
+    stem: `A researcher studies bone remodeling in an unloaded limb after prolonged immobilization and observes marked disruption of the balance between osteoblast deposition and osteoclast resorption. Which bone cell normally senses mechanical load and coordinates both osteoblast and osteoclast activity to maintain bony matrix homeostasis?`,
+    clue: `Think of the matrix-encased bone cell with long dendritic processes communicating through gap junctions.`,
+    choices: [
+      `Osteocyte inside canaliculi`,
+      `Chondroblast in perichondrium`,
+      `Elliptical progenitor in fascia`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Osteocytes are mechanosensory cells encased in bony matrix that regulate bone maintenance and coordinate osteoblast deposition and osteoclast resorption. Distractor exclusion: Chondroblasts reside in the perichondrium to form cartilage rather than sensing bone load, and fascia progenitors are not the resident mechanosensors of mineralized bone.`,
+    secondOrderClue: `Immobilization / remodeling balance -> mechanosensory osteocytes in canaliculi regulate osteoblasts & osteoclasts.`,
+    phase1Pearl: `Osteoblasts encase themselves in bony matrix to differentiate into osteocytes, establishing a mechanosensory signaling network.`,
+    phase2Hallmark: `Osteocytes extend long dendritic processes through canaliculi and communicate via gap junctions.`,
+    phase3Secret: `Guild Master's Secret: Bone is dynamic—constantly formed by osteoblasts and resorbed by osteoclasts; osteocytes sit centrally to regulate both.`,
+    dossierBullets: {
+      p1: [`Osteoblasts encase themselves in matrix to become osteocytes`, `Osteocytes coordinate formation (osteoblasts) and resorption (osteoclasts)`],
+      p2: [`Long dendritic processes reside inside canaliculi`, `Intercellular communication occurs via gap junctions`],
+      p3: [`Disturbances in the deposition-resorption balance cause skeletal disease`, `Mechanosensing guides matrix maintenance under load`]
+    }
+  },
+  {
+    id: `LO01-Q2`,
+    lo: 1,
+    loTitle: `LO 1: Cartilage & Bone Maintenance`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Avascular Hyaline Cartilage`,
+    stem: `An orthopedic biopsy from an articular joint surface demonstrates a resilient, flexible tissue with some rigidity and a low-friction surface, completely lacking blood vessels within its extracellular matrix. Which tissue category and structural feature best match this specimen?`,
+    clue: `Recall the four defining physical characteristics of cartilage listed in the lecture overview.`,
+    choices: [
+      `Avascular cartilage with low-friction matrix`,
+      `Vascularized osteoid with canaliculi`,
+      `Fibrous trabeculae with high mineralization`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Cartilage is a resilient, avascular tissue that provides flexibility with some rigidity and a low-friction surface across hyaline, elastic, and fibrocartilage types. Distractor exclusion: Osteoid with canaliculi characterizes bone rather than avascular cartilage, and fibrous trabeculae reflect pathologic fibrous replacement.`,
+    secondOrderClue: `Low-friction + resilient + flexible with rigidity + avascular = normal cartilage.`,
+    phase1Pearl: `Chondroblasts and chondrocytes synthesize and maintain the avascular cartilaginous extracellular matrix.`,
+    phase2Hallmark: `Three structural cartilage types exist: hyaline cartilage, elastic cartilage, and fibrocartilage.`,
+    phase3Secret: `Guild Master's Secret: Because cartilage is avascular, nutrient diffusion through its hydrated GAG/proteoglycan matrix is critical for chondrocyte survival.`,
+    dossierBullets: {
+      p1: [`Chondrocytes maintain matrix homeostasis without blood vessels`, `Synthesize Type II collagen, GAGs, and proteoglycans`],
+      p2: [`Resilient, avascular, flexible with rigidity, low-friction surface`, `Subtypes: hyaline cartilage, elastic cartilage, fibrocartilage`],
+      p3: [`Provides shock absorption and low-friction articulation`, `Distinct from vascularized, dynamically remodeled bone`]
+    }
+  },
+  {
+    id: `LO01-Q3`,
+    lo: 1,
+    loTitle: `LO 1: Cartilage & Bone Maintenance`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Appositional Cartilage Growth`,
+    stem: `During fetal limb modeling, mesenchymal stem cells located within the perichondrium differentiate into elliptical chondroblasts and deposit new cartilage directly onto the outer surface of an existing cartilage template. Which growth mechanism is occurring?`,
+    clue: `Contrast surface differentiation from the perichondrium against internal chondrocyte division.`,
+    choices: [
+      `Appositional growth via perichondrial MSCs`,
+      `Interstitial growth via isogenous division`,
+      `Endochondral resorption via osteoclasts`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Appositional growth occurs when mesenchymal stem cells differentiate within the perichondrium to form new cartilage at the surface of existing cartilage. Distractor exclusion: Interstitial growth relies on division of existing chondrocytes inside lacunae rather than perichondrial MSC differentiation, and osteoclasts resorb bone rather than adding surface cartilage.`,
+    secondOrderClue: `Perichondrium + MSC differentiation + surface deposition = appositional growth.`,
+    phase1Pearl: `Appositional chondrogenesis recruits MSCs in the perichondrium to become chondroblasts at the cartilage periphery.`,
+    phase2Hallmark: `Chondroblasts are elliptical in shape and typically localized to the perichondrium.`,
+    phase3Secret: `Guild Master's Secret: Remember "Appositional = At the surface (perichondrial differentiation)" versus "Interstitial = Inside (chondrocyte mitosis)."`,
+    dossierBullets: {
+      p1: [`MSCs differentiate within the perichondrium`, `Forms new cartilage at the surface of existing cartilage`],
+      p2: [`Elliptical chondroblasts line the perichondrial zone`, `Chondroblasts subsequently give rise to deeper chondrocytes`],
+      p3: [`Expands cartilage width from the outer margin`, `Complements internal interstitial expansion`]
+    }
+  },
+  {
+    id: `LO01-Q4`,
+    lo: 1,
+    loTitle: `LO 1: Cartilage & Bone Maintenance`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Interstitial Cartilage Growth`,
+    stem: `In an expanding epiphyseal cartilage plate, cuboidal cells already encased within lacunae undergo mitosis inside the existing cartilaginous mass, generating clusters of up to eight daughter cells that secrete fresh matrix from within. Which process describes this expansion?`,
+    clue: `Focus on chondrocytes dividing inside lacunae to form isogenous groups within existing cartilage.`,
+    choices: [
+      `Interstitial growth forming isogenous groups`,
+      `Appositional growth along periosteal fascia`,
+      `Intramembranous ossification without matrix`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Interstitial growth occurs when chondrocytes divide within an existing cartilage mass, forming isogenous groups (up to 8 cells) encased in lacunae. Distractor exclusion: Appositional growth adds cartilage at the perichondrial surface via MSC differentiation, and intramembranous ossification forms bone directly without a cartilage mass.`,
+    secondOrderClue: `Chondrocyte division inside lacunae + isogenous groups (up to 8 cells) = interstitial growth.`,
+    phase1Pearl: `Interstitial chondrogenesis expands cartilage from within via mitotic division of mature chondrocytes.`,
+    phase2Hallmark: `Cuboidal chondrocytes reside in deeper cartilage regions inside lacunae, forming isogenous groups of up to 8 cells.`,
+    phase3Secret: `Guild Master's Secret: Up to 8 cells per isogenous group is a classic histology quantitative detail from the cartilage cell slide.`,
+    dossierBullets: {
+      p1: [`Chondrocytes divide within an existing cartilage mass`, `Daughter cells remain clustered as isogenous groups`],
+      p2: [`Cuboidal chondrocytes encased in ECM lacunae`, `Isogenous groups contain up to 8 cells`],
+      p3: [`Expands cartilage length/volume internally`, `Newly divided chondrocytes secrete Type II collagen and proteoglycans`]
+    }
+  },
+  {
+    id: `LO01-Q5`,
+    lo: 1,
+    loTitle: `LO 1: Cartilage & Bone Maintenance`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Type II Collagen & Proteoglycans`,
+    stem: `Histologic biochemical profiling of healthy hyaline cartilage reveals cuboidal cells nested in deep lacunae actively secreting extracellular matrix macromolecules to sustain tissue resilience. Which matrix trio is characteristically synthesized by these cells?`,
+    clue: `Match cartilage chondrocytes to their specific collagen type and hydrated matrix molecules.`,
+    choices: [
+      `Type II collagen, GAGs, proteoglycans`,
+      `Type I collagen, osteonectin, osteocalcin`,
+      `Type I collagen, ALP, excessive osteoid`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Chondroblasts and chondrocytes synthesize and maintain the cartilaginous matrix by secreting Type II collagens, glycosaminoglycans (GAGs), and proteoglycans. Distractor exclusion: Type I collagen, osteonectin, osteocalcin, and ALP are secreted by osteoblasts to form bone, and excessive under-mineralized osteoid is a hallmark of fibrous dysplasia.`,
+    secondOrderClue: `Cartilage lacunae chondrocytes -> Type II collagen + GAGs + proteoglycans (aggrecan).`,
+    phase1Pearl: `Sox-9 directly regulates expression of cartilage ECM genes including Type II collagen and aggrecan.`,
+    phase2Hallmark: `Chondrocytes are cuboidal in deeper regions, housed in lacunae, and secrete Type II collagen, GAGs, and proteoglycans.`,
+    phase3Secret: `Guild Master's Secret: Never confuse cartilage Type II collagen with bone Type I collagen—this collagen switch is a high-yield board discriminator.`,
+    dossierBullets: {
+      p1: [`Chondrocytes maintain matrix turnover inside lacunae`, `Matrix synthesis is downstream of chondrogenic differentiation`],
+      p2: [`Secretes Type II collagens, GAGs, and proteoglycans`, `Contrasts with osteoblast Type I collagen secretion`],
+      p3: [`Maintains low-friction resilience of cartilage`, `Loss of Type II collagen/aggrecan weakens cartilage (e.g., Campomelic Dysplasia)`]
+    }
+  },
+  {
+    id: `LO01-Q6`,
+    lo: 1,
+    loTitle: `LO 1: Cartilage & Bone Maintenance`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Canaliculi & Gap Junctions`,
+    stem: `A high-magnification histology preparation of cortical bone demonstrates star-shaped former osteoblasts completely surrounded by mineralized matrix, extending slender cytoplasmic processes into tiny channels to contact neighboring cells. What structures house these processes and mediate intercellular communication?`,
+    clue: `Identify the microscopic tunnels in bone matrix and the junctional complexes connecting osteocyte dendrites.`,
+    choices: [
+      `Canaliculi housing dendrites with gap junctions`,
+      `Lacunae housing isogenous chondrocyte groups`,
+      `Perichondrial cuffs with mast cell granules`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Osteocytes possess long dendritic processes housed in canaliculi and communicate with one another through gap junctions to regulate matrix maintenance. Distractor exclusion: Isogenous groups in lacunae belong to cartilage chondrocytes, and perichondrial cuffs with mast cells relate to chondrogenesis or HO inflammation rather than normal osteocyte networking.`,
+    secondOrderClue: `Encased osteoblast -> osteocyte -> dendritic processes in canaliculi + gap junctions.`,
+    phase1Pearl: `Once osteoblasts encase themselves in mineralized matrix, they transition into osteocytes that regulate osteoblast and osteoclast activity.`,
+    phase2Hallmark: `Osteocytes display long dendritic processes within canaliculi coupled via gap junctions.`,
+    phase3Secret: `Guild Master's Secret: Canaliculi allow gap-junction signaling across dense mineralized bone where diffusion alone is limited.`,
+    dossierBullets: {
+      p1: [`Terminal differentiation step: osteoblast -> osteocyte`, `Central regulators of bone matrix maintenance`],
+      p2: [`Long dendritic processes sit inside canaliculi`, `Gap junctions enable direct cell-to-cell signaling`],
+      p3: [`Coordinate osteoblast formation and osteoclast resorption`, `Serve as the primary mechanosensory cells of bone`]
+    }
+  },
+
+  // ================= LO 2: Chondrogenesis & Osteogenesis Molecular Factors =================
+  {
+    id: `LO02-Q1`,
+    lo: 2,
+    loTitle: `LO 2: Chondrogenesis & Osteogenesis`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Sox-9 Dual Skeletal & Gonadal Role`,
+    stem: `A neonate presents with severe malformation of the pelvic bones, vertebral column, cranial bones, and most long bones accompanied by abnormal male sexual development. Failure of which master DNA-binding transcription factor accounts for both the skeletal chondrogenic arrest and abnormal male sexual differentiation?`,
+    clue: `Select the DNA-binding transcription factor highlighted for both cartilage development and male sexual development.`,
+    choices: [
+      `Sox-9 transcription factor`,
+      `Runx2 transcription factor`,
+      `GNAS Gs-alpha subunit`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Sox-9 is a DNA-binding protein and key BMP-pathway transcription factor required for chondroblast differentiation, human skeletal development (pelvic, vertebral, cranial, and long bones), and male sexual development. Distractor exclusion: Runx2 drives osteoblast differentiation rather than male sexual development, and GNAS mutations cause Fibrous Dysplasia via constitutive Gs/cAMP-PKA signaling.`,
+    secondOrderClue: `Pelvic/vertebral/long/cranial bone malformation + male sexual development defect = Sox-9.`,
+    phase1Pearl: `Sox-9 is activated downstream of BMP signaling to commit MSCs into the chondroblast lineage.`,
+    phase2Hallmark: `Sox-9-null chondrogenic cells fail to mature and fail to express Type II collagen and aggrecan.`,
+    phase3Secret: `Guild Master's Secret: Dr. Ontiveros specifically notes Sox-9 has two major roles beyond cartilage: male sexual development and skeletal patterning.`,
+    dossierBullets: {
+      p1: [`DNA-binding transcription factor in BMP signaling`, `Upregulates Sox-5 and Sox-6 to form the Sox Trio`],
+      p2: [`Drives Type II collagen and proteoglycan aggrecan expression`, `Loss prevents chondrogenic cell maturation`],
+      p3: [`Essential for male sexual development`, `Patterning of pelvic, vertebral, cranial, and long bones`]
+    }
+  },
+  {
+    id: `LO02-Q2`,
+    lo: 2,
+    loTitle: `LO 2: Chondrogenesis & Osteogenesis`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Wnt/β-Catenin & Runx2 Osteogenesis`,
+    stem: `In an in vitro lineage assay, mesenchymal stem cells fail to commit toward pre-osteoblasts and mature bone-forming osteoblasts despite intact BMP-mediated cartilage formation. Loss of which primary signaling pathway and downstream transcription factor specifically blocks osteoblast lineage commitment?`,
+    clue: `Contrast the Wnt-driven osteoblast pathway against the BMP/Sox-9 chondroblast pathway.`,
+    choices: [
+      `Wnt/β-catenin signaling and Runx2`,
+      `BMP signaling and Sox-5/Sox-6`,
+      `cAMP/PKA signaling and aggrecan`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: The Wnt/β-catenin pathway normally upregulates Runx2, the essential transcription factor driving MSC differentiation into pre-osteoblasts and osteoblasts. Distractor exclusion: BMP and Sox-5/Sox-6 drive chondroblast maturation rather than osteoblast commitment, and aggrecan is a cartilage proteoglycan rather than an osteogenic transcription factor.`,
+    secondOrderClue: `MSC -> pre-osteoblast -> osteoblast requires Wnt/β-catenin + Runx2.`,
+    phase1Pearl: `Wnt/β-catenin upregulates Runx2 expression in osteo-chondro-progenitor MSCs to initiate osteogenesis.`,
+    phase2Hallmark: `Mature osteoblasts secrete Type I collagen, osteonectin, osteocalcin, and alkaline phosphatase.`,
+    phase3Secret: `Guild Master's Secret: Normal Wnt/β-catenin upregulates Runx2 for osteoblast differentiation, whereas excessive Runx2 impairs maturation in Fibrous Dysplasia.`,
+    dossierBullets: {
+      p1: [`Osteo-chondro-progenitor MSC responds to Wnt/β-catenin`, `Runx2 is essential for pre-osteoblast to osteoblast transition`],
+      p2: [`Osteoblasts produce Type I collagen and bone matrix proteins`, `Differentiates further into matrix-encased osteocytes`],
+      p3: [`Intact Sox-9 preserves chondrogenesis when Wnt/Runx2 is lost`, `Runx2 dosage must remain tightly regulated`]
+    }
+  },
+  {
+    id: `LO02-Q3`,
+    lo: 2,
+    loTitle: `LO 2: Chondrogenesis & Osteogenesis`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Sox Trio (Sox-9 / Sox-5 / Sox-6)`,
+    stem: `Following BMP receptor stimulation in an osteo-chondro-progenitor cell, a primary DNA-binding factor induces two partner transcription factors to complete chondroblast maturation and upregulate Type II collagen and aggrecan. Which transcription factor complex is assembled?`,
+    clue: `Name the three Sox family transcription factors that act together during chondroblast maturation.`,
+    choices: [
+      `Sox Trio (Sox-9, Sox-5, and Sox-6)`,
+      `Runx2, β-catenin, and Frizzled`,
+      `GNAS, adenylyl cyclase, and PKA`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Sox-9 upregulates Sox-5 and Sox-6 proteins, forming the Sox Trio (Sox-9/5/6) required for cartilage cell maturation and expression of Type II collagen and aggrecan. Distractor exclusion: Runx2, β-catenin, and Frizzled mediate Wnt osteoblast signaling, whereas GNAS, adenylyl cyclase, and PKA form the cAMP cascade mutated in Fibrous Dysplasia.`,
+    secondOrderClue: `BMP -> Sox-9 -> upregulates Sox-5 & Sox-6 -> Sox Trio (Sox-9/5/6).`,
+    phase1Pearl: `Sox-9 is the master initiator that upregulates Sox-5 and Sox-6 to execute chondrogenic maturation.`,
+    phase2Hallmark: `Downstream targets of the Sox Trio are Type II collagen and proteoglycan aggrecan.`,
+    phase3Secret: `Guild Master's Secret: Remember the sequential hierarchy—Sox-9 comes first and upregulates Sox-5 and Sox-6.`,
+    dossierBullets: {
+      p1: [`BMP signaling activates Sox-9 in MSCs`, `Sox-9 upregulates Sox-5 and Sox-6 (Sox Trio)`],
+      p2: [`Drives Type II collagen and proteoglycan aggrecan synthesis`, `Promotes chondroblast-to-chondrocyte maturation`],
+      p3: [`Deficiency causes Campomelic Dysplasia`, `Reactivated aberrantly in endochondral heterotopic ossification`]
+    }
+  },
+  {
+    id: `LO02-Q4`,
+    lo: 2,
+    loTitle: `LO 2: Chondrogenesis & Osteogenesis`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `ALP Raises Local Phosphate Ions`,
+    stem: `During bone matrix mineralization, osteoblasts package matrix proteins into secretory vesicles and release them into the newly deposited Type I collagen scaffold. How does osteoblast-derived alkaline phosphatase (ALP) directly promote mineral crystallization?`,
+    clue: `Focus on which ion concentration is increased locally by alkaline phosphatase inside bony matrix.`,
+    choices: [
+      `Raises local PO4^3- ion levels for crystallization`,
+      `Directly binds extracellular Ca2+ as a glycoprotein`,
+      `Phosphorylates β-catenin in the inhibitory complex`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Osteoblasts secrete vesicles containing alkaline phosphatase (ALP), which raises local PO4^3- (phosphate) ion levels to drive mineral crystallization in the bony matrix. Distractor exclusion: Osteonectin (glycoprotein) and osteocalcin (protein) bind Ca2+ rather than raising phosphate via enzymatic activity, and β-catenin phosphorylation is intracellular Wnt regulation rather than ALP vesicle function.`,
+    secondOrderClue: `Osteoblast vesicles -> ALP -> raises local PO4^3- -> crystallization.`,
+    phase1Pearl: `Matrix vesicles concentrate Ca2+ (via osteonectin/osteocalcin) and PO4^3- (via ALP) to trigger crystallization.`,
+    phase2Hallmark: `Osteoblasts secrete Type I collagen fibers alongside osteonectin, osteocalcin, and ALP.`,
+    phase3Secret: `Guild Master's Secret: Pair each osteoblast matrix protein cleanly: Osteonectin = Ca2+-binding glycoprotein; Osteocalcin = Ca2+-binding protein; ALP = raises local PO4^3-.`,
+    dossierBullets: {
+      p1: [`Osteoblasts secrete matrix protein vesicles into osteoid`, `ALP raises local PO4^3- ion concentrations`],
+      p2: [`Type I collagen forms the structural bone scaffold`, `Mineral crystallization converts osteoid into mineralized bone`],
+      p3: [`Under-mineralized excessive osteoid appears when osteoblast maturation stalls`, `Key step distinguishing bone mineralization from avascular cartilage`]
+    }
+  },
+  {
+    id: `LO02-Q5`,
+    lo: 2,
+    loTitle: `LO 2: Chondrogenesis & Osteogenesis`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Osteonectin & Osteocalcin Bind Ca2+`,
+    stem: `Biochemical fractionation of osteoblast secretory vesicles isolates two non-collagenous bone matrix proteins dedicated to calcium binding—one classified as a Ca2+-binding glycoprotein and the other as a Ca2+-binding protein. Which pair of molecules is isolated?`,
+    clue: `Recall the two calcium-binding matrix proteins listed alongside Type I collagen and ALP on the Osteoblasts slide.`,
+    choices: [
+      `Osteonectin and osteocalcin`,
+      `Aggrecan and Type II collagen`,
+      `Sox-5 and Sox-6`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Osteoblasts produce Type I collagen fibers plus bone matrix proteins osteonectin (Ca2+-binding glycoprotein), osteocalcin (Ca2+-binding protein), and ALP. Distractor exclusion: Aggrecan and Type II collagen are cartilage ECM components produced by chondrocytes, while Sox-5 and Sox-6 are nuclear chondrogenic transcription factors.`,
+    secondOrderClue: `Ca2+-binding glycoprotein = osteonectin; Ca2+-binding protein = osteocalcin.`,
+    phase1Pearl: `Wnt/β-catenin and Runx2 drive osteoblast differentiation to enable synthesis of specialized Ca2+-binding matrix proteins.`,
+    phase2Hallmark: `Osteoblast secretory profile: Type I collagen, osteonectin, osteocalcin, and ALP.`,
+    phase3Secret: `Guild Master's Secret: Note the subtle slide distinction—osteonectin is a Ca2+-binding glycoprotein, whereas osteocalcin is listed as a Ca2+-binding protein.`,
+    dossierBullets: {
+      p1: [`Secreted by mature osteoblasts derived via Wnt/β-catenin and Runx2`, `Packaged into matrix vesicles for extracellular release`],
+      p2: [`Osteonectin: Ca2+-binding glycoprotein; Osteocalcin: Ca2+-binding protein`, `Work alongside ALP-generated PO4^3- for crystallization`],
+      p3: [`Essential for normal bone mineralization`, `Absent in immature cartilage ECM`]
+    }
+  },
+  {
+    id: `LO02-Q6`,
+    lo: 2,
+    loTitle: `LO 2: Chondrogenesis & Osteogenesis`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Osteo-Chondro-Progenitor Branch Point`,
+    stem: `A cell lineage diagram traces an osteo-chondro-progenitor mesenchymal stem cell splitting into either a chondroblast lineage or a pre-osteoblast/osteoblast/osteocyte lineage. Which combination of factors correctly specifies the early nuclear commitment step for each respective branch?`,
+    clue: `Match chondroblast commitment to Sox-9 and osteoblast commitment to β-catenin/Runx2.`,
+    choices: [
+      `Chondroblast: Sox-9; Pre-osteoblast: β-catenin & Runx2`,
+      `Chondroblast: Runx2; Pre-osteoblast: Sox-5/Sox-6`,
+      `Chondroblast: ALP; Pre-osteoblast: Aggrecan`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: In the osteo-chondro-progenitor lineage pathway, Sox-9 (and Sox-9/5/6) directs MSCs to chondroblasts, whereas Wnt/β-catenin and Runx2 direct MSCs to pre-osteoblasts, osteoblasts, and osteocytes. Distractor exclusion: Reversing Runx2 and Sox-5/6 inverts the cartilage and bone lineages, while ALP and aggrecan are downstream matrix proteins rather than lineage-committing transcription factors.`,
+    secondOrderClue: `MSC branch point: Sox-9 -> Chondroblast vs. β-catenin/Runx2 -> Pre-osteoblast -> Osteoblast -> Osteocyte.`,
+    phase1Pearl: `Opposing BMP/Sox-9 and Wnt/β-catenin/Runx2 signals govern fate allocation from a common MSC progenitor.`,
+    phase2Hallmark: `Lineage progression yields elliptical chondroblasts/cuboidal chondrocytes vs. secretory osteoblasts/dendritic osteocytes.`,
+    phase3Secret: `Guild Master's Secret: This exact MSC bifurcation diagram reappears in Fibrous Dysplasia and Heterotopic Ossification.`,
+    dossierBullets: {
+      p1: [`Common MSC osteo-chondro-progenitor branches into two fates`, `Sox-9/5/6 specifies chondroblasts; β-catenin + Runx2 specifies osteoblasts`],
+      p2: [`Osteoblasts mature into osteocytes encased in bone matrix`, `Chondroblasts mature into chondrocytes inside lacunae`],
+      p3: [`High-yield framework explaining both endochondral and intramembranous pathways`, `Abnormal activation of either branch produces distinct pathologies`]
+    }
+  },
+
+  // ================= LO 3: Campomelic Dysplasia =================
+  {
+    id: `LO03-Q1`,
+    lo: 3,
+    loTitle: `LO 3: Campomelic Dysplasia`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Campomelic Dysplasia (Sox-9 Mutation)`,
+    stem: `A newborn delivered at term exhibits severe ventral bowing and angulation of the femora and tibiae, craniofacial abnormalities, weak laryngeal/pulmonary cartilage causing acute respiratory distress, and ambiguous male genitalia. A mutation in which gene and inheritance pattern explains this presentation?`,
+    clue: `Connect bent-limb dysplasia ("campomelic") and weak lung cartilage to a dominant transcription factor defect.`,
+    choices: [
+      `Autosomal dominant Sox-9 mutation`,
+      `Somatic activating GNAS mutation`,
+      `Hypersensitive BMP receptor mutation`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Campomelic Dysplasia ("bent limb-dysplasia") is caused by an autosomal dominant mutation in the Sox-9 transcription factor, impairing cartilage maturation, long-bone formation, lung cartilage strength, craniofacial structures, and male sexual development. Distractor exclusion: GNAS mutations cause Fibrous Dysplasia (immature fibrous bone replacement) without congenital airway cartilage collapse, and hypersensitive BMP receptor mutations drive genetic Heterotopic Ossification (FOP).`,
+    secondOrderClue: `Bowed long bones + craniofacial defects + weak lung cartilage + male sex reversal = Campomelic Dysplasia (AD Sox-9).`,
+    phase1Pearl: `Autosomal dominant Sox-9 loss impairs Sox-5/Sox-6 induction and blocks Type II collagen and aggrecan expression.`,
+    phase2Hallmark: `Radiographs show ventral bowing/shortened tibia and femur with a hypoplastic or fully absent fibula.`,
+    phase3Secret: `Guild Master's Secret: Many newborns with Campomelic Dysplasia do not survive due to respiratory insufficiency from weak cartilage in the lungs.`,
+    dossierBullets: {
+      p1: [`Autosomal dominant mutation in Sox-9 transcription factor`, `Hinders Sox-5/Sox-6, Type II collagen, and proteoglycan aggrecan`],
+      p2: [`Ventral bowing/shortened tibia & femur; hypoplastic/absent fibula`, `Weak cartilage in lungs and craniofacial defects`],
+      p3: [`High neonatal mortality from respiratory insufficiency`, `Disrupts male sexual development alongside skeletal defects`]
+    }
+  },
+  {
+    id: `LO03-Q2`,
+    lo: 3,
+    loTitle: `LO 3: Campomelic Dysplasia`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Neonatal Respiratory Insufficiency`,
+    stem: `A neonatology team counsels parents following a prenatal diagnosis of Campomelic Dysplasia confirmed by severe long-bone bowing and craniofacial anomalies. Which complication represents the leading cause of early neonatal mortality in this disorder?`,
+    clue: `Identify which organ system fails fatally at birth because of defective cartilage support.`,
+    choices: [
+      `Respiratory insufficiency from weak lung cartilage`,
+      `Pathologic femur fracture from excessive osteoid`,
+      `Deep muscle ossification restricting chest movement`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: In Campomelic Dysplasia, defective Sox-9 causes weak cartilage—especially in the lungs—so many newborns do not survive due to respiratory insufficiency. Distractor exclusion: Fractures from excessive under-mineralized osteoid occur in Fibrous Dysplasia, and ectopic muscle ossification characterizes Heterotopic Ossification.`,
+    secondOrderClue: `Campomelic Dysplasia -> weak cartilage (especially lungs) -> neonatal respiratory insufficiency.`,
+    phase1Pearl: `Sox-9 loss prevents chondrogenic maturation and ECM deposition throughout both skeletal templates and respiratory cartilage.`,
+    phase2Hallmark: `Disrupted Type II collagen and aggrecan render cartilaginous airway and skeletal structures mechanically weak.`,
+    phase3Secret: `Guild Master's Secret: Respiratory insufficiency from weak lung cartilage is the critical survival-limiting clinical finding emphasized for Campomelic Dysplasia.`,
+    dossierBullets: {
+      p1: [`Sox-9 deficiency compromises cartilage maturation globally`, `Reduced Type II collagen and aggrecan weaken cartilage matrix`],
+      p2: [`Weak respiratory/lung cartilage plus bowed long bones`, `Hypoplastic or absent fibula on fetal radiograph`],
+      p3: [`Many newborns do not survive due to respiratory insufficiency`, `Accompanied by craniofacial defects and bowing/angulation of long bones`]
+    }
+  },
+  {
+    id: `LO03-Q3`,
+    lo: 3,
+    loTitle: `LO 3: Campomelic Dysplasia`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Hindered Sox-5 & Sox-6 Expression`,
+    stem: `A geneticist analyzes chondrogenic progenitor cells isolated from a fetus with Campomelic Dysplasia. Despite intact BMP ligand binding at the cell surface, the cartilage cells fail to mature. Which immediate downstream transcriptional defect directly blocks chondrocyte maturation?`,
+    clue: `Trace which two partner proteins fail to be upregulated when Sox-9 is mutated.`,
+    choices: [
+      `Hindered expression of Sox-5 and Sox-6`,
+      `Constitutive activation of Gs and PKA`,
+      `Overexpression of Runx2 via Wnt crosstalk`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Mutated Sox-9 fails to upregulate Sox-5 and Sox-6, preventing chondrogenic cells from maturing into matrix-secreting chondrocytes. Distractor exclusion: Constitutive Gs/PKA activation and excessive Runx2 via Wnt crosstalk drive Fibrous Dysplasia rather than Campomelic Dysplasia.`,
+    secondOrderClue: `Mutant Sox-9 -> hindered Sox-5 & Sox-6 -> arrested cartilage cell maturation.`,
+    phase1Pearl: `Sox-9 normally sits downstream of BMP signaling and upregulates Sox-5 and Sox-6 to complete the Sox Trio.`,
+    phase2Hallmark: `Sox-9-null chondrogenic cells remain immature and fail to build organized cartilaginous matrix.`,
+    phase3Secret: `Guild Master's Secret: Link the cascade linearly: Mutant Sox-9 -> ↓ Sox-5/Sox-6 -> ↓ Type II collagen & aggrecan -> bent limbs & weak lung cartilage.`,
+    dossierBullets: {
+      p1: [`Mutated Sox-9 cannot induce Sox-5 or Sox-6`, `Chondrogenic cells arrest prior to full maturation`],
+      p2: [`Extracellular matrix lacks adequate Type II collagen and aggrecan`, `Malformed pelvic, vertebral, cranial, and long bones`],
+      p3: [`Inherited in an autosomal dominant manner`, `Clinically manifests as bent-limb dysplasia and respiratory failure`]
+    }
+  },
+  {
+    id: `LO03-Q4`,
+    lo: 3,
+    loTitle: `LO 3: Campomelic Dysplasia`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Reduced Type II Collagen & Aggrecan`,
+    stem: `Extracellular matrix analysis of fetal cartilage from a patient with an autosomal dominant Sox-9 loss-of-function mutation demonstrates severe structural collapse of the cartilaginous template. Reduced synthesis of which two primary matrix macromolecules directly causes this ECM disruption?`,
+    clue: `Identify the specific collagen and proteoglycan controlled by Sox-9.`,
+    choices: [
+      `Type II collagen and proteoglycan aggrecan`,
+      `Type I collagen and osteocalcin`,
+      `Osteonectin and alkaline phosphatase`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Sox-9 controls expression of Type II collagen and proteoglycan aggrecan in cartilage cells; Sox-9 mutations hinder both molecules and disrupt the cartilage ECM. Distractor exclusion: Type I collagen, osteocalcin, osteonectin, and alkaline phosphatase are osteoblast bone matrix products controlled by Runx2/Wnt rather than Sox-9.`,
+    secondOrderClue: `Campomelic Dysplasia ECM failure = ↓ Type II collagen + ↓ proteoglycan aggrecan.`,
+    phase1Pearl: `Loss of Sox-9 transcription factor directly suppresses cartilage ECM gene transcription (Type II collagen and aggrecan).`,
+    phase2Hallmark: `Disrupted cartilage ECM weakens skeletal models, producing bowed long bones and collapsed airway cartilage.`,
+    phase3Secret: `Guild Master's Secret: Aggrecan is the specific proteoglycan named on both the Sox-9 Functions and Campomelic Dysplasia slides.`,
+    dossierBullets: {
+      p1: [`Sox-9 directly controls Type II collagen and aggrecan genes`, `Mutation hinders both ECM components simultaneously`],
+      p2: [`Cartilage matrix loses resilience and tensile/compressive integrity`, `Produces bowing/angulation of long bones and weak lung cartilage`],
+      p3: [`Causes lethal neonatal respiratory insufficiency in many patients`, `Also disrupts male sexual development`]
+    }
+  },
+  {
+    id: `LO03-Q5`,
+    lo: 3,
+    loTitle: `LO 3: Campomelic Dysplasia`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Bowed Tibia/Femur & Absent Fibula`,
+    stem: `A prenatal radiograph obtained at 27 weeks' gestation for suspected skeletal dysplasia demonstrates marked ventral bowing and shortening of both the femur and tibia. Which additional lower-extremity radiographic hallmark strongly confirms Campomelic Dysplasia?`,
+    clue: `Recall the specific lower-leg bone abnormality visible on the 27-week Campomelic Dysplasia radiograph.`,
+    choices: [
+      `Hypoplastic or fully absent fibula`,
+      `Ectopic bony masses in deep thigh muscle`,
+      `Immature fibrous infiltration of the ribs`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: The 27-week radiograph of Campomelic Dysplasia characteristically shows ventral bowing or a shortened tibia and femur alongside a hypoplastic or fully absent fibula. Distractor exclusion: Ectopic bony masses in deep muscle indicate endochondral Heterotopic Ossification, and fibrous tissue infiltration of ribs/long bones indicates Fibrous Dysplasia.`,
+    secondOrderClue: `27-week radiograph: ventral bowing/shortened tibia & femur + hypoplastic/absent fibula = Campomelic Dysplasia.`,
+    phase1Pearl: `Impaired chondrogenic template formation from Sox-9 deficiency distorts endochondral long-bone morphogenesis.`,
+    phase2Hallmark: `Radiographic triad: ventral bowing, shortened femur/tibia, and hypoplastic or fully absent fibula.`,
+    phase3Secret: `Guild Master's Secret: "Campomelic" literally means bent-limb; a hypoplastic or absent fibula on prenatal imaging is a classic board clue.`,
+    dossierBullets: {
+      p1: [`Sox-9 null/mutant cells fail to mature into proper cartilage models`, `Affects pelvic bones, vertebral column, cranial bones, and long bones`],
+      p2: [`27-week radiograph shows ventral bowing/shortened tibia and femur`, `Typically accompanied by hypoplastic or fully absent fibula`],
+      p3: [`Evaluate airway cartilage integrity immediately at delivery`, `High mortality from neonatal respiratory insufficiency`]
+    }
+  },
+  {
+    id: `LO03-Q6`,
+    lo: 3,
+    loTitle: `LO 3: Campomelic Dysplasia`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Autosomal Dominant Recurrence Risk`,
+    stem: `Following delivery of an infant with Campomelic Dysplasia who develops severe respiratory insufficiency from weak airway cartilage, the parents ask about the genetic mechanism and affected skeletal regions. Which summary accurately reflects the condition's genetics and anatomic distribution?`,
+    clue: `Combine the inheritance pattern of Sox-9 with the skeletal regions affected by Sox-9 null/mutant cells.`,
+    choices: [
+      `Autosomal dominant; affects pelvis, spine, skull, long bones`,
+      `X-linked recessive; restricted to superficial fascia`,
+      `Acquired post-traumatic; restricted to single bone`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Campomelic Dysplasia is an autosomal dominant Sox-9 disorder causing malformation of cartilage and skeletal structures including pelvic bones, vertebral column, cranial bones, and most long bones. Distractor exclusion: Superficial fascia ossification follows low-energy nongenetic HO, and single-bone involvement characterizes monostotic Fibrous Dysplasia.`,
+    secondOrderClue: `Campomelic Dysplasia = AD Sox-9 defect affecting pelvis, vertebral column, cranial bones, long bones, and lungs.`,
+    phase1Pearl: `Autosomal dominant Sox-9 mutation disrupts chondroblast maturation and downstream Sox-5/6 signaling.`,
+    phase2Hallmark: `Craniofacial defects, bowed/angulated long bones, hypoplastic/absent fibula, and weak lung cartilage.`,
+    phase3Secret: `Guild Master's Secret: Because Campomelic Dysplasia is autosomal dominant, a single mutated Sox-9 allele is sufficient to produce severe skeletal and airway disease.`,
+    dossierBullets: {
+      p1: [`Autosomal dominant inheritance of Sox-9 mutation`, `Impairs cartilage maturation via ↓ Sox-5/6, Type II collagen, aggrecan`],
+      p2: [`Malformed pelvic bones, vertebral column, cranial bones, long bones`, `Hypoplastic/absent fibula and ventral bowing`],
+      p3: [`Respiratory insufficiency from weak lung cartilage limits survival`, `Male sexual development may also be disrupted`]
+    }
+  },
+
+  // ================= LO 4: Fibrous Dysplasia =================
+  {
+    id: `LO04-Q1`,
+    lo: 4,
+    loTitle: `LO 4: Fibrous Dysplasia`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Monostotic Fibrous Dysplasia`,
+    stem: `A 26-year-old adult presents with chronic localized pain, mild bowing, and a pathologic fracture of a single femur. Imaging and biopsy reveal replacement of normal bone with immature fibrous tissue without involvement of any other bones. Which diagnosis and subtype best fit this patient?`,
+    clue: `Match single-bone fibrous replacement presenting in a patient's 20s–30s to its exact clinical form.`,
+    choices: [
+      `Monostotic fibrous dysplasia`,
+      `Polyostotic fibrous dysplasia`,
+      `Genetic heterotopic ossification`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Monostotic fibrous dysplasia is limited to a single bone type, generally occurs in the 20s to 30s, is the most common form, and commonly involves the femur, tibia, humerus, or ribs. Distractor exclusion: Polyostotic fibrous dysplasia involves multiple bones and generally manifests in children, while genetic HO forms ectopic bone outside the skeleton.`,
+    secondOrderClue: `Single bone (femur) + age 20s–30s + most common form + fibrous bone replacement = Monostotic Fibrous Dysplasia.`,
+    phase1Pearl: `Caused by a GNAS mutation causing constitutive Gs, cAMP/PKA activation, and excessive Runx2 activity.`,
+    phase2Hallmark: `Immature fibrous tissue (ft) infiltrates bony trabeculae (b) with excessive osteoid and under-mineralized bone.`,
+    phase3Secret: `Guild Master's Secret: Monostotic = 1 bone, 20s–30s, most common; Polyostotic = multiple bones, manifests in children.`,
+    dossierBullets: {
+      p1: [`GNAS mutation drives constitutive Gs and cAMP/PKA signaling`, `Crosstalk with Wnt/β-catenin causes excessive Runx2`],
+      p2: [`Immature fibrous tissue replaces normal bone trabeculae`, `Common sites: tibia, femur, humerus, and ribs`],
+      p3: [`Monostotic is limited to 1 bone in 20s–30s (most common)`, `Causes chronic bone pain, bowing, and high fracture rate`]
+    }
+  },
+  {
+    id: `LO04-Q2`,
+    lo: 4,
+    loTitle: `LO 4: Fibrous Dysplasia`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Polyostotic Fibrous Dysplasia`,
+    stem: `An 8-year-old child is evaluated for progressive unequal limb length, bowing of multiple long bones, chronic bone pain, and recurrent fractures involving the tibia, femur, and ribs. Which form of bone disease explains these multi-bone childhood findings?`,
+    clue: `Contrast childhood multi-bone presentation against adult single-bone disease.`,
+    choices: [
+      `Polyostotic fibrous dysplasia`,
+      `Monostotic fibrous dysplasia`,
+      `Campomelic dysplasia`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Polyostotic fibrous dysplasia affects multiple bones and generally manifests in children with chronic bone pain, bony deformities, unequal limb length, bowing of long bones, and high fracture rates. Distractor exclusion: Monostotic disease is limited to 1 bone in adults (20s–30s), and Campomelic Dysplasia is a congenital Sox-9 cartilage defect presenting with neonatal respiratory insufficiency and absent fibula.`,
+    secondOrderClue: `Child + multiple bones (tibia, femur, ribs) + unequal limb length + fractures = Polyostotic Fibrous Dysplasia.`,
+    phase1Pearl: `GNAS mutation triggers constitutive cAMP/PKA signaling and abnormally high Runx2, halting osteoblast maturation.`,
+    phase2Hallmark: `Histology shows fibrous tissue infiltration among trabeculae, excessive osteoid, and poor mineralization.`,
+    phase3Secret: `Guild Master's Secret: Polyostotic Fibrous Dysplasia manifests earlier (childhood) and produces unequal limb lengths and multi-bone deformity.`,
+    dossierBullets: {
+      p1: [`Activating GNAS mutation -> constitutive Gs -> cAMP/PKA`, `Abnormally high Runx2 impairs osteoblast differentiation`],
+      p2: [`Affects multiple bones, commonly tibia, femur, humerus, ribs`, `Structurally weak under-mineralized bone with fibrous infiltration`],
+      p3: [`Polyostotic form manifests in children`, `Presents with chronic pain, unequal limb length, bowing, fractures`]
+    }
+  },
+  {
+    id: `LO04-Q3`,
+    lo: 4,
+    loTitle: `LO 4: Fibrous Dysplasia`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Constitutive GNAS Gs & cAMP/PKA`,
+    stem: `Molecular sequencing of a structurally weak, bowed femur infiltrated by fibrous tissue identifies a mutation in the GNAS (guanine nucleotide binding alpha stimulating) gene. How does this mutation alter intracellular signaling within osteoprogenitor cells?`,
+    clue: `Trace what the GNAS gene encodes and which second-messenger kinase becomes constitutively active.`,
+    choices: [
+      `Constitutive Gs activity and cAMP/PKA activation`,
+      `Loss of Sox-9 DNA binding and ↓ aggrecan`,
+      `Hypersensitive BMP receptor driving Sox-9/5/6`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: GNAS encodes a Gs protein; in Fibrous Dysplasia, mutation produces constitutive Gs activity and continuous cAMP/PKA pathway activation. Distractor exclusion: Sox-9 loss causes Campomelic Dysplasia, while a hypersensitive BMP receptor driving Sox-9/5/6 causes genetic endochondral Heterotopic Ossification.`,
+    secondOrderClue: `GNAS mutation -> constitutive Gs protein -> ↑ adenylyl cyclase -> ↑ cAMP/PKA.`,
+    phase1Pearl: `Constitutive Gs and cAMP/PKA signaling crosstalks with the Wnt/β-catenin pathway to over-activate Runx2.`,
+    phase2Hallmark: `Leads to fibrous tissue infiltration in bony trabeculae and excessive under-mineralized osteoid.`,
+    phase3Secret: `Guild Master's Secret: Because Gs activates Adenylyl Cyclase (AC) to make cAMP, inhibiting AC is a direct therapeutic strategy for Fibrous Dysplasia.`,
+    dossierBullets: {
+      p1: [`GNAS encodes a Gs alpha-stimulating G-protein`, `Mutation causes constitutive Gs and cAMP/PKA activation`],
+      p2: [`Results in immature fibrous tissue replacing normal bone`, `Produces excessive osteoid and under-mineralized bone`],
+      p3: [`Explains why Adenylyl Cyclase inhibition is targeted therapeutically`, `Leads to chronic bone pain and high fracture risk`]
+    }
+  },
+  {
+    id: `LO04-Q4`,
+    lo: 4,
+    loTitle: `LO 4: Fibrous Dysplasia`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Excessive Runx2 Impairs Maturation`,
+    stem: `In Fibrous Dysplasia, crosstalk between constitutively active cAMP/PKA signaling and the Wnt/β-catenin pathway produces an unexpected paradox in osteoblast biology. How do abnormally elevated Runx2 levels affect osteoblast development?`,
+    clue: `Notice that Runx2 is NOT absent in Fibrous Dysplasia—rather, its excessive activation causes a maturation block.`,
+    choices: [
+      `Excessive Runx2 impairs osteoblast differentiation/maturation`,
+      `Runx2 absence forces MSCs into hyaline cartilage`,
+      `Excessive Runx2 accelerates cortical mineralization`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: In Fibrous Dysplasia, crosstalk between cAMP/PKA and Wnt/β-catenin causes excessive Runx2 activation; abnormally high Runx2 levels impair osteoblast differentiation and maturation. Distractor exclusion: Runx2 is excessively elevated rather than absent, and impaired maturation yields under-mineralized osteoid rather than accelerated mineralization.`,
+    secondOrderClue: `cAMP/PKA + Wnt/β-catenin crosstalk -> excessive Runx2 -> impaired osteoblast maturation.`,
+    phase1Pearl: `Normal Runx2 drives osteogenesis, but excessive Runx2 activation from Gs/PKA-Wnt crosstalk stalls osteoblast maturation.`,
+    phase2Hallmark: `Immature osteoblasts deposit excessive osteoid that fails to mineralize properly amid fibrous tissue.`,
+    phase3Secret: `Guild Master's Secret: Boards love this paradox—Fibrous Dysplasia is a GAIN of Runx2 activation (too much Runx2 blocks mature bone formation), not a loss!`,
+    dossierBullets: {
+      p1: [`Crosstalk between cAMP/PKA and Wnt/β-catenin inhibitory complex`, `Causes excessive Runx2 activation in MSCs/osteoblasts`],
+      p2: [`Impaired osteoblast maturation yields under-mineralized bone`, `Excessive osteoid and fibrous tissue infiltrate trabeculae`],
+      p3: [`Structurally weak bone causes bowing and fractures`, `Inhibiting Frizzled or AC aims to normalize Runx2 signaling`]
+    }
+  },
+  {
+    id: `LO04-Q5`,
+    lo: 4,
+    loTitle: `LO 4: Fibrous Dysplasia`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Fibrous Tissue & Under-Mineralized Osteoid`,
+    stem: `Histologic examination of a tibial bone lesion from a young adult with recurrent fractures shows irregular bony trabeculae surrounded by dense spindle-cell fibrous stroma, prominent red-staining unmineralized osteoid seams, and deficient mineralization. Which pathologic profile is demonstrated?`,
+    clue: `Recall the exact histologic labels shown in panels a–d of the Fibrous Dysplasia: Fibrous Tissue in Bone slide.`,
+    choices: [
+      `Fibrous tissue in trabeculae + excessive under-mineralized osteoid`,
+      `Isogenous chondrocyte clusters in avascular lacunae`,
+      `Mature lamellar cortical bone with normal osteocytes`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Fibrous Dysplasia histology demonstrates infiltration of fibrous tissue (ft) within bony trabeculae (b) alongside excessive osteoid and under-mineralized bone. Distractor exclusion: Isogenous chondrocyte clusters represent normal cartilage interstitial growth, and mature lamellar cortical bone lacks fibrous stroma and excessive unmineralized osteoid.`,
+    secondOrderClue: `Fibrous tissue (ft) in bony trabeculae (b) + excessive osteoid (*red) + under-mineralized bone = Fibrous Dysplasia.`,
+    phase1Pearl: `Arrested osteoblast maturation from excessive Runx2 prevents normal matrix vesicle crystallization.`,
+    phase2Hallmark: `Infiltration of fibrous tissue (ft) in bony trabeculae (b) with excessive osteoid and under-mineralized bone.`,
+    phase3Secret: `Guild Master's Secret: Under-mineralized bone explains why the tibia, femur, humerus, and ribs bow and fracture easily.`,
+    dossierBullets: {
+      p1: [`Excessive Runx2 blocks terminal osteoblast mineralization`, `Unmineralized matrix accumulates as osteoid`],
+      p2: [`Fibrous tissue (ft) infiltrates bony trabeculae (b)`, `Excessive osteoid and under-mineralized bone on histology`],
+      p3: [`Most common in tibia, femur, humerus, and ribs`, `Produces chronic pain, bowing, and high fracture rate`]
+    }
+  },
+  {
+    id: `LO04-Q6`,
+    lo: 4,
+    loTitle: `LO 4: Fibrous Dysplasia`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Inhibit Frizzled or Adenylyl Cyclase`,
+    stem: `Alongside palliative orthopedic care for fractures and bony deformities, translational strategies for Fibrous Dysplasia aim to suppress both arms of the pathogenic crosstalk driving excessive Runx2 activation. Which pair of molecular targets is directly inhibited?`,
+    clue: `Identify the Wnt receptor and the cAMP-generating enzyme targeted on the Fibrous Dysplasia: Treatment slide.`,
+    choices: [
+      `Frizzled receptor and Adenylyl Cyclase (AC)`,
+      `Sox-9 transcription factor and Type II collagen`,
+      `Alkaline phosphatase and osteonectin`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Therapeutic interventions for Fibrous Dysplasia target the two hyperactive signaling inputs by inhibiting the Frizzled receptor (Wnt pathway) and inhibiting Adenylyl Cyclase (AC, blocking Gs-driven cAMP/PKA). Distractor exclusion: Inhibiting Sox-9/Type II collagen would worsen cartilage disorders like Campomelic Dysplasia, and blocking ALP/osteonectin would worsen under-mineralization.`,
+    secondOrderClue: `Fibrous Dysplasia therapy: palliative fracture/deformity care + inhibit Frizzled receptor + inhibit Adenylyl Cyclase (AC).`,
+    phase1Pearl: `Dual inhibition of Frizzled (Wnt/β-catenin) and AC (Gs/cAMP/PKA) curbs excessive Runx2 activation.`,
+    phase2Hallmark: `Reducing pathologic Runx2 signaling aims to restore osteoblast maturation and mineralization of osteoid.`,
+    phase3Secret: `Guild Master's Secret: Palliative care (managing fractures and deformity) remains central clinically while Frizzled and AC inhibition target the signaling root cause.`,
+    dossierBullets: {
+      p1: [`Wnt/β-catenin (via Frizzled) and Gs/cAMP (via AC) converge on Runx2`, `Blocking both axes lowers aberrant Runx2 levels`],
+      p2: [`Aims to reduce fibrous infiltration and under-mineralized osteoid`, `Restores osteoblast differentiation capacity`],
+      p3: [`Palliative care manages fractures and bony deformities`, `Targeted interventions inhibit Frizzled receptor and Adenylyl Cyclase`]
+    }
+  },
+
+  // ================= LO 5: Heterotopic Ossification =================
+  {
+    id: `LO05-Q1`,
+    lo: 5,
+    loTitle: `LO 5: Heterotopic Ossification`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Endochondral Nongenetic HO`,
+    stem: `Two months after a severe traumatic brain injury and open femoral fracture repair, a patient develops large, hard masses deep within the quadriceps muscle near the hip joint that severely restrict range of motion. Which diagnosis and ossification pathway account for these large deep masses?`,
+    clue: `Distinguish severe trauma (TBI, fractures, joint replacement) in deep muscle from low-energy superficial contusions.`,
+    choices: [
+      `Nongenetic HO via endochondral ossification`,
+      `Nongenetic HO via intramembranous ossification`,
+      `Monostotic fibrous dysplasia of the femur`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Severe trauma (fractures, joint replacements, burns, traumatic brain injury) triggers nongenetic Heterotopic Ossification via endochondral ossification in deep skeletal muscles, near joints, and tendons/ligaments, forming large bony masses that restrict movement. Distractor exclusion: Intramembranous HO follows low-energy trauma in superficial muscle/fascia with smaller stabilizing masses, and fibrous dysplasia forms fibrous tissue inside bone rather than ectopic bone in muscle.`,
+    secondOrderClue: `TBI / severe trauma + deep muscle near joint + large movement-restricting mass = Endochondral HO.`,
+    phase1Pearl: `Injury/insult triggers inflammation, mast cell recruitment, and abnormal BMP signaling -> Sox Trio (Sox-9/5/6) chondrogenic differentiation -> cartilage intermediate -> bone.`,
+    phase2Hallmark: `Large ectopic bony masses located in deep skeletal muscles, near joints, or along tendons/ligaments.`,
+    phase3Secret: `Guild Master's Secret: Severe trauma (TBI, burns, fractures, arthroplasty) -> Endochondral (cartilage intermediate) -> large, movement-restricting masses.`,
+    dossierBullets: {
+      p1: [`Severe trauma induces inflammation, mast cells, and abnormal BMP`, `MSCs follow Sox Trio (Sox-9/5/6) chondrogenic -> endochondral path`],
+      p2: [`Forms bone outside the skeleton via a cartilage intermediate`, `Located in deep skeletal muscles, near joints, tendons/ligaments`],
+      p3: [`Produces large bony masses that restrict joint movement`, `Managed by symptom control or surgical excision`]
+    }
+  },
+  {
+    id: `LO05-Q2`,
+    lo: 5,
+    loTitle: `LO 5: Heterotopic Ossification`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Intramembranous Low-Energy HO`,
+    stem: `A collegiate athlete sustains a focal blunt contusion to the anterior thigh and later develops a small, palpable ossified nodule confined to the superficial skeletal muscle and fascia that stabilizes without progressing or limiting joint motion. Which ossification mechanism formed this nodule?`,
+    clue: `Low-energy trauma in superficial muscle/fascia forms smaller stabilizing masses without a cartilage step.`,
+    choices: [
+      `Intramembranous ossification (direct bone)`,
+      `Endochondral ossification (cartilage intermediate)`,
+      `Sox-9 deficiency with absent fibula`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Low-energy trauma (small injuries, blunt trauma, overuse, contusions) drives intramembranous ossification—direct formation of bone without a cartilage intermediate—in superficial skeletal muscles, fascia, and connective tissue, yielding smaller masses that stabilize over time. Distractor exclusion: Endochondral HO follows severe trauma or genetic BMP hypersensitivity and builds large deep masses via a cartilage intermediate.`,
+    secondOrderClue: `Low-energy trauma (contusion/overuse) + superficial muscle/fascia + smaller stabilizing mass = Intramembranous HO.`,
+    phase1Pearl: `MSCs undergo direct osteogenic differentiation via Wnt/β-catenin and Runx2 without passing through a cartilage stage.`,
+    phase2Hallmark: `Smaller ectopic bone masses localized to superficial skeletal muscles, fascia, and connective tissue.`,
+    phase3Secret: `Guild Master's Secret: Contrast the two HO profiles—Intramembranous = low-energy, superficial, smaller, stabilizes; Endochondral = severe/genetic, deep, large, restricts motion.`,
+    dossierBullets: {
+      p1: [`Direct osteogenic differentiation via Wnt/β-catenin and Runx2`, `Bypasses the cartilage intermediate stage completely`],
+      p2: [`Occurs in superficial skeletal muscles, fascia, and connective tissue`, `Forms smaller bony masses that stabilize over time`],
+      p3: [`Triggered by low-energy trauma: contusions, overuse, small injuries`, `Less likely to severely restrict joint motion than deep endochondral HO`]
+    }
+  },
+  {
+    id: `LO05-Q3`,
+    lo: 5,
+    loTitle: `LO 5: Heterotopic Ossification`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Hypersensitive BMP Receptor Mutation`,
+    stem: `A child with Fibrodysplasia Ossificans Progressiva (FOP) develops progressive ossification of skeletal muscles following minor inflammation. What primary molecular defect drives this genetic form of Heterotopic Ossification?`,
+    clue: `Recall how the BMP receptor behaves in genetic HO and which ossification pathway it activates.`,
+    choices: [
+      `Hypersensitive BMP receptor increasing BMP signaling`,
+      `Loss-of-function Sox-9 mutation halting aggrecan`,
+      `GNAS Gs mutation inhibiting BMP receptors`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Genetic HO (such as FOP) generally proceeds via endochondral ossification driven by a mutation that renders the BMP receptor hypersensitive, increasing BMP signaling in MSCs/progenitors. Distractor exclusion: Sox-9 loss causes Campomelic Dysplasia (failure of cartilage maturation), and GNAS causes Fibrous Dysplasia (or GNAS-based HO disorders, not BMP-receptor inhibition).`,
+    secondOrderClue: `Genetic HO (FOP) -> hypersensitive BMP receptor -> ↑ BMP signaling -> Sox Trio -> endochondral bone.`,
+    phase1Pearl: `Hypersensitive BMP receptor signaling activates Sox Trio (Sox-9/5/6) chondrogenic differentiation in soft-tissue MSCs.`,
+    phase2Hallmark: `Genetic HO generally follows endochondral ossification, forming bone through a cartilage intermediate.`,
+    phase3Secret: `Guild Master's Secret: The 3 genetic HO examples listed in the lecture are Fibrodysplasia Ossificans Progressiva (FOP), Progressive Osseous Heteroplasia (POH), and GNAS-based HO disorders.`,
+    dossierBullets: {
+      p1: [`Mutation renders the BMP receptor hypersensitive`, `Increases BMP signaling and triggers endochondral ossification`],
+      p2: [`Proceeds via Sox-9/5/6 cartilage intermediate in soft tissues`, `Extraskeletal bone forms within muscles and connective tissue`],
+      p3: [`Genetic HO categories: FOP, POH, and GNAS-based HO disorders`, `Inflammation/injury precipitates new ectopic bone flares`]
+    }
+  },
+  {
+    id: `LO05-Q4`,
+    lo: 5,
+    loTitle: `LO 5: Heterotopic Ossification`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Mast Cell & BMP Cascade`,
+    stem: `Following soft-tissue injury or joint arthroplasty, mesenchymal stem cells and progenitor cells in muscle are diverted into aberrant osteogenic or chondrogenic lineages. Which early cellular and signaling events initiate both pathways of Heterotopic Ossification?`,
+    clue: `Look at the shared upstream box at the base of the "2 Paths for HO Development" schematic.`,
+    choices: [
+      `Inflammation, mast cell recruitment, abnormal BMP signaling`,
+      `Avascular necrosis, osteoclast apoptosis, ↓ ALP`,
+      `Wnt receptor blockade and adenylyl cyclase inhibition`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: In the HO development cascade, injury or insult triggers inflammation, mast cell recruitment, and abnormal BMP signaling, which redirect MSCs/progenitor cells into either osteogenic (Wnt/β-catenin, Runx2) or chondrogenic (Sox Trio) differentiation. Distractor exclusion: Osteoclast apoptosis/↓ ALP do not initiate HO, and Frizzled/AC inhibition are treatments for Fibrous Dysplasia.`,
+    secondOrderClue: `Injury/insult -> inflammation + mast cell recruitment + abnormal BMP signaling -> MSCs -> 2 HO paths.`,
+    phase1Pearl: `Both intramembranous and endochondral HO share the upstream trigger of injury, inflammation, mast cell recruitment, and abnormal BMP signaling.`,
+    phase2Hallmark: `Progenitor divergence yields direct bone (Wnt/Runx2) vs. cartilage intermediate (Sox-9/5/6) -> bone.`,
+    phase3Secret: `Guild Master's Secret: Mast cell recruitment is specifically named in the HO pathway schematic alongside inflammation and abnormal BMP signaling.`,
+    dossierBullets: {
+      p1: [`Injury/insult induces inflammation and mast cell recruitment`, `Abnormal BMP signaling acts on local MSCs/progenitors`],
+      p2: [`Diverges into Osteogenic (Wnt/β-catenin, Runx2) or Chondrogenic (Sox Trio)`, `Forms ectopic bone tissue outside the skeleton`],
+      p3: [`Common triggers include blunt impact, TBI/SCI, amputations, arthroscopy`, `Persistent inflammation sustains ectopic ossification`]
+    }
+  },
+  {
+    id: `LO05-Q5`,
+    lo: 5,
+    loTitle: `LO 5: Heterotopic Ossification`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Periarticular Knee & Elbow Radiographs`,
+    stem: `A patient status-post elbow arthroscopy and knee trauma undergoes plain radiography that reveals mineralized bone masses bridging soft tissues outside the normal cortical margins of the knee and elbow joints. Which structural distinction differentiates the two paths that can produce ectopic bone here?`,
+    clue: `Compare whether a cartilage intermediate is present in endochondral vs. intramembranous HO.`,
+    choices: [
+      `Endochondral uses cartilage intermediate; intramembranous forms bone directly`,
+      `Endochondral uses Runx2 only; intramembranous uses Sox-9 only`,
+      `Endochondral occurs in fascia only; intramembranous occurs in bone marrow`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Endochondral HO replaces a cartilage intermediate (Sox Trio Sox-9/5/6), whereas intramembranous HO forms bone directly (Wnt/β-catenin and Runx2) without a cartilage intermediate. Distractor exclusion: Sox-9 drives the cartilage intermediate in endochondral HO (not intramembranous), and HO by definition forms bone outside the skeleton rather than inside bone marrow.`,
+    secondOrderClue: `Endochondral = cartilage intermediate (Sox 9/5/6); Intramembranous = direct bone (Wnt/β-catenin + Runx2).`,
+    phase1Pearl: `Endochondral HO requires chondrogenic differentiation (Sox Trio) before bone replacement; intramembranous proceeds directly via osteogenic differentiation.`,
+    phase2Hallmark: `Radiographs of knee (A) and elbow (B) demonstrate mineralized ectopic bone outside the normal skeletal cortex.`,
+    phase3Secret: `Guild Master's Secret: Surgery (arthroscopy, joint replacement) is an explicit nongenetic category causing periarticular HO.`,
+    dossierBullets: {
+      p1: [`Endochondral path: MSC -> Sox Trio -> cartilage -> bone`, `Intramembranous path: MSC -> Wnt/β-catenin & Runx2 -> direct bone`],
+      p2: [`Radiographs show extraskeletal ossified masses near knee and elbow`, `Severe surgical/joint trauma favors deep endochondral HO`],
+      p3: [`Surgery (arthroscopy, joint replacement) is a major HO trigger`, `Large periarticular masses restrict joint mobility`]
+    }
+  },
+  {
+    id: `LO05-Q6`,
+    lo: 5,
+    loTitle: `LO 5: Heterotopic Ossification`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `41% Repeat Surgical Excision`,
+    stem: `A patient with severe post-traumatic Heterotopic Ossification around the hip undergoes surgical excision of a large bony mass to restore joint motion. When counseling the patient preoperatively about the two major management strategies and surgical outcomes, what recurrence statistic must be discussed?`,
+    clue: `Recall the exact percentage from the Management: Heterotopic Ossification slide who require repeat excision.`,
+    choices: [
+      `41% require additional excision procedures`,
+      `5% require amputation for malignant transformation`,
+      `100% resolve permanently with Frizzled blockade`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: The two major management strategies for HO are improving symptoms and removal, with surgical excision as a common treatment—however, 41% require additional excision procedures. Distractor exclusion: Malignant transformation/amputation is not cited in the lecture, and Frizzled blockade applies to Fibrous Dysplasia rather than resolving all HO.`,
+    secondOrderClue: `HO management: improve symptoms vs. removal (surgical excision) -> 41% require additional excision procedures.`,
+    phase1Pearl: `Surgical trauma itself can re-trigger local inflammation, mast cell recruitment, and abnormal BMP signaling in MSCs.`,
+    phase2Hallmark: `Large deep endochondral masses near joints cause severe mechanical restriction requiring excision.`,
+    phase3Secret: `Guild Master's Secret: Memorize the exact number from the final slide—41% of HO surgical excision patients require additional excision procedures!`,
+    dossierBullets: {
+      p1: [`Surgical insult can reactivate inflammatory/BMP pathways in MSCs`, `Contributes to postoperative ectopic bone recurrence`],
+      p2: [`Excision targets large mineralized masses restricting joint motion`, `Imaging confirms extraskeletal mass location prior to removal`],
+      p3: [`Two major management strategies: improve symptoms and removal`, `Common surgical excision has a 41% rate of additional excision procedures`]
+    }
+  }
+];
+
+let activeDeck = [];
+let missedQuestions = [];
+let masteredIds = [];
+let currentIndex = 0;
+let currentLane = 1;
+let hasChosenLane = false;
+let craftVisualLane = 1;
+let playerHp = GAME_CONFIG.maxHp;
+let playerXp = 0;
+let bestXp = 0;
+let streak = 0;
+let bestStreak = 0;
+let correctCount = 0;
+let answeredCount = 0;
+let healCheckpointCounter = 0;
+let gateDistance = GAME_CONFIG.gateStartDistance;
+let isStoppedAtGate = false;
+let isModalOpen = false;
+let isMenuOpen = false;
+let isRunFinished = false;
+let isHintsVisible = false;
+let isSoundEnabled = true;
+let isSfxEnabled = true;
+let isTimerEnabled = false;
+let isTimesUpFailEnabled = true;
+let timeRemaining = GAME_CONFIG.timerSeconds;
+let timerIntervalId = null;
+let metaFadeTimeoutId = null;
+let phaseFilter = 'all';
+let codexTag = 'all';
+let lastFrameTime = 0;
+let animFrameId = null;
+let trackScrollOffset = 0;
+let particleTime = 0;
+let warpSurgeTimer = 0;
+let portalFlareLane = -1;
+let portalFlareTimer = 0;
+let lastSteerSfxTime = 0;
+let audioCtx = null;
+let portalHitboxes = [];
+let isBgmPlaying = false;
+let bgmVolume = 0.35;
+let customBgmUrl = null;
+let customBgmName = '';
+
+const bgmNodes = {
+  masterGain: null,
+  droneOsc1: null,
+  droneOsc2: null,
+  lfoOsc: null,
+  noiseSource: null,
+  noteIntervalId: null,
+  stepIndex: 0
+};
+
+const PARALLAX_PARTICLES = Array.from({ length: 150 }, (_, idx) => {
+  const theta = idx * 2.399963229728653;
+  const radiusBias = 0.08 + Math.sqrt(((idx * 0.754877666) % 1)) * 1.15;
+  return {
+    dx: Math.cos(theta) * radiusBias,
+    dy: Math.sin(theta) * radiusBias * 0.72 - 0.16,
+    z: 0.04 + ((idx + 0.5) / 150) * 0.96,
+    speed: 0.085 + (idx % 7) * 0.018,
+    baseSize: 1.4 + (idx % 4) * 1.25
+  };
+});
+
+function getThemeForLo(loNum) {
+  if (LO_VISUAL_THEMES[loNum]) return LO_VISUAL_THEMES[loNum];
+  const idx = Math.abs((Number(loNum) || 1) - 1) % DEFAULT_THEME_CYCLE.length;
+  return DEFAULT_THEME_CYCLE[idx];
+}
+
+function ensureAudioContext() {
+  if (!isSoundEnabled) return null;
+  if (!audioCtx && (window.AudioContext || window.webkitAudioContext)) {
+    const Ctor = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new Ctor();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
+  return audioCtx;
+}
+
+function playSfx(type) {
+  if (!isSoundEnabled || !isSfxEnabled) return;
+  try {
+    const ctx = ensureAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    if (type === 'steer') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(340, now);
+      osc.frequency.exponentialRampToValueAtTime(520, now + 0.07);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc.start(now);
+      osc.stop(now + 0.08);
+    } else if (type === 'correct') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, now);
+      osc.frequency.setValueAtTime(659.25, now + 0.07);
+      osc.frequency.setValueAtTime(783.99, now + 0.14);
+      gain.gain.setValueAtTime(0.13, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+      osc.start(now);
+      osc.stop(now + 0.28);
+    } else if (type === 'heal') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(440, now);
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.22);
+      gain.gain.setValueAtTime(0.13, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      osc.start(now);
+      osc.stop(now + 0.25);
+    } else if (type === 'wrong') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(175, now);
+      osc.frequency.exponentialRampToValueAtTime(75, now + 0.26);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.27);
+      osc.start(now);
+      osc.stop(now + 0.27);
+    } else if (type === 'warp') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(260, now);
+      osc.frequency.exponentialRampToValueAtTime(680, now + 0.15);
+      gain.gain.setValueAtTime(0.06, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+      osc.start(now);
+      osc.stop(now + 0.16);
+    }
+  } catch (e) {}
+}
+
+function triggerHauntedPianoNote(ctx, dest, freq) {
+  const now = ctx.currentTime;
+  const osc1 = ctx.createOscillator();
+  const osc2 = ctx.createOscillator();
+  const env = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  osc1.type = 'triangle';
+  osc2.type = 'sine';
+  osc1.frequency.setValueAtTime(freq, now);
+  osc2.frequency.setValueAtTime(freq * 2.003, now);
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(1200, now);
+  filter.frequency.exponentialRampToValueAtTime(340, now + 1.4);
+  env.gain.setValueAtTime(0.0001, now);
+  env.gain.linearRampToValueAtTime(0.14, now + 0.025);
+  env.gain.exponentialRampToValueAtTime(0.0001, now + 1.65);
+  osc1.connect(filter);
+  osc2.connect(filter);
+  filter.connect(env);
+  env.connect(dest);
+  osc1.start(now);
+  osc2.start(now);
+  osc1.stop(now + 1.7);
+  osc2.stop(now + 1.7);
+}
+
+function startProceduralZombiesBgm() {
+  stopProceduralZombiesBgm();
+  if (!isSoundEnabled) return;
+  const ctx = ensureAudioContext();
+  if (!ctx) return;
+  const master = ctx.createGain();
+  master.gain.setValueAtTime(bgmVolume * 0.45, ctx.currentTime);
+  master.connect(ctx.destination);
+  bgmNodes.masterGain = master;
+
+  const droneFilter = ctx.createBiquadFilter();
+  droneFilter.type = 'lowpass';
+  droneFilter.frequency.setValueAtTime(165, ctx.currentTime);
+  droneFilter.Q.setValueAtTime(2.5, ctx.currentTime);
+  const droneGain = ctx.createGain();
+  droneGain.gain.setValueAtTime(0.18, ctx.currentTime);
+  const d1 = ctx.createOscillator();
+  const d2 = ctx.createOscillator();
+  d1.type = 'sawtooth';
+  d2.type = 'sawtooth';
+  d1.frequency.setValueAtTime(55.0, ctx.currentTime);
+  d2.frequency.setValueAtTime(55.45, ctx.currentTime);
+  const lfo = ctx.createOscillator();
+  const lfoGain = ctx.createGain();
+  lfo.type = 'sine';
+  lfo.frequency.setValueAtTime(0.14, ctx.currentTime);
+  lfoGain.gain.setValueAtTime(48, ctx.currentTime);
+  lfo.connect(lfoGain);
+  lfoGain.connect(droneFilter.frequency);
+  d1.connect(droneFilter);
+  d2.connect(droneFilter);
+  droneFilter.connect(droneGain);
+  droneGain.connect(master);
+  d1.start();
+  d2.start();
+  lfo.start();
+  bgmNodes.droneOsc1 = d1;
+  bgmNodes.droneOsc2 = d2;
+  bgmNodes.lfoOsc = lfo;
+
+  const bufSize = ctx.sampleRate * 2;
+  const noiseBuf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+  const data = noiseBuf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * 0.35;
+  const noise = ctx.createBufferSource();
+  noise.buffer = noiseBuf;
+  noise.loop = true;
+  const noiseFilter = ctx.createBiquadFilter();
+  noiseFilter.type = 'bandpass';
+  noiseFilter.frequency.setValueAtTime(950, ctx.currentTime);
+  noiseFilter.Q.setValueAtTime(1.4, ctx.currentTime);
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.025, ctx.currentTime);
+  noise.connect(noiseFilter);
+  noiseFilter.connect(noiseGain);
+  noiseGain.connect(master);
+  noise.start();
+  bgmNodes.noiseSource = noise;
+
+  const hauntedPattern = [
+    440.00, 523.25, 493.88, 392.00,
+    440.00, 329.63, 349.23, 329.63,
+    440.00, 523.25, 587.33, 523.25,
+    493.88, 392.00, 329.63, 0
+  ];
+  bgmNodes.stepIndex = 0;
+  const stepNote = () => {
+    if (!isSoundEnabled || !isBgmPlaying || !bgmNodes.masterGain) return;
+    const freq = hauntedPattern[bgmNodes.stepIndex % hauntedPattern.length];
+    bgmNodes.stepIndex++;
+    if (freq > 0) triggerHauntedPianoNote(ctx, bgmNodes.masterGain, freq);
+  };
+  stepNote();
+  bgmNodes.noteIntervalId = setInterval(stepNote, 620);
+}
+
+function stopProceduralZombiesBgm() {
+  if (bgmNodes.noteIntervalId) {
+    clearInterval(bgmNodes.noteIntervalId);
+    bgmNodes.noteIntervalId = null;
+  }
+  ['droneOsc1', 'droneOsc2', 'lfoOsc', 'noiseSource'].forEach((k) => {
+    if (bgmNodes[k]) {
+      try { bgmNodes[k].stop(); } catch (e) {}
+      try { bgmNodes[k].disconnect(); } catch (e) {}
+      bgmNodes[k] = null;
+    }
+  });
+  if (bgmNodes.masterGain) {
+    try { bgmNodes.masterGain.disconnect(); } catch (e) {}
+    bgmNodes.masterGain = null;
+  }
+}
+
+function syncSoundControlsUI() {
+  const masterBtn = document.getElementById('master-sound-btn');
+  const sfxBtn = document.getElementById('audio-toggle-btn');
+  const menuBgmBtn = document.getElementById('menu-bgm-btn');
+  const volLabel = document.getElementById('bgm-vol-label');
+  if (masterBtn) masterBtn.textContent = isSoundEnabled ? `🔊 Sound: ON` : `🔇 Sound: OFF`;
+  if (sfxBtn) sfxBtn.textContent = (isSoundEnabled && isSfxEnabled) ? `🔊 SFX: ON` : `🔇 SFX: OFF`;
+  const bgmActive = isSoundEnabled && isBgmPlaying;
+  if (menuBgmBtn) {
+    menuBgmBtn.textContent = bgmActive
+      ? (customBgmUrl ? `🎵 Custom BGM: ON (${customBgmName})` : `🎵 Zombies BGM: ON`)
+      : (customBgmUrl ? `🎵 Custom BGM: OFF` : `🎵 Zombies BGM: OFF`);
+  }
+  if (volLabel) volLabel.textContent = `${Math.round(bgmVolume * 100)}%`;
+}
+
+function toggleMasterSound() {
+  isSoundEnabled = !isSoundEnabled;
+  const customAudio = document.getElementById('custom-bgm-audio');
+  if (!isSoundEnabled) {
+    stopProceduralZombiesBgm();
+    if (customAudio) customAudio.pause();
+  } else if (isBgmPlaying) {
+    if (customBgmUrl && customAudio) {
+      stopProceduralZombiesBgm();
+      customAudio.volume = bgmVolume;
+      customAudio.play().catch(() => {});
+    } else {
+      startProceduralZombiesBgm();
+    }
+  }
+  syncSoundControlsUI();
+  persistAppState();
+}
+
+function toggleSfx() {
+  isSfxEnabled = !isSfxEnabled;
+  if (isSfxEnabled && !isSoundEnabled) isSoundEnabled = true;
+  syncSoundControlsUI();
+  persistAppState();
+}
+
+function toggleBgm() {
+  const customAudio = document.getElementById('custom-bgm-audio');
+  isBgmPlaying = !isBgmPlaying;
+  if (isBgmPlaying) {
+    if (!isSoundEnabled) isSoundEnabled = true;
+    if (customBgmUrl && customAudio) {
+      stopProceduralZombiesBgm();
+      customAudio.volume = bgmVolume;
+      customAudio.play().catch(() => {});
+    } else {
+      startProceduralZombiesBgm();
+    }
+  } else {
+    stopProceduralZombiesBgm();
+    if (customAudio) customAudio.pause();
+  }
+  syncSoundControlsUI();
+  persistAppState();
+}
+
+function updateBgmVolume(val) {
+  bgmVolume = Math.max(0, Math.min(1, Number(val) / 100));
+  const customAudio = document.getElementById('custom-bgm-audio');
+  if (customAudio) customAudio.volume = bgmVolume;
+  if (bgmNodes.masterGain && audioCtx) {
+    bgmNodes.masterGain.gain.setTargetAtTime(bgmVolume * 0.45, audioCtx.currentTime, 0.05);
+  }
+  syncSoundControlsUI();
+  persistAppState();
+}
+
+function handleCustomBgmUpload(evt) {
+  const file = evt.target && evt.target.files ? evt.target.files[0] : null;
+  if (!file) return;
+  if (customBgmUrl) URL.revokeObjectURL(customBgmUrl);
+  customBgmUrl = URL.createObjectURL(file);
+  customBgmName = file.name.length > 16 ? file.name.slice(0, 13) + '…' : file.name;
+  isSoundEnabled = true;
+  isBgmPlaying = true;
+  const customAudio = document.getElementById('custom-bgm-audio');
+  stopProceduralZombiesBgm();
+  if (customAudio) {
+    customAudio.src = customBgmUrl;
+    customAudio.volume = bgmVolume;
+    customAudio.play().catch(() => {});
+  }
+  syncSoundControlsUI();
+  persistAppState();
+}
+
+function fisherYatesShuffle(arr) {
+  const copy = arr.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = copy[i];
+    copy[i] = copy[j];
+    copy[j] = tmp;
+  }
+  return copy;
+}
+
+function shuffleQuestionOptions(q) {
+  const indexed = q.choices.map((text, idx) => ({ text, isCorrect: idx === q.correctIndex }));
+  const shuffled = fisherYatesShuffle(indexed);
+  return {
+    ...q,
+    choices: shuffled.map((item) => item.text),
+    correctIndex: shuffled.findIndex((item) => item.isCorrect)
+  };
+}
+
+function getComboMultiplier() {
+  return Math.min(3.0, 1.0 + streak * 0.25);
+}
+
+function initDynamicSelectors() {
+  document.title = GAME_CONFIG.title;
+  const titleEl = document.getElementById('drawer-title');
+  const kickerEl = document.getElementById('drawer-kicker');
+  const codexTitle = document.getElementById('codex-title');
+  if (titleEl) titleEl.textContent = GAME_CONFIG.title;
+  if (kickerEl) kickerEl.textContent = GAME_CONFIG.kicker;
+  if (codexTitle) codexTitle.textContent = `Master Raid Loot Codex (${CODEX_DATA.length} Objectives)`;
+
+  const sectorSelect = document.getElementById('sector-filter');
+  if (sectorSelect) {
+    sectorSelect.innerHTML =
+      `<option value="all">All Sectors (${ALL_QUESTIONS.length} Gates)</option>` +
+      CODEX_DATA.map((c) => {
+        const meta = c.badgeMeta ? ` (${c.badgeMeta})` : '';
+        return `<option value="${c.lo}">LO ${c.lo}: ${c.entity}${meta}</option>`;
+      }).join('') +
+      `<option value="missed" id="missed-sector-option">🎯 Missed Gates Only (${missedQuestions.length})</option>`;
+  }
+  buildSkillTree();
+}
+
+function syncMissedOptionLabel() {
+  const opt = document.getElementById('missed-sector-option');
+  if (opt) opt.textContent = `🎯 Missed Gates Only (${missedQuestions.length})`;
+}
+
+function buildSkillTree() {
+  const grid = document.getElementById('skill-tree-grid');
+  if (!grid) return;
+  const secVal = document.getElementById('sector-filter')?.value || 'all';
+  let masteredLos = 0;
+  grid.innerHTML = CODEX_DATA.map((c) => {
+    const loQs = ALL_QUESTIONS.filter((q) => q.lo === c.lo);
+    const done = loQs.filter((q) => masteredIds.includes(q.id)).length;
+    const isMastered = done === loQs.length && loQs.length > 0;
+    if (isMastered) masteredLos++;
+    const isActive = String(secVal) === String(c.lo);
+    const metaTag = c.badgeMeta ? ` • ${c.badgeMeta}` : '';
+    return `<button type="button" class="skill-node ${isMastered ? 'is-mastered' : ''} ${isActive ? 'is-active-filter' : ''}" onclick="selectSectorFromTree(${c.lo})">
+      <div class="skill-node-top"><span>LO ${c.lo}${metaTag}</span><span>${done}/${loQs.length}</span></div>
+      <div class="skill-node-title">${c.entity}</div>
+      <div class="skill-node-meta">${isMastered ? '✔ MASTERED' : 'TAP TO DEPLOY'}</div>
+    </button>`;
+  }).join('');
+  const sumEl = document.getElementById('mastery-summary');
+  const acc = answeredCount > 0 ? `${Math.round((correctCount / answeredCount) * 100)}%` : '--%';
+  if (sumEl) sumEl.textContent = `Mastered: ${masteredLos} / ${CODEX_DATA.length} LOs • Accuracy: ${acc}`;
+}
+
+function selectSectorFromTree(loNum) {
+  const sel = document.getElementById('sector-filter');
+  if (sel) sel.value = String(loNum);
+  applyFilters();
+  if (isMenuOpen) toggleMenuDrawer();
+}
+
+function setPhaseFilter(val) {
+  phaseFilter = val;
+  document.querySelectorAll('.phase-mix-pill[data-phase]').forEach((p) => {
+    p.classList.toggle('is-selected', p.dataset.phase === val);
+  });
+  applyFilters();
+}
+
+function buildDeck(randomize, customSource) {
+  const secVal = document.getElementById('sector-filter')?.value || 'all';
+  const angVal = document.getElementById('angle-filter')?.value || 'all';
+  const msgEl = document.getElementById('menu-status-msg');
+  let pool;
+
+  if (Array.isArray(customSource) && customSource.length > 0) {
+    pool = customSource.slice();
+  } else if (secVal === 'missed') {
+    pool = missedQuestions.filter((q) => {
+      const matchAng = angVal === 'all' || q.angle === angVal;
+      const matchPha = phaseFilter === 'all' || q.phaseFocus === phaseFilter;
+      return matchAng && matchPha;
+    });
+  } else {
+    pool = ALL_QUESTIONS.filter((q) => {
+      const matchLo = secVal === 'all' || String(q.lo) === String(secVal);
+      const matchAng = angVal === 'all' || q.angle === angVal;
+      const matchPha = phaseFilter === 'all' || q.phaseFocus === phaseFilter;
+      return matchLo && matchAng && matchPha;
+    });
+  }
+
+  if (!pool.length) {
+    pool = ALL_QUESTIONS.slice();
+    if (msgEl) {
+      msgEl.textContent = secVal === 'missed'
+        ? `No missed gates yet — loaded all ${ALL_QUESTIONS.length} gates.`
+        : `No gates matched that filter combo — restored all ${ALL_QUESTIONS.length} gates.`;
+    }
+  } else if (msgEl) {
+    msgEl.textContent = `Active Queue: ${pool.length} gates ready.`;
+  }
+
+  const ordered = randomize ? fisherYatesShuffle(pool) : pool.slice();
+  activeDeck = ordered.map(shuffleQuestionOptions);
+}
+
+function getCurrentQuestion() {
+  if (!activeDeck.length) buildDeck(false);
+  return activeDeck[currentIndex] || activeDeck[0];
+}
+
+function toggleMenuDrawer() {
+  isMenuOpen = !isMenuOpen;
+  const backdrop = document.getElementById('menu-backdrop');
+  const btn = document.getElementById('menu-toggle-btn');
+  if (backdrop) backdrop.classList.toggle('is-open', isMenuOpen);
+  if (btn) {
+    btn.classList.toggle('is-active', isMenuOpen);
+    btn.setAttribute('aria-expanded', String(isMenuOpen));
+  }
+  if (isMenuOpen) {
+    syncMissedOptionLabel();
+    buildSkillTree();
+  }
+}
+
+function syncHintsUI() {
+  const app = document.getElementById('xr-app');
+  const menuBtn = document.getElementById('menu-hints-btn');
+  if (app) {
+    app.classList.toggle('hints-visible', isHintsVisible);
+    app.classList.toggle('hints-hidden', !isHintsVisible);
+  }
+  if (menuBtn) {
+    menuBtn.textContent = isHintsVisible ? `💡 Hints: ON [H]` : `💡 Hints: OFF [H]`;
+    menuBtn.classList.toggle('is-active', isHintsVisible);
+  }
+}
+
+function toggleHintsBar() {
+  isHintsVisible = !isHintsVisible;
+  syncHintsUI();
+  playSfx('steer');
+  persistAppState();
+}
+
+function openCodexFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  openCodex();
+}
+
+function skipFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  skipCurrentQuestion();
+}
+
+function syncTimerControlsUI() {
+  const modeSel = document.getElementById('times-up-select');
+  const menuTimerBtn = document.getElementById('menu-timer-btn');
+  const chip = document.getElementById('timer-chip');
+  if (modeSel) modeSel.value = isTimesUpFailEnabled ? 'fail' : 'hold';
+  if (menuTimerBtn) {
+    menuTimerBtn.textContent = isTimerEnabled ? `⏱ 50s Timer: ON [T]` : `⏱ 50s Timer: OFF [T]`;
+    menuTimerBtn.classList.toggle('is-active', isTimerEnabled);
+  }
+  if (!chip) return;
+  chip.classList.remove('is-off', 'is-hold', 'is-urgent');
+  if (!isTimerEnabled) {
+    chip.textContent = `⏱ OFF`;
+    chip.classList.add('is-off');
+  } else if (timeRemaining === 0 && !isTimesUpFailEnabled) {
+    chip.textContent = `⏱ HOLD`;
+    chip.classList.add('is-hold');
+  } else {
+    chip.textContent = `⏱ ${timeRemaining}s`;
+    if (timeRemaining <= 10) chip.classList.add('is-urgent');
+  }
+}
+
+function applyTimerSettings() {
+  const modeSel = document.getElementById('times-up-select');
+  if (modeSel) isTimesUpFailEnabled = modeSel.value === 'fail';
+  syncTimerControlsUI();
+  persistAppState();
+}
+
+function toggleTimerActive() {
+  if (isRunFinished) return;
+  isTimerEnabled = !isTimerEnabled;
+  if (isTimerEnabled) {
+    startQuestionTimer();
+    playSfx('steer');
+  } else {
+    if (timerIntervalId) clearInterval(timerIntervalId);
+    syncTimerControlsUI();
+  }
+  persistAppState();
+}
+
+function startTimedSession() {
+  isTimerEnabled = true;
+  isTimesUpFailEnabled = true;
+  if (isMenuOpen) toggleMenuDrawer();
+  syncTimerControlsUI();
+  startQuestionTimer();
+  playSfx('warp');
+  persistAppState();
+}
+
+function startQuestionTimer() {
+  if (timerIntervalId) clearInterval(timerIntervalId);
+  timeRemaining = GAME_CONFIG.timerSeconds;
+  syncTimerControlsUI();
+  if (!isTimerEnabled) return;
+  timerIntervalId = setInterval(() => {
+    if (isModalOpen || isMenuOpen || isRunFinished || !isTimerEnabled) return;
+    if (timeRemaining > 0) {
+      timeRemaining--;
+      syncTimerControlsUI();
+      if (timeRemaining === 0) {
+        if (isTimesUpFailEnabled) {
+          clearInterval(timerIntervalId);
+          resolveGateChoice(-1);
+        } else {
+          syncTimerControlsUI();
+        }
+      }
+    }
+  }, 1000);
+}
+
+function updateTelemetryUI() {
+  const hpText = document.getElementById('hp-text');
+  const hpChip = document.getElementById('hp-chip');
+  const xpText = document.getElementById('xp-text');
+  const streakText = document.getElementById('streak-text');
+  const progText = document.getElementById('progress-text');
+  const clampedHp = Math.max(0, playerHp);
+  if (hpText) hpText.textContent = `${clampedHp}`;
+  if (hpChip) hpChip.classList.toggle('is-low', clampedHp <= 30);
+  if (xpText) xpText.textContent = `${playerXp}`;
+  if (streakText) streakText.textContent = `${streak}`;
+  if (progText) progText.textContent = `${Math.min(currentIndex + 1, activeDeck.length)}/${activeDeck.length}`;
+  syncTimerControlsUI();
+  syncSoundControlsUI();
+  syncHintsUI();
+}
+
+function triggerAmbossRescan() {
+  const stage = document.querySelector('.question-stage');
+  if (stage) stage.setAttribute('data-amboss-timestamp', String(Date.now()));
+}
+
+function scheduleMetadataAutoHide() {
+  const metaRow = document.getElementById('question-meta-row');
+  if (!metaRow) return;
+  if (metaFadeTimeoutId) {
+    clearTimeout(metaFadeTimeoutId);
+    metaFadeTimeoutId = null;
+  }
+  metaRow.classList.remove('is-faded');
+  metaFadeTimeoutId = setTimeout(() => {
+    metaRow.classList.add('is-faded');
+  }, GAME_CONFIG.metaFadeMs);
+}
+
+function updateLaneHighlight() {
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`lane-${i}-card`);
+    if (card) {
+      card.classList.toggle('is-targeted', i === currentLane);
+      card.classList.toggle('is-selected', hasChosenLane && i === currentLane);
+    }
+  }
+}
+
+function previewLaneTarget(laneIndex) {
+  if (isModalOpen || isMenuOpen || isRunFinished) return;
+  if (laneIndex < 0 || laneIndex > 2) return;
+  if (currentLane !== laneIndex) {
+    currentLane = laneIndex;
+    updateLaneHighlight();
+    const now = performance.now();
+    if (now - lastSteerSfxTime > 95) {
+      lastSteerSfxTime = now;
+      playSfx('steer');
+    }
+  }
+}
+
+function updateQuestionStageUI() {
+  const q = getCurrentQuestion();
+  const theme = getThemeForLo(q.lo);
+  const loBadge = document.getElementById('lo-badge');
+  const angleBadge = document.getElementById('angle-badge');
+  const phaseBadge = document.getElementById('phase-badge');
+  const corridorBadge = document.getElementById('corridor-badge');
+  const stemEl = document.getElementById('q-stem-text');
+  const clueEl = document.getElementById('q-clue-text');
+  const hintRefEl = document.getElementById('hints-meta-ref');
+
+  if (loBadge) loBadge.textContent = q.loTitle;
+  if (angleBadge) angleBadge.textContent = q.angle.replace('->', '→');
+  if (phaseBadge) phaseBadge.textContent = q.phaseFocus;
+  if (corridorBadge) corridorBadge.textContent = `CORRIDOR: ${theme.tag}`;
+  if (stemEl) stemEl.textContent = q.stem;
+  if (clueEl) clueEl.textContent = q.clue;
+  if (hintRefEl) hintRefEl.textContent = `${q.loTitle} • ${q.phaseFocus}`;
+
+  for (let i = 0; i < 3; i++) {
+    const txt = document.getElementById(`lane-${i}-text`);
+    if (txt) txt.textContent = q.choices[i] || '';
+  }
+
+  updateLaneHighlight();
+  scheduleMetadataAutoHide();
+  triggerAmbossRescan();
+}
+
+function applyFilters() {
+  buildDeck(false);
+  resetRunState();
+  buildSkillTree();
+  persistAppState();
+}
+
+function restartOrdered() {
+  closeAllModals();
+  if (isMenuOpen) toggleMenuDrawer();
+  buildDeck(false);
+  resetRunState();
+}
+
+function restartRandomized() {
+  closeAllModals();
+  if (isMenuOpen) toggleMenuDrawer();
+  buildDeck(true);
+  resetRunState();
+}
+
+function retryMissedOnly() {
+  if (!missedQuestions.length) return;
+  const copy = missedQuestions.slice();
+  closeAllModals();
+  buildDeck(true, copy);
+  resetRunState();
+}
+
+function handleResetMastery(btn) {
+  if (!btn) return;
+  if (btn.dataset.armed !== 'true') {
+    btn.dataset.armed = 'true';
+    btn.textContent = `⚠ Confirm Reset?`;
+    setTimeout(() => {
+      if (btn.dataset.armed === 'true') {
+        btn.dataset.armed = 'false';
+        btn.textContent = `⚠ Reset Mastery`;
+      }
+    }, 3200);
+    return;
+  }
+  btn.dataset.armed = 'false';
+  btn.textContent = `⚠ Reset Mastery`;
+  masteredIds = [];
+  missedQuestions = [];
+  bestXp = 0;
+  bestStreak = 0;
+  phaseFilter = 'all';
+  const sf = document.getElementById('sector-filter');
+  const af = document.getElementById('angle-filter');
+  if (sf) sf.value = 'all';
+  if (af) af.value = 'all';
+  document.querySelectorAll('.phase-mix-pill[data-phase]').forEach((p) => {
+    p.classList.toggle('is-selected', p.dataset.phase === 'all');
+  });
+  syncMissedOptionLabel();
+  buildDeck(false);
+  resetRunState();
+  buildSkillTree();
+  persistAppState();
+}
+
+function resetRunState() {
+  currentIndex = 0;
+  playerHp = GAME_CONFIG.maxHp;
+  playerXp = 0;
+  streak = 0;
+  correctCount = 0;
+  answeredCount = 0;
+  healCheckpointCounter = 0;
+  if (document.getElementById('sector-filter')?.value !== 'missed') {
+    missedQuestions = [];
+  }
+  isRunFinished = false;
+  isModalOpen = false;
+  syncMissedOptionLabel();
+  prepareNextGate();
+  updateTelemetryUI();
+}
+
+function prepareNextGate() {
+  currentLane = 1;
+  hasChosenLane = false;
+  craftVisualLane = 1;
+  gateDistance = GAME_CONFIG.gateStartDistance;
+  isStoppedAtGate = false;
+  warpSurgeTimer = 0.45;
+  portalFlareLane = -1;
+  portalFlareTimer = 0;
+  for (let i = 0; i < 3; i++) {
+    document.getElementById(`lane-${i}-card`)?.classList.remove('is-fused', 'is-selected');
+  }
+  updateQuestionStageUI();
+  updateTelemetryUI();
+  startQuestionTimer();
+  playSfx('warp');
+}
+
+function triggerVignette(type) {
+  const vig = document.getElementById('vignette-overlay');
+  const shell = document.getElementById('viewport-shell');
+  if (vig) {
+    vig.classList.remove('is-damage', 'is-heal');
+    void vig.offsetWidth;
+    vig.classList.add(type === 'damage' ? 'is-damage' : 'is-heal');
+    setTimeout(() => vig.classList.remove('is-damage', 'is-heal'), 420);
+  }
+  if (type === 'damage' && shell) {
+    shell.classList.remove('shake-anim');
+    void shell.offsetWidth;
+    shell.classList.add('shake-anim');
+  }
+}
+
+function showHealToast(amount) {
+  const toast = document.getElementById('heal-toast');
+  if (!toast) return;
+  toast.textContent = `✚ STREAK BONUS +${amount} HP`;
+  toast.classList.add('is-visible');
+  setTimeout(() => toast.classList.remove('is-visible'), 2000);
+}
+
+function selectLaneAndResolve(laneIndex) {
+  if (isModalOpen || isMenuOpen || isRunFinished) return;
+  if (laneIndex < 0 || laneIndex > 2) return;
+  currentLane = laneIndex;
+  hasChosenLane = true;
+  portalFlareLane = laneIndex;
+  portalFlareTimer = 0.35;
+  updateLaneHighlight();
+  playSfx('steer');
+  resolveGateChoice(laneIndex);
+}
+
+function resolveGateChoice(chosenLane) {
+  if (timerIntervalId) clearInterval(timerIntervalId);
+  isModalOpen = true;
+  const q = getCurrentQuestion();
+  const isTimesUp = chosenLane === -1;
+  const isCorrect = !isTimesUp && chosenLane === q.correctIndex;
+  answeredCount++;
+
+  let xpDelta = 0;
+  let hpDeltaLabel = '';
+
+  if (isCorrect) {
+    correctCount++;
+    streak++;
+    if (streak > bestStreak) bestStreak = streak;
+    if (!masteredIds.includes(q.id)) masteredIds.push(q.id);
+    const prevHp = playerHp;
+    playerHp = Math.min(GAME_CONFIG.maxHp, playerHp + GAME_CONFIG.hpReward);
+    const smallGain = playerHp - prevHp;
+    hpDeltaLabel = smallGain > 0 ? `+${smallGain} HP` : `MAX HP`;
+    xpDelta = Math.round(100 * getComboMultiplier());
+    playerXp += xpDelta;
+    if (playerXp > bestXp) bestXp = playerXp;
+    healCheckpointCounter++;
+    playSfx('correct');
+    if (healCheckpointCounter >= GAME_CONFIG.healStreakStep) {
+      healCheckpointCounter = 0;
+      const beforeHeal = playerHp;
+      playerHp = Math.min(GAME_CONFIG.maxHp, playerHp + GAME_CONFIG.healAmount);
+      const gained = playerHp - beforeHeal;
+      hpDeltaLabel = gained > 0 ? `+${gained} HP` : `MAX HP`;
+      triggerVignette('heal');
+      showHealToast(gained > 0 ? gained : GAME_CONFIG.healAmount);
+      playSfx('heal');
+    }
+  } else {
+    streak = 0;
+    healCheckpointCounter = 0;
+    playerHp = Math.max(0, playerHp - GAME_CONFIG.hpPenalty);
+    hpDeltaLabel = `-${GAME_CONFIG.hpPenalty} HP`;
+    if (!missedQuestions.some((item) => item.id === q.id)) missedQuestions.push(q);
+    syncMissedOptionLabel();
+    triggerVignette('damage');
+    playSfx('wrong');
+  }
+
+  updateTelemetryUI();
+  populateOutcomeModal(q, chosenLane, isCorrect, xpDelta, hpDeltaLabel, isTimesUp);
+  persistAppState();
+}
+
+function renderDossierBullets(el, lines) {
+  if (!el) return;
+  const items = (Array.isArray(lines) ? lines : [lines])
+    .flatMap((line) => String(line || '').split(/\n|<br\s*\/?>/i))
+    .map((line) => line.replace(/^\s*[•\-\*]\s*/, '').trim())
+    .filter(Boolean);
+  el.innerHTML = items.map((line) => `<p class="dossier-line">• ${line}</p>`).join('');
+}
+
+function populateOutcomeModal(q, chosenLane, isCorrect, xpDelta, hpDeltaLabel, isTimesUp) {
+  const verdict = document.getElementById('outcome-verdict');
+  const xpBadge = document.getElementById('outcome-xp-delta');
+  const hpBadge = document.getElementById('outcome-hp-delta');
+  const loRef = document.getElementById('outcome-lo-ref');
+  const qText = document.getElementById('outcome-question-text');
+  const yourBox = document.getElementById('your-choice-box');
+  const yourText = document.getElementById('your-choice-text');
+  const rightText = document.getElementById('correct-choice-text');
+  const expEl = document.getElementById('dossier-explanation');
+  const clueEl = document.getElementById('dossier-board-clue');
+  const pathEl = document.getElementById('dossier-pathogenesis');
+  const morphEl = document.getElementById('dossier-morphology');
+  const txEl = document.getElementById('dossier-epi-tx');
+  const ang1El = document.getElementById('dossier-angle-1');
+  const ang2El = document.getElementById('dossier-angle-2');
+  const ang3El = document.getElementById('dossier-angle-3');
+  const contBtn = document.getElementById('continue-runner-btn');
+  const backdrop = document.getElementById('outcome-backdrop');
+  const scrollBody = document.getElementById('outcome-scroll-body');
+
+  const correctAnswerLabel = (q.shortAnswer && q.shortAnswer.trim())
+    ? q.shortAnswer.trim()
+    : (q.choices[q.correctIndex] || q.loTitle || 'Correct Answer');
+
+  if (verdict) {
+    verdict.textContent = isTimesUp
+      ? `⏱ TIME'S UP — ${correctAnswerLabel}`
+      : (isCorrect ? `✔ CORRECT — ${correctAnswerLabel}` : `✖ INCORRECT — ${correctAnswerLabel}`);
+    verdict.className = `popup-verdict ${isCorrect ? 'is-correct' : 'is-wrong'}`;
+  }
+  if (xpBadge) {
+    xpBadge.textContent = isCorrect
+      ? `+${xpDelta} XP (${getComboMultiplier().toFixed(2)}x)`
+      : (isTimesUp ? `+0 XP (Time Expired)` : `+0 XP (Streak Reset)`);
+  }
+  if (hpBadge) hpBadge.textContent = hpDeltaLabel;
+  if (loRef) loRef.textContent = `${q.loTitle} • ${q.angle.replace('->', '→')} • ${q.phaseFocus}`;
+  if (qText) qText.textContent = q.stem;
+
+  if (yourBox) {
+    yourBox.classList.remove('is-right', 'is-wrong');
+    yourBox.classList.add(isCorrect ? 'is-right' : 'is-wrong');
+  }
+  if (yourText) yourText.textContent = isTimesUp ? `⏱ Time's Up (No Selection)` : (q.choices[chosenLane] || '');
+  if (rightText) rightText.textContent = q.choices[q.correctIndex] || '';
+
+  const expParts = String(q.explanation || '').split(/\s+Distractor exclusion:\s*/i);
+  if (expParts.length > 1) {
+    renderDossierBullets(expEl, [expParts[0], `Distractor exclusion: ${expParts[1]}`]);
+  } else {
+    const expSentences = String(q.explanation || '').split(/(?<=\.)\s+/).filter(Boolean);
+    renderDossierBullets(expEl, expSentences.length ? expSentences : [q.explanation]);
+  }
+  renderDossierBullets(clueEl, [q.secondOrderClue, `Quick Hint: ${q.clue}`]);
+  renderDossierBullets(pathEl, [q.phase1Pearl]);
+  renderDossierBullets(morphEl, [q.phase2Hallmark]);
+  renderDossierBullets(txEl, [q.phase3Secret]);
+  renderDossierBullets(ang1El, q.dossierBullets?.p1 || [q.phase1Pearl]);
+  renderDossierBullets(ang2El, q.dossierBullets?.p2 || [q.phase2Hallmark]);
+  renderDossierBullets(ang3El, q.dossierBullets?.p3 || [q.phase3Secret]);
+
+  if (contBtn) {
+    if (playerHp <= 0) contBtn.textContent = `⚠ HP DEPLETED — VIEW SUMMARY`;
+    else if (currentIndex + 1 >= activeDeck.length) contBtn.textContent = `🏁 FINISH RUN — VIEW SUMMARY`;
+    else contBtn.textContent = `▶ Continue Runner [Space / Enter]`;
+  }
+  if (scrollBody) scrollBody.scrollTop = 0;
+  if (backdrop) backdrop.classList.add('is-open');
+  setTimeout(triggerAmbossRescan, 50);
+}
+
+function scrollOutcomeBody(deltaY) {
+  const body = document.getElementById('outcome-scroll-body');
+  if (body) {
+    if (typeof body.scrollBy === 'function') {
+      body.scrollBy({ top: deltaY, behavior: 'smooth' });
+    } else {
+      body.scrollTop += deltaY;
+    }
+  }
+}
+
+function continueToNextGate() {
+  document.getElementById('outcome-backdrop')?.classList.remove('is-open');
+  isModalOpen = false;
+  if (playerHp <= 0 || currentIndex + 1 >= activeDeck.length) {
+    openSummaryModal();
+    return;
+  }
+  currentIndex++;
+  prepareNextGate();
+}
+
+function skipCurrentQuestion() {
+  if (isModalOpen || isRunFinished) return;
+  if (timerIntervalId) clearInterval(timerIntervalId);
+  playSfx('steer');
+  if (currentIndex + 1 >= activeDeck.length) {
+    openSummaryModal();
+    return;
+  }
+  currentIndex++;
+  prepareNextGate();
+}
+
+function openSummaryModal() {
+  isRunFinished = true;
+  if (timerIntervalId) clearInterval(timerIntervalId);
+  const sumTitle = document.getElementById('summary-title');
+  const sumSub = document.getElementById('summary-subtitle');
+  const sumXp = document.getElementById('sum-xp');
+  const sumAcc = document.getElementById('sum-acc');
+  const sumStreak = document.getElementById('sum-streak');
+  const sumHp = document.getElementById('sum-hp');
+  const missedList = document.getElementById('missed-review-list');
+  const retryBtn = document.getElementById('retry-missed-btn');
+  const backdrop = document.getElementById('summary-backdrop');
+  const acc = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
+
+  if (sumTitle) {
+    sumTitle.textContent = playerHp <= 0 ? `BIO-SUIT BREACHED (0 HP)` : `DIAGNOSTIC RUN COMPLETE`;
+    sumTitle.className = `popup-verdict ${playerHp <= 0 ? 'is-wrong' : 'is-correct'}`;
+  }
+  if (sumSub) sumSub.textContent = `Completed ${answeredCount} of ${activeDeck.length} gates (${correctCount} correct) • Best XP: ${bestXp}`;
+  if (sumXp) sumXp.textContent = `${playerXp}`;
+  if (sumAcc) sumAcc.textContent = `${acc}%`;
+  if (sumStreak) sumStreak.textContent = `${bestStreak}`;
+  if (sumHp) sumHp.textContent = `${Math.max(0, playerHp)}`;
+
+  if (missedList) {
+    if (!missedQuestions.length) {
+      missedList.innerHTML = `<div class="missed-empty">✔ FLAWLESS RUN — ZERO MISSED DIAGNOSTIC GATES!</div>`;
+      if (retryBtn) retryBtn.style.display = 'none';
+    } else {
+      missedList.innerHTML = missedQuestions.map((mq) => {
+        const correctOpt = mq.choices[mq.correctIndex] || '';
+        return `<div class="missed-item"><strong style="color:var(--secondary)">${mq.loTitle}</strong><br>${mq.stem}<br><strong>Correct:</strong> ${correctOpt}<br><span style="color:var(--on-surface-variant)"><strong>Clue:</strong> ${mq.clue}</span></div>`;
+      }).join('');
+      if (retryBtn) {
+        retryBtn.style.display = 'inline-flex';
+        retryBtn.textContent = `🎯 Retry Missed Gates (${missedQuestions.length})`;
+      }
+    }
+  }
+  if (backdrop) backdrop.classList.add('is-open');
+  persistAppState();
+}
+
+function closeAllModals() {
+  ['outcome-backdrop', 'codex-backdrop', 'summary-backdrop'].forEach((id) => {
+    document.getElementById(id)?.classList.remove('is-open');
+  });
+  isModalOpen = false;
+}
+
+function openCodex() {
+  isModalOpen = true;
+  renderCodexTable();
+  document.getElementById('codex-backdrop')?.classList.add('is-open');
+}
+
+function closeCodex() {
+  document.getElementById('codex-backdrop')?.classList.remove('is-open');
+  if (!document.getElementById('outcome-backdrop')?.classList.contains('is-open') &&
+      !document.getElementById('summary-backdrop')?.classList.contains('is-open')) {
+    isModalOpen = false;
+  }
+}
+
+function setCodexTag(tag) {
+  codexTag = tag;
+  document.querySelectorAll('.phase-mix-pill[data-codex-tag]').forEach((p) => {
+    p.classList.toggle('is-selected', p.dataset.codexTag === tag);
+  });
+  renderCodexTable();
+}
+
+function renderCodexTable() {
+  const tbody = document.getElementById('codex-tbody');
+  if (!tbody) return;
+  const query = (document.getElementById('codex-search')?.value || '').trim().toLowerCase();
+  const rows = CODEX_DATA.filter((item) => {
+    if (codexTag !== 'all' && item.tag !== codexTag) return false;
+    if (!query) return true;
+    const blob = `${item.lo} ${item.entity} ${item.etiology} ${item.pathogenesis} ${item.hallmarks} ${item.clinical} ${item.management}`.toLowerCase();
+    return blob.includes(query);
+  });
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="6">No matching entities found.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map((r) => {
+    const metaTag = r.badgeMeta ? ` • ${r.badgeMeta}` : '';
+    return `<tr>
+      <td class="amboss-scan-target"><small style="color:var(--primary);font-family:var(--font-label);">LO ${r.lo}${metaTag}</small><br><strong>${r.entity}</strong></td>
+      <td class="amboss-scan-target">${r.etiology}</td>
+      <td class="amboss-scan-target">${r.pathogenesis}</td>
+      <td class="amboss-scan-target">${r.hallmarks}</td>
+      <td class="amboss-scan-target">${r.clinical}</td>
+      <td class="amboss-scan-target">${r.management}</td>
+    </tr>`;
+  }).join('');
+}
+
+function handleCanvasPointer(evt) {
+  if (isModalOpen || isMenuOpen || isRunFinished) return;
+  const canvas = document.getElementById('xr-canvas');
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const cx = evt.clientX - rect.left;
+  const cy = evt.clientY - rect.top;
+  for (let i = 0; i < portalHitboxes.length; i++) {
+    const b = portalHitboxes[i];
+    if (cx >= b.x && cx <= b.x + b.w && cy >= b.y && cy <= b.y + b.h) {
+      selectLaneAndResolve(b.lane);
+      return;
+    }
+  }
+}
+
+function handleCanvasHover(evt) {
+  if (isModalOpen || isMenuOpen || isRunFinished) return;
+  const canvas = document.getElementById('xr-canvas');
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const cx = evt.clientX - rect.left;
+  const cy = evt.clientY - rect.top;
+  for (let i = 0; i < portalHitboxes.length; i++) {
+    const b = portalHitboxes[i];
+    if (cx >= b.x && cx <= b.x + b.w && cy >= b.y && cy <= b.y + b.h) {
+      previewLaneTarget(b.lane);
+      return;
+    }
+  }
+}
+
+function handleKeyControls(e) {
+  const activeTag = document.activeElement ? document.activeElement.tagName : '';
+  if (activeTag === 'INPUT' || activeTag === 'SELECT' || activeTag === 'TEXTAREA') {
+    if (e.key === 'Escape') {
+      closeCodex();
+      if (isMenuOpen) toggleMenuDrawer();
+    }
+    return;
+  }
+
+  const key = e.key.toLowerCase();
+  const outcomeOpen = document.getElementById('outcome-backdrop')?.classList.contains('is-open');
+  const codexOpen = document.getElementById('codex-backdrop')?.classList.contains('is-open');
+
+  if (e.key === 'Escape') {
+    if (codexOpen) { closeCodex(); return; }
+    if (isMenuOpen) { toggleMenuDrawer(); return; }
+  }
+
+  if (codexOpen) {
+    if (key === 'c') { e.preventDefault(); closeCodex(); }
+    return;
+  }
+
+  if (outcomeOpen) {
+    if (key === ' ' || key === 'enter') {
+      e.preventDefault();
+      continueToNextGate();
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      scrollOutcomeBody(140);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      scrollOutcomeBody(-140);
+    }
+    return;
+  }
+
+  if (key === 'm') { e.preventDefault(); toggleMenuDrawer(); return; }
+  if (isMenuOpen || isRunFinished) return;
+
+  if (key === 'h') {
+    e.preventDefault();
+    toggleHintsBar();
+  } else if (key === 'c') {
+    e.preventDefault();
+    openCodex();
+  } else if (key === 's') {
+    e.preventDefault();
+    skipCurrentQuestion();
+  } else if (key === 't') {
+    e.preventDefault();
+    toggleTimerActive();
+  } else if (key === '1' || key === 'a' || e.key === 'ArrowLeft') {
+    e.preventDefault();
+    selectLaneAndResolve(0);
+  } else if (key === '2' || key === 'w' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    selectLaneAndResolve(1);
+  } else if (key === '3' || key === 'd' || e.key === 'ArrowRight') {
+    e.preventDefault();
+    selectLaneAndResolve(2);
+  }
+}
+
+function drawPixelStarfield(ctx, cssW, cssH, vpX, horizonY, theme, dt, warpMult) {
+  const spreadX = cssW * 0.58;
+  const spreadY = cssH * 0.64;
+
+  ctx.save();
+  ctx.fillStyle = theme.particleColor || '#e8cf58';
+
+  for (let i = 0; i < PARALLAX_PARTICLES.length; i++) {
+    const p = PARALLAX_PARTICLES[i];
+    if (!isModalOpen && !isMenuOpen && !isRunFinished) {
+      p.z -= p.speed * dt * warpMult;
+      if (p.z <= 0.03) p.z = 1.0;
+    }
+
+    const invZ = 1 / (p.z + 0.14);
+    const normDepth = 1 - p.z;
+    const px = vpX + p.dx * spreadX * (invZ * 0.22);
+    const py = horizonY + p.dy * spreadY * (invZ * 0.24);
+
+    if (px < -16 || px > cssW + 16 || py < -16 || py > cssH + 16) continue;
+
+    const sz = Math.min(10.5, Math.max(1.2, p.baseSize * (0.28 + Math.pow(normDepth, 2.2) * 1.9)));
+    const alpha = Math.min(0.88, Math.pow(normDepth, 0.7) * 0.85 + 0.08);
+
+    ctx.globalAlpha = alpha;
+    ctx.fillRect(Math.round(px - sz * 0.5), Math.round(py - sz * 0.5), sz, sz);
+  }
+  ctx.restore();
+}
+
+function renderRunnerFrame(timestamp) {
+  const canvas = document.getElementById('xr-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const dpr = Math.min(window.devicePixelRatio || 1, 2.25);
+  const cssW = canvas.clientWidth || 390;
+  const cssH = canvas.clientHeight || 360;
+  if (canvas.width !== Math.round(cssW * dpr) || canvas.height !== Math.round(cssH * dpr)) {
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+  }
+
+  const dt = lastFrameTime ? Math.min(0.05, (timestamp - lastFrameTime) / 1000) : 0.016;
+  lastFrameTime = timestamp;
+  particleTime += dt;
+
+  if (warpSurgeTimer > 0) warpSurgeTimer = Math.max(0, warpSurgeTimer - dt);
+  if (portalFlareTimer > 0) portalFlareTimer = Math.max(0, portalFlareTimer - dt);
+
+  const warpFrac = warpSurgeTimer / 0.45;
+  const warpSpeedMult = 1 + warpFrac * 4.2;
+
+  if (!isModalOpen && !isMenuOpen && !isRunFinished) {
+    if (gateDistance > GAME_CONFIG.stopDistanceMeters) {
+      gateDistance = Math.max(GAME_CONFIG.stopDistanceMeters, gateDistance - GAME_CONFIG.gateApproachSpeed * dt);
+      trackScrollOffset = (trackScrollOffset + dt * 2.1 * warpSpeedMult) % 1;
+    } else {
+      trackScrollOffset = (trackScrollOffset + dt * 0.35) % 1;
+      if (!isStoppedAtGate) {
+        isStoppedAtGate = true;
+        for (let i = 0; i < 3; i++) {
+          document.getElementById(`lane-${i}-card`)?.classList.add('is-fused');
+        }
+      }
+    }
+  }
+
+  craftVisualLane += (currentLane - craftVisualLane) * Math.min(1, dt * 14);
+
+  const q = getCurrentQuestion();
+  const theme = getThemeForLo(q.lo);
+  const isPortraitCompact = cssW <= 600;
+  const horizonY = cssH * (isPortraitCompact ? 0.50 : 0.57);
+  const vpX = cssW * 0.5;
+  const floorH = cssH - horizonY;
+
+  ctx.save();
+  ctx.scale(dpr, dpr);
+
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, cssH);
+  bgGrad.addColorStop(0, '#070710');
+  bgGrad.addColorStop(Math.max(0.1, horizonY / cssH), '#090915');
+  bgGrad.addColorStop(1, '#0d0d1c');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, cssW, cssH);
+
+  const gridRgb = theme.gridRgb || '108, 92, 172';
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, horizonY, cssW, floorH);
+  ctx.clip();
+
+  const rowCount = 16;
+  ctx.lineWidth = 1;
+  for (let i = 0; i < rowCount; i++) {
+    const t = (i + trackScrollOffset) / rowCount;
+    const persp = Math.pow(t, 2.35);
+    const y = horizonY + persp * floorH;
+    ctx.strokeStyle = `rgba(${gridRgb}, ${(0.04 + persp * 0.34).toFixed(3)})`;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(cssW, y);
+    ctx.stroke();
+  }
+
+  const colSpan = 22;
+  const bottomSpacing = cssW * 0.11;
+  for (let c = -colSpan; c <= colSpan; c++) {
+    const xBot = vpX + c * bottomSpacing;
+    const xTop = vpX + c * (bottomSpacing * 0.045);
+    const distFade = Math.max(0.08, 1 - Math.abs(c) / (colSpan + 2));
+    const lineGrad = ctx.createLinearGradient(xTop, horizonY, xBot, cssH);
+    lineGrad.addColorStop(0, `rgba(${gridRgb}, 0.02)`);
+    lineGrad.addColorStop(0.35, `rgba(${gridRgb}, ${(0.18 * distFade).toFixed(3)})`);
+    lineGrad.addColorStop(1, `rgba(${gridRgb}, ${(0.34 * distFade).toFixed(3)})`);
+    ctx.strokeStyle = lineGrad;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(xTop, horizonY);
+    ctx.lineTo(xBot, cssH);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  const fogGrad = ctx.createLinearGradient(0, horizonY - 24, 0, horizonY + 46);
+  fogGrad.addColorStop(0, 'rgba(8, 8, 18, 0)');
+  fogGrad.addColorStop(0.5, 'rgba(8, 8, 18, 0.85)');
+  fogGrad.addColorStop(1, 'rgba(8, 8, 18, 0)');
+  ctx.fillStyle = fogGrad;
+  ctx.fillRect(0, horizonY - 24, cssW, 70);
+
+  drawPixelStarfield(ctx, cssW, cssH, vpX, horizonY, theme, dt, warpSpeedMult);
+
+  const laneTrackBottomX = isPortraitCompact
+    ? [vpX - cssW * 0.44, vpX, vpX + cssW * 0.44]
+    : [vpX - cssW * 0.27, vpX, vpX + cssW * 0.27];
+  const laneTrackTopX = [vpX - 28, vpX, vpX + 28];
+
+  for (let l = 0; l < 3; l++) {
+    const isTargetedLane = l === currentLane;
+    const railGrad = ctx.createLinearGradient(laneTrackTopX[l], horizonY, laneTrackBottomX[l], cssH);
+    railGrad.addColorStop(0, 'rgba(52, 168, 143, 0.05)');
+    railGrad.addColorStop(0.28, isTargetedLane ? '#00ffcc' : 'rgba(52, 168, 143, 0.65)');
+    railGrad.addColorStop(1, isTargetedLane ? '#00ffcc' : 'rgba(52, 168, 143, 0.85)');
+
+    ctx.save();
+    ctx.fillStyle = railGrad;
+    if (isTargetedLane) {
+      ctx.shadowColor = '#00ffcc';
+      ctx.shadowBlur = 12;
+    }
+    const topHalf = isTargetedLane ? 1.4 : 0.9;
+    const botHalf = isTargetedLane ? 5.5 : 3.6;
+    ctx.beginPath();
+    ctx.moveTo(laneTrackTopX[l] - topHalf, horizonY);
+    ctx.lineTo(laneTrackTopX[l] + topHalf, horizonY);
+    ctx.lineTo(laneTrackBottomX[l] + botHalf, cssH);
+    ctx.lineTo(laneTrackBottomX[l] - botHalf, cssH);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  const depthProgress = 1 - Math.min(1, Math.max(0, (gateDistance - GAME_CONFIG.stopDistanceMeters) / (GAME_CONFIG.gateStartDistance - GAME_CONFIG.stopDistanceMeters)));
+  const easeProgress = Math.pow(depthProgress, 1.35);
+  const canvasRect = canvas.getBoundingClientRect();
+  portalHitboxes = [];
+
+  for (let laneIdx = 0; laneIdx < 3; laneIdx++) {
+    const cardEl = document.getElementById(`lane-${laneIdx}-card`);
+    const spreadFrac = laneIdx - 1;
+    let targetCx = vpX + spreadFrac * (cssW * 0.31);
+    let targetCy = cssH * 0.52;
+    let targetW = isPortraitCompact ? (cssW - 16) : Math.min(cssW * 0.29, 350);
+    let targetH = isPortraitCompact ? 92 : 148;
+
+    if (cardEl && canvasRect.width > 0) {
+      const r = cardEl.getBoundingClientRect();
+      if (r.width > 10 && r.height > 10) {
+        targetCx = (r.left - canvasRect.left) + r.width * 0.5;
+        targetCy = (r.top - canvasRect.top) + r.height * 0.5;
+        targetW = r.width;
+        targetH = r.height;
+      }
+    }
+
+    const startCx = vpX + spreadFrac * 26;
+    const startCy = horizonY - 4;
+    const startW = 24;
+    const startH = 20;
+
+    const gx = startCx + (targetCx - startCx) * easeProgress;
+    const gy = startCy + (targetCy - startCy) * easeProgress;
+    const gw = startW + (targetW - startW) * easeProgress;
+    const gh = startH + (targetH - startH) * easeProgress;
+    const fusePad = easeProgress * 3;
+    const boxX = gx - gw * 0.5 - fusePad;
+    const boxY = gy - gh * 0.5 - fusePad;
+    const boxW = gw + fusePad * 2;
+    const boxH = gh + fusePad * 2;
+
+    portalHitboxes.push({ lane: laneIdx, x: boxX, y: boxY, w: boxW, h: boxH });
+
+    const pColor = LANE_COLORS[laneIdx];
+    const isTargeted = laneIdx === currentLane;
+    const isFlaring = portalFlareLane === laneIdx && portalFlareTimer > 0;
+    const isFusedNow = depthProgress >= 0.98;
+
+    ctx.save();
+    ctx.strokeStyle = pColor;
+    ctx.fillStyle = pColor;
+    ctx.lineWidth = isFlaring ? 6.5 : (isFusedNow ? (isTargeted ? 4.5 : 3.2) : (isTargeted ? 4 : 2.8));
+    ctx.shadowColor = pColor;
+    ctx.shadowBlur = isFlaring ? 26 : (isFusedNow ? (isTargeted ? 20 : 12) : (isTargeted ? 14 : 7));
+
+    ctx.globalAlpha = isFlaring ? 0.28 : (isTargeted ? 0.14 : 0.06);
+    if (typeof ctx.roundRect === 'function') {
+      ctx.beginPath();
+      ctx.roundRect(boxX, boxY, boxW, boxH, 8);
+      ctx.fill();
+      ctx.globalAlpha = isTargeted ? 0.98 : (isFusedNow ? 0.82 : 0.72);
+      ctx.stroke();
+    } else {
+      ctx.fillRect(boxX, boxY, boxW, boxH);
+      ctx.globalAlpha = isTargeted ? 0.98 : (isFusedNow ? 0.82 : 0.72);
+      ctx.strokeRect(boxX, boxY, boxW, boxH);
+    }
+    ctx.restore();
+  }
+
+  const craftY = cssH * (isPortraitCompact ? 0.91 : 0.93);
+  const craftT = Math.max(0, Math.min(1, (craftY - horizonY) / Math.max(1, floorH)));
+  const interpRailTop = vpX + (craftVisualLane - 1) * 28;
+  const interpRailBot = vpX + (craftVisualLane - 1) * (isPortraitCompact ? cssW * 0.44 : cssW * 0.27);
+  const craftX = interpRailTop + (interpRailBot - interpRailTop) * craftT;
+  const hoverBob = Math.sin(particleTime * 4.5) * 2;
+  const bankTilt = (currentLane - craftVisualLane) * 0.12;
+  const craftHalfW = isPortraitCompact ? 34 : 52;
+  const craftHalfH = isPortraitCompact ? 38 : 54;
+
+  ctx.save();
+  ctx.translate(craftX, craftY + hoverBob);
+  ctx.rotate(bankTilt);
+  ctx.shadowColor = '#00e6b8';
+  ctx.shadowBlur = 16;
+
+  const craftGrad = ctx.createLinearGradient(0, -craftHalfH, 0, craftHalfH * 0.6);
+  craftGrad.addColorStop(0, '#50caa8');
+  craftGrad.addColorStop(1, '#268b72');
+  ctx.fillStyle = craftGrad;
+  ctx.beginPath();
+  ctx.moveTo(0, -craftHalfH);
+  ctx.lineTo(craftHalfW, 0);
+  ctx.lineTo(0, craftHalfH);
+  ctx.lineTo(-craftHalfW, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(0, 255, 204, 0.55)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.restore();
+  animFrameId = requestAnimationFrame(renderRunnerFrame);
+}
+
+async function persistAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.setAppState !== 'function') return;
+  try {
+    await window.notebookAppApi.setAppState({
+      bestXp,
+      bestStreak,
+      masteredIds,
+      isHintsVisible,
+      isSoundEnabled,
+      isSfxEnabled,
+      isTimerEnabled,
+      isTimesUpFailEnabled,
+      bgmVolume,
+      phaseFilter,
+      sectorFilter: document.getElementById('sector-filter')?.value || 'all',
+      angleFilter: document.getElementById('angle-filter')?.value || 'all'
+    });
+  } catch (e) {}
+}
+
+async function restoreAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.getAppState !== 'function') return;
+  try {
+    const s = await window.notebookAppApi.getAppState();
+    if (!s) return;
+    if (typeof s.bestXp === 'number') bestXp = s.bestXp;
+    if (typeof s.bestStreak === 'number') bestStreak = s.bestStreak;
+    if (Array.isArray(s.masteredIds)) masteredIds = s.masteredIds;
+    if (typeof s.isHintsVisible === 'boolean') isHintsVisible = s.isHintsVisible;
+    if (typeof s.isSoundEnabled === 'boolean') isSoundEnabled = s.isSoundEnabled;
+    if (typeof s.isSfxEnabled === 'boolean') isSfxEnabled = s.isSfxEnabled;
+    if (typeof s.isTimerEnabled === 'boolean') isTimerEnabled = s.isTimerEnabled;
+    if (typeof s.isTimesUpFailEnabled === 'boolean') isTimesUpFailEnabled = s.isTimesUpFailEnabled;
+    if (typeof s.bgmVolume === 'number') {
+      bgmVolume = s.bgmVolume;
+      const slider = document.getElementById('bgm-volume-slider');
+      if (slider) slider.value = String(Math.round(bgmVolume * 100));
+    }
+    if (s.phaseFilter) {
+      phaseFilter = s.phaseFilter;
+      document.querySelectorAll('.phase-mix-pill[data-phase]').forEach((p) => {
+        p.classList.toggle('is-selected', p.dataset.phase === phaseFilter);
+      });
+    }
+    const sf = document.getElementById('sector-filter');
+    const af = document.getElementById('angle-filter');
+    if (sf && s.sectorFilter) sf.value = s.sectorFilter;
+    if (af && s.angleFilter) af.value = s.angleFilter;
+  } catch (e) {}
+}
+
+async function initRunnerGame() {
+  initDynamicSelectors();
+  await restoreAppState();
+  syncHintsUI();
+  syncMissedOptionLabel();
+  buildDeck(false);
+  updateTelemetryUI();
+  prepareNextGate();
+
+  const canvas = document.getElementById('xr-canvas');
+  if (canvas) {
+    canvas.addEventListener('click', handleCanvasPointer);
+    canvas.addEventListener('mousemove', handleCanvasHover);
+    canvas.addEventListener('pointermove', handleCanvasHover);
+  }
+  window.addEventListener('keydown', handleKeyControls);
+
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  animFrameId = requestAnimationFrame(renderRunnerFrame);
+
+  if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === 'function') {
+    window.notebookAppApi.notifyAppReady();
+  }
+}
+
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', initRunnerGame);
+} else {
+  initRunnerGame();
+}
+</script>
+</body>
+</html>
