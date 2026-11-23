@@ -1,0 +1,2740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="artifact-type" content="narrative">
+  <meta name="design-style" content="vitals">
+  <title>Lecture 07: Bone Tumors — Interactive Cornell Studio Report</title>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&family=Figtree:wght@300..900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@1.43.0/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+
+      /* Vitals Page and Surfaces */
+      --background: #ffffff;
+      --surface-container-low: #f1f7f8;
+      --surface-container: #e3f1f3;
+      --surface-container-high: #d5e9ec;
+
+      /* Text */
+      --on-surface: #1b2b33;
+      --on-surface-variant: #46585f;
+
+      /* Rules */
+      --outline: #7b9198;
+      --outline-variant: #d5e3e5;
+
+      /* Accents */
+      --primary: #0f7c8a;
+      --on-primary: #ffffff;
+      --primary-container: #e3f1f3;
+      --on-primary-container: #0a5560;
+      --secondary: #1d5e3a;
+      --tertiary: #2e7d4f;
+      --error: #b3261e;
+      --on-error: #ffffff;
+
+      /* Data Series */
+      --data-1: #0f7c8a;
+      --data-2: #2e7d4f;
+      --data-3: #b86e00;
+      --data-4: #5c5fb0;
+      --data-context: #b8c7ca;
+
+      /* Semantic & Focus */
+      --positive: #2e7d4f;
+      --warning: #b86e00;
+      --focus: #0f7c8a;
+
+      /* Fonts */
+      --font-headline: 'Figtree', sans-serif;
+      --font-body: 'Atkinson Hyperlegible', sans-serif;
+      --font-label: 'Figtree', sans-serif;
+
+      /* Type Scale */
+      --display-size: clamp(1.9rem, 1.4rem + 1.8vw, 2.75rem);
+      --headline-size: clamp(1.35rem, 1.1rem + 0.9vw, 1.75rem);
+      --subhead-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
+      --body-size: clamp(1rem, 0.95rem + 0.2vw, 1.0625rem);
+      --label-size: 0.75rem;
+
+      /* Spacing Scale */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+      --space-2xl: 4rem;
+
+      /* Radii & Effects */
+      --rounded: 0.625rem;
+      --rounded-lg: 0.875rem;
+      --rounded-full: 9999px;
+      --top-bar: 6px solid var(--primary);
+      --status-bar-width: 4px;
+      --card-border: 1px solid var(--outline-variant);
+      --card-lift: 0 1px 2px rgb(27 43 51 / 0.05), 0 6px 16px rgb(27 43 51 / 0.05);
+      --hud-shadow: 0 4px 20px rgb(27 43 51 / 0.12);
+      --hud-backdrop: color-mix(in srgb, var(--background) 94%, transparent);
+      --lecturer-tint: color-mix(in srgb, var(--data-3) 8%, var(--background));
+      --board-tint: color-mix(in srgb, var(--primary) 7%, var(--background));
+      --chip-ok-bg: color-mix(in srgb, var(--tertiary) 14%, var(--background));
+      --chip-alert-bg: color-mix(in srgb, var(--error) 10%, var(--background));
+      --cloze-revealed-bg: color-mix(in srgb, var(--tertiary) 15%, var(--background));
+
+      /* Motion */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      overflow-x: clip;
+      margin: 0;
+      padding: 0;
+      background-color: var(--surface-container-low);
+      color: var(--on-surface);
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      line-height: 1.6;
+    }
+    header { position: static !important; }
+
+    /* Focus Accessibility */
+    :focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    /* Pinned Top-Left Progress HUD */
+    aside.pinned-progress-hud {
+      position: fixed;
+      top: 0.85rem;
+      left: 0.85rem;
+      z-index: 1000;
+      width: clamp(240px, 24vw, 310px);
+      background: var(--hud-backdrop);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--outline);
+      border-left: var(--status-bar-width) solid var(--tertiary);
+      border-radius: 0.75rem;
+      padding: 0.6rem 0.85rem;
+      box-shadow: var(--hud-shadow);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+    .hud-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    .hud-label {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      font-family: var(--font-label);
+      font-weight: 700;
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--on-surface);
+    }
+    .hud-label svg { width: 15px; height: 15px; color: var(--tertiary); }
+    .hud-stats {
+      font-family: var(--font-label);
+      font-weight: 800;
+      font-size: 0.8125rem;
+      font-variant-numeric: tabular-nums;
+      color: var(--secondary);
+    }
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background-color: var(--surface-container);
+      border-radius: var(--rounded-full);
+      overflow: hidden;
+      border: 1px solid var(--outline-variant);
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background-color: var(--tertiary);
+      border-radius: var(--rounded-full);
+      transition: width var(--dur-short) var(--ease-out);
+    }
+    .hud-actions-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-xs);
+      margin-top: 2px;
+    }
+    .hud-mini-btn {
+      font-family: var(--font-label);
+      font-weight: 600;
+      font-size: 0.72rem;
+      padding: 0.25rem 0.55rem;
+      border-radius: var(--rounded);
+      border: 1px solid var(--outline-variant);
+      background: var(--background);
+      color: var(--on-surface);
+      cursor: pointer;
+      min-height: 28px;
+      transition: background-color var(--dur-micro) var(--ease-in-out);
+    }
+    .hud-mini-btn:hover { background: var(--surface-container); }
+    .hud-mini-btn[data-active="true"] {
+      background: var(--primary);
+      color: var(--on-primary);
+      border-color: var(--primary);
+    }
+
+    /* Main Page Shell */
+    .page-shell {
+      border-top: var(--top-bar);
+      padding: 4.5rem var(--space-lg) var(--space-2xl);
+      max-width: 1320px;
+      margin: 0 auto;
+      display: grid;
+      gap: var(--space-lg);
+    }
+    .page-shell * { min-width: 0; }
+
+    /* Chips & Buttons */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      font-family: var(--font-label);
+      font-weight: 600;
+      font-size: var(--label-size);
+      padding: var(--space-xs) 0.75rem;
+      border-radius: var(--rounded-full);
+      background: var(--chip-ok-bg);
+      color: var(--secondary);
+      white-space: nowrap;
+    }
+    .chip svg { width: 14px; height: 14px; }
+    .chip[data-status="info"] { background: var(--primary-container); color: var(--on-primary-container); }
+    .chip[data-status="focus"] { background: var(--lecturer-tint); color: var(--on-surface); border: 1px solid var(--outline-variant); }
+    .chip[data-status="alert"] { background: var(--chip-alert-bg); color: var(--error); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+      font-family: var(--font-label);
+      font-weight: 600;
+      font-size: 0.875rem;
+      padding: 0.6rem 1rem;
+      min-height: 44px;
+      border-radius: var(--rounded);
+      cursor: pointer;
+      border: 1px solid var(--primary);
+      transition: background-color var(--dur-micro) var(--ease-in-out), color var(--dur-micro) var(--ease-in-out);
+    }
+    .btn svg { width: 16px; height: 16px; }
+    .btn-active-recall {
+      background: var(--primary);
+      color: var(--on-primary);
+    }
+    .btn-active-recall:hover { background: var(--on-primary-container); }
+    .btn-active-recall[data-active="true"] {
+      background: var(--secondary);
+      border-color: var(--secondary);
+    }
+    .btn-outline {
+      background: var(--background);
+      color: var(--on-primary-container);
+      border-color: var(--outline);
+    }
+    .btn-outline:hover { background: var(--surface-container-low); }
+    .hidden-control { display: none !important; }
+
+    /* Header Band */
+    header.page-header-band {
+      background: var(--background);
+      border: var(--card-border);
+      border-left: var(--status-bar-width) solid var(--primary);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      box-shadow: var(--card-lift);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--space-lg);
+      align-items: start;
+    }
+    .header-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-sm);
+    }
+    header.page-header-band h1 {
+      font-family: var(--font-headline);
+      font-weight: 800;
+      font-size: var(--display-size);
+      letter-spacing: -0.015em;
+      line-height: 1.08;
+      margin: 0;
+      color: var(--on-surface);
+    }
+    .lede {
+      font-size: 1.0625rem;
+      line-height: 1.55;
+      color: var(--on-surface-variant);
+      max-width: 65ch;
+      margin: var(--space-sm) 0 0;
+    }
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    /* Study Controls & LO Filter Bar */
+    section.study-controls-bar {
+      background: var(--background);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md) var(--space-lg);
+      display: grid;
+      gap: var(--space-md);
+    }
+    .controls-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: var(--space-md);
+      padding-bottom: var(--space-sm);
+      border-bottom: 1px solid var(--outline-variant);
+    }
+    .input-field-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+    .input-field-group label {
+      font-family: var(--font-label);
+      font-weight: 600;
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--on-surface-variant);
+    }
+    .date-input {
+      font-family: var(--font-body);
+      font-size: 0.9375rem;
+      padding: 0.45rem 0.75rem;
+      min-height: 44px;
+      border: 1px solid var(--outline);
+      border-radius: var(--rounded);
+      background: var(--background);
+      color: var(--on-surface);
+    }
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    .label-text {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      font-family: var(--font-label);
+      font-weight: 700;
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--on-surface-variant);
+      margin-right: var(--space-xs);
+    }
+    .label-text svg { width: 14px; height: 14px; }
+    .filter-btn {
+      font-family: var(--font-label);
+      font-weight: 600;
+      font-size: 0.875rem;
+      padding: 0.5rem 0.9rem;
+      min-height: 44px;
+      border-radius: var(--rounded);
+      border: 1px solid var(--outline-variant);
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      cursor: pointer;
+      transition: background-color var(--dur-micro) var(--ease-in-out), color var(--dur-micro) var(--ease-in-out);
+    }
+    .filter-btn:hover { background: var(--surface-container); }
+    .filter-btn.active {
+      background: var(--primary);
+      color: var(--on-primary);
+      border-color: var(--primary);
+    }
+
+    /* Topic Modules */
+    section.topic-module {
+      display: grid;
+      gap: var(--space-md);
+    }
+    section.topic-module.filtered-out { display: none; }
+
+    .topic-module-header {
+      background: var(--background);
+      border: var(--card-border);
+      border-left: var(--status-bar-width) solid var(--primary);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md) var(--space-lg);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-md);
+    }
+    .topic-title-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    .topic-title-wrap h2 {
+      font-family: var(--font-headline);
+      font-weight: 800;
+      font-size: var(--headline-size);
+      letter-spacing: -0.015em;
+      line-height: 1.15;
+      margin: 0;
+      color: var(--on-surface);
+    }
+
+    /* Topic-Embedded Interactive Workbench */
+    .topic-interactive-card {
+      background: var(--background);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      box-shadow: var(--card-lift);
+      display: grid;
+      gap: var(--space-md);
+    }
+    .interactive-card-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-sm);
+      border-bottom: 1px solid var(--outline-variant);
+      padding-bottom: var(--space-sm);
+    }
+    .interactive-card-header h3 {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: var(--subhead-size);
+      margin: 0;
+      color: var(--on-surface);
+    }
+    .discriminator-controls, .flow-step-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+    }
+    .discrim-chip, .flow-card {
+      font-family: var(--font-label);
+      font-weight: 600;
+      font-size: 0.875rem;
+      padding: 0.55rem 0.95rem;
+      min-height: 44px;
+      border-radius: var(--rounded);
+      border: 1px solid var(--outline);
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      cursor: pointer;
+      text-align: left;
+      transition: background-color var(--dur-micro) var(--ease-in-out), color var(--dur-micro) var(--ease-in-out);
+    }
+    .discrim-chip:hover, .flow-card:hover { background: var(--surface-container); }
+    .discrim-chip.active, .flow-card.active {
+      background: var(--primary);
+      color: var(--on-primary);
+      border-color: var(--primary);
+    }
+    .flow-card {
+      flex: 1 1 200px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .flow-card small {
+      font-weight: 400;
+      opacity: 0.9;
+      font-size: 0.78rem;
+    }
+
+    .discrim-detail-grid {
+      display: grid;
+      grid-template-columns: 340px minmax(0, 1fr);
+      gap: var(--space-lg);
+      align-items: start;
+    }
+    .svg-schematic-container {
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      padding: var(--space-md);
+      display: grid;
+      gap: var(--space-sm);
+    }
+    .svg-slot {
+      width: 100%;
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .svg-slot svg {
+      width: 100%;
+      height: auto;
+      max-height: 215px;
+      display: block;
+    }
+    .svg-caption {
+      font-size: 0.85rem;
+      color: var(--on-surface-variant);
+      margin: 0;
+      line-height: 1.45;
+    }
+
+    .discrim-matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+    }
+    .discrim-matrix-table th, .discrim-matrix-table td {
+      padding: 0.65rem 0.8rem;
+      border-bottom: 1px solid var(--outline-variant);
+      text-align: left;
+      vertical-align: top;
+    }
+    .discrim-matrix-table th {
+      width: 34%;
+      font-family: var(--font-label);
+      font-weight: 700;
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--on-surface-variant);
+      background: var(--surface-container-low);
+    }
+
+    .flow-result-box {
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-left: var(--status-bar-width) solid var(--primary);
+      border-radius: var(--rounded);
+      padding: var(--space-md) var(--space-lg);
+      display: grid;
+      gap: var(--space-sm);
+    }
+    .flow-result-box h4 {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: 1.125rem;
+      margin: 0;
+      color: var(--on-surface);
+    }
+    .flow-breakdown-item {
+      background: var(--background);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      padding: 0.65rem 0.85rem;
+    }
+    .flow-breakdown-label {
+      display: block;
+      font-family: var(--font-label);
+      font-weight: 700;
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--on-primary-container);
+      margin-bottom: 2px;
+    }
+
+    /* Cornell 2-Column Row Stack */
+    .topic-cornell-stack {
+      display: grid;
+      gap: var(--space-md);
+    }
+    article.cornell-row {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      background: var(--background);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      box-shadow: var(--card-lift);
+      overflow: hidden;
+    }
+    article.cornell-row.is-mastered {
+      border-left: var(--status-bar-width) solid var(--tertiary);
+    }
+
+    /* Left Cue Column */
+    .cue-column {
+      background: var(--surface-container-low);
+      border-right: 1px solid var(--outline-variant);
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+    .cue-mastery-toggle {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: 0.35rem 0.55rem;
+      background: var(--background);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+    }
+    .cue-checkbox {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--tertiary);
+      cursor: pointer;
+    }
+    .cue-checkbox-label {
+      font-family: var(--font-label);
+      font-weight: 700;
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--on-surface);
+      cursor: pointer;
+    }
+    .cue-lo-badge {
+      font-family: var(--font-label);
+      font-weight: 700;
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--on-primary-container);
+      background: var(--primary-container);
+      padding: 0.2rem 0.55rem;
+      border-radius: var(--rounded-full);
+      align-self: flex-start;
+    }
+    .cue-title {
+      font-family: var(--font-headline);
+      font-weight: 800;
+      font-size: 1.1875rem;
+      line-height: 1.2;
+      margin: 0;
+      color: var(--on-surface);
+    }
+    .cue-parameters {
+      display: grid;
+      gap: var(--space-xs);
+      margin-top: var(--space-xs);
+    }
+    .cue-param-item {
+      background: var(--background);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      padding: 0.45rem 0.6rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .cue-param-key {
+      font-family: var(--font-label);
+      font-weight: 700;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--on-surface-variant);
+    }
+    .cue-param-val {
+      font-size: 0.9rem;
+      line-height: 1.35;
+      color: var(--on-surface);
+    }
+
+    /* Right Synthesis Column */
+    .synthesis-column {
+      padding: var(--space-lg);
+      display: grid;
+      gap: var(--space-md);
+      align-content: start;
+    }
+    .synthesis-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: var(--space-sm);
+      border-bottom: 1px solid var(--outline-variant);
+      padding-bottom: var(--space-sm);
+    }
+    .synthesis-title {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: 1.1875rem;
+      margin: 0;
+      color: var(--on-surface);
+    }
+    .synthesis-lo-ref {
+      font-family: var(--font-label);
+      font-weight: 600;
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+    }
+    .synthesis-subgrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+      gap: var(--space-md);
+    }
+    .synthesis-block {
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      padding: var(--space-md);
+    }
+    .synthesis-block-title {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      font-family: var(--font-label);
+      font-weight: 700;
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--on-primary-container);
+      margin-bottom: var(--space-sm);
+    }
+    .synthesis-block-title svg { width: 15px; height: 15px; }
+    .synthesis-block-content ul {
+      margin: 0;
+      padding-left: 1.15rem;
+      display: grid;
+      gap: var(--space-sm);
+    }
+    .synthesis-block-content li {
+      font-size: 0.95rem;
+      line-height: 1.52;
+      color: var(--on-surface);
+    }
+
+    /* Callout Deck */
+    .callout-deck {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-md);
+    }
+    .callout-card {
+      border: 1px solid var(--outline-variant);
+      border-left: var(--status-bar-width) solid var(--primary);
+      border-radius: var(--rounded);
+      padding: 0.75rem 1rem;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+    }
+    .callout-lecturer {
+      background: var(--lecturer-tint);
+      border-left-color: var(--data-3);
+    }
+    .callout-board {
+      background: var(--board-tint);
+      border-left-color: var(--primary);
+    }
+    .callout-title {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      font-family: var(--font-label);
+      font-weight: 700;
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--on-surface);
+      margin-bottom: var(--space-xs);
+    }
+    .callout-title svg { width: 14px; height: 14px; }
+    .callout-card p { margin: 0; color: var(--on-surface); }
+
+    /* Active Recall Cloze Mode (AMBOSS Safe) */
+    .cloze {
+      font-weight: 700;
+      border-bottom: 2px dashed color-mix(in srgb, var(--primary) 50%, transparent);
+      cursor: text;
+    }
+    body.active-recall-active .cloze:not(.revealed) {
+      background-color: var(--surface-container-high);
+      color: transparent !important;
+      border: 1px solid var(--outline);
+      border-radius: 4px;
+      padding: 0.05rem 0.45rem;
+      position: relative;
+      display: inline-block;
+      min-width: 5.2rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    body.active-recall-active .cloze:not(.revealed)::after {
+      content: "[ ? Reveal ]";
+      color: var(--on-primary-container);
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 0.72rem;
+      font-family: var(--font-label);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    body.active-recall-active .cloze.revealed {
+      background-color: var(--cloze-revealed-bg);
+      color: var(--secondary) !important;
+      border-bottom: 2px solid var(--tertiary);
+      cursor: pointer;
+      padding: 0 0.2rem;
+      border-radius: 3px;
+    }
+
+    /* Master Comparative Matrix */
+    section.master-matrix-section {
+      background: var(--background);
+      border: var(--card-border);
+      border-left: var(--status-bar-width) solid var(--primary);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      box-shadow: var(--card-lift);
+      display: grid;
+      gap: var(--space-md);
+    }
+    .master-matrix-section h2 {
+      font-family: var(--font-headline);
+      font-weight: 800;
+      font-size: var(--headline-size);
+      margin: 0;
+      color: var(--on-surface);
+    }
+    .master-table-container {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+    }
+    table.master-matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 920px;
+      font-size: 0.875rem;
+    }
+    table.master-matrix-table th {
+      background: var(--surface-container);
+      color: var(--on-primary-container);
+      font-family: var(--font-label);
+      font-weight: 700;
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.75rem 0.85rem;
+      text-align: left;
+      border-bottom: 1px solid var(--outline);
+    }
+    table.master-matrix-table td {
+      padding: 0.75rem 0.85rem;
+      border-bottom: 1px solid var(--outline-variant);
+      vertical-align: top;
+      line-height: 1.45;
+    }
+    table.master-matrix-table tbody tr:hover {
+      background: var(--surface-container-low);
+    }
+    td.table-entity-cell {
+      font-weight: 700;
+      color: var(--on-surface);
+      white-space: nowrap;
+    }
+    span.entity-subcat {
+      display: block;
+      font-family: var(--font-label);
+      font-weight: 600;
+      font-size: 0.72rem;
+      color: var(--on-primary-container);
+      margin-top: 2px;
+    }
+    span.entity-subcat.malignant { color: var(--error); }
+    span.entity-subcat.benign { color: var(--secondary); }
+
+    /* Footer */
+    footer.report-footer {
+      background: var(--background);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md) var(--space-lg);
+      font-size: 0.875rem;
+      color: var(--on-surface-variant);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+
+    @media (max-width: 960px) {
+      header.page-header-band { grid-template-columns: 1fr; }
+      .header-actions { justify-content: flex-start; }
+      .discrim-detail-grid { grid-template-columns: 1fr; }
+      article.cornell-row { grid-template-columns: 1fr; }
+      .cue-column { border-right: none; border-bottom: 1px solid var(--outline-variant); }
+      .callout-deck { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .page-shell { padding: 6.75rem var(--space-sm) var(--space-xl); }
+      aside.pinned-progress-hud {
+        width: calc(100% - 1.7rem);
+        max-width: 340px;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Pinned Top-Left Mastery Progress HUD -->
+  <aside class="pinned-progress-hud" id="pinnedProgressHud" aria-label="Mastery Progress Tracker">
+    <div class="hud-meta-row">
+      <span class="hud-label"><i data-lucide="check-circle-2"></i> Mastery</span>
+      <span id="masteryStatsText" class="hud-stats">0 / 14 (0%)</span>
+    </div>
+    <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="14" aria-valuenow="0" id="masteryProgressTrack">
+      <div class="progress-fill" id="masteryProgressFill"></div>
+    </div>
+    <div class="hud-actions-row">
+      <button type="button" class="hud-mini-btn" id="hudRecallBtn" onclick="toggleActiveRecallMode()">Recall: OFF</button>
+      <button type="button" class="hud-mini-btn" id="hudResetBtn" onclick="resetMasteryChecklist(this)">Reset</button>
+    </div>
+  </aside>
+
+  <main class="page-shell">
+
+    <!-- Page Header Band -->
+    <header class="page-header-band">
+      <div>
+        <div class="header-badges">
+          <span class="chip" data-status="info">Musculoskeletal Pathology</span>
+          <span class="chip">2-Column Cornell Studio Report</span>
+          <span class="chip" data-status="focus">Strict Course Grounding</span>
+        </div>
+        <h1>Lecture 07: Bone Tumors (Dr. Angelica Oviedo, MD)</h1>
+        <p class="lede">Row-by-row aligned Cornell study synthesis integrating bone-forming tumors, cartilage-forming tumors and mosaic syndromes, Ewing sarcoma, giant cell tumor of bone, fibro-osseous lesions, skeletal metastases, and Cases 1–10 (Questions 1–13).</p>
+      </div>
+      <div class="header-actions">
+        <button type="button" id="recallToggleBtn" class="btn btn-active-recall" onclick="toggleActiveRecallMode()">
+          <i data-lucide="eye"></i> <span>Active Recall Mode: OFF</span>
+        </button>
+        <button type="button" id="revealAllBtn" class="btn btn-outline hidden-control" onclick="revealAllClozes()">
+          <i data-lucide="check-check"></i> <span>Reveal All</span>
+        </button>
+        <button type="button" id="hideAllBtn" class="btn btn-outline hidden-control" onclick="hideAllClozes()">
+          <i data-lucide="eye-off"></i> <span>Re-Mask All</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Study Metadata & LO Filter Bar -->
+    <section class="study-controls-bar" aria-label="Study Controls and Topic Filters">
+      <div class="controls-meta-row">
+        <div class="input-field-group">
+          <label for="lastReviewedDateInput">Last Reviewed Date:</label>
+          <input type="date" id="lastReviewedDateInput" class="date-input" onchange="handleDateUpdate(this.value)">
+        </div>
+        <span class="chip" data-status="info">
+          <i data-lucide="brain"></i>
+          <span id="clozeTotalBadge">0 Cloze Active Recall Terms</span>
+        </span>
+      </div>
+      <div class="filter-bar" role="group" aria-label="Learning Objective Filter">
+        <span class="label-text"><i data-lucide="filter"></i> Filter Topics:</span>
+        <button type="button" class="filter-btn active" data-filter="all" onclick="filterCornellTopics('all', this)">All 14 Concepts</button>
+        <button type="button" class="filter-btn" data-filter="lo1" onclick="filterCornellTopics('lo1', this)">LO1: Bone-Forming Tumors</button>
+        <button type="button" class="filter-btn" data-filter="lo2" onclick="filterCornellTopics('lo2', this)">LO2: Cartilage Tumors &amp; Syndromes</button>
+        <button type="button" class="filter-btn" data-filter="lo3" onclick="filterCornellTopics('lo3', this)">LO3: Other Tumors &amp; Metastases</button>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TOPIC MODULE 1: BONE-FORMING TUMORS                                 -->
+    <!-- =================================================================== -->
+    <section class="topic-module" data-lo="lo1">
+      <div class="topic-module-header">
+        <div class="topic-title-wrap">
+          <span class="chip" data-status="info">TOPIC / LO 1</span>
+          <h2>Bone-Forming Tumors &amp; Normal Osteoid Architecture</h2>
+        </div>
+        <span class="chip" data-status="focus">Lecturer Rule: Osteoblastic rimming = benign; pleomorphic cells making pink osteoid = osteosarcoma</span>
+      </div>
+
+      <!-- Topic 1 Interactive Figure: Pattern A Workbench -->
+      <div class="topic-interactive-card" id="workbench-lo1">
+        <div class="interactive-card-header">
+          <h3>Interactive Bone-Forming &amp; Cortical Lesion Discriminator</h3>
+          <span class="chip" data-status="info">Select Tumor to Inspect Radiology &amp; Pathology</span>
+        </div>
+        <div class="discriminator-controls" role="group" aria-label="Bone-forming tumor selector">
+          <button type="button" class="discrim-chip active" data-item="osteoidOsteoma" onclick="selectTopicFigureItem('lo1', 'osteoidOsteoma', this)">Osteoid Osteoma (Case 2)</button>
+          <button type="button" class="discrim-chip" data-item="osteoblastoma" onclick="selectTopicFigureItem('lo1', 'osteoblastoma', this)">Osteoblastoma</button>
+          <button type="button" class="discrim-chip" data-item="osteosarcoma" onclick="selectTopicFigureItem('lo1', 'osteosarcoma', this)">Osteosarcoma (Case 3)</button>
+        </div>
+        <div class="discrim-detail-grid">
+          <div class="svg-schematic-container">
+            <div class="svg-slot" id="svgSlot-lo1"></div>
+            <p class="svg-caption" id="svgCaption-lo1"></p>
+          </div>
+          <table class="discrim-matrix-table">
+            <tbody>
+              <tr><th>Size &amp; Demographics</th><td id="lo1-size"></td></tr>
+              <tr><th>Primary Anatomic Site</th><td id="lo1-site"></td></tr>
+              <tr><th>Clinical Pain &amp; NSAID Rule</th><td id="lo1-pain"></td></tr>
+              <tr><th>Radiology &amp; Cortex Behavior</th><td id="lo1-rad"></td></tr>
+              <tr><th>Pathology &amp; Molecular Driver</th><td id="lo1-path"></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="topic-cornell-stack">
+        <!-- Row 1.1: Normal Radial Bone & Woven vs Lamellar -->
+        <article class="cornell-row" data-lo="lo1" id="row-lo1-1">
+          <div class="cue-column">
+            <div class="cue-mastery-toggle">
+              <input type="checkbox" id="chk-lo1-1" class="cue-checkbox" onchange="toggleMasteryRow('lo1-1', this.checked)">
+              <label for="chk-lo1-1" class="cue-checkbox-label">Mark Mastered</label>
+            </div>
+            <span class="cue-lo-badge">LO 1.01 • Baseline &amp; Matrix</span>
+            <h3 class="cue-title">Normal Bone &amp; Osteoblastic Rimming</h3>
+            <div class="cue-parameters">
+              <div class="cue-param-item">
+                <span class="cue-param-key">Normal Marrow Content</span>
+                <span class="cue-param-val"><span class="cloze">Adipose and hematopoietic elements</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Lamellar Matrix Pattern</span>
+                <span class="cue-param-val"><span class="cloze">Parallel collagen fibers</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Woven Bone Matrix</span>
+                <span class="cue-param-val"><span class="cloze">Disorganized matrix</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Benign Lesion Sign</span>
+                <span class="cue-param-val"><span class="cloze">Osteoblastic rimming</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="synthesis-column">
+            <div class="synthesis-header">
+              <h4 class="synthesis-title">Normal Radial Head Comparison &amp; Histologic Matrix Rules</h4>
+              <span class="synthesis-lo-ref">LO 1.01 • Case 1 (Q1) &amp; Lecture Slides</span>
+            </div>
+            <div class="synthesis-subgrid">
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="microscope"></i> Normal Bone Architecture (Case 1 / Q1)</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Trabecular &amp; Marrow Baseline:</strong> Normal radial head histology demonstrates <span class="cloze">trabecular bone</span> enclosing a normal marrow space filled with <span class="cloze">adipose and hematopoietic elements</span>.</li>
+                    <li><strong>Surface &amp; Cortical Layers:</strong> A thin rim of <span class="cloze">cortical bone</span> supports the outer margin, while <span class="cloze">articular cartilage</span> caps the end of the bone.</li>
+                    <li><strong>Lamellar Bone:</strong> Mature normal bone consists of <span class="cloze">lamellar bone</span> characterized by <span class="cloze">parallel collagen fibers</span>.</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="layers"></i> Woven Bone &amp; Benign Rimming</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Woven Bone Formation:</strong> <span class="cloze">Woven bone</span> displays a <span class="cloze">disorganized matrix</span> rather than parallel collagen arrays; it appears in various bone lesions and in normal <span class="cloze">fracture repair</span>.</li>
+                    <li><strong>Osteoblastic Rimming Definition:</strong> <span class="cloze">Osteoblasts</span> line up neatly along the outer edge of trabeculae of <span class="cloze">woven bone</span>.</li>
+                    <li><strong>Diagnostic Discriminator:</strong> Seeing uniform <span class="cloze">osteoblastic rimming</span> around woven bone trabeculae is generally a reliable histologic sign of a <span class="cloze">benign bone lesion</span> (e.g., osteoid osteoma) rather than osteosarcoma.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="callout-deck">
+              <div class="callout-card callout-lecturer">
+                <span class="callout-title"><i data-lucide="sparkles"></i> Lecturer High-Yield Focus (Dr. Oviedo)</span>
+                <p>“Always anchor tumor slides against Case 1 normal radial bone. Look at the collagen organization to separate lamellar from woven bone, and check the edge of the trabeculae for osteoblastic rimming.”</p>
+              </div>
+              <div class="callout-card callout-board">
+                <span class="callout-title"><i data-lucide="target"></i> Second-Order Board Clue</span>
+                <p>When a biopsy of a bone lesion shows haphazard, disorganized <span class="cloze">woven bone</span> trabeculae lined by a single orderly row of benign-appearing <span class="cloze">osteoblasts</span>, think of reactive fracture callus or a benign osteoid-producing tumor rather than malignancy.</p>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Row 1.2: Osteoid Osteoma -->
+        <article class="cornell-row" data-lo="lo1" id="row-lo1-2">
+          <div class="cue-column">
+            <div class="cue-mastery-toggle">
+              <input type="checkbox" id="chk-lo1-2" class="cue-checkbox" onchange="toggleMasteryRow('lo1-2', this.checked)">
+              <label for="chk-lo1-2" class="cue-checkbox-label">Mark Mastered</label>
+            </div>
+            <span class="cue-lo-badge">LO 1.02 • Benign Bone Tumor</span>
+            <h3 class="cue-title">Osteoid Osteoma</h3>
+            <div class="cue-parameters">
+              <div class="cue-param-item">
+                <span class="cue-param-key">Size &amp; Demographics</span>
+                <span class="cue-param-val"><span class="cloze">Less than 2 cm</span>; teens &amp; 20s</span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Classic Site</span>
+                <span class="cue-param-val"><span class="cloze">Cortex of femur or tibia</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Clinical Hallmark</span>
+                <span class="cue-param-val"><span class="cloze">Nocturnal pain relieved by NSAIDs</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Radiologic Hallmark</span>
+                <span class="cue-param-val"><span class="cloze">Cleared nidus with reactive sclerosis</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Microscopic Hallmark</span>
+                <span class="cue-param-val"><span class="cloze">Woven bone with osteoblastic rimming</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="synthesis-column">
+            <div class="synthesis-header">
+              <h4 class="synthesis-title">Cortical Nidus with Dense Reactive Sclerosis &amp; NSAID-Responsive Pain</h4>
+              <span class="synthesis-lo-ref">LO 1.02 • Lecture Scenario &amp; Case 2 (Q2)</span>
+            </div>
+            <div class="synthesis-subgrid">
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="activity"></i> Clinical Scenarios &amp; Epidemiology</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Demographics &amp; Size:</strong> Benign bone-forming tumor measuring <span class="cloze">less than 2 cm</span> in diameter, affecting <span class="cloze">teens and 20s</span> with a <span class="cloze">3:1 male-to-female</span> predominance.</li>
+                    <li><strong>Location:</strong> Arises in the <span class="cloze">cortex of femur or tibia</span> in <span class="cloze">50% of cases</span>.</li>
+                    <li><strong>Lecture &amp; Case 2 Vignettes:</strong> Both the 10-year-old boy with 3 months of left thigh pain and Case 2 (20-year-old male with right leg pain) present with <span class="cloze">severe nocturnal pain</span> that wakes them from sleep and is classically <span class="cloze">relieved by ibuprofen</span> (<span class="cloze">NSAIDs</span>).</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="scan"></i> Imaging &amp; Nidus Histopathology</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>CT / X-Ray Appearance:</strong> Case 2 coronal CT of the tibia shows a medial cortical lesion containing a central cleared (lucent) <span class="cloze">nidus</span> (meaning “nest”) surrounded by thick, white <span class="cloze">reactive cortical bone</span>.</li>
+                    <li><strong>Microscopic Nidus:</strong> Resection reveals a small area of fibrous-appearing tissue (<span class="cloze">nidus</span>) containing interconnecting trabeculae of <span class="cloze">woven bone</span> lined by <span class="cloze">osteoblastic rimming</span>.</li>
+                    <li><strong>Surrounding Bone:</strong> Beyond the nidus lies very thick, dense, sclerotic <span class="cloze">reactive bone</span>.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="callout-deck">
+              <div class="callout-card callout-lecturer">
+                <span class="callout-title"><i data-lucide="sparkles"></i> Lecturer High-Yield Focus (Dr. Oviedo)</span>
+                <p>“Remember the terminology: nidus means nest. On X-ray and CT you see a cleared central nidus surrounded by thick reactive cortical bone, and microscopically the osteoblastic rimming signals a benign lesion.”</p>
+              </div>
+              <div class="callout-card callout-board">
+                <span class="callout-title"><i data-lucide="target"></i> Second-Order Board Clue</span>
+                <p>A young adult or adolescent with night-time shin or thigh pain relieved by <span class="cloze">ibuprofen</span> and a small (&lt;2 cm) cortical lucency surrounded by <span class="cloze">sclerotic reactive bone</span> has an <span class="cloze">osteoid osteoma</span>.</p>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Row 1.3: Osteoblastoma -->
+        <article class="cornell-row" data-lo="lo1" id="row-lo1-3">
+          <div class="cue-column">
+            <div class="cue-mastery-toggle">
+              <input type="checkbox" id="chk-lo1-3" class="cue-checkbox" onchange="toggleMasteryRow('lo1-3', this.checked)">
+              <label for="chk-lo1-3" class="cue-checkbox-label">Mark Mastered</label>
+            </div>
+            <span class="cue-lo-badge">LO 1.03 • Benign Bone Tumor</span>
+            <h3 class="cue-title">Osteoblastoma</h3>
+            <div class="cue-parameters">
+              <div class="cue-param-item">
+                <span class="cue-param-key">Size Threshold</span>
+                <span class="cue-param-val"><span class="cloze">Larger than 2 cm</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Primary Site</span>
+                <span class="cue-param-val"><span class="cloze">Posterior vertebral column</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Key Negative Clue (Imaging)</span>
+                <span class="cue-param-val"><span class="cloze">No reactive cortical bone</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Key Negative Clue (Clinical)</span>
+                <span class="cue-param-val"><span class="cloze">Does not respond to NSAIDs</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="synthesis-column">
+            <div class="synthesis-header">
+              <h4 class="synthesis-title">Large Vertebral Analog Without Marked Sclerosis or NSAID Relief</h4>
+              <span class="synthesis-lo-ref">LO 1.03 • Lecture Contrast to Osteoid Osteoma</span>
+            </div>
+            <div class="synthesis-subgrid">
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="git-compare"></i> Histologic Overlap &amp; Size Rule</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Histologic Similarity:</strong> Histologically similar to <span class="cloze">osteoid osteoma</span>, forming trabeculae of woven bone with benign osteoblastic rimming.</li>
+                    <li><strong>Size Cutoff:</strong> Distinguished arbitrarily by size, measuring <span class="cloze">larger than 2 cm</span> in diameter.</li>
+                    <li><strong>Lack of Sclerosis:</strong> Unlike osteoid osteoma, it usually exhibits <span class="cloze">no reactive cortical bone</span> surrounding the lesion.</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="map-pin"></i> Spinal Localization &amp; Clinical Behavior</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Anatomic Predilection:</strong> Usually involves the <span class="cloze">posterior vertebral column</span>, specifically the <span class="cloze">laminae and pedicles</span>, rather than the femur or tibia cortex.</li>
+                    <li><strong>Pharmacologic Discriminator:</strong> Pain from osteoblastoma <span class="cloze">does not usually respond to NSAIDs</span>, separating it clinically from osteoid osteoma.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="callout-deck">
+              <div class="callout-card callout-lecturer">
+                <span class="callout-title"><i data-lucide="sparkles"></i> Lecturer High-Yield Focus (Dr. Oviedo)</span>
+                <p>“Osteoblastoma is the larger (&gt;2 cm) cousin of osteoid osteoma—look for the posterior vertebral column (laminae and pedicles), absence of reactive cortical bone, and lack of NSAID response.”</p>
+              </div>
+              <div class="callout-card callout-board">
+                <span class="callout-title"><i data-lucide="target"></i> Second-Order Board Clue</span>
+                <p>Back pain from a <span class="cloze">&gt;2 cm</span> bone-forming lesion in the <span class="cloze">laminae and pedicles</span> without surrounding cortical sclerosis and unresponsive to <span class="cloze">NSAIDs</span> points directly to <span class="cloze">osteoblastoma</span>.</p>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Row 1.4: Osteosarcoma -->
+        <article class="cornell-row" data-lo="lo1" id="row-lo1-4">
+          <div class="cue-column">
+            <div class="cue-mastery-toggle">
+              <input type="checkbox" id="chk-lo1-4" class="cue-checkbox" onchange="toggleMasteryRow('lo1-4', this.checked)">
+              <label for="chk-lo1-4" class="cue-checkbox-label">Mark Mastered</label>
+            </div>
+            <span class="cue-lo-badge">LO 1.04 • Malignant Bone Tumor</span>
+            <h3 class="cue-title">Osteosarcoma</h3>
+            <div class="cue-parameters">
+              <div class="cue-param-item">
+                <span class="cue-param-key">Peak Age &amp; Site</span>
+                <span class="cue-param-val"><span class="cloze">Distal femur and proximal tibia</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Radiologic Hallmark</span>
+                <span class="cue-param-val"><span class="cloze">Codman triangle</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Microscopic Hallmark</span>
+                <span class="cue-param-val"><span class="cloze">Highly atypical nuclei producing osteoid</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Primary Molecular Driver</span>
+                <span class="cue-param-val"><span class="cloze">RB1 gene mutation</span>; p53, CDKN2A</span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Germline Risk Multiplier</span>
+                <span class="cue-param-val"><span class="cloze">1000-fold increased risk</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="synthesis-column">
+            <div class="synthesis-header">
+              <h4 class="synthesis-title">Malignant Osteoid-Producing Sarcoma Near the Adolescent Growth Plate</h4>
+              <span class="synthesis-lo-ref">LO 1.04 • Lecture Scenario &amp; Case 3 (Q3)</span>
+            </div>
+            <div class="synthesis-subgrid">
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="dna"></i> Epidemiology &amp; Tumor Suppressor Genetics</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Epidemiology &amp; Timing:</strong> The <span class="cloze">most common primary malignant bone tumor</span>; <span class="cloze">75% occur before age 20</span> (peak during the <span class="cloze">adolescent growth spurt</span>), though it also occurs in older adults; <span class="cloze">1.6:1 male-to-female</span> ratio.</li>
+                    <li><strong>Location:</strong> Arises in the <span class="cloze">distal femur and proximal tibia</span> near the <span class="cloze">growth plate</span> (Case 3: 14-year-old male with left knee pain and an open growth plate; lecture scenario: 12-year-old boy with knee pain).</li>
+                    <li><strong>RB1 Pathway:</strong> <span class="cloze">RB1 gene mutation</span> is present in up to <span class="cloze">70% of sporadic osteosarcoma</span>; a <span class="cloze">germline RB1 mutation</span> confers a <span class="cloze">1000-fold increased risk</span>. <span class="cloze">Rb</span> acts as a negative regulator of the <span class="cloze">G1-S checkpoint</span> of the cell cycle (tumor suppressor). Additional drivers include <span class="cloze">p53</span> and <span class="cloze">CDKN2A</span>.</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="alert-triangle"></i> Radiology, Gross Invasion &amp; Histology</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Codman Triangle &amp; Invasion:</strong> Tumor breaks through and <span class="cloze">invades the cortex</span>, lifting the periosteum to form a <span class="cloze">Codman triangle</span> (lifted periosteum and reactive bone), invades the <span class="cloze">medullary cavity</span>, and forms <span class="cloze">soft tissue masses</span>.</li>
+                    <li><strong>Case 3 Gross Specimen:</strong> Coronal cut surface of the proximal tibia shows tumor within the medulla invading across the cortex into surrounding soft tissue while the growth plate remains open.</li>
+                    <li><strong>Diagnostic Histology:</strong> Malignant cells with <span class="cloze">highly atypical nuclei</span> directly producing <span class="cloze">osteoid</span> (pink extracellular matrix), in stark contrast to benign non-tumor woven bone.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="callout-deck">
+              <div class="callout-card callout-lecturer">
+                <span class="callout-title"><i data-lucide="sparkles"></i> Lecturer High-Yield Focus (Dr. Oviedo)</span>
+                <p>“On boards and slides, osteosarcoma is defined by malignant cells with highly atypical nuclei surrounded by pink osteoid matrix—not just benign woven bone. Remember the 1000-fold risk with germline RB1.”</p>
+              </div>
+              <div class="callout-card callout-board">
+                <span class="callout-title"><i data-lucide="target"></i> Second-Order Board Clue</span>
+                <p>A teenager with knee pain during a growth spurt whose radiograph shows a <span class="cloze">Codman triangle</span> and soft tissue extension likely harbors loss of the <span class="cloze">G1-S checkpoint</span> regulator <span class="cloze">RB1</span> (or <span class="cloze">p53</span> / <span class="cloze">CDKN2A</span>).</p>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TOPIC MODULE 2: CARTILAGE-FORMING TUMORS & SYNDROMES                -->
+    <!-- =================================================================== -->
+    <section class="topic-module" data-lo="lo2">
+      <div class="topic-module-header">
+        <div class="topic-title-wrap">
+          <span class="chip" data-status="info">TOPIC / LO 2</span>
+          <h2>Cartilage-Forming Tumors &amp; Syndromic Genetics</h2>
+        </div>
+        <span class="chip" data-status="focus">Lecturer Rule: Chondrosarcoma histology is difficult alone—diagnose with malignant radiology</span>
+      </div>
+
+      <!-- Topic 2 Interactive Figure: Pattern A Workbench -->
+      <div class="topic-interactive-card" id="workbench-lo2">
+        <div class="interactive-card-header">
+          <h3>Interactive Cartilage Tumor &amp; Genetic Syndrome Analyzer</h3>
+          <span class="chip" data-status="info">Compare Benign, Mosaic &amp; Malignant Cartilage Lesions</span>
+        </div>
+        <div class="discriminator-controls" role="group" aria-label="Cartilage tumor selector">
+          <button type="button" class="discrim-chip active" data-item="osteochondroma" onclick="selectTopicFigureItem('lo2', 'osteochondroma', this)">Osteochondroma &amp; MHE (Case 4)</button>
+          <button type="button" class="discrim-chip" data-item="enchondroma" onclick="selectTopicFigureItem('lo2', 'enchondroma', this)">Enchondroma &amp; Mosaic Syndromes (Case 5)</button>
+          <button type="button" class="discrim-chip" data-item="chondrosarcoma" onclick="selectTopicFigureItem('lo2', 'chondrosarcoma', this)">Chondrosarcoma (Case 6)</button>
+        </div>
+        <div class="discrim-detail-grid">
+          <div class="svg-schematic-container">
+            <div class="svg-slot" id="svgSlot-lo2"></div>
+            <p class="svg-caption" id="svgCaption-lo2"></p>
+          </div>
+          <table class="discrim-matrix-table">
+            <tbody>
+              <tr><th>Age &amp; Typical Site</th><td id="lo2-site"></td></tr>
+              <tr><th>Radiologic Signature</th><td id="lo2-rad"></td></tr>
+              <tr><th>Histologic Architecture</th><td id="lo2-hist"></td></tr>
+              <tr><th>Molecular / Syndrome Driver</th><td id="lo2-gen"></td></tr>
+              <tr><th>Diagnostic / Clinical Pearl</th><td id="lo2-pearl"></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="topic-cornell-stack">
+        <!-- Row 2.1: Osteochondroma -->
+        <article class="cornell-row" data-lo="lo2" id="row-lo2-1">
+          <div class="cue-column">
+            <div class="cue-mastery-toggle">
+              <input type="checkbox" id="chk-lo2-1" class="cue-checkbox" onchange="toggleMasteryRow('lo2-1', this.checked)">
+              <label for="chk-lo2-1" class="cue-checkbox-label">Mark Mastered</label>
+            </div>
+            <span class="cue-lo-badge">LO 2.01 • Benign Cartilage</span>
+            <h3 class="cue-title">Osteochondroma</h3>
+            <div class="cue-parameters">
+              <div class="cue-param-item">
+                <span class="cue-param-key">Prevalence &amp; Ratio</span>
+                <span class="cue-param-val"><span class="cloze">Most common benign bone tumor</span>; M:F 3:1</span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Anatomic Location</span>
+                <span class="cue-param-val"><span class="cloze">Meta-diaphyseal junction</span> near growth plate</span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Gross Shape</span>
+                <span class="cue-param-val"><span class="cloze">Mushroom shaped bony stalk</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Microscopic Cap</span>
+                <span class="cue-param-val"><span class="cloze">Hyaline cartilage cap</span> resembling growth plate</span>
+              </div>
+            </div>
+          </div>
+          <div class="synthesis-column">
+            <div class="synthesis-header">
+              <h4 class="synthesis-title">Cartilage-Capped Exostosis Near Long Bone Growth Plates</h4>
+              <span class="synthesis-lo-ref">LO 2.01 • Case 4 (Q4) &amp; Lecture Slides</span>
+            </div>
+            <div class="synthesis-subgrid">
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="bone"></i> Demographics &amp; Gross Morphology</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Incidence &amp; Demographics:</strong> The <span class="cloze">most common benign tumor of bone</span>, presenting in late adolescence or early adulthood with a <span class="cloze">3:1 male-to-female</span> ratio; <span class="cloze">85% are sporadic and solitary</span>.</li>
+                    <li><strong>Location &amp; Size:</strong> Develops at the <span class="cloze">meta-diaphyseal junction</span> near the growth plate of long bones (also pelvis, scapula, ribs), measuring <span class="cloze">1–20 cm</span>.</li>
+                    <li><strong>Case 4 (Q4) X-Ray:</strong> 12-year-old male with a left knee mass showing a <span class="cloze">mushroom-shaped mass</span> projecting from the distal femur.</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="microscope"></i> Histopathology of Stalk &amp; Cap</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Outer Cap:</strong> Capped by a benign <span class="cloze">hyaline cartilage cap</span> that histologically <span class="cloze">resembles the growth plate</span>.</li>
+                    <li><strong>Inner Core:</strong> Beneath the cartilaginous cap, <span class="cloze">benign bone</span> forms the inner portion of the head and <span class="cloze">bony stalk</span>.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="callout-deck">
+              <div class="callout-card callout-lecturer">
+                <span class="callout-title"><i data-lucide="sparkles"></i> Lecturer High-Yield Focus (Dr. Oviedo)</span>
+                <p>“Look for the classic mushroom shape attached by a bony stalk with an outer cartilaginous cap that looks just like a normal growth plate.”</p>
+              </div>
+              <div class="callout-card callout-board">
+                <span class="callout-title"><i data-lucide="target"></i> Second-Order Board Clue</span>
+                <p>A teenage boy with a painless, slow-growing <span class="cloze">mushroom-shaped mass</span> near the distal femur growth plate has a benign <span class="cloze">osteochondroma</span> (85% solitary, 15% syndromic).</p>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Row 2.2: Multiple Hereditary Exostoses -->
+        <article class="cornell-row" data-lo="lo2" id="row-lo2-2">
+          <div class="cue-column">
+            <div class="cue-mastery-toggle">
+              <input type="checkbox" id="chk-lo2-2" class="cue-checkbox" onchange="toggleMasteryRow('lo2-2', this.checked)">
+              <label for="chk-lo2-2" class="cue-checkbox-label">Mark Mastered</label>
+            </div>
+            <span class="cue-lo-badge">LO 2.02 • Hereditary Syndrome</span>
+            <h3 class="cue-title">Multiple Hereditary Exostoses</h3>
+            <div class="cue-parameters">
+              <div class="cue-param-item">
+                <span class="cue-param-key">Inheritance Pattern</span>
+                <span class="cue-param-val"><span class="cloze">Autosomal dominant</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Mutated Genes</span>
+                <span class="cue-param-val"><span class="cloze">EXT1 or EXT2 loss of function</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Biochemical Defect</span>
+                <span class="cue-param-val"><span class="cloze">Heparan sulfate biosynthesis</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Malignant Risk</span>
+                <span class="cue-param-val">Secondary <span class="cloze">chondrosarcoma</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="synthesis-column">
+            <div class="synthesis-header">
+              <h4 class="synthesis-title">Autosomal Dominant EXT1/EXT2 Loss &amp; Heparan Sulfate Dysregulation</h4>
+              <span class="synthesis-lo-ref">LO 2.02 • Lecture Genetics</span>
+            </div>
+            <div class="synthesis-subgrid">
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="dna"></i> Molecular Pathogenesis</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Inheritance &amp; Genes:</strong> Inherited in an <span class="cloze">autosomal dominant</span> manner due to loss-of-function mutations in <span class="cloze">EXT1 or EXT2</span>.</li>
+                    <li><strong>Enzyme Function:</strong> <span class="cloze">EXT1 and EXT2</span> encode <span class="cloze">glycosyltransferases</span> required for <span class="cloze">heparan sulfate biosynthesis</span>.</li>
+                    <li><strong>Cellular Consequence:</strong> Defective heparan sulfate causes <span class="cloze">chondrocyte progenitors</span> in the growth plate to proliferate abnormally, producing multiple bilateral osteochondromas (e.g., 12-year-old male radiograph).</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="alert-circle"></i> Malignant Transformation Link</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Secondary Chondrosarcoma:</strong> Unlike solitary sporadic chondrosarcomas (which carry IDH1/IDH2 mutations), chondrosarcoma arising in the setting of <span class="cloze">multiple osteochondroma syndrome</span> carries an <span class="cloze">EXT gene mutation</span>.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="callout-deck">
+              <div class="callout-card callout-lecturer">
+                <span class="callout-title"><i data-lucide="sparkles"></i> Lecturer High-Yield Focus (Dr. Oviedo)</span>
+                <p>“Connect EXT1 and EXT2 directly to glycosyltransferases in heparan sulfate biosynthesis—when lost, growth plate chondrocyte progenitors proliferate abnormally into bilateral exostoses.”</p>
+              </div>
+              <div class="callout-card callout-board">
+                <span class="callout-title"><i data-lucide="target"></i> Second-Order Board Clue</span>
+                <p>A child with multiple bilateral bony stalks around the knees has an <span class="cloze">autosomal dominant</span> defect in <span class="cloze">heparan sulfate biosynthesis</span> (<span class="cloze">EXT1/EXT2</span>) and increased risk for <span class="cloze">chondrosarcoma</span>.</p>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Row 2.3: Enchondroma -->
+        <article class="cornell-row" data-lo="lo2" id="row-lo2-3">
+          <div class="cue-column">
+            <div class="cue-mastery-toggle">
+              <input type="checkbox" id="chk-lo2-3" class="cue-checkbox" onchange="toggleMasteryRow('lo2-3', this.checked)">
+              <label for="chk-lo2-3" class="cue-checkbox-label">Mark Mastered</label>
+            </div>
+            <span class="cue-lo-badge">LO 2.03 • Benign Cartilage</span>
+            <h3 class="cue-title">Enchondroma</h3>
+            <div class="cue-parameters">
+              <div class="cue-param-item">
+                <span class="cue-param-key">Age &amp; Compartment</span>
+                <span class="cue-param-val">20–50 yrs; <span class="cloze">medullary cavity</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Classic Site</span>
+                <span class="cue-param-val"><span class="cloze">Hands and feet</span> (phalanges)</span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Radiology &amp; Size</span>
+                <span class="cue-param-val"><span class="cloze">Circumscribed lucency</span>, intact cortex, &lt;3 cm</span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Molecular Driver</span>
+                <span class="cue-param-val"><span class="cloze">IDH1 or IDH2 mutation</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="synthesis-column">
+            <div class="synthesis-header">
+              <h4 class="synthesis-title">Intramedullary Hyaline Cartilage Lobules of the Hands &amp; Feet</h4>
+              <span class="synthesis-lo-ref">LO 2.03 • Case 5 (Q5) &amp; Lecture Slides</span>
+            </div>
+            <div class="synthesis-subgrid">
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="hand"></i> Clinical Presentation &amp; Radiology</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Demographics &amp; Presentation:</strong> Benign tumor of <span class="cloze">hyaline cartilage</span> occurring in patients <span class="cloze">20–50 years old</span>; may present with pain or a <span class="cloze">pathologic fracture</span>.</li>
+                    <li><strong>Location:</strong> Arises inside the <span class="cloze">medullary cavity</span>, usually in the <span class="cloze">hands and feet</span> (also femur and humerus).</li>
+                    <li><strong>Case 5 (Q5) X-Ray:</strong> 25-year-old male with left middle finger pain showing a <span class="cloze">circumscribed lucency</span> in the <span class="cloze">proximal phalanx</span> with an <span class="cloze">intact cortex</span> (usually smaller than 3 cm).</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="microscope"></i> Pathology &amp; IDH Driver</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Microscopic Findings:</strong> Sharply circumscribed <span class="cloze">lobules of proliferating chondrocytes</span> producing mature <span class="cloze">hyaline cartilage</span>.</li>
+                    <li><strong>Genetics:</strong> Driven by <span class="cloze">IDH1 or IDH2 mutation</span>.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="callout-deck">
+              <div class="callout-card callout-lecturer">
+                <span class="callout-title"><i data-lucide="sparkles"></i> Lecturer High-Yield Focus (Dr. Oviedo)</span>
+                <p>“Unlike osteochondroma on the surface, enchondroma sits inside the medullary cavity—think small bones of the hands and feet, circumscribed lucency with intact cortex, and IDH1/IDH2 mutations.”</p>
+              </div>
+              <div class="callout-card callout-board">
+                <span class="callout-title"><i data-lucide="target"></i> Second-Order Board Clue</span>
+                <p>A young adult with a pathologic fracture through a well-demarcated lytic lesion in a <span class="cloze">phalanx</span> containing lobules of <span class="cloze">hyaline cartilage</span> harbors a mutation in <span class="cloze">IDH1 or IDH2</span>.</p>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Row 2.4: Ollier Disease & Maffucci Disease -->
+        <article class="cornell-row" data-lo="lo2" id="row-lo2-4">
+          <div class="cue-column">
+            <div class="cue-mastery-toggle">
+              <input type="checkbox" id="chk-lo2-4" class="cue-checkbox" onchange="toggleMasteryRow('lo2-4', this.checked)">
+              <label for="chk-lo2-4" class="cue-checkbox-label">Mark Mastered</label>
+            </div>
+            <span class="cue-lo-badge">LO 2.04 • Mosaic Syndromes</span>
+            <h3 class="cue-title">Ollier &amp; Maffucci Diseases</h3>
+            <div class="cue-parameters">
+              <div class="cue-param-item">
+                <span class="cue-param-key">Shared Mechanism</span>
+                <span class="cue-param-val"><span class="cloze">Somatic mosaicism for IDH mutation</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Ollier Phenotype</span>
+                <span class="cue-param-val"><span class="cloze">Multiple enchondromas</span> + deformities</span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Maffucci Differentiator</span>
+                <span class="cue-param-val"><span class="cloze">Multiple hemangiomas</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Associated CNS Tumor</span>
+                <span class="cue-param-val"><span class="cloze">Glioma</span> (Maffucci)</span>
+              </div>
+            </div>
+          </div>
+          <div class="synthesis-column">
+            <div class="synthesis-header">
+              <h4 class="synthesis-title">Post-Zygotic Somatic Mosaic IDH Enchondromatosis Syndromes</h4>
+              <span class="synthesis-lo-ref">LO 2.04 • Case 5 Q6 &amp; Lecture Slides</span>
+            </div>
+            <div class="synthesis-subgrid">
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="split"></i> Somatic Mosaicism Mechanism</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Post-Zygotic Timing:</strong> Both syndromes are caused by <span class="cloze">somatic mosaicism for IDH mutation</span>—an <span class="cloze">early post-zygotic event</span> that affects only some tissues, leaving some somatic cells mutated and others wild type.</li>
+                    <li><strong>Childhood Presentation:</strong> Both generally present in childhood with two to hundreds of <span class="cloze">multiple enchondromas</span>.</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="heart-pulse"></i> Ollier vs. Maffucci Discriminators</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Ollier Disease:</strong> Presents with <span class="cloze">multiple enchondromas</span> (e.g., proximal femur cut surface with multiple nodules) causing <span class="cloze">limb deformities</span>, without vascular tumors.</li>
+                    <li><strong>Maffucci Disease (Q6):</strong> Combines <span class="cloze">multiple enchondromas</span> with <span class="cloze">multiple hemangiomas</span> (e.g., multiple hemangiomas of the foot) and carries risk of other tumors such as <span class="cloze">glioma</span>.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="callout-deck">
+              <div class="callout-card callout-lecturer">
+                <span class="callout-title"><i data-lucide="sparkles"></i> Lecturer High-Yield Focus (Dr. Oviedo)</span>
+                <p>“Somatic mosaicism means an early post-zygotic IDH mutation affects only some somatic cells while others remain wild type. Add multiple hemangiomas and glioma risk to distinguish Maffucci from Ollier.”</p>
+              </div>
+              <div class="callout-card callout-board">
+                <span class="callout-title"><i data-lucide="target"></i> Second-Order Board Clue</span>
+                <p>A child with asymmetric <span class="cloze">limb deformities</span> from dozens of medullary cartilage tumors plus soft-tissue <span class="cloze">hemangiomas</span> of the foot has <span class="cloze">Maffucci disease</span> due to <span class="cloze">somatic mosaicism for IDH</span>.</p>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Row 2.5: Chondrosarcoma -->
+        <article class="cornell-row" data-lo="lo2" id="row-lo2-5">
+          <div class="cue-column">
+            <div class="cue-mastery-toggle">
+              <input type="checkbox" id="chk-lo2-5" class="cue-checkbox" onchange="toggleMasteryRow('lo2-5', this.checked)">
+              <label for="chk-lo2-5" class="cue-checkbox-label">Mark Mastered</label>
+            </div>
+            <span class="cue-lo-badge">LO 2.05 • Malignant Cartilage</span>
+            <h3 class="cue-title">Chondrosarcoma</h3>
+            <div class="cue-parameters">
+              <div class="cue-param-item">
+                <span class="cue-param-key">Age &amp; Axial Site</span>
+                <span class="cue-param-val">30s+; <span class="cloze">pelvis, shoulders, ribs</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Radiologic Hallmark</span>
+                <span class="cue-param-val"><span class="cloze">Rings and arcs</span> (popcorn) calcification</span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Sporadic Genetics</span>
+                <span class="cue-param-val"><span class="cloze">IDH1/IDH2</span> + <span class="cloze">CDKN2A methylation</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Diagnostic Rule</span>
+                <span class="cue-param-val">Correlate with <span class="cloze">malignant radiology</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="synthesis-column">
+            <div class="synthesis-header">
+              <h4 class="synthesis-title">Axial Malignant Cartilage Tumor Requiring Radiologic-Pathologic Correlation</h4>
+              <span class="synthesis-lo-ref">LO 2.05 • Case 6 (Q7) &amp; Lecture Slides</span>
+            </div>
+            <div class="synthesis-subgrid">
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="scan-line"></i> Clinical &amp; Radiologic Features (Case 6 / Q7)</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Demographics &amp; Site:</strong> Malignant cartilage-producing tumor affecting adults in their <span class="cloze">30s and above</span> (more common in men) in the <span class="cloze">axial skeleton</span> (<span class="cloze">pelvis, shoulders, ribs</span>).</li>
+                    <li><strong>Case 6 Vignette:</strong> 58-year-old female with a right hip mass; X-ray shows a large exophytic lesion of the <span class="cloze">right pelvis</span> extending into soft tissues.</li>
+                    <li><strong>Calcification Pattern:</strong> Characteristic white <span class="cloze">rings and arcs</span> mineralization pattern, also called <span class="cloze">popcorn calcification</span>.</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="dna"></i> Genetics &amp; Diagnostic Caveat</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Molecular Pathways:</strong> Sporadic tumors harbor <span class="cloze">IDH1 or IDH2</span> mutations and <span class="cloze">CDKN2A silencing by DNA methylation</span>; tumors arising from multiple osteochondroma syndrome harbor <span class="cloze">EXT</span> mutations.</li>
+                    <li><strong>Critical Pathology Rule:</strong> Histology shows numerous lobules of proliferating cartilage producing hyaline cartilage, but diagnosis on histology alone is difficult and must be made in the context of <span class="cloze">malignant-appearing radiology</span>.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="callout-deck">
+              <div class="callout-card callout-lecturer">
+                <span class="callout-title"><i data-lucide="sparkles"></i> Lecturer High-Yield Focus (Dr. Oviedo)</span>
+                <p>“Note carefully: the diagnosis of chondrosarcoma on histology alone is difficult! Always rely on malignant-appearing radiology—such as a large pelvic mass with rings-and-arcs calcification extending into soft tissue.”</p>
+              </div>
+              <div class="callout-card callout-board">
+                <span class="callout-title"><i data-lucide="target"></i> Second-Order Board Clue</span>
+                <p>An older adult with a painful pelvic mass showing <span class="cloze">rings and arcs</span> calcification and lobules of hyaline cartilage on biopsy likely exhibits <span class="cloze">IDH1/IDH2</span> mutation plus <span class="cloze">CDKN2A silencing</span>.</p>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TOPIC MODULE 3: OTHER TUMORS, FIBRO-OSSEOUS LESIONS & METASTASES    -->
+    <!-- =================================================================== -->
+    <section class="topic-module" data-lo="lo3">
+      <div class="topic-module-header">
+        <div class="topic-title-wrap">
+          <span class="chip" data-status="info">TOPIC / LO 3</span>
+          <h2>Round Cell, Giant Cell, Fibro-Osseous Lesions &amp; Metastases</h2>
+        </div>
+        <span class="chip" data-status="focus">Lecturer Rule: Anatomic zone (diaphysis vs. closed epiphysis vs. metaphysis) is diagnostic</span>
+      </div>
+
+      <!-- Topic 3 Interactive Figure: Pattern B Clinical Triage & Pathway Circuit -->
+      <div class="topic-interactive-card" id="workbench-lo3">
+        <div class="interactive-card-header">
+          <h3>Interactive Bone Zone Triage &amp; Molecular Mechanism Explorer</h3>
+          <span class="chip" data-status="info">Click Clinical Vignette / Zone to Inspect Circuit</span>
+        </div>
+        <div class="flow-step-grid" role="group" aria-label="Zone triage selector">
+          <button type="button" class="flow-card active" data-item="ewing" onclick="selectTopicFigureItem('lo3', 'ewing', this)">
+            <span>Diaphysis &lt;20 yrs: Fever + Onion-Skin</span>
+            <small>Ewing Sarcoma (Case 7)</small>
+          </button>
+          <button type="button" class="flow-card" data-item="gct" onclick="selectTopicFigureItem('lo3', 'gct', this)">
+            <span>Closed Epiphysis 30–50 yrs: Lytic Knee</span>
+            <small>Giant Cell Tumor (Case 8)</small>
+          </button>
+          <button type="button" class="flow-card" data-item="nof" onclick="selectTopicFigureItem('lo3', 'nof', this)">
+            <span>Metaphysis Teen: Sclerotic Rim</span>
+            <small>Nonossifying Fibroma (Case 9)</small>
+          </button>
+          <button type="button" class="flow-card" data-item="fd" onclick="selectTopicFigureItem('lo3', 'fd', this)">
+            <span>Medulla Child: Leg Length Discrepancy</span>
+            <small>Fibrous Dysplasia (Case 10) &amp; Mets</small>
+          </button>
+        </div>
+        <div class="discrim-detail-grid">
+          <div class="svg-schematic-container">
+            <div class="svg-slot" id="svgSlot-lo3"></div>
+            <p class="svg-caption" id="svgCaption-lo3"></p>
+          </div>
+          <div class="flow-result-box">
+            <h4 id="flowTitle-lo3"></h4>
+            <div class="flow-breakdown-item">
+              <span class="flow-breakdown-label">Underlying Pathophysiology &amp; Genetics</span>
+              <span id="flowMech-lo3"></span>
+            </div>
+            <div class="flow-breakdown-item">
+              <span class="flow-breakdown-label">Radiology &amp; Microscopic Hallmark</span>
+              <span id="flowHist-lo3"></span>
+            </div>
+            <div class="flow-breakdown-item">
+              <span class="flow-breakdown-label">Diagnostic Confirmation / Clinical Rule</span>
+              <span id="flowAction-lo3"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="topic-cornell-stack">
+        <!-- Row 3.1: Ewing Sarcoma -->
+        <article class="cornell-row" data-lo="lo3" id="row-lo3-1">
+          <div class="cue-column">
+            <div class="cue-mastery-toggle">
+              <input type="checkbox" id="chk-lo3-1" class="cue-checkbox" onchange="toggleMasteryRow('lo3-1', this.checked)">
+              <label for="chk-lo3-1" class="cue-checkbox-label">Mark Mastered</label>
+            </div>
+            <span class="cue-lo-badge">LO 3.01 • Malignant Round Cell</span>
+            <h3 class="cue-title">Ewing Sarcoma</h3>
+            <div class="cue-parameters">
+              <div class="cue-param-item">
+                <span class="cue-param-key">Age &amp; Zone</span>
+                <span class="cue-param-val">&lt;20 yrs; <span class="cloze">diaphysis</span> (femur, fibula, humerus)</span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Radiologic Reaction</span>
+                <span class="cue-param-val"><span class="cloze">Onion-skin appearance</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Microscopic Hallmark</span>
+                <span class="cue-param-val"><span class="cloze">Small round blue cell tumor</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Confirmatory Translocation</span>
+                <span class="cue-param-val"><span class="cloze">t(11;22) EWS-FLI1 fusion</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Clinical Mimic</span>
+                <span class="cue-param-val"><span class="cloze">Osteomyelitis</span> (fever, ESR, WBC)</span>
+              </div>
+            </div>
+          </div>
+          <div class="synthesis-column">
+            <div class="synthesis-header">
+              <h4 class="synthesis-title">Diaphyseal Translocation-Driven Small Round Blue Cell Sarcoma</h4>
+              <span class="synthesis-lo-ref">LO 3.01 • Lecture Scenario &amp; Case 7 (Q8–Q9)</span>
+            </div>
+            <div class="synthesis-subgrid">
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="thermometer"></i> Clinical Presentation &amp; Radiology</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Epidemiology &amp; Mimicry:</strong> Second most common bone sarcoma in children (<span class="cloze">&lt;20 years old</span>). Can cause systemic symptoms—<span class="cloze">fever, elevated ESR, anemia, leukocytosis</span>—requiring distinction from <span class="cloze">osteomyelitis</span>.</li>
+                    <li><strong>Location &amp; Spread:</strong> Usually arises in the <span class="cloze">diaphysis</span> of long bones (femur, fibula, humerus; also flat bones), invading from the medullary cavity through cortex and periosteum into soft tissue.</li>
+                    <li><strong>Imaging Scenarios:</strong> Lecture case (10yo boy, fibula diaphysis) shows layers of reactive bone (<span class="cloze">onion-skin appearance</span>) with soft tissue extension; Case 7 (12yo male, right arm pain) shows a <span class="cloze">humerus diaphysis</span> tumor.</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="dna"></i> Histopathology &amp; Molecular Confirmation (Q9)</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Histology:</strong> Primitive <span class="cloze">small round blue cell tumor</span> composed of uniformly round, mitotically active nuclei with small amounts of <span class="cloze">cleared cytoplasm</span>.</li>
+                    <li><strong>Pathogenesis &amp; Confirmation (Q9):</strong> Driven by <span class="cloze">EWSR1 translocation</span>, usually partnered with <span class="cloze">FLI1</span> via <span class="cloze">t(11;22)</span>, generating the <span class="cloze">EWS-FLI1 fusion protein</span> causing uncontrolled growth. Studies for <span class="cloze">t(11;22)</span> confirm the diagnosis.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="callout-deck">
+              <div class="callout-card callout-lecturer">
+                <span class="callout-title"><i data-lucide="sparkles"></i> Lecturer High-Yield Focus (Dr. Oviedo)</span>
+                <p>“Always include osteomyelitis in the differential when a child presents with fever, high ESR, and leukocytosis—and confirm Ewing sarcoma with molecular studies for the t(11;22) EWS-FLI1 translocation.”</p>
+              </div>
+              <div class="callout-card callout-board">
+                <span class="callout-title"><i data-lucide="target"></i> Second-Order Board Clue</span>
+                <p>A 12-year-old boy with a <span class="cloze">diaphyseal</span> lesion showing an <span class="cloze">onion-skin</span> periosteal reaction and sheets of uniform round blue cells with <span class="cloze">cleared cytoplasm</span> should be tested for <span class="cloze">t(11;22)</span>.</p>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Row 3.2: Giant Cell Tumor of Bone -->
+        <article class="cornell-row" data-lo="lo3" id="row-lo3-2">
+          <div class="cue-column">
+            <div class="cue-mastery-toggle">
+              <input type="checkbox" id="chk-lo3-2" class="cue-checkbox" onchange="toggleMasteryRow('lo3-2', this.checked)">
+              <label for="chk-lo3-2" class="cue-checkbox-label">Mark Mastered</label>
+            </div>
+            <span class="cue-lo-badge">LO 3.02 • Locally Aggressive</span>
+            <h3 class="cue-title">Giant Cell Tumor of Bone</h3>
+            <div class="cue-parameters">
+              <div class="cue-param-item">
+                <span class="cue-param-key">Age &amp; Skeleton Status</span>
+                <span class="cue-param-val">3rd–5th decade; <span class="cloze">closed growth plates</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Anatomic Zone</span>
+                <span class="cue-param-val"><span class="cloze">Epiphysis/metaphysis</span> of knee</span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Neoplastic Cell Driver</span>
+                <span class="cue-param-val"><span class="cloze">Mononuclear stromal cells</span> (<span class="cloze">H3F3A</span>)</span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Paracrine Signaling</span>
+                <span class="cue-param-val">High <span class="cloze">RANKL</span> recruits osteoclasts</span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Key Negative Clue</span>
+                <span class="cue-param-val"><span class="cloze">Giant cells are NOT neoplastic</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="synthesis-column">
+            <div class="synthesis-header">
+              <h4 class="synthesis-title">RANKL-Driven Epiphyseal Lytic Tumor of the Mature Skeleton</h4>
+              <span class="synthesis-lo-ref">LO 3.02 • Case 8 (Q10) &amp; Lecture Slides</span>
+            </div>
+            <div class="synthesis-subgrid">
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="crosshair"></i> Clinical Behavior &amp; Zone Rule (Case 8 / Q10)</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Behavior:</strong> Benign but causes local bone destruction with a <span class="cloze">high recurrence rate</span>; locally aggressive and only rarely metastasizes.</li>
+                    <li><strong>Demographics &amp; Site:</strong> Occurs in the 3rd–5th decade in a <span class="cloze">mature skeleton</span> (<span class="cloze">growth plates closed</span>), classically as a lytic lesion in the <span class="cloze">epiphysis/metaphysis</span> of the knee (Case 8: 40yo female, left knee pain, lytic proximal tibia).</li>
+                    <li><strong>Diagnostic Rule:</strong> Difficult to diagnose on histology alone; the characteristic end-of-bone location in a skeletally mature adult is key.</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="network"></i> Dual Cell Biology &amp; RANKL Circuit</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>True Neoplastic Population:</strong> <span class="cloze">Mononuclear stromal cells</span> (round-to-oval nuclei, moderate pink cytoplasm, collagen background) harbor an <span class="cloze">H3F3A mutation</span> coding for an H3 family histone protein.</li>
+                    <li><strong>RANKL Recruitment:</strong> Neoplastic stromal cells secrete high levels of <span class="cloze">RANKL</span>, driving proliferation of <span class="cloze">multinucleated osteoclasts</span> (which are reactive, <span class="cloze">not neoplastic</span>), alongside macrophages and a surrounding fibrous reaction.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="callout-deck">
+              <div class="callout-card callout-lecturer">
+                <span class="callout-title"><i data-lucide="sparkles"></i> Lecturer High-Yield Focus (Dr. Oviedo)</span>
+                <p>“Don’t be fooled by the name: the giant multinucleated osteoclasts are NOT the neoplastic cells! The H3F3A-mutated mononuclear stromal cells drive the tumor by pumping out RANKL.”</p>
+              </div>
+              <div class="callout-card callout-board">
+                <span class="callout-title"><i data-lucide="target"></i> Second-Order Board Clue</span>
+                <p>In a 40-year-old with a lytic lesion reaching the <span class="cloze">epiphysis</span> of the proximal tibia, the proliferating <span class="cloze">mononuclear stromal cells</span> carry an <span class="cloze">H3F3A</span> histone mutation and overexpress <span class="cloze">RANKL</span>.</p>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Row 3.3: Nonossifying Fibroma -->
+        <article class="cornell-row" data-lo="lo3" id="row-lo3-3">
+          <div class="cue-column">
+            <div class="cue-mastery-toggle">
+              <input type="checkbox" id="chk-lo3-3" class="cue-checkbox" onchange="toggleMasteryRow('lo3-3', this.checked)">
+              <label for="chk-lo3-3" class="cue-checkbox-label">Mark Mastered</label>
+            </div>
+            <span class="cue-lo-badge">LO 3.03 • Incidental Fibrous Lesion</span>
+            <h3 class="cue-title">Nonossifying Fibroma</h3>
+            <div class="cue-parameters">
+              <div class="cue-param-item">
+                <span class="cue-param-key">Age &amp; Course</span>
+                <span class="cue-param-val">Adolescents; <span class="cloze">spontaneous resolution</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Radiologic Hallmark</span>
+                <span class="cue-param-val"><span class="cloze">Metaphyseal lucency with sclerotic margin</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Microscopic Pattern</span>
+                <span class="cue-param-val"><span class="cloze">Storiform pattern</span> spindle cells</span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Genetics / Syndrome</span>
+                <span class="cue-param-val"><span class="cloze">KRAS / FGFR1</span>; <span class="cloze">NF1</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Management Rule</span>
+                <span class="cue-param-val"><span class="cloze">Do not usually undergo biopsy</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="synthesis-column">
+            <div class="synthesis-header">
+              <h4 class="synthesis-title">Self-Resolving Metaphyseal Spindle Cell Lesion with Sclerotic Margin</h4>
+              <span class="synthesis-lo-ref">LO 3.03 • Case 9 (Q11) &amp; Lecture Slides</span>
+            </div>
+            <div class="synthesis-subgrid">
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="eye"></i> Clinical Course, Imaging &amp; Management</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Presentation &amp; Evolution:</strong> Benign spindle cell tumor in adolescents arising in the <span class="cloze">metaphyseal region</span> of the distal femur or proximal tibia; usually an <span class="cloze">incidental finding</span> that undergoes <span class="cloze">spontaneous resolution</span> over time.</li>
+                    <li><strong>Case 9 (Q11) X-Ray:</strong> 14-year-old female with knee pain; proximal tibia shows a <span class="cloze">metaphyseal lucency</span> bordered by a white <span class="cloze">sclerotic margin</span>.</li>
+                    <li><strong>No-Biopsy Rule:</strong> These lesions <span class="cloze">do not usually undergo biopsy</span> and are diagnosed on clinical context and radiology alone (importance: distinguish from malignant tumors).</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="microscope"></i> Storiform Histology &amp; Genetics</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Teaching Slide Histology:</strong> Spindled cells arranged focally in a <span class="cloze">storiform pattern</span> (resembling a cartwheel or whorled pattern) mixed with scattered <span class="cloze">osteoclast-type giant cells</span>.</li>
+                    <li><strong>Mutations &amp; NF1 Association:</strong> Sporadic lesions harbor <span class="cloze">KRAS and FGFR1</span> gene mutations; patients with <span class="cloze">neurofibromatosis type 1 (NF1)</span> may develop nonossifying fibroma as part of their tumor syndrome.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="callout-deck">
+              <div class="callout-card callout-lecturer">
+                <span class="callout-title"><i data-lucide="sparkles"></i> Lecturer High-Yield Focus (Dr. Oviedo)</span>
+                <p>“Remember that storiform means a cartwheel or whorled pattern. In real practice, nonossifying fibromas do not usually get biopsied—recognizing the benign sclerotic-rimmed metaphyseal lucency avoids mistaking it for cancer.”</p>
+              </div>
+              <div class="callout-card callout-board">
+                <span class="callout-title"><i data-lucide="target"></i> Second-Order Board Clue</span>
+                <p>An incidental <span class="cloze">metaphyseal lucency with a sclerotic margin</span> in a teenager—especially one with <span class="cloze">NF1</span> or sporadic <span class="cloze">KRAS/FGFR1</span> mutation—requires observation for <span class="cloze">spontaneous resolution</span> rather than biopsy.</p>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Row 3.4: Fibrous Dysplasia -->
+        <article class="cornell-row" data-lo="lo3" id="row-lo3-4">
+          <div class="cue-column">
+            <div class="cue-mastery-toggle">
+              <input type="checkbox" id="chk-lo3-4" class="cue-checkbox" onchange="toggleMasteryRow('lo3-4', this.checked)">
+              <label for="chk-lo3-4" class="cue-checkbox-label">Mark Mastered</label>
+            </div>
+            <span class="cue-lo-badge">LO 3.04 • Fibro-Osseous Lesion</span>
+            <h3 class="cue-title">Fibrous Dysplasia</h3>
+            <div class="cue-parameters">
+              <div class="cue-param-item">
+                <span class="cue-param-key">Molecular Cause (Q13)</span>
+                <span class="cue-param-val"><span class="cloze">Somatic mosaicism for GNAS1</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Microscopic Hallmark</span>
+                <span class="cue-param-val"><span class="cloze">Woven bone in fibrous background</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Anatomic Patterns</span>
+                <span class="cue-param-val"><span class="cloze">Monostotic</span> vs. <span class="cloze">Polyostotic</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Syndrome Association</span>
+                <span class="cue-param-val"><span class="cloze">Mazabraud syndrome</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="synthesis-column">
+            <div class="synthesis-header">
+              <h4 class="synthesis-title">GNAS1 Mosaic Disorganized Woven Bone in Fibrous Stroma</h4>
+              <span class="synthesis-lo-ref">LO 3.04 • Case 10 (Q12–Q13) &amp; Lecture Slides</span>
+            </div>
+            <div class="synthesis-subgrid">
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="layers"></i> Clinical Patterns &amp; Mazabraud Syndrome</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Definition &amp; Age:</strong> Benign developmental lesion composed of <span class="cloze">disorganized bone and fibrous tissue</span>, presenting in childhood or adolescence.</li>
+                    <li><strong>Distribution Patterns:</strong> Occurs in <span class="cloze">monostotic</span> (single bone) or <span class="cloze">polyostotic</span> (multiple bones) forms.</li>
+                    <li><strong>Mazabraud Syndrome:</strong> Defined as <span class="cloze">polyostotic fibrous dysplasia plus soft tissue myxomas</span>.</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="dna"></i> Case 10 Imaging, Histology &amp; Genetics (Q12–Q13)</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Case 10 (Q12) Vignette:</strong> 6-year-old male with <span class="cloze">leg length discrepancy</span>; lateral tibia X-ray demonstrates <span class="cloze">two lucent lesions</span> in the proximal and distal medulla.</li>
+                    <li><strong>Histopathology:</strong> Trabeculae of <span class="cloze">woven bone</span> embedded within a <span class="cloze">fibrous tissue background</span>.</li>
+                    <li><strong>Etiology (Q13):</strong> Caused by <span class="cloze">somatic mosaicism for the GNAS1 gene</span>.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="callout-deck">
+              <div class="callout-card callout-lecturer">
+                <span class="callout-title"><i data-lucide="sparkles"></i> Lecturer High-Yield Focus (Dr. Oviedo)</span>
+                <p>“Pair Mazabraud syndrome with polyostotic fibrous dysplasia plus soft tissue myxomas, and know that somatic mosaicism for GNAS1 drives the disorganized woven bone in fibrous stroma.”</p>
+              </div>
+              <div class="callout-card callout-board">
+                <span class="callout-title"><i data-lucide="target"></i> Second-Order Board Clue</span>
+                <p>A 6-year-old boy with <span class="cloze">leg length discrepancy</span>, multiple medullary lucencies, and <span class="cloze">woven bone in a fibrous background</span> has <span class="cloze">fibrous dysplasia</span> caused by <span class="cloze">somatic mosaicism for GNAS1</span>.</p>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Row 3.5: Skeletal Metastases -->
+        <article class="cornell-row" data-lo="lo3" id="row-lo3-5">
+          <div class="cue-column">
+            <div class="cue-mastery-toggle">
+              <input type="checkbox" id="chk-lo3-5" class="cue-checkbox" onchange="toggleMasteryRow('lo3-5', this.checked)">
+              <label for="chk-lo3-5" class="cue-checkbox-label">Mark Mastered</label>
+            </div>
+            <span class="cue-lo-badge">LO 3.05 • Secondary Malignancy</span>
+            <h3 class="cue-title">Skeletal Metastases</h3>
+            <div class="cue-parameters">
+              <div class="cue-param-item">
+                <span class="cue-param-key">Axial Skeleton Targets</span>
+                <span class="cue-param-val"><span class="cloze">Vertebrae, pelvis, skull</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Appendicular Targets</span>
+                <span class="cue-param-val"><span class="cloze">Femur and humerus</span></span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Key Anatomical Principle</span>
+                <span class="cue-param-val">Central / proximal red marrow sites</span>
+              </div>
+              <div class="cue-param-item">
+                <span class="cue-param-key">Contrast vs. Enchondroma</span>
+                <span class="cue-param-val">Spare distal hands &amp; feet</span>
+              </div>
+            </div>
+          </div>
+          <div class="synthesis-column">
+            <div class="synthesis-header">
+              <h4 class="synthesis-title">Anatomic Distribution of Skeletal Metastases</h4>
+              <span class="synthesis-lo-ref">LO 3.05 • Lecture Slide</span>
+            </div>
+            <div class="synthesis-subgrid">
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="map"></i> Predilection Sites</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Axial Skeleton:</strong> Most frequently involve the <span class="cloze">vertebrae</span>, <span class="cloze">pelvis</span>, and <span class="cloze">skull</span>.</li>
+                    <li><strong>Proximal Long Bones:</strong> Also commonly involve the <span class="cloze">femur</span> and <span class="cloze">humerus</span>.</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="synthesis-block">
+                <span class="synthesis-block-title"><i data-lucide="git-compare"></i> Spatial Diagnostic Contrast</span>
+                <div class="synthesis-block-content">
+                  <ul>
+                    <li><strong>Distal vs. Central Pattern:</strong> Whereas benign <span class="cloze">enchondromas</span> favor the small bones of the hands and feet, <span class="cloze">skeletal metastases</span> localize to the central axial skeleton (<span class="cloze">vertebrae, pelvis, skull</span>) and proximal long bones (<span class="cloze">femur, humerus</span>).</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="callout-deck">
+              <div class="callout-card callout-lecturer">
+                <span class="callout-title"><i data-lucide="sparkles"></i> Lecturer High-Yield Focus (Dr. Oviedo)</span>
+                <p>“Memorize the five classic skeletal metastasis sites covered in lecture: vertebrae, pelvis, femur, humerus, and skull.”</p>
+              </div>
+              <div class="callout-card callout-board">
+                <span class="callout-title"><i data-lucide="target"></i> Second-Order Board Clue</span>
+                <p>Multifocal bone lesions involving the <span class="cloze">vertebrae, pelvis, femur, humerus, or skull</span> in an older patient should immediately prompt evaluation for <span class="cloze">skeletal metastases</span>.</p>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- MASTER COMPARATIVE SYNTHESIS MATRIX                                 -->
+    <!-- =================================================================== -->
+    <section class="master-matrix-section" aria-label="Master Comparative Synthesis Matrix">
+      <h2>Master Comparative Synthesis Matrix — Bone Tumors (Lecture 07)</h2>
+      <div class="master-table-container">
+        <table class="master-matrix-table">
+          <thead>
+            <tr>
+              <th>Entity</th>
+              <th>Mechanism / Pathology</th>
+              <th>Key Identifiers / Symptoms</th>
+              <th>Interventions / Diagnostics</th>
+              <th>Lecturer High-Yield Nugget</th>
+              <th>High-Yield Board Clue</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="table-entity-cell">Osteoid Osteoma<span class="entity-subcat benign">Benign Bone-Forming</span></td>
+              <td>Nidus (&lt;2 cm) of <span class="cloze">woven bone with osteoblastic rimming</span></td>
+              <td>Teens/20s; <span class="cloze">cortex of femur or tibia</span>; nocturnal pain</td>
+              <td>CT shows cleared nidus + <span class="cloze">reactive cortical bone</span>; relieved by <span class="cloze">NSAIDs</span></td>
+              <td>Nidus means nest; osteoblastic rimming indicates a benign lesion</td>
+              <td>20yo M leg pain waking at night, relieved by <span class="cloze">ibuprofen</span> (Case 2)</td>
+            </tr>
+            <tr>
+              <td class="table-entity-cell">Osteoblastoma<span class="entity-subcat benign">Benign Bone-Forming</span></td>
+              <td>Similar to osteoid osteoma, <span class="cloze">larger than 2 cm</span></td>
+              <td><span class="cloze">Posterior vertebral column</span> (laminae/pedicles)</td>
+              <td>Usually <span class="cloze">no reactive cortical bone</span>; no NSAID relief</td>
+              <td>Same histology as osteoid osteoma, different size, site, and drug response</td>
+              <td>&gt;2 cm spinal lamina lesion <span class="cloze">unresponsive to NSAIDs</span></td>
+            </tr>
+            <tr>
+              <td class="table-entity-cell">Osteosarcoma<span class="entity-subcat malignant">Malignant Bone-Forming</span></td>
+              <td><span class="cloze">RB1</span> (70% sporadic; 1000x germline), <span class="cloze">p53, CDKN2A</span>; atypical nuclei making <span class="cloze">osteoid</span></td>
+              <td>75% &lt;20 yrs; growth spurt; <span class="cloze">distal femur / proximal tibia</span></td>
+              <td>X-ray <span class="cloze">Codman triangle</span>; invades cortex, medulla, soft tissue</td>
+              <td>Rb inhibits the G1-S checkpoint; pink osteoid around malignant cells</td>
+              <td>14yo M knee pain, open growth plate, <span class="cloze">Codman triangle</span> (Case 3)</td>
+            </tr>
+            <tr>
+              <td class="table-entity-cell">Osteochondroma &amp; MHE<span class="entity-subcat benign">Benign Cartilage</span></td>
+              <td>Bony stalk + <span class="cloze">hyaline cartilage cap</span>; MHE: AD <span class="cloze">EXT1/EXT2</span> (heparan sulfate)</td>
+              <td>Meta-diaphyseal junction near growth plate; M:F 3:1</td>
+              <td>85% solitary <span class="cloze">mushroom-shaped mass</span>; cap resembles growth plate</td>
+              <td>Most common benign bone tumor; MHE transforms via EXT mutation</td>
+              <td>12yo M knee stalk with cap resembling <span class="cloze">growth plate</span> (Case 4)</td>
+            </tr>
+            <tr>
+              <td class="table-entity-cell">Enchondroma / Ollier / Maffucci<span class="entity-subcat benign">Benign Cartilage</span></td>
+              <td><span class="cloze">IDH1/IDH2</span>; Ollier &amp; Maffucci: <span class="cloze">somatic mosaic IDH</span></td>
+              <td>20–50 yrs <span class="cloze">hands/feet</span>; Maffucci adds <span class="cloze">hemangiomas + glioma</span></td>
+              <td>Circumscribed <span class="cloze">medullary lucency</span>, intact cortex; cartilage lobules</td>
+              <td>Early post-zygotic mosaicism affects only some somatic tissues</td>
+              <td>25yo M phalanx lucency (Case 5); hemangiomas = <span class="cloze">Maffucci</span> (Q6)</td>
+            </tr>
+            <tr>
+              <td class="table-entity-cell">Chondrosarcoma<span class="entity-subcat malignant">Malignant Cartilage</span></td>
+              <td>Sporadic: <span class="cloze">IDH1/IDH2</span> + <span class="cloze">CDKN2A methylation</span>; MHE: EXT</td>
+              <td>30s+, men; axial skeleton (<span class="cloze">pelvis, shoulders, ribs</span>)</td>
+              <td><span class="cloze">Rings and arcs</span> (popcorn) calcification; malignant radiology</td>
+              <td>Histology alone is difficult; correlate with malignant radiology</td>
+              <td>58yo F right pelvis mass with <span class="cloze">rings and arcs</span> (Case 6)</td>
+            </tr>
+            <tr>
+              <td class="table-entity-cell">Ewing Sarcoma<span class="entity-subcat malignant">Malignant Round Cell</span></td>
+              <td><span class="cloze">t(11;22) EWS-FLI1</span> fusion; <span class="cloze">small round blue cells</span></td>
+              <td>&lt;20 yrs; <span class="cloze">diaphysis</span>; fever, ESR, anemia, leukocytosis</td>
+              <td><span class="cloze">Onion-skin</span> periosteal reaction; confirm via <span class="cloze">t(11;22)</span></td>
+              <td>Systemic signs mimic osteomyelitis; cleared cytoplasm</td>
+              <td>12yo M humerus diaphysis; confirm with <span class="cloze">t(11;22)</span> (Case 7)</td>
+            </tr>
+            <tr>
+              <td class="table-entity-cell">Giant Cell Tumor of Bone<span class="entity-subcat">Locally Aggressive</span></td>
+              <td>Mononuclear stromal cells (<span class="cloze">H3F3A</span>) secrete <span class="cloze">RANKL</span></td>
+              <td>3rd–5th decade, <span class="cloze">closed growth plates</span>; knee <span class="cloze">epiphysis</span></td>
+              <td>Lytic end-of-bone lesion; reactive <span class="cloze">multinucleated osteoclasts</span></td>
+              <td>Giant cells are NOT neoplastic; high local recurrence</td>
+              <td>40yo F lytic proximal tibia epiphysis (Case 8)</td>
+            </tr>
+            <tr>
+              <td class="table-entity-cell">Nonossifying Fibroma<span class="entity-subcat benign">Benign Fibrous</span></td>
+              <td><span class="cloze">KRAS / FGFR1</span> or <span class="cloze">NF1</span>; <span class="cloze">storiform</span> spindle cells</td>
+              <td>Adolescents; incidental; <span class="cloze">spontaneous resolution</span></td>
+              <td>Metaphyseal lucency with <span class="cloze">sclerotic margin</span>; no biopsy</td>
+              <td>Storiform = cartwheel/whorled; do not mistake for malignancy</td>
+              <td>14yo F tibia metaphysis with <span class="cloze">sclerotic edge</span> (Case 9)</td>
+            </tr>
+            <tr>
+              <td class="table-entity-cell">Fibrous Dysplasia<span class="entity-subcat benign">Fibro-Osseous</span></td>
+              <td><span class="cloze">Somatic mosaicism for GNAS1</span>; woven bone in fibrous tissue</td>
+              <td>Childhood; monostotic/polyostotic; <span class="cloze">Mazabraud</span> (+ myxomas)</td>
+              <td>Lucent medullary lesions (Case 10: <span class="cloze">leg length discrepancy</span>)</td>
+              <td>Mazabraud = polyostotic fibrous dysplasia + soft tissue myxomas</td>
+              <td>6yo M two tibia lucencies caused by <span class="cloze">GNAS1</span> (Case 10)</td>
+            </tr>
+            <tr>
+              <td class="table-entity-cell">Skeletal Metastases<span class="entity-subcat malignant">Secondary Tumor</span></td>
+              <td>Hematogenous spread to central red marrow bones</td>
+              <td><span class="cloze">Vertebrae, pelvis, femur, humerus, skull</span></td>
+              <td>Correlate axial/proximal bone distribution clinically</td>
+              <td>Memorize the 5 core sites from lecture</td>
+              <td>Multifocal lesions in <span class="cloze">vertebrae, pelvis, femur, humerus, skull</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="report-footer">
+      <span>Course Material Source: Lecture 07: Bone Tumors (Dr. Angelica Oviedo, MD) — Lecture Deck, Clinical Cases Slide Review, Questions 1–13, and Answers 1–13.</span>
+      <span>Strict Course Grounding Protocol: Zero outside extrapolation beyond provided lecture materials.</span>
+    </footer>
+  </main>
+
+  <api-shim></api-shim>
+  <script>
+    const TOTAL_ROWS = 14;
+
+    const appState = {
+      activeRecallMode: false,
+      revealedClozes: [],
+      masteredRows: [],
+      lastReviewedDate: ``,
+      activeLoFilter: `all`,
+      activeTopicFigures: {
+        lo1: `osteoidOsteoma`,
+        lo2: `osteochondroma`,
+        lo3: `ewing`
+      }
+    };
+
+    const topicFigureData = {
+      lo1: {
+        osteoidOsteoma: {
+          svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Osteoid osteoma cortical nidus schematic">
+            <rect x="0" y="0" width="320" height="200" rx="8" fill="var(--background)"/>
+            <rect x="95" y="15" width="130" height="170" rx="12" fill="var(--surface-container)" stroke="var(--primary)" stroke-width="2.5"/>
+            <rect x="128" y="15" width="64" height="170" fill="var(--surface-container-low)" stroke="var(--outline)" stroke-width="1"/>
+            <ellipse cx="105" cy="95" rx="22" ry="38" fill="var(--on-surface-variant)" opacity="0.28"/>
+            <circle cx="105" cy="95" r="11" fill="var(--error)" stroke="var(--background)" stroke-width="2"/>
+            <text x="15" y="45" font-size="11" font-weight="700" fill="var(--error)">Nidus &lt;2 cm</text>
+            <line x1="76" y1="49" x2="96" y2="87" stroke="var(--error)" stroke-width="1.5"/>
+            <text x="15" y="150" font-size="10.5" font-weight="600" fill="var(--on-surface)">Thick reactive</text>
+            <text x="15" y="164" font-size="10.5" font-weight="600" fill="var(--on-surface)">cortical bone</text>
+            <line x1="82" y1="145" x2="96" y2="122" stroke="var(--on-surface)" stroke-width="1.2"/>
+            <text x="235" y="100" font-size="10.5" font-weight="600" fill="var(--primary)">Femur / Tibia</text>
+            <text x="235" y="114" font-size="10.5" font-weight="600" fill="var(--primary)">Cortex</text>
+          </svg>`,
+          caption: `Osteoid osteoma: cleared central nidus (<2 cm) within the tibial or femoral cortex surrounded by dense white sclerotic reactive bone (Case 2).`,
+          size: `<span class="cloze">Less than 2 cm</span>; teens &amp; 20s (M:F 3:1)`,
+          site: `<span class="cloze">Cortex of femur or tibia</span> (50% of cases)`,
+          pain: `<span class="cloze">Severe nocturnal pain</span> relieved by <span class="cloze">NSAIDs</span> (ibuprofen)`,
+          rad: `Central cleared <span class="cloze">nidus</span> with thick surrounding <span class="cloze">reactive cortical bone</span>`,
+          path: `Woven bone trabeculae with <span class="cloze">osteoblastic rimming</span> (benign sign)`
+        },
+        osteoblastoma: {
+          svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Osteoblastoma posterior vertebral column schematic">
+            <rect x="0" y="0" width="320" height="200" rx="8" fill="var(--background)"/>
+            <ellipse cx="135" cy="70" rx="45" ry="30" fill="var(--surface-container)" stroke="var(--primary)" stroke-width="2.5"/>
+            <path d="M98,85 L85,135 L135,168 L185,135 L172,85" fill="none" stroke="var(--primary)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="168" cy="135" r="18" fill="var(--error)" fill-opacity="0.22" stroke="var(--error)" stroke-width="2.5"/>
+            <text x="195" y="55" font-size="11" font-weight="700" fill="var(--primary)">Vertebral Body</text>
+            <text x="195" y="128" font-size="11" font-weight="700" fill="var(--error)">Lamina / Pedicle</text>
+            <text x="195" y="143" font-size="10.5" font-weight="600" fill="var(--error)">&gt;2 cm, No Sclerosis</text>
+            <text x="15" y="182" font-size="10" fill="var(--on-surface-variant)">Nocturnal/NSAID relief absent</text>
+          </svg>`,
+          caption: `Osteoblastoma: larger than 2 cm, arising in the posterior vertebral column (laminae and pedicles) without surrounding reactive cortical bone.`,
+          size: `<span class="cloze">Larger than 2 cm</span>`,
+          site: `<span class="cloze">Posterior vertebral column</span> (laminae and pedicles)`,
+          pain: `Does <span class="cloze">not usually respond to NSAIDs</span>`,
+          rad: `Usually <span class="cloze">no reactive cortical bone</span>`,
+          path: `Histologically similar to <span class="cloze">osteoid osteoma</span> (woven bone + rimming)`
+        },
+        osteosarcoma: {
+          svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Osteosarcoma Codman triangle schematic">
+            <rect x="0" y="0" width="320" height="200" rx="8" fill="var(--background)"/>
+            <path d="M95,180 L95,55 Q95,25 160,25 Q225,25 225,55 L225,180" fill="var(--surface-container)" stroke="var(--primary)" stroke-width="2.5"/>
+            <line x1="97" y1="58" x2="223" y2="58" stroke="var(--tertiary)" stroke-width="3" stroke-dasharray="5 3"/>
+            <path d="M125,75 L235,88 Q255,115 225,140 L125,140 Z" fill="var(--error)" fill-opacity="0.25" stroke="var(--error)" stroke-width="2"/>
+            <line x1="225" y1="152" x2="246" y2="112" stroke="var(--error)" stroke-width="3"/>
+            <text x="15" y="45" font-size="10.5" font-weight="700" fill="var(--tertiary)">Growth Plate</text>
+            <line x1="80" y1="48" x2="105" y2="57" stroke="var(--tertiary)" stroke-width="1.2"/>
+            <text x="235" y="75" font-size="10.5" font-weight="700" fill="var(--error)">Soft tissue mass</text>
+            <text x="235" y="155" font-size="10.5" font-weight="700" fill="var(--error)">Codman triangle</text>
+            <text x="15" y="115" font-size="10" font-weight="600" fill="var(--on-surface)">Medulla &amp; cortex</text>
+            <text x="15" y="128" font-size="10" font-weight="600" fill="var(--on-surface)">invasion</text>
+          </svg>`,
+          caption: `Osteosarcoma: arises near the growth plate, invades cortex and medulla, lifts periosteum (Codman triangle), and forms soft tissue masses (Case 3).`,
+          size: `75% <span class="cloze">&lt;20 years</span> (growth spurt); M:F 1.6:1`,
+          site: `<span class="cloze">Distal femur and proximal tibia</span> near growth plate`,
+          pain: `Knee/bone pain with rapidly enlarging <span class="cloze">soft tissue mass</span>`,
+          rad: `<span class="cloze">Codman triangle</span> (lifted periosteum) &amp; cortical breakthrough`,
+          path: `<span class="cloze">Highly atypical nuclei producing osteoid</span>; <span class="cloze">RB1</span> (70% sporadic, 1000x germline), p53, CDKN2A`
+        }
+      },
+      lo2: {
+        osteochondroma: {
+          svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Osteochondroma mushroom stalk schematic">
+            <rect x="0" y="0" width="320" height="200" rx="8" fill="var(--background)"/>
+            <rect x="75" y="25" width="75" height="150" rx="8" fill="var(--surface-container)" stroke="var(--primary)" stroke-width="2.5"/>
+            <path d="M150,95 L205,78 Q228,72 228,100 Q228,128 205,122 L150,115" fill="var(--surface-container)" stroke="var(--primary)" stroke-width="2.5"/>
+            <path d="M210,72 Q245,70 245,100 Q245,130 210,128 Q226,100 210,72 Z" fill="var(--tertiary)" fill-opacity="0.3" stroke="var(--tertiary)" stroke-width="2"/>
+            <text x="160" y="45" font-size="11" font-weight="700" fill="var(--tertiary)">Hyaline Cartilage Cap</text>
+            <text x="160" y="59" font-size="10" fill="var(--on-surface-variant)">(resembles growth plate)</text>
+            <text x="155" y="158" font-size="10.5" font-weight="700" fill="var(--primary)">Benign Bony Stalk</text>
+            <text x="15" y="102" font-size="10" font-weight="600" fill="var(--on-surface)">Meta-diaphysis</text>
+          </svg>`,
+          caption: `Osteochondroma: mushroom-shaped exostosis with an inner benign bony stalk and outer hyaline cartilage cap resembling a growth plate (Case 4).`,
+          site: `<span class="cloze">Meta-diaphyseal junction</span> near growth plate (late adolescence/young adult)`,
+          rad: `<span class="cloze">Mushroom-shaped mass</span> attached by bony stalk`,
+          hist: `<span class="cloze">Benign hyaline cartilage cap</span> resembling growth plate over benign bone`,
+          gen: `85% solitary; MHE: AD <span class="cloze">EXT1 or EXT2</span> loss (heparan sulfate biosynthesis)`,
+          pearl: `Most common benign tumor of bone; MHE predisposes to secondary <span class="cloze">chondrosarcoma</span>`
+        },
+        enchondroma: {
+          svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Enchondroma intramedullary phalanx schematic">
+            <rect x="0" y="0" width="320" height="200" rx="8" fill="var(--background)"/>
+            <rect x="125" y="25" width="70" height="150" rx="16" fill="var(--surface-container)" stroke="var(--primary)" stroke-width="2.5"/>
+            <ellipse cx="160" cy="112" rx="22" ry="34" fill="var(--background)" stroke="var(--tertiary)" stroke-width="2" stroke-dasharray="4 2"/>
+            <circle cx="154" cy="100" r="7" fill="var(--tertiary)" fill-opacity="0.35"/>
+            <circle cx="167" cy="114" r="8" fill="var(--tertiary)" fill-opacity="0.35"/>
+            <circle cx="155" cy="126" r="6" fill="var(--tertiary)" fill-opacity="0.35"/>
+            <text x="15" y="65" font-size="10.5" font-weight="700" fill="var(--primary)">Intact Cortex</text>
+            <line x1="88" y1="62" x2="124" y2="62" stroke="var(--primary)" stroke-width="1.2"/>
+            <text x="206" y="105" font-size="10.5" font-weight="700" fill="var(--tertiary)">Circumscribed</text>
+            <text x="206" y="119" font-size="10.5" font-weight="700" fill="var(--tertiary)">Lucency (&lt;3 cm)</text>
+            <text x="206" y="145" font-size="10" fill="var(--on-surface-variant)">Phalanx medulla</text>
+          </svg>`,
+          caption: `Enchondroma: well-circumscribed intramedullary lucency (<3 cm) with an intact cortex in the proximal phalanx (Case 5), Ollier, or Maffucci disease.`,
+          site: `<span class="cloze">Medullary cavity</span> of hands &amp; feet (20–50 yrs); also femur/humerus`,
+          rad: `<span class="cloze">Circumscribed lucency</span> with <span class="cloze">intact cortex</span> (&lt;3 cm)`,
+          hist: `Lobules of proliferating chondrocytes producing <span class="cloze">hyaline cartilage</span>`,
+          gen: `<span class="cloze">IDH1 or IDH2 mutation</span>; Ollier/Maffucci = <span class="cloze">somatic mosaicism for IDH</span>`,
+          pearl: `Ollier = multiple enchondromas; Maffucci = + <span class="cloze">multiple hemangiomas</span> &amp; <span class="cloze">glioma</span> (Q6)`
+        },
+        chondrosarcoma: {
+          svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Chondrosarcoma rings and arcs pelvic schematic">
+            <rect x="0" y="0" width="320" height="200" rx="8" fill="var(--background)"/>
+            <path d="M55,40 Q120,25 140,85 L125,175 L65,165 Z" fill="var(--surface-container)" stroke="var(--primary)" stroke-width="2.5"/>
+            <circle cx="170" cy="105" r="52" fill="var(--error)" fill-opacity="0.14" stroke="var(--error)" stroke-width="2.5"/>
+            <path d="M150,85 A14,14 0 1,1 170,95" fill="none" stroke="var(--on-surface)" stroke-width="2"/>
+            <path d="M175,115 A12,12 0 1,0 192,102" fill="none" stroke="var(--on-surface)" stroke-width="2"/>
+            <circle cx="155" cy="122" r="8" fill="none" stroke="var(--on-surface)" stroke-width="2"/>
+            <text x="15" y="188" font-size="10.5" font-weight="700" fill="var(--primary)">Axial Pelvis / Shoulder / Ribs</text>
+            <text x="228" y="88" font-size="10.5" font-weight="700" fill="var(--error)">Rings &amp; Arcs</text>
+            <text x="228" y="102" font-size="10" fill="var(--error)">(Popcorn Calc.)</text>
+            <text x="228" y="128" font-size="10" fill="var(--on-surface-variant)">Soft tissue mass</text>
+          </svg>`,
+          caption: `Chondrosarcoma: large exophytic axial/pelvic mass extending into soft tissue with characteristic rings-and-arcs (popcorn) mineralization (Case 6).`,
+          site: `30s+, men; axial skeleton (<span class="cloze">pelvis, shoulders, ribs</span>)`,
+          rad: `Large exophytic mass with <span class="cloze">rings and arcs</span> (popcorn) calcification`,
+          hist: `Numerous lobules of malignant chondrocytes producing <span class="cloze">hyaline cartilage</span>`,
+          gen: `Sporadic: <span class="cloze">IDH1/IDH2</span> + <span class="cloze">CDKN2A methylation</span>; MHE-derived: <span class="cloze">EXT</span>`,
+          pearl: `Histology alone is difficult—diagnosis requires <span class="cloze">malignant-appearing radiology</span>`
+        }
+      },
+      lo3: {
+        ewing: {
+          svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ewing sarcoma diaphyseal onion-skin schematic">
+            <rect x="0" y="0" width="320" height="200" rx="8" fill="var(--background)"/>
+            <rect x="118" y="15" width="84" height="170" rx="10" fill="var(--surface-container)" stroke="var(--primary)" stroke-width="2.5"/>
+            <rect x="132" y="65" width="56" height="65" rx="6" fill="var(--error)" fill-opacity="0.28" stroke="var(--error)" stroke-width="2"/>
+            <path d="M112,55 Q102,98 112,140" fill="none" stroke="var(--error)" stroke-width="2"/>
+            <path d="M104,60 Q93,98 104,135" fill="none" stroke="var(--error)" stroke-width="2"/>
+            <path d="M208,55 Q218,98 208,140" fill="none" stroke="var(--error)" stroke-width="2"/>
+            <path d="M216,60 Q227,98 216,135" fill="none" stroke="var(--error)" stroke-width="2"/>
+            <text x="14" y="92" font-size="10.5" font-weight="700" fill="var(--error)">Onion-Skin</text>
+            <text x="14" y="106" font-size="10" fill="var(--error)">Periosteum</text>
+            <text x="230" y="92" font-size="10.5" font-weight="700" fill="var(--primary)">Diaphysis</text>
+            <text x="230" y="106" font-size="10" fill="var(--on-surface-variant)">Soft tissue invasion</text>
+          </svg>`,
+          caption: `Ewing sarcoma (Case 7): diaphyseal lesion of humerus, femur, or fibula with layered onion-skin reactive bone and soft tissue invasion.`,
+          title: `Ewing Sarcoma — Diaphyseal Small Round Blue Cell Tumor`,
+          mech: `<span class="cloze">EWSR1-FLI1</span> fusion protein from <span class="cloze">t(11;22)</span> translocation drives uncontrolled growth; fever, high ESR, anemia, and leukocytosis mimic <span class="cloze">osteomyelitis</span>.`,
+          hist: `Diaphyseal <span class="cloze">onion-skin</span> periosteal reaction; sheets of uniformly round mitotically active nuclei with <span class="cloze">cleared cytoplasm</span>.`,
+          action: `Confirm diagnosis with molecular studies for <span class="cloze">t(11;22)</span> (Case 7 Q9).`
+        },
+        gct: {
+          svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Giant cell tumor epiphyseal lytic lesion schematic">
+            <rect x="0" y="0" width="320" height="200" rx="8" fill="var(--background)"/>
+            <path d="M90,180 L95,70 Q95,28 160,28 Q225,28 225,70 L230,180" fill="var(--surface-container)" stroke="var(--primary)" stroke-width="2.5"/>
+            <line x1="96" y1="68" x2="224" y2="68" stroke="var(--on-surface-variant)" stroke-width="1.5"/>
+            <circle cx="138" cy="60" r="28" fill="var(--error)" fill-opacity="0.24" stroke="var(--error)" stroke-width="2.5"/>
+            <text x="235" y="55" font-size="10.5" font-weight="700" fill="var(--error)">Epiphysis /</text>
+            <text x="235" y="69" font-size="10.5" font-weight="700" fill="var(--error)">Metaphysis</text>
+            <text x="12" y="45" font-size="10" font-weight="600" fill="var(--primary)">Closed Growth Plate</text>
+            <text x="12" y="125" font-size="10" fill="var(--on-surface-variant)">RANKL -&gt; Osteoclasts</text>
+          </svg>`,
+          caption: `Giant Cell Tumor of Bone (Case 8): lytic lesion extending into the epiphysis/metaphysis of the knee in a mature skeleton (closed growth plates).`,
+          title: `Giant Cell Tumor of Bone — Epiphyseal RANKL Lesion`,
+          mech: `Neoplastic <span class="cloze">mononuclear stromal cells</span> carry <span class="cloze">H3F3A</span> histone mutation and overexpress <span class="cloze">RANKL</span>, recruiting non-neoplastic <span class="cloze">multinucleated osteoclasts</span>.`,
+          hist: `Lytic <span class="cloze">epiphysis/metaphysis</span> knee lesion; round-to-oval stromal cells, pink cytoplasm, collagen, and interspersed <span class="cloze">giant cells</span>.`,
+          action: `Histology alone is difficult; rely on end-of-bone location in a <span class="cloze">mature skeleton</span> (closed growth plates). High recurrence rate.`
+        },
+        nof: {
+          svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Nonossifying fibroma metaphyseal sclerotic rim schematic">
+            <rect x="0" y="0" width="320" height="200" rx="8" fill="var(--background)"/>
+            <path d="M100,180 L100,60 Q100,25 160,25 Q220,25 220,60 L220,180" fill="var(--surface-container)" stroke="var(--primary)" stroke-width="2.5"/>
+            <ellipse cx="196" cy="105" rx="18" ry="26" fill="var(--background)" stroke="var(--on-surface)" stroke-width="4"/>
+            <text x="12" y="95" font-size="10.5" font-weight="700" fill="var(--primary)">Metaphysis</text>
+            <text x="230" y="95" font-size="10.5" font-weight="700" fill="var(--on-surface)">Sclerotic</text>
+            <text x="230" y="109" font-size="10.5" font-weight="700" fill="var(--on-surface)">White Margin</text>
+            <text x="230" y="135" font-size="10" fill="var(--tertiary)">Self-resolving</text>
+          </svg>`,
+          caption: `Nonossifying fibroma (Case 9): eccentric metaphyseal lucency with a dense white sclerotic border in an adolescent.`,
+          title: `Nonossifying Fibroma — Benign Metaphyseal Cortical Defect`,
+          mech: `Sporadic <span class="cloze">KRAS and FGFR1</span> mutations; associated with <span class="cloze">NF1</span> tumor syndrome. Usually incidental and undergoes <span class="cloze">spontaneous resolution</span>.`,
+          hist: `Metaphyseal lucency with <span class="cloze">sclerotic margin</span>; spindled cells in focal <span class="cloze">storiform</span> (cartwheel) pattern + scattered osteoclast-type giant cells.`,
+          action: `Distinguish from malignant tumors on radiology; <span class="cloze">do not usually undergo biopsy</span>.`
+        },
+        fd: {
+          svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Fibrous dysplasia medullary lesions schematic">
+            <rect x="0" y="0" width="320" height="200" rx="8" fill="var(--background)"/>
+            <rect x="115" y="15" width="90" height="170" rx="12" fill="var(--surface-container)" stroke="var(--primary)" stroke-width="2.5"/>
+            <ellipse cx="160" cy="58" rx="26" ry="20" fill="var(--data-3)" fill-opacity="0.25" stroke="var(--data-3)" stroke-width="2"/>
+            <ellipse cx="160" cy="142" rx="24" ry="20" fill="var(--data-3)" fill-opacity="0.25" stroke="var(--data-3)" stroke-width="2"/>
+            <text x="12" y="55" font-size="10" font-weight="700" fill="var(--on-surface)">Proximal Medulla</text>
+            <text x="12" y="69" font-size="10" fill="var(--on-surface-variant)">Lucent Lesion</text>
+            <text x="12" y="142" font-size="10" font-weight="700" fill="var(--on-surface)">Distal Medulla</text>
+            <text x="12" y="156" font-size="10" fill="var(--on-surface-variant)">Lucent Lesion</text>
+            <text x="216" y="100" font-size="10" font-weight="700" fill="var(--primary)">GNAS1 Mosaic</text>
+          </svg>`,
+          caption: `Fibrous dysplasia (Case 10): proximal and distal medullary lucencies in the tibia of a 6-year-old boy with leg length discrepancy (GNAS1 mosaicism).`,
+          title: `Fibrous Dysplasia (Case 10) &amp; Skeletal Metastases Distribution`,
+          mech: `<span class="cloze">Somatic mosaicism for GNAS1</span> causes disorganized bone and fibrous tissue. <span class="cloze">Mazabraud syndrome</span> = polyostotic fibrous dysplasia + <span class="cloze">soft tissue myxomas</span>.`,
+          hist: `Lucent medullary lesions composed of trabeculae of <span class="cloze">woven bone</span> in a <span class="cloze">fibrous tissue background</span>.`,
+          action: `Distinguish from <span class="cloze">skeletal metastases</span>, which target <span class="cloze">vertebrae, pelvis, femur, humerus, and skull</span>.`
+        }
+      }
+    };
+
+    function saveStateToShim() {
+      if (window.notebookAppApi && typeof window.notebookAppApi.setAppState === `function`) {
+        window.notebookAppApi.setAppState(appState);
+      }
+    }
+
+    function updateClozeBadgeCount() {
+      const badge = document.getElementById(`clozeTotalBadge`);
+      const allClozes = document.querySelectorAll(`.cloze`);
+      if (badge) {
+        badge.textContent = `${allClozes.length} Cloze Active Recall Terms`;
+      }
+    }
+
+    function toggleSingleCloze(event) {
+      if (!appState.activeRecallMode) return;
+      const el = event.currentTarget;
+      const idx = el.dataset.clozeIdx;
+      const isRevealed = el.classList.toggle(`revealed`);
+      el.setAttribute(`aria-pressed`, isRevealed ? `true` : `false`);
+      if (idx) {
+        if (isRevealed && !appState.revealedClozes.includes(idx)) {
+          appState.revealedClozes.push(idx);
+        } else if (!isRevealed) {
+          appState.revealedClozes = appState.revealedClozes.filter(function(item) { return item !== idx; });
+        }
+      }
+      saveStateToShim();
+    }
+
+    function handleClozeKeydown(event) {
+      if (!appState.activeRecallMode) return;
+      if (event.key === `Enter` || event.key === ` `) {
+        event.preventDefault();
+        toggleSingleCloze({ currentTarget: event.currentTarget });
+      }
+    }
+
+    function setupClozeElements() {
+      const clozes = document.querySelectorAll(`.cloze`);
+      let staticIdx = 0;
+      const dynCounters = {};
+      clozes.forEach(function(el) {
+        const workbench = el.closest(`.topic-interactive-card`);
+        let key = ``;
+        if (workbench && workbench.id) {
+          const loKey = workbench.id.replace(`workbench-`, ``);
+          const activeItem = appState.activeTopicFigures[loKey] || `default`;
+          const bucket = `${loKey}-${activeItem}`;
+          const nextNum = dynCounters[bucket] || 0;
+          dynCounters[bucket] = nextNum + 1;
+          key = `dyn-${bucket}-${nextNum}`;
+        } else {
+          key = `c-${staticIdx}`;
+          staticIdx += 1;
+        }
+        el.dataset.clozeIdx = key;
+        el.removeEventListener(`click`, toggleSingleCloze);
+        el.removeEventListener(`keydown`, handleClozeKeydown);
+
+        if (appState.activeRecallMode) {
+          el.setAttribute(`role`, `button`);
+          el.setAttribute(`tabindex`, `0`);
+          const revealed = appState.revealedClozes.includes(key);
+          el.classList.toggle(`revealed`, revealed);
+          el.setAttribute(`aria-pressed`, revealed ? `true` : `false`);
+          el.addEventListener(`click`, toggleSingleCloze);
+          el.addEventListener(`keydown`, handleClozeKeydown);
+        } else {
+          el.classList.remove(`revealed`);
+          el.removeAttribute(`role`);
+          el.removeAttribute(`tabindex`);
+          el.removeAttribute(`aria-pressed`);
+        }
+      });
+      updateClozeBadgeCount();
+    }
+
+    function applyRecallModeUI() {
+      const body = document.body;
+      const mainBtn = document.getElementById(`recallToggleBtn`);
+      const hudBtn = document.getElementById(`hudRecallBtn`);
+      const revealBtn = document.getElementById(`revealAllBtn`);
+      const hideBtn = document.getElementById(`hideAllBtn`);
+
+      if (appState.activeRecallMode) {
+        body.classList.add(`active-recall-active`);
+        if (mainBtn) {
+          mainBtn.dataset.active = `true`;
+          const span = mainBtn.querySelector(`span`);
+          if (span) span.textContent = `Active Recall Mode: ON`;
+        }
+        if (hudBtn) {
+          hudBtn.dataset.active = `true`;
+          hudBtn.textContent = `Recall: ON`;
+        }
+        if (revealBtn) revealBtn.classList.remove(`hidden-control`);
+        if (hideBtn) hideBtn.classList.remove(`hidden-control`);
+      } else {
+        body.classList.remove(`active-recall-active`);
+        if (mainBtn) {
+          mainBtn.dataset.active = `false`;
+          const span = mainBtn.querySelector(`span`);
+          if (span) span.textContent = `Active Recall Mode: OFF`;
+        }
+        if (hudBtn) {
+          hudBtn.dataset.active = `false`;
+          hudBtn.textContent = `Recall: OFF`;
+        }
+        if (revealBtn) revealBtn.classList.add(`hidden-control`);
+        if (hideBtn) hideBtn.classList.add(`hidden-control`);
+      }
+      setupClozeElements();
+    }
+
+    function toggleActiveRecallMode() {
+      appState.activeRecallMode = !appState.activeRecallMode;
+      applyRecallModeUI();
+      saveStateToShim();
+    }
+
+    function revealAllClozes() {
+      if (!appState.activeRecallMode) return;
+      const clozes = document.querySelectorAll(`.cloze`);
+      appState.revealedClozes = [];
+      clozes.forEach(function(el) {
+        el.classList.add(`revealed`);
+        el.setAttribute(`aria-pressed`, `true`);
+        if (el.dataset.clozeIdx) appState.revealedClozes.push(el.dataset.clozeIdx);
+      });
+      saveStateToShim();
+    }
+
+    function hideAllClozes() {
+      if (!appState.activeRecallMode) return;
+      appState.revealedClozes = [];
+      document.querySelectorAll(`.cloze`).forEach(function(el) {
+        el.classList.remove(`revealed`);
+        el.setAttribute(`aria-pressed`, `false`);
+      });
+      saveStateToShim();
+    }
+
+    function updateMasteryProgress() {
+      const count = appState.masteredRows.length;
+      const pct = Math.round((count / TOTAL_ROWS) * 100);
+      const stats = document.getElementById(`masteryStatsText`);
+      const fill = document.getElementById(`masteryProgressFill`);
+      const track = document.getElementById(`masteryProgressTrack`);
+      if (stats) stats.textContent = `${count} / ${TOTAL_ROWS} (${pct}%)`;
+      if (fill) fill.style.width = `${pct}%`;
+      if (track) track.setAttribute(`aria-valuenow`, String(count));
+    }
+
+    function toggleMasteryRow(rowKey, checked) {
+      const rowEl = document.getElementById(`row-${rowKey}`);
+      if (checked) {
+        if (!appState.masteredRows.includes(rowKey)) appState.masteredRows.push(rowKey);
+        if (rowEl) rowEl.classList.add(`is-mastered`);
+      } else {
+        appState.masteredRows = appState.masteredRows.filter(function(k) { return k !== rowKey; });
+        if (rowEl) rowEl.classList.remove(`is-mastered`);
+      }
+      updateMasteryProgress();
+      saveStateToShim();
+    }
+
+    function resetMasteryChecklist(btn) {
+      if (btn && btn.dataset.armed !== `true`) {
+        btn.dataset.armed = `true`;
+        btn.textContent = `Confirm?`;
+        setTimeout(function() {
+          if (btn.dataset.armed === `true`) {
+            btn.dataset.armed = `false`;
+            btn.textContent = `Reset`;
+          }
+        }, 3000);
+        return;
+      }
+      if (btn) {
+        btn.dataset.armed = `false`;
+        btn.textContent = `Reset`;
+      }
+      appState.masteredRows = [];
+      document.querySelectorAll(`.cue-checkbox`).forEach(function(chk) {
+        chk.checked = false;
+      });
+      document.querySelectorAll(`article.cornell-row`).forEach(function(row) {
+        row.classList.remove(`is-mastered`);
+      });
+      updateMasteryProgress();
+      saveStateToShim();
+    }
+
+    function handleDateUpdate(val) {
+      appState.lastReviewedDate = val;
+      saveStateToShim();
+    }
+
+    function filterCornellTopics(loKey, btnEl) {
+      appState.activeLoFilter = loKey;
+      document.querySelectorAll(`.filter-btn`).forEach(function(b) {
+        b.classList.toggle(`active`, b.dataset.filter === loKey);
+      });
+      document.querySelectorAll(`section.topic-module`).forEach(function(sec) {
+        const match = loKey === `all` || sec.dataset.lo === loKey;
+        sec.classList.toggle(`filtered-out`, !match);
+      });
+      if (btnEl) btnEl.classList.add(`active`);
+      saveStateToShim();
+    }
+
+    function renderTopicFigure(loKey, itemKey) {
+      const dataMap = topicFigureData[loKey];
+      if (!dataMap || !dataMap[itemKey]) return;
+      const item = dataMap[itemKey];
+
+      const svgSlot = document.getElementById(`svgSlot-${loKey}`);
+      const svgCap = document.getElementById(`svgCaption-${loKey}`);
+      if (svgSlot) svgSlot.innerHTML = item.svg;
+      if (svgCap) svgCap.textContent = item.caption;
+
+      if (loKey === `lo1`) {
+        const s = document.getElementById(`lo1-size`);
+        const si = document.getElementById(`lo1-site`);
+        const p = document.getElementById(`lo1-pain`);
+        const r = document.getElementById(`lo1-rad`);
+        const pa = document.getElementById(`lo1-path`);
+        if (s) s.innerHTML = item.size;
+        if (si) si.innerHTML = item.site;
+        if (p) p.innerHTML = item.pain;
+        if (r) r.innerHTML = item.rad;
+        if (pa) pa.innerHTML = item.path;
+      } else if (loKey === `lo2`) {
+        const si = document.getElementById(`lo2-site`);
+        const r = document.getElementById(`lo2-rad`);
+        const h = document.getElementById(`lo2-hist`);
+        const g = document.getElementById(`lo2-gen`);
+        const pe = document.getElementById(`lo2-pearl`);
+        if (si) si.innerHTML = item.site;
+        if (r) r.innerHTML = item.rad;
+        if (h) h.innerHTML = item.hist;
+        if (g) g.innerHTML = item.gen;
+        if (pe) pe.innerHTML = item.pearl;
+      } else if (loKey === `lo3`) {
+        const t = document.getElementById(`flowTitle-lo3`);
+        const m = document.getElementById(`flowMech-lo3`);
+        const h = document.getElementById(`flowHist-lo3`);
+        const a = document.getElementById(`flowAction-lo3`);
+        if (t) t.innerHTML = item.title;
+        if (m) m.innerHTML = item.mech;
+        if (h) h.innerHTML = item.hist;
+        if (a) a.innerHTML = item.action;
+      }
+
+      const workbench = document.getElementById(`workbench-${loKey}`);
+      if (workbench) {
+        workbench.querySelectorAll(`.discrim-chip, .flow-card`).forEach(function(btn) {
+          btn.classList.toggle(`active`, btn.dataset.item === itemKey);
+        });
+      }
+      setupClozeElements();
+    }
+
+    function selectTopicFigureItem(loKey, itemKey, btnEl) {
+      appState.activeTopicFigures[loKey] = itemKey;
+      renderTopicFigure(loKey, itemKey);
+      if (btnEl) btnEl.classList.add(`active`);
+      saveStateToShim();
+    }
+
+    async function loadSavedState() {
+      try {
+        if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === `function`) {
+          const saved = await window.notebookAppApi.getAppState();
+          if (saved) {
+            if (typeof saved.activeRecallMode === `boolean`) appState.activeRecallMode = saved.activeRecallMode;
+            if (Array.isArray(saved.revealedClozes)) appState.revealedClozes = saved.revealedClozes;
+            if (Array.isArray(saved.masteredRows)) appState.masteredRows = saved.masteredRows;
+            if (typeof saved.lastReviewedDate === `string`) appState.lastReviewedDate = saved.lastReviewedDate;
+            if (typeof saved.activeLoFilter === `string`) appState.activeLoFilter = saved.activeLoFilter;
+            if (saved.activeTopicFigures && typeof saved.activeTopicFigures === `object`) {
+              Object.assign(appState.activeTopicFigures, saved.activeTopicFigures);
+            }
+          }
+        }
+      } catch (err) {
+        /* Proceed gracefully with defaults if shim unavailable */
+      }
+
+      const dateInput = document.getElementById(`lastReviewedDateInput`);
+      if (dateInput && appState.lastReviewedDate) {
+        dateInput.value = appState.lastReviewedDate;
+      }
+
+      appState.masteredRows.forEach(function(rowKey) {
+        const chk = document.getElementById(`chk-${rowKey}`);
+        const row = document.getElementById(`row-${rowKey}`);
+        if (chk) chk.checked = true;
+        if (row) row.classList.add(`is-mastered`);
+      });
+
+      renderTopicFigure(`lo1`, appState.activeTopicFigures.lo1 || `osteoidOsteoma`);
+      renderTopicFigure(`lo2`, appState.activeTopicFigures.lo2 || `osteochondroma`);
+      renderTopicFigure(`lo3`, appState.activeTopicFigures.lo3 || `ewing`);
+      filterCornellTopics(appState.activeLoFilter || `all`, null);
+      applyRecallModeUI();
+      updateMasteryProgress();
+
+      if (window.lucide && typeof window.lucide.createIcons === `function`) {
+        window.lucide.createIcons();
+      }
+      if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === `function`) {
+        window.notebookAppApi.notifyAppReady();
+      }
+    }
+
+    document.addEventListener(`DOMContentLoaded`, loadSavedState);
+  </script>
+</body>
+</html>
