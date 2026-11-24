@@ -1,0 +1,2277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="artifact-type" content="tool">
+<meta name="design-style" content="neon_noir">
+<title>GI Pharmacology, Bugs &amp; Viruses — XR 3-Lane Diagnostic Runner</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --background: #0a0a12;
+  --surface-container-low: #111118;
+  --surface-container: #141422;
+  --surface-container-high: #1e1e30;
+  --surface-glass: rgba(20, 20, 34, 0.78);
+  --surface-overlay: rgba(6, 6, 14, 0.84);
+  --on-surface: #e8e0f0;
+  --on-surface-variant: #a098b0;
+  --outline: #5a5068;
+  --outline-variant: #302840;
+  --primary: #ff2d78;
+  --on-primary: #1a0010;
+  --primary-container: #b3004e;
+  --on-primary-container: #ffe0ec;
+  --secondary: #00ffcc;
+  --tertiary: #ffe04a;
+  --error: #ff4444;
+  --on-error: #1a0000;
+  --positive: #00ffcc;
+  --warning: #ffe04a;
+  --focus: #ff2d78;
+  --data-1: #ff2d78;
+  --data-2: #00ffcc;
+  --data-3: #ffe04a;
+  --data-4: #b388ff;
+  --data-context: #6e6680;
+  --font-headline: 'Sora', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-label: 'Space Mono', monospace;
+  --display-size: clamp(1.4rem, 1.1rem + 1.1vw, 2rem);
+  --headline-size: clamp(1.1rem, 0.98rem + 0.45vw, 1.38rem);
+  --subhead-size: clamp(0.95rem, 0.9rem + 0.25vw, 1.12rem);
+  --body-size: clamp(0.88rem, 0.84rem + 0.16vw, 0.98rem);
+  --label-size: 0.75rem;
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --rounded: 0.125rem;
+  --rounded-lg: 0.25rem;
+  --rounded-full: 0.75rem;
+  --glow-text: 0 0 8px currentColor;
+  --glow-primary: 0 0 16px color-mix(in srgb, var(--primary) 40%, transparent);
+  --glow-secondary: 0 0 16px color-mix(in srgb, var(--secondary) 35%, transparent);
+  --glow-tertiary: 0 0 16px color-mix(in srgb, var(--tertiary) 35%, transparent);
+  --neon-border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+  --scanlines: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in srgb, var(--on-surface) 3%, transparent) 3px 4px);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+  --stage-pad-y: var(--space-sm);
+  --card-min-h: clamp(78px, 12dvh, 118px);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100dvh;
+  overflow: hidden;
+  overflow-x: clip;
+  background-color: var(--background);
+  background-image: var(--scanlines);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: var(--body-size);
+}
+button, input, select { font-family: inherit; }
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+#xr-app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  overflow: hidden;
+}
+#xr-app:not(.hints-hidden) {
+  --stage-pad-y: var(--space-xs);
+  --card-min-h: clamp(66px, 9.5dvh, 96px);
+}
+#xr-app.hints-hidden #hints-bar {
+  display: none;
+}
+
+/* BAND 1: ULTRA-SLIM TOP MINI BAR */
+#top-mini-bar {
+  position: relative;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-md);
+  background: var(--surface-container-low);
+  border-bottom: var(--neon-border);
+  min-height: 44px;
+}
+.menu-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: 36px;
+  padding: 0 var(--space-sm);
+  background: var(--surface-container);
+  color: var(--secondary);
+  border: 1px solid color-mix(in srgb, var(--secondary) 45%, transparent);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+.menu-trigger-btn:hover {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+}
+.telemetry-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-xs);
+}
+.hud-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.22rem 0.5rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  color: var(--on-surface);
+  white-space: nowrap;
+}
+.hud-chip.is-hp { border-color: color-mix(in srgb, var(--primary) 45%, transparent); color: var(--primary); }
+.hud-chip.is-xp { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+.hud-chip.is-streak { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+.hud-chip.is-timer { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+.hud-chip.is-timer.is-urgent { border-color: var(--error); color: var(--error); box-shadow: 0 0 10px color-mix(in srgb, var(--error) 40%, transparent); }
+.hud-chip.is-timer.is-paused { color: var(--on-surface-variant); border-color: var(--outline); }
+
+/* BAND 2: QUESTION STAGE & 3S AUTO-FADE METADATA */
+#question-stage {
+  position: relative;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: var(--stage-pad-y) var(--space-lg);
+  background: linear-gradient(180deg, var(--surface-container) 0%, color-mix(in srgb, var(--background) 88%, transparent) 100%);
+  border-bottom: 1px solid var(--outline-variant);
+  transition: padding var(--dur-short) var(--ease-out);
+}
+#q-meta-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  max-height: 48px;
+  opacity: 1;
+  overflow: hidden;
+  transition: opacity var(--dur-long) var(--ease-out), max-height var(--dur-long) var(--ease-out), margin var(--dur-long) var(--ease-out);
+}
+#q-meta-bar.is-faded {
+  opacity: 0;
+  max-height: 0;
+  margin: 0;
+  pointer-events: none;
+}
+.meta-badge {
+  padding: 0.16rem 0.48rem;
+  border-radius: var(--rounded);
+  border: 1px solid var(--outline);
+  background: var(--surface-container-low);
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+.meta-badge.is-primary { border-color: color-mix(in srgb, var(--primary) 50%, transparent); color: var(--primary); }
+.meta-badge.is-secondary { border-color: color-mix(in srgb, var(--secondary) 50%, transparent); color: var(--secondary); }
+.meta-badge.is-tertiary { border-color: color-mix(in srgb, var(--tertiary) 50%, transparent); color: var(--tertiary); }
+#q-stem-text {
+  margin: 0;
+  max-width: 78ch;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: clamp(0.92rem, 0.86rem + 0.28vw, 1.08rem);
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--on-surface);
+}
+#q-progress-track {
+  width: min(720px, 92%);
+  height: 3px;
+  background: var(--outline-variant);
+  border-radius: var(--rounded);
+  overflow: hidden;
+}
+#q-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  transition: width var(--dur-short) var(--ease-out);
+}
+
+/* BAND 3: 3D SYNTHWAVE VOID & 1:1 PORTAL FUSION */
+#void-stage {
+  position: relative;
+  min-height: 220px;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: var(--space-sm) var(--space-md) var(--space-md);
+}
+#void-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1;
+}
+#lane-cards-grid {
+  position: relative;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-md);
+  width: min(1160px, 100%);
+  margin: 0 auto;
+  align-items: stretch;
+}
+.lane-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: var(--card-min-h);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-glass);
+  backdrop-filter: blur(8px);
+  border-radius: var(--rounded-lg);
+  cursor: pointer;
+  color: var(--on-surface);
+  transition: transform var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+}
+.lane-card[data-lane="0"] {
+  border: 1px solid color-mix(in srgb, var(--primary) 65%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--primary) 14%, transparent);
+}
+.lane-card[data-lane="1"] {
+  border: 1px solid color-mix(in srgb, var(--secondary) 65%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--secondary) 14%, transparent);
+}
+.lane-card[data-lane="2"] {
+  border: 1px solid color-mix(in srgb, var(--tertiary) 65%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--tertiary) 14%, transparent);
+}
+.lane-card:hover, .lane-card.is-targeted {
+  transform: translateY(-3px);
+  background: color-mix(in srgb, var(--surface-container-high) 88%, transparent);
+}
+.lane-card[data-lane="0"]:hover, .lane-card[data-lane="0"].is-targeted {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+}
+.lane-card[data-lane="1"]:hover, .lane-card[data-lane="1"].is-targeted {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+}
+.lane-card[data-lane="2"]:hover, .lane-card[data-lane="2"].is-targeted {
+  border-color: var(--tertiary);
+  box-shadow: var(--glow-tertiary);
+}
+.lane-card.is-correct-reveal {
+  border-color: var(--positive) !important;
+  box-shadow: 0 0 20px color-mix(in srgb, var(--positive) 55%, transparent) !important;
+}
+.lane-card.is-wrong-reveal {
+  border-color: var(--error) !important;
+  box-shadow: 0 0 18px color-mix(in srgb, var(--error) 50%, transparent) !important;
+}
+.lane-key-tag {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  opacity: 0.9;
+}
+.lane-card[data-lane="0"] .lane-key-tag { color: var(--primary); }
+.lane-card[data-lane="1"] .lane-key-tag { color: var(--secondary); }
+.lane-card[data-lane="2"] .lane-key-tag { color: var(--tertiary); }
+.lane-card-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  padding-top: 0.65rem;
+  font-size: clamp(0.84rem, 0.8rem + 0.16vw, 0.96rem);
+  font-weight: 600;
+  line-height: 1.32;
+  color: var(--on-surface);
+}
+
+/* BAND 4: BOTTOM HINTS DRAWER [H] */
+#hints-bar {
+  position: relative;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: var(--space-xs) var(--space-lg);
+  background: var(--surface-container-low);
+  border-top: 1px solid color-mix(in srgb, var(--secondary) 35%, transparent);
+}
+.hints-kicker {
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  opacity: 0.9;
+}
+#q-clue-text {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(0.84rem, 0.8rem + 0.15vw, 0.94rem);
+  color: var(--on-surface);
+  line-height: 1.38;
+  max-width: 82ch;
+}
+
+/* FULL MENU & SKILL TREE DRAWER */
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: var(--surface-overlay);
+  display: none;
+}
+.menu-backdrop.is-open { display: block; }
+#top-menu-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(390px, 92vw);
+  z-index: 90;
+  background: var(--surface-container);
+  border-right: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  padding: var(--space-lg);
+  display: none;
+  flex-direction: column;
+  gap: var(--space-md);
+  overflow-y: auto;
+}
+#top-menu-drawer.is-open { display: flex; }
+.drawer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  border-bottom: 1px solid var(--outline-variant);
+  padding-bottom: var(--space-sm);
+}
+.drawer-kicker {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  text-shadow: var(--glow-text);
+}
+.drawer-title {
+  margin: 0.25rem 0 0;
+  font-family: var(--font-headline);
+  font-size: var(--headline-size);
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--on-surface);
+}
+.drawer-section-label {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+  margin-bottom: var(--space-xs);
+}
+.drawer-btn-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-xs);
+}
+.btn-neon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0.45rem 0.75rem;
+  background: var(--surface-container-low);
+  color: var(--primary);
+  border: var(--neon-border-lit);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+}
+.btn-neon:hover { border-color: var(--primary); box-shadow: var(--glow-primary); }
+.btn-neon.is-cyan { color: var(--secondary); border-color: color-mix(in srgb, var(--secondary) 45%, transparent); }
+.btn-neon.is-cyan:hover { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.btn-neon.is-active { background: var(--primary-container); color: var(--on-primary-container); border-color: var(--primary); }
+.btn-neon.is-cyan.is-active { background: color-mix(in srgb, var(--secondary) 18%, var(--surface-container)); color: var(--secondary); border-color: var(--secondary); }
+
+.sector-tree-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+.sector-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 40px;
+  padding: 0.45rem 0.65rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  color: var(--on-surface);
+  text-align: left;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.sector-btn:hover, .sector-btn.is-active {
+  border-color: var(--secondary);
+  background: var(--surface-container-high);
+}
+.sector-btn span.sector-count {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  color: var(--secondary);
+}
+.audio-upload-label {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  color: var(--on-surface-variant);
+  margin-bottom: 0.25rem;
+}
+.audio-file-input {
+  width: 100%;
+  padding: 0.4rem;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-size: 0.75rem;
+}
+
+/* 7-PART OUTCOME DOSSIER & LOOT CODEX MODALS */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--surface-overlay);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+}
+.modal-overlay.is-open { display: flex; }
+.modal-card {
+  width: min(880px, 100%);
+  max-height: 90dvh;
+  overflow-y: auto;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+#outcome-verdict {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-headline);
+  font-size: var(--headline-size);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--rounded);
+  background: var(--surface-container-low);
+}
+#outcome-verdict.is-correct { color: var(--positive); border: 1px solid color-mix(in srgb, var(--positive) 55%, transparent); text-shadow: var(--glow-text); }
+#outcome-verdict.is-wrong { color: var(--error); border: 1px solid color-mix(in srgb, var(--error) 55%, transparent); }
+#outcome-verdict.is-timeout { color: var(--tertiary); border: 1px solid color-mix(in srgb, var(--tertiary) 55%, transparent); }
+
+.dossier-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+.dossier-box {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: var(--space-sm) var(--space-md);
+}
+.dossier-box.is-full { grid-column: 1 / -1; }
+.dossier-box-title {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--secondary);
+}
+.dossier-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: var(--on-surface);
+}
+.angles-trio {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+.angle-mini-card {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: var(--space-sm);
+}
+.angle-mini-title {
+  margin: 0 0 0.3rem;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  color: var(--tertiary);
+}
+
+/* CODEX GRID */
+.codex-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+.codex-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: var(--space-sm);
+}
+.codex-item {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: var(--space-sm) var(--space-md);
+}
+.codex-item.is-unlocked { border-color: color-mix(in srgb, var(--secondary) 55%, transparent); }
+.codex-item-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: 0.35rem;
+}
+.codex-item-name { font-family: var(--font-headline); font-weight: 700; font-size: 0.92rem; color: var(--on-surface); }
+.codex-item-tag { font-family: var(--font-label); font-size: 0.68rem; color: var(--primary); text-transform: uppercase; }
+.codex-item-body { font-size: 0.82rem; line-height: 1.42; color: var(--on-surface-variant); margin: 0; }
+
+/* SILENT STREAK TOAST */
+#streak-toast {
+  position: fixed;
+  top: 54px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
+  z-index: 95;
+  padding: 0.35rem 0.85rem;
+  background: var(--surface-container-high);
+  border: 1px solid var(--tertiary);
+  color: var(--tertiary);
+  box-shadow: var(--glow-tertiary);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.76rem;
+  font-weight: 700;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out);
+}
+#streak-toast.is-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 640px) {
+  #top-mini-bar { padding: var(--space-xs) var(--space-sm); }
+  #question-stage { padding: var(--space-xs) var(--space-sm); }
+  #lane-cards-grid { grid-template-columns: 1fr; gap: var(--space-xs); }
+  .lane-card { min-height: 58px; padding: var(--space-xs) var(--space-sm); }
+  .dossier-grid, .angles-trio { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+<div id="xr-app" class="hints-hidden">
+  <!-- BAND 1: TOP MINI BAR -->
+  <header id="top-mini-bar">
+    <button type="button" id="btn-menu" class="menu-trigger-btn" onclick="toggleMenuDrawer()">☰ MENU [M]</button>
+    <div class="telemetry-strip">
+      <span id="hud-hp" class="hud-chip is-hp">❤ HP 5/5</span>
+      <span id="hud-xp" class="hud-chip is-xp">✦ XP 0</span>
+      <span id="hud-streak" class="hud-chip is-streak">⚡ 0</span>
+      <span id="hud-gate" class="hud-chip">GATE 1/45</span>
+      <span id="hud-timer" class="hud-chip is-timer">⏱ 50s</span>
+    </div>
+  </header>
+
+  <!-- BAND 2: QUESTION STAGE & 3S AUTO-FADE -->
+  <section id="question-stage" aria-live="polite">
+    <div id="q-meta-bar">
+      <span id="meta-sector" class="meta-badge is-primary">SECTOR I</span>
+      <span id="meta-entity" class="meta-badge is-secondary">ENTITY 1</span>
+      <span id="meta-angle" class="meta-badge is-tertiary">ANGLE</span>
+      <span id="meta-phase" class="meta-badge">PHASE 1</span>
+      <span id="meta-corridor" class="meta-badge">CORRIDOR</span>
+    </div>
+    <p id="q-stem-text" class="amboss-scan-target">Initializing diagnostic corridor…</p>
+    <div id="q-progress-track"><div id="q-progress-fill"></div></div>
+  </section>
+
+  <!-- BAND 3: 3D SYNTHWAVE VOID & 1:1 PORTAL FUSION -->
+  <main id="void-stage">
+    <canvas id="void-canvas" aria-hidden="true"></canvas>
+    <div id="lane-cards-grid">
+      <button type="button" class="lane-card" data-lane="0" onclick="selectLane(0)">
+        <span class="lane-key-tag">[1 / A]</span>
+        <span id="lane-text-0" class="lane-card-text">Option A</span>
+      </button>
+      <button type="button" class="lane-card" data-lane="1" onclick="selectLane(1)">
+        <span class="lane-key-tag">[2 / W]</span>
+        <span id="lane-text-1" class="lane-card-text">Option B</span>
+      </button>
+      <button type="button" class="lane-card" data-lane="2" onclick="selectLane(2)">
+        <span class="lane-key-tag">[3 / D]</span>
+        <span id="lane-text-2" class="lane-card-text">Option C</span>
+      </button>
+    </div>
+  </main>
+
+  <!-- BAND 4: BOTTOM HINTS DRAWER [H] -->
+  <footer id="hints-bar">
+    <span class="hints-kicker">Tactical Hint [H]</span>
+    <p id="q-clue-text">Hint loading…</p>
+  </footer>
+</div>
+
+<div id="streak-toast" role="status" aria-live="polite"></div>
+
+<!-- MENU BACKDROP & FULL DRAWER -->
+<div id="menu-backdrop" class="menu-backdrop" onclick="toggleMenuDrawer()"></div>
+<aside id="top-menu-drawer" aria-label="Command Drawer">
+  <div class="drawer-header">
+    <div>
+      <div class="drawer-kicker">COMLEX-USA / USMLE XR RAID</div>
+      <h1 class="drawer-title">GI Pharmacology, Bugs &amp; Viruses</h1>
+    </div>
+    <button type="button" class="btn-neon is-cyan" onclick="toggleMenuDrawer()">✕</button>
+  </div>
+
+  <div>
+    <div class="drawer-section-label">Cockpit Controls</div>
+    <div class="drawer-btn-grid">
+      <button type="button" id="menu-hints-btn" class="btn-neon is-cyan" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+      <button type="button" id="menu-timer-btn" class="btn-neon is-cyan is-active" onclick="toggleTimerEnabled()">⏱ Timer: ON [T]</button>
+      <button type="button" class="btn-neon" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+      <button type="button" class="btn-neon is-cyan" onclick="openCodexFromMenu()">📖 Loot Codex [C]</button>
+      <button type="button" id="menu-bgm-btn" class="btn-neon" onclick="toggleBgm()">🎵 Synth BGM: OFF</button>
+      <button type="button" id="menu-sfx-btn" class="btn-neon is-active" onclick="toggleSfx()">🔊 SFX: ON</button>
+      <button type="button" id="menu-reset-btn" class="btn-neon" onclick="resetProgress(this)">↺ Reset Run</button>
+      <button type="button" class="btn-neon is-cyan" onclick="exportProgress()">⬇ Export CSV</button>
+    </div>
+  </div>
+
+  <div>
+    <label class="audio-upload-label" for="custom-audio-input">Custom Track (MP3 / WAV — local session only)</label>
+    <input id="custom-audio-input" class="audio-file-input" type="file" accept="audio/mp3,audio/wav,audio/mpeg,audio/*" onchange="loadCustomAudio(this)">
+  </div>
+
+  <div>
+    <div class="drawer-section-label">Sector Jump &amp; Skill Tree (45 Gates)</div>
+    <div id="sector-tree-list" class="sector-tree-list"></div>
+  </div>
+</aside>
+
+<!-- 7-PART OUTCOME DOSSIER MODAL -->
+<div id="outcome-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="outcome-verdict">
+  <div class="modal-card">
+    <h2 id="outcome-verdict" class="is-correct">✔ CORRECT</h2>
+    <div class="dossier-grid">
+      <div class="dossier-box is-full">
+        <h3 class="dossier-box-title">1. Board Verdict &amp; Core Synthesis</h3>
+        <ul id="dossier-sec-1" class="dossier-list amboss-scan-target"></ul>
+      </div>
+      <div class="dossier-box">
+        <h3 class="dossier-box-title">2. High-Yield Mechanism / Pathogenesis</h3>
+        <ul id="dossier-sec-2" class="dossier-list amboss-scan-target"></ul>
+      </div>
+      <div class="dossier-box">
+        <h3 class="dossier-box-title">3. Diagnostic &amp; Clinical Discriminators</h3>
+        <ul id="dossier-sec-3" class="dossier-list amboss-scan-target"></ul>
+      </div>
+      <div class="dossier-box">
+        <h3 class="dossier-box-title">4. First-Line Therapy &amp; Contraindications</h3>
+        <ul id="dossier-sec-4" class="dossier-list amboss-scan-target"></ul>
+      </div>
+      <div class="dossier-box">
+        <h3 class="dossier-box-title">5. Distractor Elimination</h3>
+        <ul id="dossier-sec-5" class="dossier-list amboss-scan-target"></ul>
+      </div>
+      <div class="dossier-box is-full">
+        <h3 class="dossier-box-title">6. Osteopathic &amp; Board Trap Integration</h3>
+        <ul id="dossier-sec-6" class="dossier-list amboss-scan-target"></ul>
+      </div>
+      <div class="dossier-box is-full">
+        <h3 class="dossier-box-title">7. Three-Angle Entity Mastery</h3>
+        <div class="angles-trio">
+          <div class="angle-mini-card">
+            <h4 class="angle-mini-title">Angle A: Mechanism</h4>
+            <ul id="dossier-angle-1" class="dossier-list amboss-scan-target"></ul>
+          </div>
+          <div class="angle-mini-card">
+            <h4 class="angle-mini-title">Angle B: Diagnostics</h4>
+            <ul id="dossier-angle-2" class="dossier-list amboss-scan-target"></ul>
+          </div>
+          <div class="angle-mini-card">
+            <h4 class="angle-mini-title">Angle C: Clinical Tx</h4>
+            <ul id="dossier-angle-3" class="dossier-list amboss-scan-target"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:center;gap:var(--space-sm);">
+      <button type="button" class="btn-neon is-cyan" onclick="openCodexFromOutcome()">📖 View Codex</button>
+      <button type="button" id="btn-next-gate" class="btn-neon" onclick="advanceNextGate()">Next Gate [Space / Enter] ➔</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOOT CODEX MODAL -->
+<div id="codex-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="codex-title">
+  <div class="modal-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-sm);">
+      <h2 id="codex-title" style="margin:0;font-family:var(--font-headline);color:var(--secondary);">📖 GI Loot Codex (15 Entities)</h2>
+      <button type="button" class="btn-neon" onclick="closeCodex()">✕ Close [C]</button>
+    </div>
+    <div id="codex-filters" class="codex-filter-row"></div>
+    <div id="codex-list" class="codex-list amboss-scan-target"></div>
+  </div>
+</div>
+
+<api-shim></api-shim>
+<script>
+const CODEX_DATA = [
+  { id: 1, sector: `Sector I: Acid-Peptic & Antiemetics`, name: `PPIs, H2 Blockers & Mucosal Protectants`, pearls: [
+    `PPIs (-prazole) irreversibly inhibit parietal cell H+/K+-ATPase; chronic use risks C. difficile, pneumonia, AIN, B12 malabsorption, and hypomagnesemia/fractures.`,
+    `Cimetidine (H2 blocker) inhibits CYP450, decreases renal creatinine excretion, and causes antiandrogenic effects (gynecomastia, galactorrhea).`,
+    `Sucralfate binds ulcer base in acidic pH (do not combine with PPI/H2); Misoprostol (PGE1) prevents NSAID ulcers and is abortifacient.`
+  ]},
+  { id: 2, sector: `Sector I: Acid-Peptic & Antiemetics`, name: `Antiemetic Signaling Pathways`, pearls: [
+    `Ondansetron blocks 5-HT3 receptors in the area postrema and vagal GI afferents; side effects include headache, constipation, QT prolongation, and serotonin syndrome.`,
+    `Metoclopramide blocks D2 receptors in area postrema and enhances upper GI motility (diabetic gastroparesis); adverse effects include EPS, tardive dyskinesia, and hyperprolactinemia.`,
+    `Aprepitant blocks NK1 (substance P) receptors in the area postrema for CINV; Scopolamine (M1) and diphenhydramine (H1) treat vestibular motion sickness.`
+  ]},
+  { id: 3, sector: `Sector I: Acid-Peptic & Antiemetics`, name: `H. pylori Regimens & Eradication`, pearls: [
+    `Curved, flagellated, gram-negative rod positive for catalase, oxidase, and urease (creates alkaline NH3 cloud in gastric antrum).`,
+    `Causes >90% of duodenal ulcers and predisposes to gastric adenocarcinoma and gastric MALT lymphoma.`,
+    `First-line triple therapy: PPI + clarithromycin + amoxicillin (or metronidazole if PCN-allergic); bismuth quadruple therapy if macrolide resistance.`
+  ]},
+  { id: 4, sector: `Sector II: Motility & Hepatic Pharm`, name: `Antidiarrheals & Motility Regulators`, pearls: [
+    `Loperamide is a peripheral mu-opioid agonist that increases colonic phasic segmenting activity without crossing the BBB (minimal abuse potential).`,
+    `Diphenoxylate crosses the BBB at high doses, so it is co-formulated with atropine to deter abuse via anticholinergic side effects.`,
+    `Opioid antidiarrheals are contraindicated in bloody diarrhea or high fever (invasive infection) due to risk of toxic megacolon.`
+  ]},
+  { id: 5, sector: `Sector II: Motility & Hepatic Pharm`, name: `Laxatives & Cathartics`, pearls: [
+    `Bulk-forming (psyllium, methylcellulose) absorb water to distend lumen; Emollient (docusate) acts as surfactant lowering stool surface tension.`,
+    `Osmotic laxatives (PEG, magnesium hydroxide/citrate, lactulose) draw water into lumen; Mg2+ risks hypermagnesemia in renal failure.`,
+    `Stimulant laxatives (senna, bisacodyl) stimulate enteric nerves; chronic senna use causes benign brown colonic pigmentation (melanosis coli).`
+  ]},
+  { id: 6, sector: `Sector II: Motility & Hepatic Pharm`, name: `Portal HTN & Hepatic Encephalopathy`, pearls: [
+    `Octreotide (long-acting somatostatin analog) reduces splanchnic blood flow for acute esophageal variceal bleeding, VIPoma, carcinoid, and glucagonoma; risks cholelithiasis/steatorrhea.`,
+    `Lactulose is degraded by colonic bacteria into lactic/acetic acid, lowering luminal pH to trap NH3 as non-absorbable NH4+ in hepatic encephalopathy.`,
+    `Rifaximin is a poorly absorbed oral antibiotic that eradicates NH3-producing gut bacteria.`
+  ]},
+  { id: 7, sector: `Sector III: Bacterial Enteritis`, name: `Clostridioides difficile Colitis`, pearls: [
+    `Gram-positive spore-forming anaerobic rod causing pseudomembranous colitis after clindamycin, fluoroquinolone, cephalosporin, or PPI exposure.`,
+    `Toxin A (enterotoxin) causes watery diarrhea via brush border damage; Toxin B (cytotoxin) disrupts actin cytoskeleton causing mucosal necrosis.`,
+    `Treat with oral vancomycin or fidaxomicin (metronidazole only if unavailable); fecal microbiota transplant for recurrent disease.`
+  ]},
+  { id: 8, sector: `Sector III: Bacterial Enteritis`, name: `ETEC vs. EHEC (O157:H7)`, pearls: [
+    `ETEC causes watery traveler's diarrhea via heat-labile toxin (LT, increases cAMP) and heat-stable toxin (ST, increases cGMP).`,
+    `EHEC O157:H7 (sorbitol-negative on MacConkey) produces Shiga-like toxin that inactivates the 60S ribosomal subunit.`,
+    `EHEC causes bloody diarrhea without fever and hemolytic uremic syndrome (HUS); antibiotics are contraindicated because lysis releases more toxin.`
+  ]},
+  { id: 9, sector: `Sector III: Bacterial Enteritis`, name: `Invasive Enteric Pathogens`, pearls: [
+    `Shigella (non-motile, no H2S, low ID50) invades M cells and spreads cell-to-cell via actin polymerization; Salmonella (motile, H2S+, acid-labile, Vi capsule in S. typhi) causes typhoid fever and osteomyelitis in sickle cell.`,
+    `Campylobacter jejuni is comma-shaped, oxidase+, grows at 42°C on Skirrow agar (poultry), and triggers Guillain-Barré syndrome or reactive arthritis.`,
+    `Vibrio cholerae (comma-shaped, oxidase+, alkaline media) secretes cholera toxin that permanently activates Gs, raising cAMP and causing rice-water stool.`
+  ]},
+  { id: 10, sector: `Sector IV: Parasitic GI Pathogens`, name: `Giardia duodenalis`, pearls: [
+    `Flagellated protozoan with two nuclei and ventral sucking disk; acquired from cysts in mountain streams/campers (IgA deficiency increases risk).`,
+    `Causes foul-smelling, greasy steatorrhea, bloating, and flatulence due to villous blunting and fat malabsorption.`,
+    `Diagnosis by stool O&P or ELISA antigen showing pear-shaped trophozoites with falling-leaf motility; treat with metronidazole.`
+  ]},
+  { id: 11, sector: `Sector IV: Parasitic GI Pathogens`, name: `Entamoeba histolytica`, pearls: [
+    `Acquired from cysts in contaminated water/food; causes dysentery with flask-shaped colonic ulcers.`,
+    `Stool microscopy shows trophozoites with phagocytosed RBCs; invades portal circulation to cause RUQ anchovy-paste liver abscess.`,
+    `Treat invasive disease with metronidazole followed by a luminal agent (paromomycin or iodoquinol) to eradicate cysts.`
+  ]},
+  { id: 12, sector: `Sector IV: Parasitic GI Pathogens`, name: `Cryptosporidium & Intestinal Nematodes`, pearls: [
+    `Cryptosporidium causes severe watery diarrhea in HIV patients (CD4 < 100); diagnosed by modified acid-fast stain showing red oocysts; nitazoxanide.`,
+    `Enterobius vermicularis (pinworm) causes nocturnal perianal pruritus; diagnosed via Scotch tape test; treat with albendazole or pyrantel pamoate.`,
+    `Strongyloides stercoralis penetrates skin (barefoot), autoinfects GI tract, and causes hyperinfection in immunocompromised/HTLV-1; rhabditiform larvae in stool; ivermectin.`
+  ]},
+  { id: 13, sector: `Sector V: GI & Hepatotropic Viruses`, name: `Hepatitis B Virus`, pearls: [
+    `Partially dsDNA hepadnavirus replicating via RNA intermediate using reverse transcriptase; Dane particle is infectious virion.`,
+    `Window period: HBsAg and anti-HBs negative, anti-HBc IgM positive; HBeAg reflects high infectivity.`,
+    `Extrahepatic polyarteritis nodosa (PAN) and membranous nephropathy; chronic HBV treated with tenofovir or entecavir.`
+  ]},
+  { id: 14, sector: `Sector V: GI & Hepatotropic Viruses`, name: `Hepatitis C Virus & DAAs`, pearls: [
+    `Enveloped (+)ssRNA flavivirus lacking 3'-5' exonuclease proofreading, causing hypervariable envelope region (E2) antigenic variation and chronicity (~80%).`,
+    `Associated with mixed cryoglobulinemia, porphyria cutanea tarda, MPGN, and lichen planus.`,
+    `Curative direct-acting antivirals: Sofosbuvir (NS5B RNA polymerase inhibitor) + Ledipasvir/Velpatasvir (NS5A inhibitor); avoid ribavirin in pregnancy.`
+  ]},
+  { id: 15, sector: `Sector V: GI & Hepatotropic Viruses`, name: `Viral Gastroenteritis & Outbreaks`, pearls: [
+    `Rotavirus: naked, segmented (11 segments) dsRNA wheel-shaped reovirus; NSP4 enterotoxin raises intracellular Ca2+ causing secretory Cl- diarrhea in infants.`,
+    `Live attenuated oral rotavirus vaccine carries a small risk of intussusception; give before 15 weeks / complete by 8 months.`,
+    `Norovirus: naked (+)ssRNA calicivirus causing explosive watery diarrhea and vomiting outbreaks on cruise ships, dorms, and schools.`
+  ]}
+];
+
+const SECTORS = [
+  { id: 1, title: `Sector I: Acid-Peptic & Antiemetics`, startIdx: 0, count: 9 },
+  { id: 2, title: `Sector II: Motility & Hepatic Pharm`, startIdx: 9, count: 9 },
+  { id: 3, title: `Sector III: Bacterial Enteritis`, startIdx: 18, count: 9 },
+  { id: 4, title: `Sector IV: Parasitic GI Pathogens`, startIdx: 27, count: 9 },
+  { id: 5, title: `Sector V: GI & Hepatotropic Viruses`, startIdx: 36, count: 9 }
+];
+
+function qItem(id, sector, entity, angle, phase, corridor, stem, opts, ans, shortAns, clue, s1, s2, s3, s4, s5, s6, a1, a2, a3) {
+  return {
+    id, sector, entity, angle, phase, corridor, stem, opts, ans, shortAns, clue,
+    dossier: { s1, s2, s3, s4, s5, s6, a1, a2, a3 }
+  };
+}
+
+const ALL_QUESTIONS = [
+  // SECTOR I (Q1-Q9)
+  qItem(1, `Sector I`, `PPIs & Mucosal Protectants`, `Mechanism`, `Phase 1`, `NEURAL CORE`,
+    `A 58-year-old man with GERD starts daily omeprazole. Which molecular target is covalently and irreversibly inhibited by this agent in gastric parietal cells?`,
+    [`H+/K+-ATPase proton pump`, `Basolateral histamine H2 receptor`, `M3 muscarinic Gq receptor`], 0,
+    `H+/K+-ATPase inhibition`,
+    `Look for the final common pathway of parietal acid secretion.`,
+    [`Omeprazole irreversibly forms disulfide bonds with parietal cell H+/K+-ATPase.`],
+    [`PPIs block the final common step of acid secretion regardless of secretagogue (ACh, gastrin, histamine).`, `Prodrug activated in acidic canaliculi.`],
+    [`First-line for erosive esophagitis, Zollinger-Ellison syndrome, and duodenal ulcers.`, `Chronic use risks C. difficile, hypomagnesemia, B12 deficiency.`],
+    [`Give 30–60 minutes before breakfast for maximal active pump inhibition.`, `Taper after prolonged use to prevent rebound hypergastrinemia.`],
+    [`H2 blockers (famotidine) reversibly block basolateral H2 receptors.`, `Atropine blocks M3 muscarinic receptors but only partially lowers acid.`],
+    [`COMLEX Link: Viscerosomatic reflexes for stomach localize to T5–T9 on the left.`],
+    [`Covalent disulfide bond on H+/K+-ATPase.`], [`Check Mg2+, B12, and fracture risk.`], [`Preferred over H2 blockers for healing.`]
+  ),
+  qItem(2, `Sector I`, `PPIs & Mucosal Protectants`, `Adverse Effects`, `Phase 2`, `NEON PULSE`,
+    `A 66-year-old man on warfarin and phenytoin develops bilateral gynecomastia and elevated serum creatinine without true renal injury after starting an OTC dyspepsia drug. Which agent did he take?`,
+    [`Famotidine`, `Cimetidine`, `Pantoprazole`], 1,
+    `Cimetidine`,
+    `Think of the H2 blocker famous for CYP450 inhibition and antiandrogenic effects.`,
+    [`Cimetidine inhibits CYP450, blocks tubular creatinine secretion, and acts as an antiandrogen.`],
+    [`Reversible H2 receptor blockade reduces cAMP in parietal cells.`, `Crosses the blood-brain barrier and placenta.`],
+    [`Increases warfarin and phenytoin levels via CYP inhibition.`, `Decreases renal tubular secretion of creatinine without lowering GFR.`],
+    [`Switch to famotidine or a PPI to avoid CYP450 and antiandrogen toxicity.`, `Avoid in older adults with delirium risk.`],
+    [`Famotidine lacks significant CYP450 or antiandrogenic activity.`, `Pantoprazole is a PPI without antiandrogenic gynecomastia.`],
+    [`Board Trap: Elevated serum creatinine on cimetidine reflects tubular competition, not AKI.`],
+    [`H2 blockade + potent CYP450 inhibition.`], [`Gynecomastia, prolactin rise, pseudo-Cr rise.`], [`Use famotidine instead.`]
+  ),
+  qItem(3, `Sector I`, `PPIs & Mucosal Protectants`, `Pharmacology`, `Phase 3`, `CYBER NEXUS`,
+    `A 34-year-old woman with rheumatoid arthritis taking daily meloxicam needs ulcer prophylaxis. Which protective agent is strictly contraindicated if she declines contraception?`,
+    [`Sucralfate`, `Misoprostol`, `Aluminum hydroxide`], 1,
+    `Misoprostol (PGE1 analog)`,
+    `Which prostaglandin analog protects gastric mucosa while inducing uterine contractions?`,
+    [`Misoprostol is a PGE1 analog that protects against NSAID ulcers but is an abortifacient.`],
+    [`Increases gastric mucus and bicarbonate secretion while inhibiting acid.`, `Stimulates uterine smooth muscle contraction and cervical ripening.`],
+    [`NSAIDs inhibit COX and deplete cytoprotective PGE1.`, `Common adverse effect is secretory diarrhea.`],
+    [`Contraindicated in patients of childbearing potential unless using reliable contraception.`, `Use PPI as safe alternative for NSAID gastroprotection.`],
+    [`Sucralfate requires acidic pH to polymerize and is safe in pregnancy.`, `Aluminum hydroxide causes constipation and hypophosphatemia.`],
+    [`Osteopathic Note: Avoid sacral/pelvic OMT techniques that provoke uterine tone in high-risk pregnancy.`],
+    [`PGE1 agonist; mucus/HCO3- up.`], [`Rule out pregnancy before prescribing.`], [`Diarrhea limits tolerability.`]
+  ),
+  qItem(4, `Sector I`, `Antiemetic Signaling Pathways`, `Mechanism`, `Phase 1`, `NEURAL CORE`,
+    `A 49-year-old woman receiving cisplatin develops severe acute nausea. Which agent blocks serotonin 5-HT3 receptors both centrally in the area postrema and peripherally on vagal afferents?`,
+    [`Ondansetron`, `Aprepitant`, `Scopolamine`], 0,
+    `Ondansetron (5-HT3 antagonist)`,
+    `Enterochromaffin cells release serotonin onto vagal afferents during chemo.`,
+    [`Ondansetron antagonizes 5-HT3 receptors in the CTZ and GI vagal afferents.`],
+    [`Cisplatin damages enterochromaffin cells, releasing 5-HT onto vagal 5-HT3 receptors.`, `Relays signal to the nucleus tractus solitarius (NTS).`],
+    [`Adverse effects include headache, constipation, QT prolongation (torsades), and serotonin syndrome.`],
+    [`First-line for chemotherapy-induced and postoperative nausea/vomiting.`, `Monitor ECG if combined with other QT-prolonging drugs.`],
+    [`Aprepitant blocks NK1 (substance P) receptors in the area postrema.`, `Scopolamine blocks M1 muscarinic receptors for motion sickness.`],
+    [`COMLEX Link: Vagal afferents (CN X) carry GI emetogenic signals; OA/AA decompression aids vagal tone.`],
+    [`5-HT3 receptor antagonist.`], [`Monitor QTc interval and bowel habits.`], [`Combine with dexamethasone/aprepitant for CINV.`]
+  ),
+  qItem(5, `Sector I`, `Antiemetic Signaling Pathways`, `Adverse Effects`, `Phase 2`, `NEON PULSE`,
+    `A 54-year-old man with diabetic gastroparesis develops acute torticollis and oculogyric crisis 2 days after starting a prokinetic antiemetic. What is the mechanism of the offending drug?`,
+    [`D2 dopamine receptor antagonism`, `5-HT3 receptor antagonism`, `NK1 receptor antagonism`], 0,
+    `D2 receptor antagonism (Metoclopramide)`,
+    `Which GI prokinetic crosses the BBB and blocks nigrostriatal D2 receptors?`,
+    [`Metoclopramide blocks central D2 receptors in the area postrema and striatum, causing EPS.`],
+    [`Blocks D2 in CTZ for antiemesis and enhances ACh release in myenteric plexus.`, `Increases LES tone and gastric emptying.`],
+    [`Causes acute dystonia, akathisia, tardive dyskinesia, and hyperprolactinemia.`, `Contraindicated in bowel obstruction and Parkinson disease.`],
+    [`Treat acute dystonia with diphenhydramine or benztropine.`, `Use erythromycin (motilin agonist) if D2 blockade is contraindicated.`],
+    [`5-HT3 antagonists cause constipation and QT prolongation, not EPS.`, `NK1 antagonists (aprepitant) spare dopamine receptors.`],
+    [`Board Trap: Metoclopramide is the classic cause of drug-induced tardive dyskinesia in gastroparesis.`],
+    [`D2 antagonist + upper GI prokinetic.`], [`Watch for dystonia and galactorrhea.`], [`Treat acute EPS with benztropine.`]
+  ),
+  qItem(6, `Sector I`, `Antiemetic Signaling Pathways`, `Clinical Tx`, `Phase 3`, `CYBER NEXUS`,
+    `A 42-year-old woman preparing for highly emetogenic doxorubicin-cyclophosphamide chemotherapy already receives ondansetron and dexamethasone. Adding which agent blocks substance P in the area postrema?`,
+    [`Prochlorperazine`, `Aprepitant`, `Meclizine`], 1,
+    `Aprepitant (NK1 antagonist)`,
+    `Delayed CINV is mediated by substance P binding neurokinin receptors.`,
+    [`Aprepitant crosses the BBB to antagonize NK1 (substance P) receptors in the CTZ.`],
+    [`Area postrema lies outside the BBB on the floor of the 4th ventricle.`, `NK1 blockade prevents delayed-phase chemotherapy emesis.`],
+    [`Spares dopamine, serotonin, and muscarinic receptors, avoiding EPS and sedation.`, `Inhibits CYP3A4 (requires dexamethasone dose reduction).`],
+    [`Standard triple regimen for highly emetogenic chemo: 5-HT3 blocker + NK1 blocker + dexamethasone.`],
+    [`Prochlorperazine blocks D2 receptors and risks EPS.`, `Meclizine is an H1 antihistamine for vertigo/motion sickness.`],
+    [`Clinical Pearl: Aprepitant + ondansetron targets complementary CTZ receptors.`],
+    [`NK1 (substance P) antagonist.`], [`No EPS or anticholinergic effects.`], [`Add for delayed CINV prevention.`]
+  ),
+  qItem(7, `Sector I`, `H. pylori Regimens`, `Diagnostics`, `Phase 1`, `NEURAL CORE`,
+    `A 47-year-old man with epigastric pain relieved by meals undergoes gastric antral biopsy showing curved, flagellated gram-negative rods. Which triad of enzymatic tests characterizes this organism?`,
+    [`Catalase+, Oxidase+, Urease+`, `Catalase-, Oxidase+, Urease-`, `Catalase+, Coagulase+, Urease+`], 0,
+    `Catalase+, Oxidase+, Urease+`,
+    `Urea breath test depends on one hallmark enzyme neutralizing gastric acid.`,
+    [`Helicobacter pylori is a curved gram-negative rod that is catalase, oxidase, and urease positive.`],
+    [`Urease converts urea to NH3 and CO2, creating an alkaline microenvironment.`, `Colonizes gastric antrum causing duodenal ulcers and MALT lymphoma.`],
+    [`Diagnose non-invasively via urea breath test or stool antigen test.`, `Hold PPIs for 2 weeks before testing to avoid false negatives.`],
+    [`First-line eradication: PPI + clarithromycin + amoxicillin (or metronidazole).`],
+    [`Campylobacter is oxidase+ and catalase+ but urease negative.`, `Staph aureus is catalase+ and coagulase+ (gram-positive cocci).`],
+    [`Board Pearl: Gastric MALT lymphoma can regress after H. pylori antibiotic eradication alone.`],
+    [`Triple-positive curved gram-negative rod.`], [`Stool antigen or urea breath test.`], [`Hold PPI before diagnostic testing.`]
+  ),
+  qItem(8, `Sector I`, `H. pylori Regimens`, `Clinical Tx`, `Phase 2`, `NEON PULSE`,
+    `A 52-year-old woman with a confirmed duodenal ulcer and H. pylori infection reports anaphylaxis to penicillin. Which regimen is most appropriate if local clarithromycin resistance is low?`,
+    [`Omeprazole + clarithromycin + metronidazole`, `Omeprazole + amoxicillin + levofloxacin`, `Famotidine + sucralfate + tetracycline`], 0,
+    `PPI + clarithromycin + metronidazole`,
+    `Substitute metronidazole for amoxicillin when penicillin allergy is present.`,
+    [`Penicillin-allergic patients receive metronidazole instead of amoxicillin in triple therapy.`],
+    [`PPI raises gastric pH to enhance antibiotic stability and bacterial replication.`],
+    [`Check alcohol abstinence counseling due to metronidazole disulfiram-like reaction.`],
+    [`Confirm eradication >=4 weeks post-therapy with stool antigen or urea breath test.`],
+    [`Amoxicillin is contraindicated in penicillin anaphylaxis.`, `Famotidine + sucralfate lacks bactericidal coverage.`],
+    [`Board Trap: Metronidazole can cause metallic taste and disulfiram-like flushing with alcohol.`],
+    [`PPI + clarithromycin + metronidazole.`], [`Counsel zero alcohol on metronidazole.`], [`Verify eradication after 4 weeks.`]
+  ),
+  qItem(9, `Sector I`, `H. pylori Regimens`, `Clinical Tx`, `Phase 3`, `CYBER NEXUS`,
+    `A 60-year-old man from a region with high macrolide resistance (>20%) has persistent H. pylori on stool antigen despite prior clarithromycin exposure. What is the preferred next regimen?`,
+    [`Bismuth subsalicylate + metronidazole + tetracycline + PPI`, `High-dose omeprazole monotherapy`, `Ciprofloxacin + vancomycin + ranitidine`], 0,
+    `Bismuth quadruple therapy`,
+    `When macrolide resistance is suspected, switch to four-drug bismuth therapy.`,
+    [`Bismuth quadruple therapy (PPI + bismuth + tetracycline + metronidazole) overcomes macrolide resistance.`],
+    [`Bismuth coats ulcers and exerts direct antimicrobial activity against H. pylori.`, `Tetracycline inhibits 30S ribosomal subunit.`],
+    [`Warn patient that bismuth causes harmless blackening of stool and tongue.`],
+    [`Duration is typically 10–14 days; avoid tetracycline in pregnancy/young children.`],
+    [`PPI monotherapy suppresses acid without eradicating bacteria.`, `Vancomycin does not cover gram-negative H. pylori.`],
+    [`Board Pearl: Bismuth is also used for traveler's diarrhea prophylaxis/treatment.`],
+    [`PPI + bismuth + metronidazole + tetracycline.`], [`Expect dark stools from bismuth.`], [`Avoid clarithromycin re-challenge.`]
+  ),
+
+  // SECTOR II (Q10-Q18)
+  qItem(10, `Sector II`, `Antidiarrheals & Motility`, `Mechanism`, `Phase 1`, `NEURAL CORE`,
+    `A 31-year-old traveler with afebrile non-bloody watery diarrhea asks for symptomatic relief before a long flight. Which agent activates enteric mu-opioid receptors without crossing the blood-brain barrier?`,
+    [`Loperamide`, `Morphine sulfate`, `Bethanechol`], 0,
+    `Loperamide`,
+    `Think of the "lop-eared rabbit" antidiarrheal lacking CNS analgesia or addiction potential.`,
+    [`Loperamide is a peripheral mu-opioid agonist that increases colonic segmenting activity.`],
+    [`Slows GI motility and increases colonic transit time, enhancing water reabsorption.`, `Extruded from CNS by P-glycoprotein.`],
+    [`Zero analgesia or euphoria at therapeutic doses; main adverse effect is constipation.`],
+    [`Use only in afebrile, non-bloody diarrhea.`],
+    [`Morphine causes CNS depression and addiction.`, `Bethanechol is a muscarinic agonist that stimulates motility and worsens diarrhea.`],
+    [`COMLEX Link: Parasympathetic viscerosomatic reflex for colon splits at splenic flexure (vagus vs pelvic splanchnic).`],
+    [`Peripheral mu-opioid agonist.`], [`No CNS penetration at standard doses.`], [`Safe for non-invasive watery diarrhea.`]
+  ),
+  qItem(11, `Sector II`, `Antidiarrheals & Motility`, `Pharmacology`, `Phase 2`, `NEON PULSE`,
+    `Why is the antidiarrheal diphenoxylate routinely co-formulated with a subtherapeutic dose of atropine?`,
+    [`To deter overdose/abuse via anticholinergic toxicity`, `To increase mucosal serotonin secretion`, `To neutralize gastric acid before absorption`], 0,
+    `Deter abuse with atropine toxicity`,
+    `Diphenoxylate can cross the BBB at supra-therapeutic doses.`,
+    [`Atropine is added to diphenoxylate so high-dose abuse triggers unpleasant anticholinergic symptoms.`],
+    [`Diphenoxylate activates GI mu-receptors but crosses the BBB when taken in excess.`],
+    [`High doses cause flushing, dry mouth, tachycardia, mydriasis, and urinary retention.`],
+    [`Both loperamide and diphenoxylate treat non-infectious or chronic non-bloody diarrhea.`],
+    [`Atropine inhibits muscarinic receptors rather than increasing serotonin.`, `Antacids neutralize gastric acid, not atropine.`],
+    [`Mnemonic: "Hot as a hare, dry as a bone" deters opiate-seeking escalation.`],
+    [`Diphenoxylate + atropine combination.`], [`Look for anticholinergic toxidrome in overdose.`], [`Avoid in glaucoma/BPH.`]
+  ),
+  qItem(12, `Sector II`, `Antidiarrheals & Motility`, `Contraindications`, `Phase 3`, `CYBER NEXUS`,
+    `A 29-year-old man returns from camping with fever (39.1°C), severe crampy abdominal pain, and bloody mucoid stools. Why must loperamide be avoided?`,
+    [`Slowing peristalsis risks toxic megacolon and prolonged pathogen invasion`, `It induces acute cholestatic hepatitis`, `It chelates dietary calcium causing tetany`], 0,
+    `Risks toxic megacolon/invasion`,
+    `Never trap invasive enteric bacteria or toxins inside an inflamed colon.`,
+    [`Antidiarrheals are contraindicated in bloody diarrhea or fever due to risk of toxic megacolon.`],
+    [`Slowing transit prolongs mucosal contact with invasive pathogens and bacterial toxins.`],
+    [`Red-flag signs: fever, tenesmus, gross blood, or fecal leukocytes.`],
+    [`Manage with oral/IV hydration and stool studies to target the underlying pathogen.`],
+    [`Loperamide does not cause cholestatic hepatitis or calcium chelation.`],
+    [`Board Trap: Same contraindication applies to Shigella, Salmonella, Campylobacter, and C. difficile.`],
+    [`Opioid stasis worsens mucosal injury.`], [`Screen for fever and hematochezia first.`], [`Supportive hydration first.`]
+  ),
+  qItem(13, `Sector II`, `Laxatives & Cathartics`, `Pharmacology`, `Phase 1`, `NEURAL CORE`,
+    `A 72-year-old woman post-hip arthroplasty needs a stool softener that lowers surface tension to permit water and lipid penetration into hard feces. Which agent fits this mechanism?`,
+    [`Docusate sodium`, `Bisacodyl`, `Psyllium`], 0,
+    `Docusate sodium (emollient)`,
+    `Surfactant agent that works like detergent on a canoe at the "dock".`,
+    [`Docusate is an emollient surfactant that reduces stool surface tension.`],
+    [`Facilitates mixing of aqueous and fatty substances to soften fecal mass.`],
+    [`Commonly prescribed to prevent straining post-MI or post-surgery, though modest efficacy.`],
+    [`Ensure adequate oral hydration alongside stool softeners or bulk agents.`],
+    [`Bisacodyl is a stimulant laxative acting on the enteric nervous system.`, `Psyllium is a bulk-forming hydrophilic colloid.`],
+    [`OMT Link: Rib raising and mesenteric lift can complement postoperative bowel recovery.`],
+    [`Surfactant emollient stool softener.`], [`Prevents Valsalva straining.`], [`Pair with stimulant for opioid constipation.`]
+  ),
+  qItem(14, `Sector II`, `Laxatives & Cathartics`, `Pathology`, `Phase 2`, `NEON PULSE`,
+    `Colonoscopy in a 65-year-old woman with chronic laxative use reveals diffuse, dark-brown pigmentation of the colonic mucosa. Biopsy shows pigment-laden macrophages in the lamina propria. Which agent did she overuse?`,
+    [`Senna`, `Polyethylene glycol`, `Methylcellulose`], 0,
+    `Senna (melanosis coli)`,
+    `Chronic anthraquinone stimulant laxative use causes benign brown colonic mucosa.`,
+    [`Chronic senna use causes melanosis coli, a benign brown pigmentation of the colon.`],
+    [`Senna stimulates enteric nerves and colonic electrolyte/fluid secretion.`, `Macrophages phagocytose lipofuscin-like apoptotic epithelial debris.`],
+    [`Appearance mimics ischemia or melanoma grossly but is completely benign and reversible.`],
+    [`Discontinue chronic stimulant laxatives and transition to dietary fiber/PEG.`],
+    [`PEG is an iso-osmotic non-absorbable polymer without mucosal pigmentation.`, `Methylcellulose is a bulk-forming fiber.`],
+    [`Board Pearl: Melanosis coli spares adenomatous polyps, making polyps stand out as pale islands.`],
+    [`Stimulant anthraquinone cathartic.`], [`Lipofuscin pigment in lamina propria.`], [`Reversible upon stopping senna.`]
+  ),
+  qItem(15, `Sector II`, `Laxatives & Cathartics`, `Adverse Effects`, `Phase 3`, `CYBER NEXUS`,
+    `A 78-year-old man with stage 4 CKD (eGFR 22) takes repeated OTC doses of milk of magnesia for constipation and presents with lethargy, hyporeflexia, and hypotension. What electrolyte disturbance explains his presentation?`,
+    [`Hypermagnesemia`, `Hyperkalemia`, `Hypocalcemia`], 0,
+    `Hypermagnesemia`,
+    `Magnesium hydroxide is an osmotic laxative cleared by the kidneys.`,
+    [`Magnesium-containing osmotic laxatives cause life-threatening hypermagnesemia in CKD.`],
+    [`Non-absorbable Mg2+ draws water into gut lumen, but small absorbed fraction accumulates in renal failure.`],
+    [`Presents with loss of deep tendon reflexes (earliest sign), hypotension, bradycardia, respiratory depression.`],
+    [`Treat acutely with IV calcium gluconate and loop diuretics/dialysis; switch to PEG in CKD.`],
+    [`Sodium polystyrene sulfonate treats hyperkalemia, not causes it.`, `Hypocalcemia causes hyperreflexia (Chvostek/Trousseau), not hyporeflexia.`],
+    [`Board Trap: Always check renal function before giving Mg2+ or phosphate-based laxatives.`],
+    [`Osmotic Mg2+ load + impaired renal excretion.`], [`Absent DTRs = classic early toxicity sign.`], [`Use PEG safely in CKD.`]
+  ),
+  qItem(16, `Sector II`, `Portal HTN & Hepatic Enceph`, `Mechanism`, `Phase 1`, `NEURAL CORE`,
+    `A 56-year-old man with cirrhosis presents with hematemesis from esophageal varices. While awaiting endoscopy, IV octreotide is started. How does octreotide control variceal bleeding?`,
+    [`Inhibits splanchnic vasodilatory hormones, decreasing portal venous pressure`, `Directly constricts coronary and renal arterioles via alpha-1`, `Activates factor Xa and thrombin generation`], 0,
+    `Reduces splanchnic blood flow`,
+    `Long-acting somatostatin analog stops GI vasodilatory hormone release.`,
+    [`Octreotide inhibits splanchnic vasodilatory hormones (glucagon/VIP), lowering portal pressure.`],
+    [`Long-acting somatostatin analog used in acute variceal bleeding, VIPoma, carcinoid, and acromegaly.`],
+    [`Adverse effects include steatorrhea, nausea, and increased gallstones (CCK inhibition).`],
+    [`Combine octreotide with endoscopic band ligation and ceftriaxone prophylaxis.`],
+    [`Alpha-1 agonists raise systemic SVR without selectively unloading portal pressure.`, `Octreotide has no direct coagulation factor activity.`],
+    [`Board Pearl: Octreotide also treats secretory diarrhea from VIPoma and carcinoid tumors.`],
+    [`Somatostatin analog -> splanchnic vasoconstriction.`], [`Monitor for cholelithiasis on chronic therapy.`], [`Start immediately in suspected variceal bleed.`]
+  ),
+  qItem(17, `Sector II`, `Portal HTN & Hepatic Enceph`, `Mechanism`, `Phase 2`, `NEON PULSE`,
+    `A 61-year-old man with alcoholic cirrhosis develops asterixis and confusion. Lactulose is initiated. How does lactulose lower blood ammonia levels?`,
+    [`Gut flora convert it to acidic metabolites that trap NH3 as non-absorbable NH4+`, `It directly inhibits hepatic arginase in the urea cycle`, `It chelates ammonia in plasma via renal filtration`], 0,
+    `Acidifies colon -> traps NH4+`,
+    `Non-absorbable disaccharide fermented by colonic bacteria.`,
+    [`Colonic bacteria metabolize lactulose into lactic and acetic acids, trapping NH3 as NH4+.`],
+    [`Acidic luminal pH protonates lipid-soluble NH3 into charged, non-absorbable NH4+.`, `Osmotic catharsis accelerates fecal nitrogen excretion.`],
+    [`Titrate dose to achieve 2–3 soft stools daily; triggers include GI bleed, constipation, infection, TIPS.`],
+    [`Severe flatus and abdominal cramps are common; avoid over-diuresis.`],
+    [`Lactulose is not systemically absorbed and does not inhibit urea cycle enzymes.`],
+    [`Osteopathic Note: Thoracic pump/lymphatic techniques may be modified if severe ascites is present.`],
+    [`Bacterial fermentation lowers colonic pH.`], [`Watch for asterixis improvement.`], [`Goal: 2–3 soft bowel movements/day.`]
+  ),
+  qItem(18, `Sector II`, `Portal HTN & Hepatic Enceph`, `Clinical Tx`, `Phase 3`, `CYBER NEXUS`,
+    `A patient with cirrhosis experiences recurrent hepatic encephalopathy despite maximally tolerated lactulose. Which poorly absorbed oral antibiotic is added to reduce ammonia-producing gut flora?`,
+    [`Rifaximin`, `Metronidazole`, `Azithromycin`], 0,
+    `Rifaximin`,
+    `Minimal systemic absorption targets intestinal bacteria directly.`,
+    [`Rifaximin is a non-absorbable rifamycin antibiotic that eradicates ammonia-producing gut bacteria.`],
+    [`Inhibits bacterial DNA-dependent RNA polymerase within the GI lumen.`],
+    [`Reduces recurrence of overt hepatic encephalopathy when added to lactulose.`],
+    [`Preferred over neomycin or metronidazole for long-term maintenance due to minimal toxicity.`],
+    [`Metronidazole causes neurotoxicity/peripheral neuropathy with chronic use.`, `Azithromycin lacks reliable gut-restricted ammonia reduction.`],
+    [`Board Pearl: Rifaximin is also used for traveler's diarrhea and IBS-D.`],
+    [`Non-absorbable RNA polymerase inhibitor.`], [`Safe long-term adjunct to lactulose.`], [`Cuts recurrent encephalopathy episodes.`]
+  ),
+
+  // SECTOR III (Q19-Q27)
+  qItem(19, `Sector III`, `C. difficile Colitis`, `Pathogenesis`, `Phase 1`, `NEURAL CORE`,
+    `A 68-year-old hospitalized woman develops foul-smelling watery diarrhea 10 days after clindamycin therapy. Colonoscopy shows yellow-white plaques. How do the two exotoxins of Clostridioides difficile injure enterocytes?`,
+    [`Toxin A causes brush-border fluid secretion; Toxin B depolymerizes actin cytoskeleton`, `Toxin A activates Gs; Toxin B inactivates 60S ribosome`, `Toxin A cleaves SNARE proteins; Toxin B forms pore channels`], 0,
+    `Toxin A (entero) / Toxin B (cyto)`,
+    `Both toxins glucosylate Rho GTPases, disrupting actin filaments.`,
+    [`C. difficile Toxin A (enterotoxin) drives watery diarrhea; Toxin B (cytotoxin) disrupts actin cytoskeleton.`],
+    [`Gram-positive, spore-forming anaerobic rod.`, `Inactivation of Rho/Rac/Cdc42 GTPases causes cell rounding, death, and pseudomembrane formation.`],
+    [`Diagnose via stool NAAT/PCR or ELISA for Toxin A/B (plus GDH antigen).`],
+    [`Discontinue offending antibiotic; avoid alcohol hand rub alone (wash hands with soap and water for spores).`],
+    [`Cholera activates Gs and Shiga inhibits 60S ribosome.`, `Tetanus/botulinum cleave SNARE proteins.`],
+    [`Infection Control: Alcohol-based sanitizers do NOT kill C. difficile spores.`],
+    [`Exotoxin A + B disrupt cytoskeleton.`], [`Yellow-white pseudomembranes on scope.`], [`Soap & water handwashing required.`]
+  ),
+  qItem(20, `Sector III`, `C. difficile Colitis`, `Clinical Tx`, `Phase 2`, `NEON PULSE`,
+    `A 70-year-old man has an initial episode of non-fulminant C. difficile infection (WBC 13,000, Cr 1.1). What is the recommended first-line antimicrobial therapy?`,
+    [`Oral vancomycin or oral fidaxomicin`, `IV vancomycin`, `Oral ciprofloxacin`], 0,
+    `Oral vancomycin / fidaxomicin`,
+    `Vancomycin is not absorbed orally, achieving high intraluminal colonic levels.`,
+    [`Initial C. difficile colitis is treated with oral vancomycin or fidaxomicin.`],
+    [`Oral vancomycin binds D-Ala-D-Ala in gram-positive cell walls and stays inside the GI lumen.`],
+    [`Oral metronidazole is no longer first-line unless vancomycin/fidaxomicin are unavailable.`],
+    [`Fulminant disease (hypotension, ileus, megacolon) requires oral vancomycin + IV metronidazole.`],
+    [`IV vancomycin does not cross into the intestinal lumen in therapeutic concentrations.`, `Fluoroquinolones predispose to C. difficile.`],
+    [`Board Trap: Never give IV vancomycin alone for C. difficile colitis.`],
+    [`Binds D-Ala-D-Ala in gut lumen.`], [`Assess WBC and Cr for severity.`], [`Fidaxomicin lowers relapse risk.`]
+  ),
+  qItem(21, `Sector III`, `C. difficile Colitis`, `Clinical Tx`, `Phase 3`, `CYBER NEXUS`,
+    `A 74-year-old woman suffers her third recurrence of C. difficile colitis despite tapered oral vancomycin and fidaxomicin. Which intervention restores colonization resistance most effectively?`,
+    [`Fecal microbiota transplantation (FMT)`, `Prophylactic loperamide`, `High-dose oral clindamycin`], 0,
+    `Fecal microbiota transplantation`,
+    `Re-establishing normal commensal flora outcompetes C. difficile spores.`,
+    [`Fecal microbiota transplantation restores normal colonic microbiome to cure multiply recurrent C. difficile.`],
+    [`Healthy commensals restore secondary bile acid metabolism that inhibits spore germination.`],
+    [`Success rates exceed 85–90% in recurrent disease refractory to antibiotics.`],
+    [`Bezlotoxumab (monoclonal antibody against Toxin B) is another adjunct for recurrence.`],
+    [`Loperamide risks toxic megacolon.`, `Clindamycin is a classic trigger for C. difficile.`],
+    [`Board Pearl: PPIs also increase C. difficile risk by reducing gastric acid barrier.`],
+    [`Microbiome restoration inhibits germination.`], [`Indicated after >=2 recurrences.`], [`Consider bezlotoxumab anti-Toxin B.`]
+  ),
+  qItem(22, `Sector III`, `ETEC vs. EHEC`, `Mechanism`, `Phase 1`, `NEURAL CORE`,
+    `A medical student develops profuse, non-bloody watery diarrhea 2 days after eating street food in Mexico. Which combination of toxins mediates ETEC diarrhea?`,
+    [`Heat-labile toxin (cAMP) and heat-stable toxin (cGMP)`, `Shiga-like toxin (60S ribosome) and hemolysin`, `Toxin A and Toxin B`], 0,
+    `LT (cAMP) & ST (cGMP)`,
+    `Both cyclic nucleotides drive Cl- efflux and water secretion into the intestinal lumen.`,
+    [`ETEC produces heat-labile toxin (increases cAMP via Gs) and heat-stable toxin (increases cGMP via guanylate cyclase).`],
+    [`Causes secretory traveler's diarrhea without mucosal invasion or fecal leukocytes.`],
+    [`Self-limited; treated primarily with oral rehydration (azithromycin or rifaximin if severe).`],
+    [`Lactose-fermenting gram-negative rod (pink on MacConkey agar).`],
+    [`EHEC produces Shiga-like toxin inhibiting 60S ribosome.`, `C. difficile produces Toxins A and B.`],
+    [`Recall: Guanylate cyclase-C agonist linaclotide mimics ETEC ST toxin therapeutically for IBS-C.`],
+    [`LT -> adenylate cyclase; ST -> guanylate cyclase.`], [`No blood, no fever, no fecal WBCs.`], [`Oral rehydration is mainstay.`]
+  ),
+  qItem(23, `Sector III`, `ETEC vs. EHEC`, `Diagnostics`, `Phase 2`, `NEON PULSE`,
+    `A 6-year-old boy develops afebrile bloody diarrhea after eating an undercooked hamburger, followed by pallor, petechiae, and oliguria. On sorbitol-MacConkey agar, what distinguishes the causative EHEC O157:H7 strain?`,
+    [`Does not ferment sorbitol (colorless colonies)`, `Produces black H2S colonies on Hektoen agar`, `Urease positive on Christensen urea agar`], 0,
+    `Sorbitol-negative (colorless)`,
+    `Unlike most E. coli strains, O157:H7 fails to ferment sorbitol.`,
+    [`EHEC O157:H7 is sorbitol-negative on sorbitol-MacConkey agar while fermenting lactose.`],
+    [`Shiga-like toxin (verotoxin) cleaves 28S rRNA in the 60S ribosomal subunit, halting protein synthesis.`],
+    [`Endothelial damage in renal glomeruli causes HUS: microangiopathic hemolytic anemia (schistocytes), thrombocytopenia, AKI.`],
+    [`Transmitted via undercooked beef, raw milk, or contaminated leafy greens.`],
+    [`Salmonella produces black H2S colonies on Hektoen.`, `Proteus and H. pylori are urease positive.`],
+    [`Board Pearl: Look for schistocytes (helmet cells) on peripheral smear in post-diarrheal HUS.`],
+    [`Sorbitol non-fermenter; 60S ribosome block.`], [`Triad: MAHA, thrombocytopenia, AKI.`], [`Supportive care + dialysis if needed.`]
+  ),
+  qItem(24, `Sector III`, `ETEC vs. EHEC`, `Clinical Tx`, `Phase 3`, `CYBER NEXUS`,
+    `A 9-year-old girl presents with bloody diarrhea and abdominal tenderness after a petting-zoo visit; stool PCR is positive for Shiga toxin-producing E. coli. Why should trimethoprim-sulfamethoxazole and ciprofloxacin be withheld?`,
+    [`Antibiotics increase Shiga-like toxin release, raising HUS risk`, `EHEC is intrinsically resistant via beta-lactamase`, `They induce acute biliary sludging`], 0,
+    `Antibiotics increase HUS risk`,
+    `Bacterial lysis and SOS response surge toxin transcription and release.`,
+    [`Antibiotics are contraindicated in EHEC because bacterial death increases Shiga toxin release and HUS risk.`],
+    [`Supportive IV hydration helps protect renal perfusion and prevent ischemic kidney injury.`],
+    [`Also avoid antimotility agents (loperamide) which prolong mucosal toxin exposure.`],
+    [`Monitor CBC, LDH, peripheral smear, and creatinine closely for evolving HUS.`],
+    [`Avoidance is driven by toxin release/HUS, not beta-lactamase or biliary sludging.`],
+    [`Board Trap: Never treat suspected EHEC bloody diarrhea empirically with fluoroquinolones or TMP-SMX.`],
+    [`Phage-encoded toxin surges during lysis.`], [`Follow platelets, Hb, and Cr.`], [`IV hydration; zero antibiotics.`]
+  ),
+  qItem(25, `Sector III`, `Invasive Enteric Pathogens`, `Pathogenesis`, `Phase 1`, `NEURAL CORE`,
+    `A daycare outbreak causes fever and bloody diarrhea with tenesmus in several toddlers. Only a tiny inoculum (10–100 organisms) is required because the pathogen resists gastric acid and spreads cell-to-cell via actin tails. Which organism is responsible?`,
+    [`Shigella sonnei`, `Salmonella enterica`, `Vibrio cholerae`], 0,
+    `Shigella sonnei`,
+    `Non-motile, H2S-negative rod with an extremely low infectious dose.`,
+    [`Shigella resists gastric acid (low ID50) and invades colonic M cells, polymerizing host actin for cell-to-cell spread.`],
+    [`Gram-negative, non-lactose fermenting, non-motile, H2S-negative rod.`, `Shiga toxin (S. dysenteriae) inhibits 60S ribosome and causes HUS.`],
+    [`Produces bloody mucoid diarrhea with abundant fecal neutrophils.`],
+    [`Azithromycin or ciprofloxacin shortens severe shigellosis, unlike EHEC.`],
+    [`Salmonella is acid-labile (high ID50), motile, and H2S positive.`, `Vibrio cholerae is acid-labile and non-invasive.`],
+    [`Board Contrast: Shigella = non-motile, no H2S, tiny ID50; Salmonella = motile, H2S+, high ID50.`],
+    [`M-cell invasion + actin rocket tails.`], [`Green/clear colonies on Hektoen.`], [`Rehydrate; fluoroquinolone/azithro if severe.`]
+  ),
+  qItem(26, `Sector III`, `Invasive Enteric Pathogens`, `Diagnostics`, `Phase 2`, `NEON PULSE`,
+    `A 24-year-old backpacker develops fever, rose spots on the abdomen, and relative bradycardia (pulse-temperature dissociation) 10 days after returning from South Asia. Which virulence factor protects Salmonella typhi from phagocytosis?`,
+    [`Vi polysaccharide capsule`, `M protein`, `Protein A`], 0,
+    `Vi capsule (Salmonella typhi)`,
+    `Encapsulated motile, H2S-positive rod that survives inside macrophages.`,
+    [`Salmonella typhi possesses a Vi polysaccharide capsule that inhibits neutrophil phagocytosis.`],
+    [`Invades Peyer patches via M cells and disseminates hematogenously in macrophages.`],
+    [`Black colonies on Hektoen agar; chronic carriers harbor bacteria in the gallbladder.`],
+    [`Treat typhoid fever with ceftriaxone or azithromycin; oral Ty21a or Vi capsular vaccine prevents infection.`],
+    [`M protein is a virulence factor of Streptococcus pyogenes.`, `Protein A belongs to Staphylococcus aureus.`],
+    [`Board Link: Sickle cell patients with functional asplenia are predisposed to Salmonella osteomyelitis.`],
+    [`Vi capsule; gallbladder carrier state.`], [`Rose spots + relative bradycardia.`], [`Ceftriaxone or azithromycin.`]
+  ),
+  qItem(27, `Sector III`, `Invasive Enteric Pathogens`, `Clinical Tx`, `Phase 3`, `CYBER NEXUS`,
+    `Two weeks after bloody poultry-borne diarrhea, a 30-year-old man develops ascending weakness and areflexia. Which trait distinguishes Campylobacter jejuni from Vibrio cholerae (Gs-activating rice-water diarrhea)?`,
+    [`Comma-shaped, oxidase+, grows at 42°C (vs. Vibrio alkaline/37°C)`, `Comma-shaped, oxidase-, forms black H2S colonies`, `Non-motile rod, urease+, acid-stable`], 0,
+    `Campylobacter jejuni (42°C)`,
+    `Both are comma-shaped and oxidase+, but only one is a 42°C poultry thermophile.`,
+    [`Campylobacter jejuni is a comma/S-shaped oxidase+ rod growing at 42°C that triggers Guillain-Barré syndrome.`],
+    [`Lipooligosaccharide shares epitopes with peripheral nerve gangliosides (GM1).`, `Vibrio cholerae activates Gs via ADP-ribosylation -> cAMP -> rice-water stool (grows in alkaline media).`],
+    [`Cultured on Skirrow or Campy medium under microaerophilic conditions at 42°C.`],
+    [`Most Campylobacter enteritis is self-limited (azithromycin if severe); Vibrio requires aggressive oral/IV rehydration.`],
+    [`Salmonella forms black H2S colonies.`, `Shigella is non-motile and acid-stable.`],
+    [`OMT Link: Monitor respiratory mechanics (FVC/NIF) closely in ascending Guillain-Barré syndrome.`],
+    [`42°C thermophile; ganglioside mimicry.`], [`Contrast with Vibrio cholerae Gs rice-water stool.`], [`Azithromycin for severe Campylobacter.`]
+  ),
+
+  // SECTOR IV (Q28-Q36)
+  qItem(28, `Sector IV`, `Giardia duodenalis`, `Pathogenesis`, `Phase 1`, `NEURAL CORE`,
+    `A 26-year-old hiker develops foul-smelling, greasy stools, bloating, and weight loss 10 days after drinking untreated mountain stream water. How does the organism cause malabsorption?`,
+    [`Ventral sucking disk adheres to duodenal villi without tissue invasion`, `Flask-shaped ulcers erode colonic submucosa`, `Intracellular schizonts lyse hepatocytes`], 0,
+    `Ventral sucking disk attachment`,
+    `Pear-shaped binucleate trophozoite coats the duodenal brush border.`,
+    [`Giardia duodenalis attaches to duodenal mucosa via a ventral sucking disk, causing villous blunting and steatorrhea.`],
+    [`Acquired by ingesting chlorine-resistant cysts in contaminated water.`, `Selective IgA deficiency strongly predisposes to chronic giardiasis.`],
+    [`Non-bloody, greasy, foul-smelling diarrhea without eosinophilia.`],
+    [`Boil or filter backcountry water to eliminate cysts.`],
+    [`Flask-shaped ulcers belong to Entamoeba histolytica.`, `Schizonts in hepatocytes belong to Plasmodium.`],
+    [`Board Pearl: Think Giardia in hikers, daycare outbreaks, and IgA deficiency.`],
+    [`Non-invasive brush-border attachment.`], [`Malabsorption of fats and ADEK vitamins.`], [`Metronidazole first-line.`]
+  ),
+  qItem(29, `Sector IV`, `Giardia duodenalis`, `Diagnostics`, `Phase 2`, `NEON PULSE`,
+    `Stool O&P wet mount from a patient with chronic steatorrhea shows pear-shaped, flagellated binucleate organisms exhibiting characteristic "falling-leaf" motility. What is the most sensitive diagnostic test if initial O&P is negative?`,
+    [`Stool ELISA antigen or PCR assay`, `Scotch tape perianal swab`, `Blood culture on Sabouraud agar`], 0,
+    `Stool ELISA / antigen test`,
+    `Intermittent cyst shedding reduces single-stool O&P sensitivity.`,
+    [`Stool antigen ELISA or NAAT detects Giardia with higher sensitivity than a single O&P.`],
+    [`Microscopy classically reveals two nuclei ("owl eyes") and four pairs of flagella.`],
+    [`Upper endoscopy duodenal aspirate/string test is rarely needed today.`],
+    [`Treat confirmed cases with metronidazole or tinidazole.`],
+    [`Scotch tape test diagnoses Enterobius vermicularis (pinworm).`, `Sabouraud agar grows fungi.`],
+    [`Board Trap: Three separate stool O&P samples were historically required due to intermittent shedding.`],
+    [`Binucleate trophozoites; falling-leaf motility.`], [`Stool ELISA > single O&P.`], [`Metronidazole or nitazoxanide.`]
+  ),
+  qItem(30, `Sector IV`, `Giardia duodenalis`, `Clinical Tx`, `Phase 3`, `CYBER NEXUS`,
+    `A 28-year-old woman in her first trimester of pregnancy develops symptomatic giardiasis. Which oral non-absorbable aminoglycoside is preferred in early pregnancy?`,
+    [`Paromomycin`, `Albendazole`, `Doxycycline`], 0,
+    `Paromomycin`,
+    `Minimal systemic absorption makes it safe for the fetus during trimester 1.`,
+    [`Paromomycin is a poorly absorbed luminal aminoglycoside safe for Giardia in the first trimester.`],
+    [`Binds 30S ribosomal subunit inside the intestinal lumen without crossing the placenta.`],
+    [`Metronidazole is often avoided in trimester 1 if paromomycin is effective, though used in severe cases.`],
+    [`Also serves as a luminal cysticidal agent for Entamoeba histolytica.`],
+    [`Albendazole is teratogenic in early pregnancy.`, `Doxycycline causes fetal teeth/bone staining.`],
+    [`Clinical Pearl: Tinidazole is single-dose for non-pregnant adults with giardiasis.`],
+    [`Luminal 30S inhibitor; zero systemic uptake.`], [`Confirm cysts/antigen before treating.`], [`Safe first-trimester option.`]
+  ),
+  qItem(31, `Sector IV`, `Entamoeba histolytica`, `Pathogenesis`, `Phase 1`, `NEURAL CORE`,
+    `A 38-year-old man returning from rural Central America has bloody diarrhea with RUQ pain and fever. Colonic biopsy shows flask-shaped ulcers. Which microscopic finding confirms the invasive trophozoite?`,
+    [`Trophozoites containing phagocytosed RBCs`, `Oocysts staining bright red on modified acid-fast`, `Rhabditiform larvae in fresh stool`], 0,
+    `Trophozoites with ingested RBCs`,
+    `Pathognomonic histologic clue differentiating E. histolytica from commensal E. dispar.`,
+    [`Entamoeba histolytica trophozoites engulf host red blood cells and invade mucosa to form flask-shaped ulcers.`],
+    [`Cysts with up to 4 nuclei are ingested via fecal-oral route.`, `Penetrates portal venules to seed the liver.`],
+    [`E. dispar looks identical as cysts but does not ingest RBCs or cause disease.`],
+    [`Check stool antigen/PCR and amebic serology for extraintestinal liver abscess.`],
+    [`Modified acid-fast oocysts belong to Cryptosporidium.`, `Rhabditiform larvae belong to Strongyloides.`],
+    [`Board Pearl: Remember "E. histolytica eats RBCs" (histolytica = tissue lysing).`],
+    [`Erythrophagocytic trophozoites.`], [`Flask-shaped ulcers in cecum/colon.`], [`Serology useful in liver abscess.`]
+  ),
+  qItem(32, `Sector IV`, `Entamoeba histolytica`, `Diagnostics`, `Phase 2`, `NEON PULSE`,
+    `Ultrasound of a 44-year-old man with fever, RUQ tenderness, and recent dysentery reveals a solitary 7 cm right hepatic lobe abscess. Aspiration yields odorless brown "anchovy-paste" fluid. What is the key diagnostic pitfall?`,
+    [`Stool O&P is frequently negative during hepatic abscess`, `Blood cultures are positive in 95% of cases`, `Eosinophilia is invariably >30%`], 0,
+    `Stool O&P often negative`,
+    `Trophozoites reside in the hepatic abscess wall, not always in the colonic lumen.`,
+    [`Stool microscopy is frequently negative in amebic liver abscess; serum anti-amebic antibodies confirm diagnosis.`],
+    [`Anchovy-paste aspirate consists of liquefied necrotic hepatocytes; trophozoites lie at the abscess rim.`],
+    [`Unlike Echinococcus hydatid cysts, amebic abscesses do not have eggshell calcifications or marked eosinophilia.`],
+    [`Medical therapy cures most amebic liver abscesses without requiring surgical drainage.`],
+    [`E. histolytica does not grow in routine blood cultures.`, `Marked eosinophilia is typical of helminths, not protozoa.`],
+    [`Board Trap: Do not rule out amebic liver abscess just because stool O&P is negative.`],
+    [`Liquefied hepatocytes = anchovy paste.`], [`Order serum E. histolytica serology.`], [`Drain only if high rupture risk.`]
+  ),
+  qItem(33, `Sector IV`, `Entamoeba histolytica`, `Clinical Tx`, `Phase 3`, `CYBER NEXUS`,
+    `A patient with an amebic liver abscess receives IV metronidazole for 10 days with rapid defervescence. Which second drug must follow metronidazole to prevent relapse?`,
+    [`Paromomycin or iodoquinol`, `Praziquantel`, `Mebendazole`], 0,
+    `Paromomycin / iodoquinol`,
+    `Tissue amebicides do not reliably eradicate intraluminal cysts.`,
+    [`Invasive amebiasis requires metronidazole (tissue agent) followed by paromomycin or iodoquinol (luminal agent).`],
+    [`Metronidazole is absorbed proximally, leaving luminal cysts alive in the colon.`],
+    [`Luminal agent eradicates asymptomatic cyst carriage and prevents transmission/relapse.`],
+    [`Monitor optic neuropathy risk if prolonged iodoquinol is used.`],
+    [`Praziquantel treats trematodes (Schistosoma) and cestodes.`, `Mebendazole treats intestinal nematodes.`],
+    [`Board Pearl: Two-step rule for E. histolytica: Metro (tissue) -> Paromomycin/Iodoquinol (lumen).`],
+    [`Luminal eradication after tissue cure.`], [`Verify clearance of cyst shedding.`], [`Prevents relapse and transmission.`]
+  ),
+  qItem(34, `Sector IV`, `Cryptosporidium & Nematodes`, `Diagnostics`, `Phase 1`, `NEURAL CORE`,
+    `A 35-year-old man with untreated HIV (CD4 count 45/mm3) develops profuse watery diarrhea (6 L/day) after swimming in a public pool. Which diagnostic stain confirms the pathogen?`,
+    [`Modified acid-fast stain showing red oocysts`, `India ink halo stain`, `Silver methenamine stain`], 0,
+    `Modified acid-fast oocysts`,
+    `Chlorine-resistant protozoan causing severe diarrhea in AIDS.`,
+    [`Cryptosporidium oocysts appear as bright red spheres on modified acid-fast (Kinyoun) stool staining.`],
+    [`Infects jejunal brush border, impairing Na+ absorption and driving Cl- secretion.`],
+    [`Self-limited in immunocompetent hosts; chronic cholera-like diarrhea when CD4 < 100.`],
+    [`Mainstay of therapy in HIV is ART immune reconstitution plus nitazoxanide.`],
+    [`India ink visualizes Cryptococcus neoformans capsule.`, `Silver stain visualizes Pneumocystis jirovecii.`],
+    [`Board Pearl: Cryptosporidium is one of the classic HIV opportunistic infections at CD4 < 100.`],
+    [`Acid-fast oocysts (4–6 µm).`], [`Kinyoun stain or stool antigen.`], [`ART + nitazoxanide + hydration.`]
+  ),
+  qItem(35, `Sector IV`, `Cryptosporidium & Nematodes`, `Diagnostics`, `Phase 2`, `NEON PULSE`,
+    `A 6-year-old boy complains of intense nocturnal perianal itching. Pressing clear adhesive tape to the perianal skin in the morning reveals asymmetric, flattened oval eggs. What is the treatment of choice?`,
+    [`Albendazole or pyrantel pamoate`, `Metronidazole`, `Ivermectin`], 0,
+    `Albendazole / pyrantel pamoate`,
+    `Pinworm (Enterobius vermicularis) is the most common helminthic infection in the US.`,
+    [`Enterobius vermicularis (pinworm) is diagnosed via Scotch tape test and treated with albendazole or pyrantel pamoate.`],
+    [`Female worms migrate to perianal folds at night to lay eggs, causing pruritus ani.`],
+    [`Albendazole inhibits microtubule synthesis; pyrantel pamoate causes neuromuscular blockade.`],
+    [`Treat all household members simultaneously and wash bedding in hot water.`],
+    [`Metronidazole targets anaerobes and protozoa, not nematodes.`, `Ivermectin is first-line for Strongyloides and Onchocerca.`],
+    [`Board Pearl: Pinworm is a benign fecal-oral nematode; stool O&P is usually negative.`],
+    [`Scotch tape test -> D-shaped eggs.`], [`Treat patient + household contacts.`], [`Repeat dose in 2 weeks.`]
+  ),
+  qItem(36, `Sector IV`, `Cryptosporidium & Nematodes`, `Clinical Tx`, `Phase 3`, `CYBER NEXUS`,
+    `A 50-year-old man from rural Appalachia with asthma is started on high-dose prednisone and soon develops abdominal pain, eosinophilia, serpiginous perianal skin tracks, and gram-negative sepsis. Stool shows rhabditiform larvae. Which drug treats this hyperinfection?`,
+    [`Ivermectin`, `Praziquantel`, `Diethylcarbamazine`], 0,
+    `Ivermectin (Strongyloides)`,
+    `Corticosteroids unleash autoinfection by Strongyloides stercoralis.`,
+    [`Strongyloides stercoralis hyperinfection is triggered by steroids/HTLV-1 and treated with ivermectin.`],
+    [`Filariform larvae penetrate barefoot skin; rhabditiform larvae are passed in stool (not eggs).`],
+    [`Larvae penetrating colonic mucosa carry enteric gram-negative rods (E. coli) into bloodstream.`],
+    [`Ivermectin activates glutamate-gated Cl- channels, paralyzing the helminth.`],
+    [`Praziquantel treats flukes/tapeworms.`, `Diethylcarbamazine treats lymphatic filariasis and Loa loa.`],
+    [`Board Trap: Screen for Strongyloides before initiating chronic systemic corticosteroids in endemic patients.`],
+    [`Autoinfection -> hyperinfection syndrome.`], [`Rhabditiform larvae in stool + eosinophilia.`], [`Ivermectin +/- albendazole.`]
+  ),
+
+  // SECTOR V (Q37-Q45)
+  qItem(37, `Sector V`, `Hepatitis B Virus`, `Pathogenesis`, `Phase 1`, `NEURAL CORE`,
+    `Hepatitis B virus is a DNA virus whose replication cycle uniquely requires an RNA intermediate. Which viral enzyme performs reverse transcription inside the core particle?`,
+    [`HBV DNA polymerase with reverse transcriptase activity`, `NS5B RNA-dependent RNA polymerase`, `Host RNA polymerase I`], 0,
+    `HBV reverse transcriptase`,
+    `Hepadnavirus carries its own polymerase inside the Dane particle.`,
+    [`HBV is a partially dsDNA hepadnavirus that uses viral reverse transcriptase via an RNA intermediate.`],
+    [`Circular DNA enters hepatocyte nucleus and converts to covalently closed circular DNA (cccDNA).`],
+    [`Host RNA Pol II transcribes pregenomic RNA, which viral RT converts back to partial dsDNA.`],
+    [`Nucleos(t)ide analogs (tenofovir, entecavir) inhibit HBV reverse transcriptase.`],
+    [`NS5B polymerase belongs to Hepatitis C virus.`, `Host RNA Pol I transcribes rRNA.`],
+    [`Board Pearl: HBV and retroviruses (HIV) are the two major human viruses using reverse transcriptase.`],
+    [`Partially dsDNA -> cccDNA -> pgRNA -> DNA.`], [`Dane particle = intact virion.`], [`Tenofovir or entecavir.`]
+  ),
+  qItem(38, `Sector V`, `Hepatitis B Virus`, `Diagnostics`, `Phase 2`, `NEON PULSE`,
+    `A patient recovering from acute jaundice has the following serology: HBsAg (-), anti-HBs (-), IgM anti-HBc (+), anti-HBe (+). Which phase of HBV infection does this represent?`,
+    [`Window period of acute HBV`, `Vaccine-induced immunity`, `Chronic active HBV with high infectivity`], 0,
+    `HBV window period`,
+    `HBsAg has cleared, but anti-HBs is not yet detectable in serum.`,
+    [`IgM anti-HBc is the sole positive marker of acute infection during the HBV window period.`],
+    [`HBsAg is masked in immune complexes before free anti-HBs rises to measurable titers.`],
+    [`Anti-HBc IgM differentiates acute/window HBV from chronic HBV (anti-HBc IgG).`],
+    [`Repeat serology in weeks will show anti-HBs seroconversion confirming recovery and immunity.`],
+    [`Vaccination yields isolated anti-HBs (+) with negative anti-HBc.`, `Chronic active HBV shows HBsAg (+) >6 months and HBeAg (+).`],
+    [`Board Extrahepatic Link: HBV immune complexes cause polyarteritis nodosa (PAN) and membranous nephropathy.`],
+    [`HBsAg(-), anti-HBs(-), IgM anti-HBc(+).`], [`Only IgM anti-HBc catches window.`], [`Supportive care in acute HBV.`]
+  ),
+  qItem(39, `Sector V`, `Hepatitis B Virus`, `Clinical Tx`, `Phase 3`, `CYBER NEXUS`,
+    `A 40-year-old man with chronic HBV (HBsAg+ for 2 years, HBV DNA 250,000 IU/mL, ALT 140 U/L, bridging fibrosis) needs first-line oral monotherapy with a high barrier to resistance. Which agent is preferred?`,
+    [`Tenofovir or entecavir`, `Lamivudine`, `Sofosbuvir`], 0,
+    `Tenofovir / entecavir`,
+    `Avoid older nucleoside analogs with high YMDD resistance rates.`,
+    [`Tenofovir (TDF/TAF) or entecavir is first-line for chronic HBV due to potent viral suppression and high resistance barrier.`],
+    [`Inhibits HBV reverse transcriptase/DNA polymerase to suppress viral replication and fibrosis.`],
+    [`Monitor renal function and bone density with TDF; screen for HCC with RUQ ultrasound q6mo.`],
+    [`Screen for co-infection with HIV before starting tenofovir monotherapy to prevent HIV resistance.`],
+    [`Lamivudine has high resistance rates.`, `Sofosbuvir inhibits HCV NS5B polymerase, not HBV.`],
+    [`Board Pearl: Born to HBsAg+ mother? Give BOTH HBV vaccine and HBIG within 12 hours of birth.`],
+    [`High-barrier HBV polymerase inhibitor.`], [`Monitor HBV DNA, ALT, HCC screen.`], [`Prevent vertical transmission with HBIG + vax.`]
+  ),
+  qItem(40, `Sector V`, `Hepatitis C Virus & DAAs`, `Pathogenesis`, `Phase 1`, `NEURAL CORE`,
+    `Why do ~80% of acute Hepatitis C virus infections progress to chronic hepatitis, and why does no effective HCV vaccine exist?`,
+    [`RNA polymerase lacks 3'-5' exonuclease proofreading, causing hypervariable E2 envelope mutations`, `HCV integrates permanently into hepatocyte host DNA`, `HCV hides exclusively inside red blood cells`], 0,
+    `No proofreading -> E2 variation`,
+    `Rapid antigenic shift/drift in the hypervariable region evades neutralizing antibodies.`,
+    [`HCV RNA-dependent RNA polymerase lacks 3'-5' exonuclease proofreading, driving E2 antigenic variation.`],
+    [`Enveloped (+)ssRNA flavivirus.`],
+    [`Liver biopsy in chronic HCV shows lymphoid aggregates in portal tracts and focal macrovesicular steatosis.`],
+    [`Extrahepatic associations: mixed cryoglobulinemia, porphyria cutanea tarda, MPGN, lichen planus.`],
+    [`HCV does not integrate into host DNA (unlike retroviruses/HBV) and infects hepatocytes, not RBCs.`],
+    [`Board Pearl: Screen all adults aged 18–79 at least once with anti-HCV antibody + reflex HCV RNA.`],
+    [`Lack of 3'-5' exonuclease -> quasispecies.`], [`Anti-HCV Ab + reflex HCV RNA PCR.`], [`Curable with DAAs.`]
+  ),
+  qItem(41, `Sector V`, `Hepatitis C Virus & DAAs`, `Pharmacology`, `Phase 2`, `NEON PULSE`,
+    `A 54-year-old man with genotype 1 chronic HCV is prescribed sofosbuvir + ledipasvir. What is the exact molecular target of sofosbuvir?`,
+    [`NS5B RNA-dependent RNA polymerase`, `NS3/4A serine protease`, `NS5A replication complex protein`], 0,
+    `NS5B RNA polymerase`,
+    `"-buvir" = polymerase inhibitor; "-asvir" = NS5A; "-previr" = protease.`,
+    [`Sofosbuvir is a nucleotide prodrug that inhibits HCV NS5B RNA-dependent RNA polymerase (chain terminator).`],
+    [`Ledipasvir inhibits NS5A protein; "-previr" drugs (glecaprevir) inhibit NS3/4A protease.`],
+    [`Combination DAA therapy achieves >95% sustained virologic response (SVR = cure).`],
+    [`Check HBsAg before starting DAAs because HCV clearance can trigger HBV reactivation.`],
+    [`NS3/4A protease is inhibited by "-previr" drugs.`, `NS5A is inhibited by "-asvir" drugs (ledipasvir, velpatasvir).`],
+    [`Suffix Decoder: -buvir (NS5B), -asvir (NS5A), -previr (NS3/4A).`],
+    [`Nucleotide analog halting NS5B.`], [`Verify SVR12 undetectable HCV RNA.`], [`Screen for HBV before DAA start.`]
+  ),
+  qItem(42, `Sector V`, `Hepatitis C Virus & DAAs`, `Adverse Effects`, `Phase 3`, `CYBER NEXUS`,
+    `A 31-year-old woman with chronic HCV and decompensated cirrhosis is evaluated for ribavirin-containing therapy. What two major toxicities require strict contraception and CBC monitoring on ribavirin?`,
+    [`Severe teratogenicity and dose-dependent hemolytic anemia`, `Retinal detachment and pulmonary fibrosis`, `Nephrogenic diabetes insipidus and hypothyroidism`], 0,
+    `Teratogenic + hemolytic anemia`,
+    `Guanosine nucleoside analog phosphorylated intracellularly.`,
+    [`Ribavirin causes dose-dependent hemolytic anemia and is strictly teratogenic (Pregnancy Category X).`],
+    [`Inhibits IMP dehydrogenase, depleting intracellular GTP needed for viral RNA synthesis.`],
+    [`Also accumulates in RBCs causing oxidative membrane damage and extravascular hemolysis.`],
+    [`Modern ribavirin-free DAA regimens (sofosbuvir/velpatasvir) are preferred whenever possible.`],
+    [`Pulmonary fibrosis is classic for bleomycin/amiodarone.`, `Lithium causes NDI and hypothyroidism.`],
+    [`Board Pearl: Both female patients and male partners must use contraception for 6 months after ribavirin.`],
+    [`IMP dehydrogenase inhibitor.`], [`Monitor hemoglobin and pregnancy test.`], [`Prefer ribavirin-free DAAs.`]
+  ),
+  qItem(43, `Sector V`, `Viral Gastroenteritis`, `Pathogenesis`, `Phase 1`, `NEURAL CORE`,
+    `A 9-month-old unvaccinated infant in winter presents with fever, vomiting, and profuse watery diarrhea. Stool electron microscopy shows wheel-shaped viruses. How does the viral NSP4 protein cause diarrhea?`,
+    [`Acts as a viral enterotoxin increasing intracellular Ca2+ and Cl- secretion`, `Blocks Na+/K+-ATPase in colonic crypts`, `Causes granulomatous transmural ileitis`], 0,
+    `NSP4 enterotoxin -> Ca2+/Cl-`,
+    `Wheel-shaped segmented dsRNA reovirus (11 segments).`,
+    [`Rotavirus NSP4 acts as a viral enterotoxin that increases intracellular Ca2+, driving secretory Cl- and water loss.`],
+    [`Naked, double-capsid, 11-segment dsRNA reovirus.`, `Destroys mature villous tip enterocytes, causing secondary lactase deficiency.`],
+    [`Winter peaks in infants/toddlers; major global cause of pediatric dehydration.`],
+    [`Treat with oral rehydration solution (Na+ + glucose cotransport remains intact) and zinc in developing regions.`],
+    [`Does not directly inhibit Na+/K+-ATPase or cause Crohn-like granulomas.`],
+    [`Board Pearl: 11 dsRNA segments allow reassortment (like influenza's 8 ssRNA segments).`],
+    [`NSP4 enterotoxin + villous blunting.`], [`Stool antigen or wheel-shaped EM.`], [`Oral rehydration therapy.`]
+  ),
+  qItem(44, `Sector V`, `Viral Gastroenteritis`, `Adverse Effects`, `Phase 2`, `NEON PULSE`,
+    `Parents of a 10-week-old infant ask about risks of the live attenuated oral rotavirus vaccine. Which rare but serious abdominal emergency has a small increased risk following the first dose?`,
+    [`Intussusception`, `Pyloric stenosis`, `Meckel diverticulum torsion`], 0,
+    `Intussusception`,
+    `Currant-jelly stools, episodic colicky pain, and sausage-shaped RUQ mass.`,
+    [`Oral rotavirus vaccine carries a small risk of intussusception, typically within 7 days of the first dose.`],
+    [`Lymphoid hyperplasia in Peyer patches acts as a lead point telescoping ileum into colon.`],
+    [`Ultrasound shows a classic "target" or "doughnut" sign.`],
+    [`Do not initiate rotavirus vaccine after 14 weeks 6 days of age; contraindicated in SCID or prior intussusception.`],
+    [`Pyloric stenosis causes non-bilious projectile vomiting and an olive mass.`, `Meckel diverticulum causes painless GI bleeding.`],
+    [`Board Trap: Suspect intussusception in an infant with intermittent screaming episodes pulling legs to chest.`],
+    [`Peyer patch hyperplasia lead point.`], [`Target sign on RUQ ultrasound.`], [`Pneumatic/hydrostatic enema reduction.`]
+  ),
+  qItem(45, `Sector V`, `Viral Gastroenteritis`, `Diagnostics`, `Phase 3`, `CYBER NEXUS`,
+    `Over 180 passengers on a cruise ship develop abrupt-onset projectile vomiting and watery diarrhea lasting 36 hours. Alcohol hand sanitizers fail to halt spread. What virus causes this outbreak?`,
+    [`Norovirus (naked (+)ssRNA calicivirus)`, `Hepatitis A virus`, `Astrovirus`], 0,
+    `Norovirus (Calicivirus)`,
+    `Alcohol-resistant naked capsid virus famous for cruise ships, dorms, and shellfish.`,
+    [`Norovirus is a naked (+)ssRNA calicivirus causing explosive gastroenteritis outbreaks.`],
+    [`Extremely low infectious dose (<20 virions) and resists alcohol hand rubs and freezing.`],
+    [`Transmitted via fecal-oral route, contaminated oysters/produce, and aerosolized vomitus.`],
+    [`Self-limited (24–72h); manage with aggressive hydration and soap-and-water handwashing/bleach disinfection.`],
+    [`HAV presents with jaundice and transaminitis weeks after exposure.`, `Astrovirus is a minor cause of pediatric diarrhea, not classic cruise outbreaks.`],
+    [`Board Pearl: Naked viruses (Norovirus, Rotavirus, HAV, HEV) survive stomach acid and alcohol rubs.`],
+    [`Naked (+)ssRNA; resists alcohol.`], [`PCR/outbreak clinical diagnosis.`], [`Soap/water + bleach + hydration.`]
+  )
+];
+
+const DEFAULT_STATE = {
+  idx: 0,
+  hp: 5,
+  maxHp: 5,
+  xp: 0,
+  streak: 0,
+  completedIds: [],
+  unlockedEntityIds: [],
+  isHintsVisible: false,
+  timerEnabled: true,
+  sfxEnabled: true
+};
+
+let appState = Object.assign({}, DEFAULT_STATE);
+let targetLane = 1;
+let craftLaneX = 1;
+let isMenuOpen = false;
+let isOutcomeOpen = false;
+let isCodexOpen = false;
+let timerSeconds = 50;
+let timerInterval = null;
+let metaFadeTimeout = null;
+let questionLocked = false;
+let activeCorrectLane = 0;
+let codexFilter = `ALL`;
+
+// AUDIO ENGINE
+let audioCtx = null;
+let bgmTimer = null;
+let isBgmPlaying = false;
+let customAudioEl = null;
+let customAudioUrl = null;
+
+function ensureAudioCtx() {
+  if (!audioCtx) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (Ctx) audioCtx = new Ctx();
+  }
+  if (audioCtx && audioCtx.state === `suspended`) {
+    audioCtx.resume().catch(() => {});
+  }
+  return audioCtx;
+}
+
+function playTone(freq, dur, type, gainVal) {
+  const ctx = ensureAudioCtx();
+  if (!ctx) return;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type || `sawtooth`;
+  osc.frequency.setValueAtTime(freq, ctx.currentTime);
+  gain.gain.setValueAtTime(gainVal || 0.08, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start();
+  osc.stop(ctx.currentTime + dur);
+}
+
+function playSfx(kind) {
+  if (!appState.sfxEnabled) return;
+  if (kind === `steer`) playTone(440, 0.07, `triangle`, 0.05);
+  else if (kind === `hit`) {
+    playTone(523.25, 0.12, `triangle`, 0.09);
+    setTimeout(() => playTone(659.25, 0.15, `triangle`, 0.09), 70);
+    setTimeout(() => playTone(783.99, 0.22, `sine`, 0.1), 150);
+  } else if (kind === `miss`) {
+    playTone(196, 0.18, `sawtooth`, 0.09);
+    setTimeout(() => playTone(146.8, 0.28, `sawtooth`, 0.09), 120);
+  } else if (kind === `streak`) {
+    playTone(587.3, 0.1, `sine`, 0.1);
+    setTimeout(() => playTone(880, 0.2, `sine`, 0.1), 90);
+  }
+}
+
+function toggleBgm() {
+  const btn = document.getElementById(`menu-bgm-btn`);
+  if (customAudioEl) {
+    if (customAudioEl.paused) {
+      customAudioEl.play().catch(() => {});
+      isBgmPlaying = true;
+    } else {
+      customAudioEl.pause();
+      isBgmPlaying = false;
+    }
+    if (btn) {
+      btn.textContent = isBgmPlaying ? `🎵 Custom BGM: ON` : `🎵 Custom BGM: OFF`;
+      btn.classList.toggle(`is-active`, isBgmPlaying);
+    }
+    return;
+  }
+  isBgmPlaying = !isBgmPlaying;
+  if (isBgmPlaying) {
+    ensureAudioCtx();
+    const notes = [110, 110, 130.81, 146.83, 164.81, 146.83, 130.81, 98];
+    let step = 0;
+    clearInterval(bgmTimer);
+    bgmTimer = setInterval(() => {
+      if (!isBgmPlaying) return;
+      playTone(notes[step % notes.length], 0.18, `sawtooth`, 0.035);
+      if (step % 2 === 0) playTone(notes[step % notes.length] * 2, 0.1, `triangle`, 0.02);
+      step++;
+    }, 220);
+  } else {
+    clearInterval(bgmTimer);
+  }
+  if (btn) {
+    btn.textContent = isBgmPlaying ? `🎵 Synth BGM: ON` : `🎵 Synth BGM: OFF`;
+    btn.classList.toggle(`is-active`, isBgmPlaying);
+  }
+}
+
+function loadCustomAudio(input) {
+  if (!input || !input.files || !input.files[0]) return;
+  if (bgmTimer) clearInterval(bgmTimer);
+  if (customAudioEl) { customAudioEl.pause(); }
+  if (customAudioUrl) { URL.revokeObjectURL(customAudioUrl); }
+  customAudioUrl = URL.createObjectURL(input.files[0]);
+  customAudioEl = new Audio(customAudioUrl);
+  customAudioEl.loop = true;
+  customAudioEl.volume = 0.45;
+  customAudioEl.play().catch(() => {});
+  isBgmPlaying = true;
+  const btn = document.getElementById(`menu-bgm-btn`);
+  if (btn) {
+    btn.textContent = `🎵 Custom BGM: ON`;
+    btn.classList.add(`is-active`);
+  }
+}
+
+function toggleSfx() {
+  appState.sfxEnabled = !appState.sfxEnabled;
+  const btn = document.getElementById(`menu-sfx-btn`);
+  if (btn) {
+    btn.textContent = appState.sfxEnabled ? `🔊 SFX: ON` : `🔇 SFX: OFF`;
+    btn.classList.toggle(`is-active`, appState.sfxEnabled);
+  }
+  persistAppState();
+}
+
+// PERSISTENCE SHIM
+async function loadPersistedState() {
+  try {
+    if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === `function`) {
+      const saved = await window.notebookAppApi.getAppState();
+      if (saved && typeof saved === `object`) {
+        appState = Object.assign({}, DEFAULT_STATE, saved);
+        if (appState.idx < 0 || appState.idx >= ALL_QUESTIONS.length) appState.idx = 0;
+        if (!Array.isArray(appState.completedIds)) appState.completedIds = [];
+        if (!Array.isArray(appState.unlockedEntityIds)) appState.unlockedEntityIds = [];
+      }
+    }
+  } catch (err) {
+    // fallback to defaults
+  }
+}
+
+function persistAppState() {
+  try {
+    if (window.notebookAppApi && typeof window.notebookAppApi.setAppState === `function`) {
+      window.notebookAppApi.setAppState({
+        idx: appState.idx,
+        hp: appState.hp,
+        maxHp: appState.maxHp,
+        xp: appState.xp,
+        streak: appState.streak,
+        completedIds: appState.completedIds.slice(0, 60),
+        unlockedEntityIds: appState.unlockedEntityIds.slice(0, 20),
+        isHintsVisible: appState.isHintsVisible,
+        timerEnabled: appState.timerEnabled,
+        sfxEnabled: appState.sfxEnabled
+      }).catch(() => {});
+    }
+  } catch (err) {
+    // ignore
+  }
+}
+
+// UI HELPERS
+function syncHintsUI() {
+  const root = document.getElementById(`xr-app`);
+  const menuBtn = document.getElementById(`menu-hints-btn`);
+  if (root) root.classList.toggle(`hints-hidden`, !appState.isHintsVisible);
+  if (menuBtn) {
+    menuBtn.textContent = appState.isHintsVisible ? `💡 Hints: ON [H]` : `💡 Hints: OFF [H]`;
+    menuBtn.classList.toggle(`is-active`, appState.isHintsVisible);
+  }
+}
+
+function toggleHintsBar() {
+  appState.isHintsVisible = !appState.isHintsVisible;
+  syncHintsUI();
+  playSfx(`steer`);
+  persistAppState();
+}
+
+function syncTimerControlsUI() {
+  const menuBtn = document.getElementById(`menu-timer-btn`);
+  const chip = document.getElementById(`hud-timer`);
+  if (menuBtn) {
+    menuBtn.textContent = appState.timerEnabled ? `⏱ Timer: ON [T]` : `⏱ Timer: OFF [T]`;
+    menuBtn.classList.toggle(`is-active`, appState.timerEnabled);
+  }
+  if (chip) {
+    chip.classList.toggle(`is-paused`, !appState.timerEnabled);
+    chip.textContent = appState.timerEnabled ? `⏱ ${timerSeconds}s` : `⏱ PAUSED`;
+    chip.classList.toggle(`is-urgent`, appState.timerEnabled && timerSeconds <= 10);
+  }
+}
+
+function toggleTimerEnabled() {
+  appState.timerEnabled = !appState.timerEnabled;
+  syncTimerControlsUI();
+  playSfx(`steer`);
+  persistAppState();
+}
+
+function startQuestionTimer() {
+  clearInterval(timerInterval);
+  timerSeconds = 50;
+  syncTimerControlsUI();
+  timerInterval = setInterval(() => {
+    if (!appState.timerEnabled || questionLocked || isMenuOpen || isOutcomeOpen || isCodexOpen) return;
+    timerSeconds--;
+    syncTimerControlsUI();
+    if (timerSeconds <= 0) {
+      clearInterval(timerInterval);
+      handleTimeout();
+    }
+  }, 1000);
+}
+
+function toggleMenuDrawer() {
+  isMenuOpen = !isMenuOpen;
+  const drawer = document.getElementById(`top-menu-drawer`);
+  const backdrop = document.getElementById(`menu-backdrop`);
+  if (drawer) drawer.classList.toggle(`is-open`, isMenuOpen);
+  if (backdrop) backdrop.classList.toggle(`is-open`, isMenuOpen);
+  if (isMenuOpen) renderSectorTree();
+}
+
+function openCodexFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  openCodex();
+}
+
+function skipFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  skipCurrentQuestion();
+}
+
+function showStreakToast(msg) {
+  const toast = document.getElementById(`streak-toast`);
+  if (!toast) return;
+  toast.textContent = msg;
+  toast.classList.add(`is-visible`);
+  setTimeout(() => toast.classList.remove(`is-visible`), 2400);
+}
+
+function renderDossierBullets(ulId, items) {
+  const ul = document.getElementById(ulId);
+  if (!ul) return;
+  ul.innerHTML = ``;
+  const list = Array.isArray(items) ? items : [String(items || ``)];
+  list.forEach((line) => {
+    const li = document.createElement(`li`);
+    const clean = String(line).replace(/^•\s*/, ``);
+    li.textContent = `• ${clean}`;
+    ul.appendChild(li);
+  });
+}
+
+function renderSectorTree() {
+  const host = document.getElementById(`sector-tree-list`);
+  if (!host) return;
+  host.innerHTML = ``;
+  const q = ALL_QUESTIONS[appState.idx];
+  SECTORS.forEach((sec) => {
+    const btn = document.createElement(`button`);
+    btn.type = `button`;
+    btn.className = `sector-btn`;
+    const endIdx = sec.startIdx + sec.count - 1;
+    if (appState.idx >= sec.startIdx && appState.idx <= endIdx) btn.classList.add(`is-active`);
+    let doneCount = 0;
+    for (let i = sec.startIdx; i <= endIdx; i++) {
+      if (appState.completedIds.includes(ALL_QUESTIONS[i].id)) doneCount++;
+    }
+    btn.innerHTML = `<span>${sec.title}</span><span class="sector-count">${doneCount}/${sec.count}</span>`;
+    btn.onclick = function() {
+      appState.idx = sec.startIdx;
+      toggleMenuDrawer();
+      loadQuestion();
+      persistAppState();
+    };
+    host.appendChild(btn);
+  });
+}
+
+function updateHud() {
+  const hpEl = document.getElementById(`hud-hp`);
+  const xpEl = document.getElementById(`hud-xp`);
+  const stEl = document.getElementById(`hud-streak`);
+  const gtEl = document.getElementById(`hud-gate`);
+  const prEl = document.getElementById(`q-progress-fill`);
+  if (hpEl) hpEl.textContent = `❤ HP ${appState.hp}/${appState.maxHp}`;
+  if (xpEl) xpEl.textContent = `✦ XP ${appState.xp}`;
+  if (stEl) stEl.textContent = `⚡ ${appState.streak}`;
+  if (gtEl) gtEl.textContent = `GATE ${appState.idx + 1}/${ALL_QUESTIONS.length}`;
+  if (prEl) prEl.style.width = `${Math.round(((appState.idx + 1) / ALL_QUESTIONS.length) * 100)}%`;
+}
+
+function loadQuestion() {
+  questionLocked = false;
+  const q = ALL_QUESTIONS[appState.idx];
+  if (!q) return;
+
+  const metaBar = document.getElementById(`q-meta-bar`);
+  if (metaBar) {
+    metaBar.classList.remove(`is-faded`);
+    clearTimeout(metaFadeTimeout);
+    metaFadeTimeout = setTimeout(() => {
+      metaBar.classList.add(`is-faded`);
+    }, 3000);
+  }
+
+  const mSec = document.getElementById(`meta-sector`);
+  const mEnt = document.getElementById(`meta-entity`);
+  const mAng = document.getElementById(`meta-angle`);
+  const mPhs = document.getElementById(`meta-phase`);
+  const mCor = document.getElementById(`meta-corridor`);
+  if (mSec) mSec.textContent = q.sector;
+  if (mEnt) mEnt.textContent = q.entity;
+  if (mAng) mAng.textContent = q.angle;
+  if (mPhs) mPhs.textContent = q.phase;
+  if (mCor) mCor.textContent = q.corridor;
+
+  const stemEl = document.getElementById(`q-stem-text`);
+  const clueEl = document.getElementById(`q-clue-text`);
+  if (stemEl) stemEl.textContent = q.stem;
+  if (clueEl) clueEl.textContent = q.clue;
+
+  const permSeed = (q.id * 7 + q.sector.length) % 3;
+  const order = permSeed === 0 ? [0, 1, 2] : (permSeed === 1 ? [1, 0, 2] : [2, 1, 0]);
+  activeCorrectLane = order.indexOf(q.ans);
+
+  const cards = document.querySelectorAll(`.lane-card`);
+  cards.forEach((card, i) => {
+    card.classList.remove(`is-correct-reveal`, `is-wrong-reveal`);
+    card.classList.toggle(`is-targeted`, i === targetLane);
+    const txt = document.getElementById(`lane-text-${i}`);
+    if (txt) txt.textContent = q.opts[order[i]] || ``;
+  });
+
+  updateHud();
+  startQuestionTimer();
+}
+
+function steerToLane(lane) {
+  targetLane = Math.max(0, Math.min(2, lane));
+  const cards = document.querySelectorAll(`.lane-card`);
+  cards.forEach((c, i) => c.classList.toggle(`is-targeted`, i === targetLane));
+  playSfx(`steer`);
+}
+
+function selectLane(lane) {
+  if (questionLocked || isOutcomeOpen || isCodexOpen || isMenuOpen) return;
+  steerToLane(lane);
+  evaluateAnswer(lane, false);
+}
+
+function handleTimeout() {
+  if (questionLocked) return;
+  evaluateAnswer(-1, true);
+}
+
+function evaluateAnswer(chosenLane, isTimeout) {
+  questionLocked = true;
+  clearInterval(timerInterval);
+  const q = ALL_QUESTIONS[appState.idx];
+  const isCorrect = !isTimeout && chosenLane === activeCorrectLane;
+
+  const cards = document.querySelectorAll(`.lane-card`);
+  cards.forEach((c, i) => {
+    if (i === activeCorrectLane) c.classList.add(`is-correct-reveal`);
+    else if (i === chosenLane && !isCorrect) c.classList.add(`is-wrong-reveal`);
+  });
+
+  if (isCorrect) {
+    appState.xp += 100 + appState.streak * 20;
+    appState.streak += 1;
+    if (!appState.completedIds.includes(q.id)) appState.completedIds.push(q.id);
+    const entityIdx = Math.floor(appState.idx / 3) + 1;
+    if (!appState.unlockedEntityIds.includes(entityIdx)) appState.unlockedEntityIds.push(entityIdx);
+    if (appState.streak > 0 && appState.streak % 3 === 0) {
+      if (appState.hp < appState.maxHp) {
+        appState.hp += 1;
+        showStreakToast(`⚡ ${appState.streak}-STREAK BONUS: +1 HP`);
+      } else {
+        appState.xp += 50;
+        showStreakToast(`⚡ ${appState.streak}-STREAK SURGE: +50 XP`);
+      }
+      playSfx(`streak`);
+    } else {
+      playSfx(`hit`);
+    }
+  } else {
+    appState.streak = 0;
+    appState.hp = Math.max(1, appState.hp - 1);
+    playSfx(`miss`);
+  }
+
+  updateHud();
+  persistAppState();
+  openOutcomeDossier(q, isCorrect, isTimeout);
+}
+
+function openOutcomeDossier(q, isCorrect, isTimeout) {
+  isOutcomeOpen = true;
+  const verdict = document.getElementById(`outcome-verdict`);
+  if (verdict) {
+    verdict.classList.remove(`is-correct`, `is-wrong`, `is-timeout`);
+    if (isTimeout) {
+      verdict.textContent = `⏱ TIME'S UP — ${q.shortAns}`;
+      verdict.classList.add(`is-timeout`);
+    } else if (isCorrect) {
+      verdict.textContent = `✔ CORRECT — ${q.shortAns}`;
+      verdict.classList.add(`is-correct`);
+    } else {
+      verdict.textContent = `✖ INCORRECT — ${q.shortAns}`;
+      verdict.classList.add(`is-wrong`);
+    }
+  }
+  renderDossierBullets(`dossier-sec-1`, q.dossier.s1);
+  renderDossierBullets(`dossier-sec-2`, q.dossier.s2);
+  renderDossierBullets(`dossier-sec-3`, q.dossier.s3);
+  renderDossierBullets(`dossier-sec-4`, q.dossier.s4);
+  renderDossierBullets(`dossier-sec-5`, q.dossier.s5);
+  renderDossierBullets(`dossier-sec-6`, q.dossier.s6);
+  renderDossierBullets(`dossier-angle-1`, q.dossier.a1);
+  renderDossierBullets(`dossier-angle-2`, q.dossier.a2);
+  renderDossierBullets(`dossier-angle-3`, q.dossier.a3);
+
+  const modal = document.getElementById(`outcome-modal`);
+  if (modal) modal.classList.add(`is-open`);
+}
+
+function advanceNextGate() {
+  const modal = document.getElementById(`outcome-modal`);
+  if (modal) modal.classList.remove(`is-open`);
+  isOutcomeOpen = false;
+  appState.idx = (appState.idx + 1) % ALL_QUESTIONS.length;
+  loadQuestion();
+  persistAppState();
+}
+
+function skipCurrentQuestion() {
+  appState.idx = (appState.idx + 1) % ALL_QUESTIONS.length;
+  loadQuestion();
+  persistAppState();
+}
+
+// CODEX MODAL
+function openCodex() {
+  isCodexOpen = true;
+  renderCodexFilters();
+  renderCodexList();
+  const modal = document.getElementById(`codex-modal`);
+  if (modal) modal.classList.add(`is-open`);
+}
+
+function openCodexFromOutcome() {
+  const outcome = document.getElementById(`outcome-modal`);
+  if (outcome) outcome.classList.remove(`is-open`);
+  isOutcomeOpen = false;
+  openCodex();
+}
+
+function closeCodex() {
+  isCodexOpen = false;
+  const modal = document.getElementById(`codex-modal`);
+  if (modal) modal.classList.remove(`is-open`);
+}
+
+function renderCodexFilters() {
+  const row = document.getElementById(`codex-filters`);
+  if (!row) return;
+  const tabs = [`ALL`].concat(SECTORS.map((s) => s.title));
+  row.innerHTML = ``;
+  tabs.forEach((t) => {
+    const btn = document.createElement(`button`);
+    btn.type = `button`;
+    btn.className = `btn-neon is-cyan`;
+    if (codexFilter === t) btn.classList.add(`is-active`);
+    btn.textContent = t === `ALL` ? `All 15 Entities` : t.split(`:`)[0];
+    btn.onclick = function() {
+      codexFilter = t;
+      renderCodexFilters();
+      renderCodexList();
+    };
+    row.appendChild(btn);
+  });
+}
+
+function renderCodexList() {
+  const host = document.getElementById(`codex-list`);
+  if (!host) return;
+  host.innerHTML = ``;
+  const items = codexFilter === `ALL` ? CODEX_DATA : CODEX_DATA.filter((e) => e.sector === codexFilter);
+  items.forEach((item) => {
+    const unlocked = appState.unlockedEntityIds.includes(item.id);
+    const card = document.createElement(`div`);
+    card.className = `codex-item${unlocked ? ` is-unlocked` : ``}`;
+    const bullets = item.pearls.map((p) => `• ${p}`).join(`<br>`);
+    card.innerHTML = `
+      <div class="codex-item-head">
+        <span class="codex-item-name">${item.id}. ${item.name}</span>
+        <span class="codex-item-tag">${unlocked ? `UNLOCKED` : `BRIEFING`}</span>
+      </div>
+      <p class="codex-item-body">${bullets}</p>
+    `;
+    host.appendChild(card);
+  });
+}
+
+function resetProgress(btn) {
+  if (btn && btn.dataset.armed !== `true`) {
+    btn.dataset.armed = `true`;
+    btn.textContent = `⚠ Confirm Reset`;
+    setTimeout(() => {
+      if (btn) {
+        btn.dataset.armed = `false`;
+        btn.textContent = `↺ Reset Run`;
+      }
+    }, 3000);
+    return;
+  }
+  if (btn) {
+    btn.dataset.armed = `false`;
+    btn.textContent = `↺ Reset Run`;
+  }
+  appState = Object.assign({}, DEFAULT_STATE, {
+    isHintsVisible: appState.isHintsVisible,
+    timerEnabled: appState.timerEnabled,
+    sfxEnabled: appState.sfxEnabled
+  });
+  if (isMenuOpen) toggleMenuDrawer();
+  loadQuestion();
+  persistAppState();
+  showStreakToast(`Run reset to Gate 1`);
+}
+
+function exportProgress() {
+  const rows = [`Gate,Sector,Entity,Phase,Status`];
+  ALL_QUESTIONS.forEach((q, idx) => {
+    const done = appState.completedIds.includes(q.id) ? `Mastered` : `Pending`;
+    rows.push(`${idx + 1},"${q.sector}","${q.entity}","${q.phase}",${done}`);
+  });
+  const csv = rows.join(`\n`);
+  if (window.notebookAppApi && typeof window.notebookAppApi.triggerFileDownload === `function`) {
+    window.notebookAppApi.triggerFileDownload({
+      content: csv,
+      contentType: `text/csv`,
+      encoding: `UTF-8`,
+      filename: `gi_raid_progress.csv`
+    });
+  }
+}
+
+// 3D SYNTHWAVE VOID ENGINE (150 SQUARE PIXEL-DUST PARTICLES + 1:1 PORTAL ALIGNMENT)
+let voidAnimId = null;
+const dustParticles = [];
+for (let i = 0; i < 150; i++) {
+  dustParticles.push({
+    x: (Math.random() - 0.5) * 2.4,
+    y: Math.random() * 0.9 + 0.05,
+    z: Math.random(),
+    size: Math.random() < 0.5 ? 2 : 3
+  });
+}
+
+function startVoidEngine() {
+  const canvas = document.getElementById(`void-canvas`);
+  if (!canvas) return;
+  const ctx = canvas.getContext(`2d`);
+  if (!ctx) return;
+
+  const styles = getComputedStyle(document.documentElement);
+  const cPink = styles.getPropertyValue(`--primary`).trim() || `#ff2d78`;
+  const cCyan = styles.getPropertyValue(`--secondary`).trim() || `#00ffcc`;
+  const cYellow = styles.getPropertyValue(`--tertiary`).trim() || `#ffe04a`;
+  const cGrid = styles.getPropertyValue(`--outline-variant`).trim() || `#302840`;
+  const laneColors = [cPink, cCyan, cYellow];
+
+  let gridOffset = 0;
+
+  function renderFrame() {
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    if (w > 0 && h > 0 && (canvas.width !== w || canvas.height !== h)) {
+      canvas.width = w;
+      canvas.height = h;
+    }
+    const cw = canvas.width;
+    const ch = canvas.height;
+    ctx.clearRect(0, 0, cw, ch);
+
+    const horizonY = ch * 0.34;
+    const vanishX = cw * 0.5;
+    gridOffset = (gridOffset + 0.012) % 1;
+
+    // 1. Infinite wireframe horizon floor
+    ctx.strokeStyle = cGrid;
+    ctx.lineWidth = 1;
+    for (let i = 1; i <= 14; i++) {
+      const t = ((i + gridOffset) / 14);
+      const y = horizonY + Math.pow(t, 2.2) * (ch - horizonY);
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(cw, y);
+      ctx.stroke();
+    }
+    for (let s = -6; s <= 6; s++) {
+      ctx.beginPath();
+      ctx.moveTo(vanishX + s * (cw * 0.045), horizonY);
+      ctx.lineTo(vanishX + s * (cw * 0.32), ch);
+      ctx.stroke();
+    }
+
+    // 2. 150 square 3D pixel-dust particles
+    for (let p = 0; p < dustParticles.length; p++) {
+      const pt = dustParticles[p];
+      pt.z -= 0.0055;
+      if (pt.z <= 0.03) {
+        pt.z = 1;
+        pt.x = (Math.random() - 0.5) * 2.4;
+        pt.y = Math.random() * 0.9 + 0.05;
+      }
+      const scale = 1 / pt.z;
+      const sx = vanishX + pt.x * cw * 0.28 * scale;
+      const sy = horizonY - pt.y * ch * 0.16 * scale + (1 - pt.z) * ch * 0.25;
+      if (sx >= 0 && sx <= cw && sy >= 0 && sy <= ch) {
+        ctx.fillStyle = p % 3 === 0 ? cPink : (p % 3 === 1 ? cCyan : cYellow);
+        ctx.fillRect(Math.round(sx), Math.round(sy), pt.size, pt.size);
+      }
+    }
+
+    // 3. Measure 1:1 card centers for portals & teal rails
+    const cardEls = document.querySelectorAll(`.lane-card`);
+    const stageRect = canvas.getBoundingClientRect();
+    const laneBottomXs = [cw * 0.2, cw * 0.5, cw * 0.8];
+    const laneTopYs = [ch * 0.65, ch * 0.65, ch * 0.65];
+
+    cardEls.forEach((el, idx) => {
+      const r = el.getBoundingClientRect();
+      if (r.width > 0 && stageRect.width > 0) {
+        laneBottomXs[idx] = (r.left - stageRect.left) + r.width * 0.5;
+        laneTopYs[idx] = Math.max(horizonY + 12, r.top - stageRect.top);
+      }
+    });
+
+    // 3 teal rails + neon portal frames aligned 1:1 to cards
+    for (let l = 0; l < 3; l++) {
+      const topX = vanishX + (l - 1) * (cw * 0.055);
+      const botX = laneBottomXs[l];
+      const botY = laneTopYs[l];
+
+      ctx.strokeStyle = cCyan;
+      ctx.lineWidth = l === targetLane ? 2.2 : 1.2;
+      ctx.beginPath();
+      ctx.moveTo(topX, horizonY);
+      ctx.lineTo(botX, botY);
+      ctx.stroke();
+
+      // Neon portal arch above card
+      const portalW = cw < 640 ? 44 : 74;
+      const portalH = cw < 640 ? 22 : 34;
+      const px = botX - portalW * 0.5;
+      const py = botY - portalH - 4;
+      ctx.strokeStyle = laneColors[l];
+      ctx.lineWidth = l === targetLane ? 2.6 : 1.5;
+      ctx.strokeRect(px, py, portalW, portalH);
+    }
+
+    // 4. Geometric craft gliding smoothly between lanes
+    craftLaneX += (targetLane - craftLaneX) * 0.18;
+    const floorIdx = Math.floor(craftLaneX);
+    const ceilIdx = Math.min(2, floorIdx + 1);
+    const frac = craftLaneX - floorIdx;
+    const cx = laneBottomXs[floorIdx] * (1 - frac) + laneBottomXs[ceilIdx] * frac;
+    const cy = Math.min(laneTopYs[0], laneTopYs[1], laneTopYs[2]) - 18;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.strokeStyle = cCyan;
+    ctx.fillStyle = `rgba(0, 255, 204, 0.22)`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, -14);
+    ctx.lineTo(18, 10);
+    ctx.lineTo(0, 4);
+    ctx.lineTo(-18, 10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    const reducedMotion = window.matchMedia && window.matchMedia(`(prefers-reduced-motion: reduce)`).matches;
+    if (!reducedMotion) {
+      voidAnimId = requestAnimationFrame(renderFrame);
+    }
+  }
+
+  cancelAnimationFrame(voidAnimId);
+  renderFrame();
+}
+
+// KEYBOARD SHORTCUTS
+document.addEventListener(`keydown`, (e) => {
+  if (e.target && (e.target.tagName === `INPUT` || e.target.tagName === `TEXTAREA`)) return;
+  const k = e.key.toLowerCase();
+
+  if (isOutcomeOpen) {
+    if (k === ` ` || k === `enter`) {
+      e.preventDefault();
+      advanceNextGate();
+    }
+    return;
+  }
+  if (isCodexOpen) {
+    if (k === `c` || k === `escape`) {
+      e.preventDefault();
+      closeCodex();
+    }
+    return;
+  }
+  if (k === `m`) { e.preventDefault(); toggleMenuDrawer(); }
+  else if (k === `h`) { e.preventDefault(); toggleHintsBar(); }
+  else if (k === `t`) { e.preventDefault(); toggleTimerEnabled(); }
+  else if (k === `s`) { e.preventDefault(); skipCurrentQuestion(); }
+  else if (k === `c`) { e.preventDefault(); openCodex(); }
+  else if (k === `1` || k === `a` || e.key === `ArrowLeft`) { e.preventDefault(); selectLane(0); }
+  else if (k === `2` || k === `w` || e.key === `ArrowUp`) { e.preventDefault(); selectLane(1); }
+  else if (k === `3` || k === `d` || e.key === `ArrowRight`) { e.preventDefault(); selectLane(2); }
+});
+
+// INIT
+(async function initApp() {
+  await loadPersistedState();
+  syncHintsUI();
+  syncTimerControlsUI();
+  const sfxBtn = document.getElementById(`menu-sfx-btn`);
+  if (sfxBtn) {
+    sfxBtn.textContent = appState.sfxEnabled ? `🔊 SFX: ON` : `🔇 SFX: OFF`;
+    sfxBtn.classList.toggle(`is-active`, appState.sfxEnabled);
+  }
+  loadQuestion();
+  startVoidEngine();
+  if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === `function`) {
+    window.notebookAppApi.notifyAppReady();
+  }
+})();
+</script>
+</body>
+</html>

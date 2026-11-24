@@ -1,0 +1,3015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="artifact-type" content="tool">
+<meta name="design-style" content="neon_noir">
+<title>Respiratory Pharmacology, Bugs &amp; Viruses — XR 3-Lane Diagnostic Runner</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --background: #0a0a12;
+  --surface-container-low: #111118;
+  --surface-container: #141422;
+  --surface-container-high: #1e1e30;
+  --surface-glass: rgba(16, 16, 30, 0.78);
+  --surface-overlay: rgba(6, 6, 14, 0.86);
+  --on-surface: #e8e0f0;
+  --on-surface-bright: #ffffff;
+  --on-surface-variant: #a098b0;
+  --outline: #5a5068;
+  --outline-variant: #302840;
+  --primary: #ff2d78;
+  --on-primary: #1a0010;
+  --primary-container: #b3004e;
+  --on-primary-container: #ffe0ec;
+  --secondary: #00ffcc;
+  --tertiary: #ffe04a;
+  --rail-teal: #34a88f;
+  --error: #ff4444;
+  --on-error: #1a0000;
+  --positive: #00ffcc;
+  --warning: #ffe04a;
+  --focus: #ff2d78;
+  --data-1: #ff2d78;
+  --data-2: #00ffcc;
+  --data-3: #ffe04a;
+  --data-4: #b388ff;
+  --data-context: #6e6680;
+
+  --font-headline: 'Sora', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-label: 'Space Mono', monospace;
+
+  --rounded: 0.125rem;
+  --rounded-lg: 0.25rem;
+  --rounded-full: 0.75rem;
+
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+
+  --display-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+  --headline-size: clamp(1.15rem, 1rem + 0.5vw, 1.45rem);
+  --subhead-size: clamp(1rem, 0.95rem + 0.25vw, 1.15rem);
+  --body-size: clamp(0.9375rem, 0.9rem + 0.15vw, 1rem);
+  --label-size: 0.75rem;
+
+  --glow-text: 0 0 8px currentColor;
+  --glow-primary: 0 0 16px color-mix(in srgb, var(--primary) 40%, transparent);
+  --glow-secondary: 0 0 16px color-mix(in srgb, var(--secondary) 35%, transparent);
+  --glow-tertiary: 0 0 16px color-mix(in srgb, var(--tertiary) 35%, transparent);
+  --neon-border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 50%, transparent);
+  --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+  --scanlines: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in srgb, var(--on-surface) 3%, transparent) 3px 4px);
+
+  --card-min-h: 118px;
+  --card-pad-y: 0.85rem;
+  --card-pad-x: 1rem;
+  --card-font: clamp(0.96rem, 0.92rem + 0.2vw, 1.12rem);
+  --card-gap: 0.9rem;
+  --stem-pad-y: 0.55rem;
+  --stem-pad-x: 1.1rem;
+  --game-stem-size: clamp(0.98rem, 0.92rem + 0.24vw, 1.16rem);
+  --game-body-size: 1rem;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overflow-x: clip;
+  background-color: var(--background);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: var(--game-body-size);
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+}
+button, input, select { font-family: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+#xr-app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background);
+  background-image: var(--scanlines);
+  overflow: hidden;
+}
+
+#xr-app.hints-visible {
+  --card-min-h: 88px;
+  --card-pad-y: 0.58rem;
+  --card-pad-x: 0.85rem;
+  --card-font: clamp(0.9rem, 0.86rem + 0.16vw, 1.04rem);
+  --card-gap: 0.65rem;
+  --stem-pad-y: 0.38rem;
+  --stem-pad-x: 0.95rem;
+  --game-stem-size: clamp(0.92rem, 0.88rem + 0.18vw, 1.06rem);
+}
+
+/* BAND 1: ULTRA-SLIM TOP BAR */
+.top-mini-bar {
+  flex-shrink: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: 0.28rem 0.65rem;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.menu-mini-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.65rem;
+  min-height: 32px;
+  background: var(--surface-container);
+  border: 1px solid color-mix(in srgb, var(--secondary) 45%, transparent);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--secondary);
+  cursor: pointer;
+  transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+.menu-mini-btn:hover, .menu-mini-btn.is-active {
+  border-color: var(--secondary);
+  background: var(--surface-container-high);
+  box-shadow: var(--glow-secondary);
+  text-shadow: var(--glow-text);
+}
+
+.mini-telemetry {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.42rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--on-surface-variant);
+}
+.mini-telemetry::-webkit-scrollbar { display: none; }
+
+.tele-chip {
+  white-space: nowrap;
+  padding: 0.18rem 0.48rem;
+  border-radius: var(--rounded);
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+}
+.tele-chip.is-hp { color: var(--secondary); border-color: color-mix(in srgb, var(--secondary) 40%, transparent); }
+.tele-chip.is-hp.is-low { color: var(--error); border-color: var(--error); }
+.tele-chip.is-xp { color: var(--on-surface); }
+.tele-chip.is-streak { color: var(--tertiary); border-color: color-mix(in srgb, var(--tertiary) 40%, transparent); }
+.tele-chip.is-gate { color: var(--primary); border-color: color-mix(in srgb, var(--primary) 40%, transparent); }
+.tele-chip.is-timer { color: var(--secondary); }
+.tele-chip.is-timer.is-urgent { color: var(--error); border-color: var(--error); text-shadow: var(--glow-text); }
+
+/* BAND 2: TOP QUESTION STAGE + 3-SECOND AUTO-HIDING METADATA */
+.question-stage {
+  flex-shrink: 0;
+  z-index: 20;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: var(--stem-pad-y) var(--stem-pad-x);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: padding var(--dur-short) var(--ease-out);
+}
+
+.meta-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-bottom: 0.38rem;
+  max-height: 60px;
+  opacity: 1;
+  overflow: hidden;
+  transition: opacity var(--dur-long) var(--ease-out), max-height var(--dur-long) var(--ease-out), margin-bottom var(--dur-long) var(--ease-out);
+}
+.meta-badges.is-faded {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+}
+
+.meta-badge {
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.14rem 0.45rem;
+  border-radius: var(--rounded);
+  border: 1px solid var(--outline-variant);
+  background: var(--surface-container);
+  color: var(--on-surface-variant);
+}
+.meta-badge.is-lo { color: var(--secondary); border-color: color-mix(in srgb, var(--secondary) 45%, transparent); }
+.meta-badge.is-angle { color: var(--primary); border-color: color-mix(in srgb, var(--primary) 45%, transparent); }
+.meta-badge.is-phase { color: var(--tertiary); border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); }
+.meta-badge.is-corridor { color: var(--data-4); border-color: color-mix(in srgb, var(--data-4) 45%, transparent); }
+
+.question-stem-box {
+  width: 100%;
+  max-width: 960px;
+  max-height: 30dvh;
+  overflow-y: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: max-height var(--dur-short) var(--ease-out);
+}
+#xr-app.hints-visible .question-stem-box { max-height: 23dvh; }
+
+.question-stem {
+  margin: 0;
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: var(--game-stem-size);
+  font-weight: 600;
+  color: var(--on-surface-bright);
+  text-align: center;
+  line-height: 1.42;
+  transition: font-size var(--dur-short) var(--ease-out);
+}
+
+/* BAND 3: CENTER 3D XR VIEWPORT + 3 CENTERED FROSTED-GLASS CARDS */
+.viewport-band {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+  background: var(--background);
+}
+
+#xr-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.lane-overlay-container {
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(1080px, calc(100% - 2rem));
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--card-gap);
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.lane-card {
+  position: relative;
+  min-height: var(--card-min-h);
+  padding: var(--card-pad-y) var(--card-pad-x);
+  background: var(--surface-glass);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: var(--rounded-lg);
+  border: 1.5px solid var(--outline);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  transition: transform var(--dur-micro) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+}
+
+.lane-card.lane-0 {
+  border-color: color-mix(in srgb, var(--primary) 65%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--primary) 14%, transparent);
+}
+.lane-card.lane-1 {
+  border-color: color-mix(in srgb, var(--secondary) 65%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--secondary) 14%, transparent);
+}
+.lane-card.lane-2 {
+  border-color: color-mix(in srgb, var(--tertiary) 65%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--tertiary) 14%, transparent);
+}
+
+.lane-card.lane-0:hover, .lane-card.lane-0.is-targeted {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+  transform: translateY(-2px);
+}
+.lane-card.lane-1:hover, .lane-card.lane-1.is-targeted {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+  transform: translateY(-2px);
+}
+.lane-card.lane-2:hover, .lane-card.lane-2.is-targeted {
+  border-color: var(--tertiary);
+  box-shadow: var(--glow-tertiary);
+  transform: translateY(-2px);
+}
+
+.lane-card.is-fused {
+  background: var(--surface-container-high);
+}
+
+.lane-card-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+  opacity: 0.88;
+}
+.lane-0 .lane-card-head { color: var(--primary); }
+.lane-1 .lane-card-head { color: var(--secondary); }
+.lane-2 .lane-card-head { color: var(--tertiary); }
+
+.lane-choice-body {
+  flex: 1 1 auto;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.lane-card-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: var(--card-font);
+  font-weight: 600;
+  color: var(--on-surface-bright);
+  line-height: 1.32;
+}
+
+.fusion-lock-tag {
+  margin-top: 0.35rem;
+  font-family: var(--font-label);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: var(--on-surface-variant);
+  opacity: 0.72;
+}
+
+.vignette-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 12;
+  opacity: 0;
+  transition: opacity var(--dur-short) var(--ease-out);
+}
+.vignette-overlay.is-hit {
+  opacity: 1;
+  box-shadow: inset 0 0 80px color-mix(in srgb, var(--error) 75%, transparent);
+}
+.vignette-overlay.is-win {
+  opacity: 1;
+  box-shadow: inset 0 0 80px color-mix(in srgb, var(--secondary) 60%, transparent);
+}
+
+.heal-toast {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-16px);
+  z-index: 25;
+  padding: 0.35rem 0.85rem;
+  background: var(--surface-container-high);
+  border: 1px solid var(--secondary);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out);
+}
+.heal-toast.is-shown {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* BAND 4: BOTTOM HINTS BAR */
+#hints-bar {
+  flex-shrink: 0;
+  z-index: 15;
+  background: var(--surface-container);
+  border-top: 2px solid color-mix(in srgb, var(--tertiary) 55%, transparent);
+  padding: 0.48rem 0.85rem;
+  max-height: 22dvh;
+  overflow-y: auto;
+  text-align: center;
+}
+#xr-app.hints-hidden #hints-bar { display: none; }
+
+.hints-inner {
+  max-width: 920px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.2rem;
+}
+.hints-kicker {
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tertiary);
+}
+.hints-text {
+  margin: 0;
+  font-size: clamp(0.88rem, 0.84rem + 0.16vw, 0.98rem);
+  color: var(--on-surface);
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* MENU DRAWER */
+.menu-backdrop, .modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: var(--surface-overlay);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+}
+.menu-backdrop.is-open, .modal-backdrop.is-open { display: flex; }
+
+#top-menu-drawer, #outcome-modal, #codex-modal {
+  width: min(980px, 94vw);
+  max-height: 90dvh;
+  overflow-y: auto;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.drawer-header, .popup-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+  border-bottom: 1px solid var(--outline-variant);
+  padding-bottom: var(--space-sm);
+}
+
+.drawer-kicker {
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--secondary);
+  text-shadow: var(--glow-text);
+  margin: 0 0 0.25rem 0;
+}
+.drawer-title {
+  font-family: var(--font-headline);
+  font-size: var(--headline-size);
+  font-weight: 700;
+  color: var(--on-surface-bright);
+  margin: 0;
+}
+
+.btn-neon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 40px;
+  padding: 0.42rem 0.85rem;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: border-color var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out);
+}
+.btn-neon:hover { border-color: var(--primary); color: var(--primary); box-shadow: var(--glow-primary); }
+.btn-neon.is-active, .btn-neon.is-cyan { border-color: var(--secondary); color: var(--secondary); }
+.btn-neon.is-cyan:hover { box-shadow: var(--glow-secondary); }
+.btn-neon.is-warn { border-color: var(--tertiary); color: var(--tertiary); }
+.btn-neon.is-danger { border-color: var(--error); color: var(--error); }
+
+.menu-section-title {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--secondary);
+  margin: 0;
+}
+
+.menu-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+  gap: var(--space-sm);
+}
+
+.menu-filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--space-sm);
+  align-items: end;
+}
+
+.control-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.control-field label {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--on-surface-variant);
+}
+.control-field select, .control-field input[type="text"] {
+  min-height: 40px;
+  padding: 0.45rem 0.65rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  color: var(--on-surface);
+  font-size: 0.85rem;
+}
+.control-field input[type="range"] { accent-color: var(--secondary); }
+
+.phase-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.skill-tree-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--space-sm);
+}
+.skill-node {
+  padding: 0.55rem 0.7rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  transition: border-color var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+}
+.skill-node:hover, .skill-node.is-selected {
+  border-color: var(--secondary);
+  background: var(--surface-container-high);
+}
+.skill-node-top {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  color: var(--secondary);
+}
+.skill-node-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--on-surface-bright);
+}
+
+/* OUTCOME DOSSIER MODAL */
+.popup-verdict {
+  margin: 0;
+  width: 100%;
+  text-align: center;
+  font-family: var(--font-headline);
+  font-size: var(--headline-size);
+  font-weight: 700;
+}
+.popup-verdict.is-correct { color: var(--secondary); text-shadow: var(--glow-text); }
+.popup-verdict.is-wrong { color: var(--primary); text-shadow: var(--glow-text); }
+.popup-verdict.is-timeout { color: var(--tertiary); text-shadow: var(--glow-text); }
+.popup-verdict.is-cyan { color: var(--secondary); text-align: left; }
+
+.outcome-meta-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  color: var(--on-surface-variant);
+}
+
+.dossier-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+.dossier-card {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.75rem 0.9rem;
+}
+.dossier-card.is-full { grid-column: 1 / -1; }
+.dossier-card h3 {
+  margin: 0 0 0.4rem 0;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--secondary);
+}
+.dossier-card.is-pink h3 { color: var(--primary); }
+.dossier-card.is-yellow h3 { color: var(--tertiary); }
+
+.dossier-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.88rem;
+  color: var(--on-surface);
+  line-height: 1.45;
+}
+
+.angle-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+.angle-mini-card {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.65rem;
+}
+.angle-mini-card h4 {
+  margin: 0 0 0.35rem 0;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  color: var(--tertiary);
+}
+
+/* CODEX MODAL */
+.codex-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: end;
+}
+.codex-table-wrap {
+  overflow: auto;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+}
+.codex-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  min-width: 820px;
+}
+.codex-table th, .codex-table td {
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid var(--outline-variant);
+  text-align: left;
+  vertical-align: top;
+}
+.codex-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-container-high);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--secondary);
+}
+.codex-table tr:nth-child(even) td { background: var(--surface-container-low); }
+
+/* 3 VERBATIM V3.8 PHONE / LANDSCAPE / TALL-PHONE MEDIA QUERIES */
+@media (max-width: 600px) {
+  .tele-chip.is-xp { display: none; }
+  .question-stem-box { max-height: 26dvh; }
+  #xr-app.hints-visible .question-stem-box { max-height: 20dvh; }
+  .lane-overlay-container {
+    top: 46%;
+    width: calc(100% - 1rem);
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  .lane-card { min-height: 62px; padding: 0.55rem 0.75rem; }
+  #xr-app.hints-visible .lane-card { min-height: 52px; padding: 0.42rem 0.65rem; }
+  .lane-card-head, .fusion-lock-tag { display: none; }
+  #hints-bar { padding: 0.4rem 0.65rem; max-height: 22dvh; }
+  .hints-text { font-size: 0.84rem; line-height: 1.35; }
+  .menu-backdrop, .modal-backdrop { padding: 0.35rem; }
+  #top-menu-drawer, #outcome-modal, #codex-modal {
+    width: 96vw;
+    max-height: 92dvh;
+    padding: 0.8rem;
+  }
+  .menu-actions-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dossier-grid, .angle-cards-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-height: 500px) and (pointer: coarse) {
+  .question-stem-box { max-height: 24dvh; }
+  .lane-overlay-container {
+    top: 48%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+  .lane-card { min-height: 70px; padding: 0.4rem 0.55rem; }
+  .lane-card-head, .fusion-lock-tag { display: none; }
+}
+
+@media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+  html { font-size: 200%; }
+  .lane-overlay-container { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+<div id="xr-app" class="hints-hidden">
+  <!-- BAND 1: ULTRA-SLIM TOP BAR -->
+  <div class="top-mini-bar">
+    <button type="button" class="menu-mini-btn" id="menu-toggle-btn" onclick="toggleMenuDrawer()" aria-expanded="false" aria-controls="top-menu-drawer">☰ MENU</button>
+    <div class="mini-telemetry" aria-label="Game Status">
+      <span class="tele-chip is-hp" id="hp-chip">HP <span id="hp-text">100</span></span>
+      <span class="tele-chip is-xp">XP <span id="xp-text">0</span></span>
+      <span class="tele-chip is-streak">⚡ <span id="streak-text">0</span></span>
+      <span class="tele-chip is-gate">GATE <span id="gate-text">1/45</span></span>
+      <span class="tele-chip is-timer" id="timer-chip">⏱ <span id="timer-text">OFF</span></span>
+    </div>
+  </div>
+
+  <!-- BAND 2: TOP QUESTION STAGE + AUTO-HIDING METADATA -->
+  <div class="question-stage">
+    <div class="meta-badges" id="meta-badges">
+      <span class="meta-badge is-lo" id="lo-badge">SECTOR I • LO 1</span>
+      <span class="meta-badge is-angle" id="angle-badge">PRESENTATION → DIAGNOSIS</span>
+      <span class="meta-badge is-phase" id="phase-badge">PHASE 1: PATHOGENESIS</span>
+      <span class="meta-badge is-corridor" id="corridor-badge">RUSTY SPUTUM CORRIDOR</span>
+    </div>
+    <div class="question-stem-box">
+      <p class="question-stem amboss-scan-target" id="q-stem-text">Initializing diagnostic corridor…</p>
+    </div>
+  </div>
+
+  <!-- BAND 3: 3D SYNTHWAVE VOID + 3 CENTERED ANSWER CARDS -->
+  <div class="viewport-band" id="viewport-band">
+    <canvas id="xr-canvas"></canvas>
+    <div class="lane-overlay-container" id="lane-overlay">
+      <div class="lane-card lane-0" id="lane-card-0" role="button" tabindex="0" onclick="selectLane(0)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLane(0);}">
+        <div class="lane-card-head"><span>LANE 1</span><span>[A / 1 / ←]</span></div>
+        <div class="lane-choice-body"><span id="lane-0-text" class="lane-card-text amboss-scan-target">Option A</span></div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+      <div class="lane-card lane-1" id="lane-card-1" role="button" tabindex="0" onclick="selectLane(1)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLane(1);}">
+        <div class="lane-card-head"><span>LANE 2</span><span>[W / 2 / ↑]</span></div>
+        <div class="lane-choice-body"><span id="lane-1-text" class="lane-card-text amboss-scan-target">Option B</span></div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+      <div class="lane-card lane-2" id="lane-card-2" role="button" tabindex="0" onclick="selectLane(2)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLane(2);}">
+        <div class="lane-card-head"><span>LANE 3</span><span>[D / 3 / →]</span></div>
+        <div class="lane-choice-body"><span id="lane-2-text" class="lane-card-text amboss-scan-target">Option C</span></div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+    </div>
+    <div class="vignette-overlay" id="vignette-overlay"></div>
+    <div class="heal-toast" id="heal-toast">✚ STREAK BONUS +25 HP</div>
+  </div>
+
+  <!-- BAND 4: BOTTOM HINTS BAR -->
+  <div id="hints-bar" aria-live="polite">
+    <div class="hints-inner">
+      <span class="hints-kicker">TACTICAL HINT [H]</span>
+      <p class="hints-text amboss-scan-target" id="q-clue-text">Hint text loads here.</p>
+    </div>
+  </div>
+</div>
+
+<!-- MENU DRAWER -->
+<div class="menu-backdrop" id="menu-backdrop" onclick="if(event.target===this) toggleMenuDrawer()">
+  <div id="top-menu-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+    <div class="drawer-header">
+      <div>
+        <p class="drawer-kicker">COMLEX-USA CP-9 &amp; USMLE STEP 1 • MICRO + PHARM + PATHOMA</p>
+        <h1 class="drawer-title" id="drawer-title">Respiratory Pharmacology, Bugs &amp; Viruses</h1>
+      </div>
+      <button type="button" class="btn-neon is-cyan" onclick="toggleMenuDrawer()">✕ Close [M]</button>
+    </div>
+
+    <p class="menu-section-title">Run &amp; Cockpit Controls</p>
+    <div class="menu-actions-grid">
+      <button type="button" class="btn-neon" id="menu-hints-btn" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+      <button type="button" class="btn-neon is-cyan" onclick="openCodexFromMenu()">📖 Loot Codex [C]</button>
+      <button type="button" class="btn-neon" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+      <button type="button" class="btn-neon" id="menu-timer-btn" onclick="toggleTimerEnabled()">⏱ 50s Timer: OFF [T]</button>
+      <button type="button" class="btn-neon is-warn" onclick="startTimedRun()">⚡ Start 50s Timed Run</button>
+      <button type="button" class="btn-neon" onclick="restartDeck(false)">↺ Restart Ordered</button>
+      <button type="button" class="btn-neon" onclick="restartDeck(true)">🔀 Shuffle Deck</button>
+      <button type="button" class="btn-neon is-danger" id="reset-mastery-btn" onclick="handleResetMastery(this)">🗑 Reset Mastery</button>
+    </div>
+
+    <p class="menu-section-title">Audio Suite (Procedural Synthwave &amp; Custom Track)</p>
+    <div class="menu-actions-grid">
+      <button type="button" class="btn-neon is-active" id="master-sound-btn" onclick="toggleMasterSound()">🔊 Master Sound: ON</button>
+      <button type="button" class="btn-neon is-active" id="sfx-btn" onclick="toggleSfx()">🎹 SFX: ON</button>
+      <button type="button" class="btn-neon" id="bgm-btn" onclick="toggleBgm()">🧟 Zombies BGM: OFF</button>
+      <div class="control-field">
+        <label for="bgm-volume-slider">BGM Volume</label>
+        <input type="range" id="bgm-volume-slider" min="0" max="100" value="35" oninput="setBgmVolume(this.value)">
+      </div>
+      <div class="control-field">
+        <label for="custom-audio-input">Custom MP3 / WAV Track</label>
+        <input type="file" id="custom-audio-input" accept="audio/*" onchange="loadCustomAudio(this)">
+      </div>
+    </div>
+
+    <p class="menu-section-title">Respiratory Skill Tree Filters &amp; Phase Mix (30% / 35% / 35%)</p>
+    <div class="menu-filters-grid">
+      <div class="control-field">
+        <label for="sector-filter">Sector / Missed Gates</label>
+        <select id="sector-filter" onchange="onFilterChange()">
+          <option value="all">All 5 Sectors (15 Entities)</option>
+          <option value="missed">🎯 Missed Gates Only</option>
+          <option value="sector_1">Sector I — Bacterial Pneumonias</option>
+          <option value="sector_2">Sector II — Opportunistic &amp; Nosocomial</option>
+          <option value="sector_3">Sector III — Mycobacteria &amp; Endemic Fungi</option>
+          <option value="sector_4">Sector IV — Respiratory Viruses</option>
+          <option value="sector_5">Sector V — Respiratory Pharmacology</option>
+        </select>
+      </div>
+      <div class="control-field">
+        <label for="compartment-filter">Zone / System Focus</label>
+        <select id="compartment-filter" onchange="onFilterChange()">
+          <option value="all">All Zones</option>
+          <option value="typical_atypical_pna">Typical &amp; Atypical Bacteria</option>
+          <option value="opportunistic_nosocomial">Nosocomial &amp; Opportunistic</option>
+          <option value="granulomatous_fungal">Granulomatous &amp; Endemic Fungi</option>
+          <option value="viral_airway">Viral Airway Pathogens</option>
+          <option value="pulm_pharmacology">Bronchodilators, ICS &amp; Biologics</option>
+        </select>
+      </div>
+      <div class="control-field">
+        <label for="age-filter">Patient Population</label>
+        <select id="age-filter" onchange="onFilterChange()">
+          <option value="all">All Populations</option>
+          <option value="pediatric">Pediatric / Young Adult</option>
+          <option value="adult_elderly">Adult / Elderly / COPD</option>
+          <option value="immunocompromised">Immunocompromised / CF / ICU</option>
+        </select>
+      </div>
+      <div class="control-field">
+        <label for="behavior-filter">Mechanism / Class</label>
+        <select id="behavior-filter" onchange="onFilterChange()">
+          <option value="all">All Mechanisms</option>
+          <option value="toxin_capsule">Capsules, Exotoxins &amp; Secretion</option>
+          <option value="intracellular_fungal">Intracellular &amp; Dimorphic Fungi</option>
+          <option value="viral_replication">Viral Entry, Fusion &amp; Drift</option>
+          <option value="receptor_pathway">GPCR, Nuclear &amp; Cytokine Pharm</option>
+        </select>
+      </div>
+      <div class="control-field">
+        <label for="angle-filter">Diagnostic Angle</label>
+        <select id="angle-filter" onchange="onFilterChange()">
+          <option value="all">All 3 Angles</option>
+          <option value="Presentation -> Diagnosis">Presentation → Diagnosis</option>
+          <option value="Mechanism -> Pathophysiology">Mechanism → Pathophysiology</option>
+          <option value="Hallmarks -> Management">Hallmarks → Management</option>
+        </select>
+      </div>
+      <div class="control-field">
+        <label for="timeout-mode-select">Time's Up Mode</label>
+        <select id="timeout-mode-select" onchange="onTimeoutModeChange(this.value)">
+          <option value="review">Wrong → Review Screen</option>
+          <option value="hold">Hold at 0s</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="phase-pills-row" role="group" aria-label="Phase Mix Filter">
+      <button type="button" class="btn-neon is-active" data-phase="all" onclick="setPhaseFilter('all')">All Phases (45)</button>
+      <button type="button" class="btn-neon" data-phase="Phase 1: Pathogenesis" onclick="setPhaseFilter('Phase 1: Pathogenesis')">Phase 1: Pathogenesis / Pharm (30%)</button>
+      <button type="button" class="btn-neon" data-phase="Phase 2: Histology / Structure" onclick="setPhaseFilter('Phase 2: Histology / Structure')">Phase 2: Micro / Hallmarks (35%)</button>
+      <button type="button" class="btn-neon" data-phase="Phase 3: Clinical & Management" onclick="setPhaseFilter('Phase 3: Clinical & Management')">Phase 3: Clinical &amp; Management (35%)</button>
+    </div>
+
+    <p class="menu-section-title">15-Entity Respiratory Skill Tree (Click to Filter Entity)</p>
+    <div class="skill-tree-grid" id="skill-tree-grid"></div>
+  </div>
+</div>
+
+<!-- 7-PART OUTCOME DOSSIER MODAL -->
+<div class="modal-backdrop" id="outcome-backdrop" role="dialog" aria-modal="true" aria-labelledby="outcome-verdict">
+  <div id="outcome-modal">
+    <div class="popup-header">
+      <h2 class="popup-verdict" id="outcome-verdict">✔ CORRECT — Streptococcus pneumoniae</h2>
+    </div>
+    <div class="outcome-meta-row">
+      <span id="outcome-entity-meta">Sector I • LO 1</span>
+      <span id="outcome-xp-delta">+100 XP</span>
+      <span id="outcome-hp-delta">HP 100</span>
+    </div>
+
+    <div class="dossier-grid">
+      <div class="dossier-card is-full is-pink">
+        <h3>2. Rationale &amp; Distractor Exclusion</h3>
+        <ul class="dossier-list amboss-scan-target" id="dossier-explanation"></ul>
+      </div>
+      <div class="dossier-card">
+        <h3>3. Second-Order Board Logic</h3>
+        <ul class="dossier-list amboss-scan-target" id="dossier-second-order"></ul>
+      </div>
+      <div class="dossier-card">
+        <h3>4. Phase 1: Pathogenesis &amp; Pharmacology</h3>
+        <ul class="dossier-list amboss-scan-target" id="dossier-phase1"></ul>
+      </div>
+      <div class="dossier-card is-yellow">
+        <h3>5. Phase 2: Micro, Histology &amp; Hallmarks</h3>
+        <ul class="dossier-list amboss-scan-target" id="dossier-phase2"></ul>
+      </div>
+      <div class="dossier-card is-pink">
+        <h3>6. Phase 3: Clinical, Management &amp; OMT Secret</h3>
+        <ul class="dossier-list amboss-scan-target" id="dossier-phase3"></ul>
+      </div>
+      <div class="dossier-card is-full">
+        <h3>7. 3-Angle Entity Synthesis</h3>
+        <div class="angle-cards-grid">
+          <div class="angle-mini-card">
+            <h4>Phase 1 • Initiation &amp; Pharm</h4>
+            <ul class="dossier-list amboss-scan-target" id="dossier-angle-1"></ul>
+          </div>
+          <div class="angle-mini-card">
+            <h4>Phase 2 • Micro &amp; Hallmarks</h4>
+            <ul class="dossier-list amboss-scan-target" id="dossier-angle-2"></ul>
+          </div>
+          <div class="angle-mini-card">
+            <h4>Phase 3 • Management &amp; Pearls</h4>
+            <ul class="dossier-list amboss-scan-target" id="dossier-angle-3"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:center;gap:0.75rem;flex-wrap:wrap;">
+      <button type="button" class="btn-neon is-cyan" onclick="closeOutcomeAndNext()">Next Diagnostic Gate [Space / Enter]</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6-COLUMN MASTER RAID LOOT CODEX MODAL -->
+<div class="modal-backdrop" id="codex-backdrop" role="dialog" aria-modal="true" aria-labelledby="codex-title">
+  <div id="codex-modal">
+    <div class="popup-header">
+      <h2 class="popup-verdict is-cyan" id="codex-title">Master Raid Loot Codex — 15 Respiratory Entities</h2>
+      <button type="button" class="btn-neon" onclick="closeCodex()">✕ Close [Esc]</button>
+    </div>
+    <div class="codex-controls">
+      <div class="control-field" style="flex:1 1 240px;">
+        <label for="codex-search-input">Search Organism, Drug, Receptor, or Hallmark</label>
+        <input type="text" id="codex-search-input" placeholder="e.g., optochin, montelukast, croup, cold agglutinins" oninput="renderCodexTable()">
+      </div>
+      <div class="phase-pills-row" id="codex-sector-pills">
+        <button type="button" class="btn-neon is-active" data-codex-sector="all" onclick="setCodexSector('all')">All (15)</button>
+        <button type="button" class="btn-neon" data-codex-sector="sector_1" onclick="setCodexSector('sector_1')">I • Bacteria</button>
+        <button type="button" class="btn-neon" data-codex-sector="sector_2" onclick="setCodexSector('sector_2')">II • Opportunistic</button>
+        <button type="button" class="btn-neon" data-codex-sector="sector_3" onclick="setCodexSector('sector_3')">III • TB &amp; Fungi</button>
+        <button type="button" class="btn-neon" data-codex-sector="sector_4" onclick="setCodexSector('sector_4')">IV • Viruses</button>
+        <button type="button" class="btn-neon" data-codex-sector="sector_5" onclick="setCodexSector('sector_5')">V • Pharm</button>
+      </div>
+    </div>
+    <div class="codex-table-wrap">
+      <table class="codex-table">
+        <thead>
+          <tr>
+            <th>LO / Entity</th>
+            <th>Etiology &amp; Risk</th>
+            <th>Phase 1: Pathogenesis / Pharm</th>
+            <th>Phase 2: Micro / Hallmarks</th>
+            <th>Phase 3: Clinical &amp; DDx</th>
+            <th>Management &amp; Guild Secret</th>
+          </tr>
+        </thead>
+        <tbody id="codex-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<api-shim></api-shim>
+<script>
+const GAME_CONFIG = {
+  metaFadeMs: 3000,
+  timerSeconds: 50,
+  streakHealEvery: 4,
+  streakHealAmount: 25
+};
+
+const LO_VISUAL_THEMES = {
+  1: { tag: `RUSTY SPUTUM CORRIDOR`, particleColor: `#ff6ea8`, gridRgb: `84, 72, 148`, railColor: `#34a88f` },
+  2: { tag: `COOLING TOWER MIST`, particleColor: `#4ce8d2`, gridRgb: `64, 98, 152`, railColor: `#34a88f` },
+  3: { tag: `WALKING PNEUMONIA GRID`, particleColor: `#ffe578`, gridRgb: `92, 86, 160`, railColor: `#34a88f` },
+  4: { tag: `BLUE-GREEN BIOFILM`, particleColor: `#00ffcc`, gridRgb: `52, 112, 146`, railColor: `#34a88f` },
+  5: { tag: `CURRANT JELLY VAULT`, particleColor: `#ff4c8d`, gridRgb: `104, 68, 138`, railColor: `#34a88f` },
+  6: { tag: `GROUND-GLASS ALVEOLI`, particleColor: `#b894ff`, gridRgb: `88, 76, 166`, railColor: `#34a88f` },
+  7: { tag: `GHON COMPLEX SECTOR`, particleColor: `#ff84b2`, gridRgb: `98, 72, 142`, railColor: `#34a88f` },
+  8: { tag: `MISSISSIPPI BAT CAVE`, particleColor: `#66e6d6`, gridRgb: `70, 96, 154`, railColor: `#34a88f` },
+  9: { tag: `DESERT SPHERULE RIFT`, particleColor: `#ffda66`, gridRgb: `106, 86, 136`, railColor: `#34a88f` },
+  10: { tag: `NEURAMINIDASE GATE`, particleColor: `#5ef2dc`, gridRgb: `66, 102, 162`, railColor: `#34a88f` },
+  11: { tag: `SYNCYTIAL BRONCHIOLE`, particleColor: `#ff68a0`, gridRgb: `94, 74, 152`, railColor: `#34a88f` },
+  12: { tag: `STEEPLE AIRWAY TUNNEL`, particleColor: `#ffe04a`, gridRgb: `84, 94, 158`, railColor: `#34a88f` },
+  13: { tag: `BETA-2 CAMP SURGE`, particleColor: `#00ffcc`, gridRgb: `60, 108, 156`, railColor: `#34a88f` },
+  14: { tag: `MAST CELL SHIELD BAY`, particleColor: `#c299ff`, gridRgb: `92, 78, 164`, railColor: `#34a88f` },
+  15: { tag: `LEUKOTRIENE INTERCEPT`, particleColor: `#ff2d78`, gridRgb: `102, 70, 148`, railColor: `#34a88f` }
+};
+
+const CODEX_DATA = [
+  {
+    lo: 1, sector: `sector_1`, tag: `sector_1`, compartment: `typical_atypical_pna`, ageGroup: `adult_elderly`, behavior: `toxin_capsule`,
+    entity: `Streptococcus pneumoniae`, badgeMeta: `CP 9.1 • Typical CAP`,
+    etiology: `Elderly, alcoholics, and sickle cell (functional asplenia); #1 cause of community-acquired pneumonia (CAP).`,
+    pathogenesis: `Polysaccharide capsule blocks C3b opsonization; IgA protease cleaves mucosal IgA; pneumolysin lyses epithelium.`,
+    hallmarks: `Lancet-shaped gram-positive diplococci, alpha-hemolytic, optochin-sensitive, bile-soluble, quellung+, rusty sputum, lobar consolidation.`,
+    clinical: `Sudden rigors, high fever, pleuritic chest pain, productive rusty sputum, egophony, dullness to percussion.`,
+    management: `Ceftriaxone + azithromycin (or respiratory fluoroquinolone); PCV13/15/20 & PPSV23 vaccines. Guild Secret: OMT T1-T6 sympathetic normalization + thoracic pump.`
+  },
+  {
+    lo: 2, sector: `sector_1`, tag: `sector_1`, compartment: `typical_atypical_pna`, ageGroup: `adult_elderly`, behavior: `intracellular_fungal`,
+    entity: `Legionella pneumophila`, badgeMeta: `CP 9.1 • Atypical CAP`,
+    etiology: `Aerosolized water systems (AC cooling towers, cruise ships, hot tubs) in smokers/elderly; no person-to-person spread.`,
+    pathogenesis: `Facultative intracellular survival inside alveolar macrophages by inhibiting phagolysosome fusion.`,
+    hallmarks: `Poor Gram stain (silver stain / buffered charcoal yeast extract [BCYE] agar with iron + cysteine), urinary antigen test, hyponatremia.`,
+    clinical: `Legionnaires disease: high fever (>40°C), relative bradycardia (Faget sign), watery diarrhea, confusion, lobar/patchy infiltrates.`,
+    management: `Azithromycin or respiratory fluoroquinolone (levofloxacin); macrolides inhibit 50S translocation. Guild Secret: Suspect Legionella whenever PNA + diarrhea + Na <130.`
+  },
+  {
+    lo: 3, sector: `sector_1`, tag: `sector_1`, compartment: `typical_atypical_pna`, ageGroup: `pediatric`, behavior: `toxin_capsule`,
+    entity: `Mycoplasma pneumoniae`, badgeMeta: `CP 9.1 • Walking PNA`,
+    etiology: `Young adults (<30 y), military barracks, college dorms; spreads via respiratory droplets.`,
+    pathogenesis: `No cell wall (sterol-containing membrane); P1 adhesin attaches to respiratory cilia causing ciliostasis and epithelial damage.`,
+    hallmarks: `Not visible on Gram stain; grows on Eaton agar ("fried-egg" colonies); high IgM cold agglutinins; CXR looks worse than patient.`,
+    clinical: `Insidious dry cough, low fever, pharyngitis, bullous myringitis, erythema multiforme, cold autoimmune hemolytic anemia.`,
+    management: `Macrolide (azithromycin) or doxycycline; beta-lactams are useless (no cell wall). Guild Secret: IgM cold agglutinins agglutinate RBCs at 4°C.`
+  },
+  {
+    lo: 4, sector: `sector_2`, tag: `sector_2`, compartment: `opportunistic_nosocomial`, ageGroup: `immunocompromised`, behavior: `toxin_capsule`,
+    entity: `Pseudomonas aeruginosa`, badgeMeta: `CP 9.3 • Nosocomial`,
+    etiology: `Ventilator-associated pneumonia, cystic fibrosis, neutropenia, burn units; thrives in aquatic environments.`,
+    pathogenesis: `Exotoxin A ADP-ribosylates EF-2 (halting protein synthesis); pyocyanin generates ROS; alginate mucoid biofilm in CF.`,
+    hallmarks: `Gram-negative rod, obligate aerobe, oxidase+, non-lactose fermenter, grape-like odor, blue-green pigment on agar.`,
+    clinical: `Severe necrotizing pneumonia, ecthyma gangrenosum in neutropenic sepsis, malignant otitis externa in elderly diabetics.`,
+    management: `Antipseudomonal beta-lactam (piperacillin-tazobactam, cefepime, ceftazidime, meropenem) +/- ciprofloxacin/tobramycin. Guild Secret: Ertapenem lacks Pseudomonas coverage.`
+  },
+  {
+    lo: 5, sector: `sector_2`, tag: `sector_2`, compartment: `opportunistic_nosocomial`, ageGroup: `adult_elderly`, behavior: `toxin_capsule`,
+    entity: `Klebsiella pneumoniae`, badgeMeta: `CP 9.1 • Aspiration`,
+    etiology: `Alcoholics and diabetics via aspiration of upper respiratory flora; also nosocomial ICU infections.`,
+    pathogenesis: `Massive mucoid polysaccharide capsule resists macrophage phagocytosis; produces pulmonary necrosis and abscess.`,
+    hallmarks: `Gram-negative rod, lactose fermenter (pink mucoid colonies on MacConkey), currant-jelly sputum, bulging fissure sign on CXR.`,
+    clinical: `Acute lobar pneumonia with thick bloody mucoid ("currant-jelly") sputum, cavitary lung abscess, high mortality.`,
+    management: `Third-gen cephalosporin (ceftriaxone) or fluoroquinolone; carbapenem if ESBL-producing. Guild Secret: Carbapenemases in Klebsiella confer resistance to imipenem/meropenem.`
+  },
+  {
+    lo: 6, sector: `sector_2`, tag: `sector_2`, compartment: `opportunistic_nosocomial`, ageGroup: `immunocompromised`, behavior: `intracellular_fungal`,
+    entity: `Pneumocystis jirovecii`, badgeMeta: `CP 9.3 • HIV Opportunist`,
+    etiology: `HIV/AIDS patients with CD4+ count <200 cells/mm3 or solid-organ transplant recipients.`,
+    pathogenesis: `Yeast-like fungus inhaled in childhood; reactivates during T-cell depletion, filling alveoli with foamy eosinophilic exudate.`,
+    hallmarks: `Disc/cup-shaped cysts on methenamine silver stain (BAL), bilateral diffuse ground-glass opacities on CXR/CT, elevated LDH, beta-D-glucan+.`,
+    clinical: `Subacute exertional dyspnea, dry cough, fever, profound hypoxemia with wide A-a gradient; pneumothorax complication.`,
+    management: `High-dose TMP-SMX (+ prednisone if PaO2 <70 or A-a >=35); prophylaxis with TMP-SMX when CD4 <200. Guild Secret: TMP-SMX inhibits sequential folate steps (DHPS + DHFR).`
+  },
+  {
+    lo: 7, sector: `sector_3`, tag: `sector_3`, compartment: `granulomatous_fungal`, ageGroup: `adult_elderly`, behavior: `intracellular_fungal`,
+    entity: `Mycobacterium tuberculosis`, badgeMeta: `CP 9.1 • Granulomatous`,
+    etiology: `Airborne droplets; high risk in crowded housing, healthcare workers, immigrants, HIV, and TNF-alpha inhibitor therapy.`,
+    pathogenesis: `Cord factor (trehalose dimycolate) induces granulomas; sulfatides inhibit phagolysosome fusion inside macrophages.`,
+    hallmarks: `Acid-fast bacilli (Ziehl-Neelsen/auramine), Lowenstein-Jensen agar, Ghon complex (primary), apical cavitary caseating granulomas (reactivation).`,
+    clinical: `Chronic cough, hemoptysis, night sweats, weight loss; Pott disease (vertebral osteomyelitis), miliary TB.`,
+    management: `RIPE (Rifampin, Isoniazid, Pyrazinamide, Ethambutol) 2 mo -> RI 4 mo; latent TB: 9 mo INH (+ pyridoxine B6). Guild Secret: Rifampin turns fluids orange-red and induces CYP450.`
+  },
+  {
+    lo: 8, sector: `sector_3`, tag: `sector_3`, compartment: `granulomatous_fungal`, ageGroup: `immunocompromised`, behavior: `intracellular_fungal`,
+    entity: `Histoplasma capsulatum`, badgeMeta: `CP 9.3 • Dimorphic Fungus`,
+    etiology: `Ohio & Mississippi River valleys; cave spelunkers or chicken coop cleaners exposed to bird/bat droppings.`,
+    pathogenesis: `Thermally dimorphic ("mold in the cold, yeast in the heat"); inhaled microconidia convert to intracellular yeast inside macrophages.`,
+    hallmarks: `Macrophages stuffed with small oval yeast (smaller than RBC) on silver/Giemsa stain; hilar lymphadenopathy + calcified granulomas (mimics TB).`,
+    clinical: `Asymptomatic/mild flu-like illness in immunocompetent; disseminated hepatosplenomegaly, pancytopenia, oral ulcers in HIV.`,
+    management: `Itraconazole for mild-moderate; amphotericin B for severe/disseminated disease. Guild Secret: "Histo hides" inside macrophages — only dimorphic fungus smaller than an RBC.`
+  },
+  {
+    lo: 9, sector: `sector_3`, tag: `sector_3`, compartment: `granulomatous_fungal`, ageGroup: `adult_elderly`, behavior: `intracellular_fungal`,
+    entity: `Coccidioides & Blastomyces`, badgeMeta: `CP 9.3 • Dimorphic Fungi`,
+    etiology: `Coccidioides: SW USA / San Joaquin Valley (dust storms/earthquakes). Blastomyces: Great Lakes / Ohio-Mississippi valleys (rotting wood).`,
+    pathogenesis: `Dimorphic inhalation: Coccidioides arthroconidia form large spherules filled with endospores; Blastomyces converts to broad-based budding yeast.`,
+    hallmarks: `Coccidioides: giant spherule (>RBC) packed with endospores. Blastomyces: broad-based budding yeast with thick refractile wall ("figure-8").`,
+    clinical: `Cocci: Valley fever (arthralgias, erythema nodosum, meningitis). Blasto: pneumonia + verrucous skin plaques + lytic bone lesions.`,
+    management: `Itraconazole/fluconazole for localized (fluconazole crosses BBB for Cocci meningitis); amphotericin B for severe disease. Guild Secret: Blasto is same size as RBC with broad-based bud.`
+  },
+  {
+    lo: 10, sector: `sector_4`, tag: `sector_4`, compartment: `viral_airway`, ageGroup: `all`, behavior: `viral_replication`,
+    entity: `Influenza A & B`, badgeMeta: `CP 9.1 • Orthomyxovirus`,
+    etiology: `Winter respiratory epidemics/pandemics; antigenic drift (point mutations -> epidemics) vs antigenic shift (reassortment of 8 ssRNA segments -> pandemics).`,
+    pathogenesis: `Enveloped negative-sense 8-segment ssRNA; hemagglutinin (HA) binds sialic acid for entry; neuraminidase (NA) cleaves sialic acid for progeny release.`,
+    hallmarks: `Rapid antigen/PCR swab; risk of fatal secondary bacterial superinfection (S. aureus, S. pneumoniae, H. influenzae) days after apparent recovery.`,
+    clinical: `Abrupt fever, myalgias, headache, nonproductive cough; worsening dyspnea/purulent sputum signals post-influenza S. aureus necrotizing pneumonia.`,
+    management: `Oseltamivir or zanamivir (NA inhibitors) within 48 hours; baloxavir (cap-dependent endonuclease inhibitor); annual vaccine. Guild Secret: Never give aspirin to kids (Reye syndrome).`
+  },
+  {
+    lo: 11, sector: `sector_4`, tag: `sector_4`, compartment: `viral_airway`, ageGroup: `pediatric`, behavior: `viral_replication`,
+    entity: `Respiratory Syncytial Virus`, badgeMeta: `CP 9.3 • Infant Bronchiolitis`,
+    etiology: `#1 cause of bronchiolitis and pneumonia in infants <1 year; winter/early spring outbreaks.`,
+    pathogenesis: `Enveloped negative-sense nonsegmented ssRNA paramyxovirus; F (fusion) surface protein fuses respiratory epithelial cells into multinucleated syncytia.`,
+    hallmarks: `Multinucleated giant cells (syncytia) on airway cytology; CXR shows hyperinflation, flattened diaphragms, and peribronchial cuffing.`,
+    clinical: `Infant with 2 days of rhinorrhea progressing to tachypnea, wheezing, crackles, nasal flaring, and intercostal retractions.`,
+    management: `Supportive care (O2, nasal suctioning, hydration); palivizumab (anti-F protein mAb) or nirsevimab prophylaxis for high-risk premature infants. Guild Secret: Ribavirin only rarely for severe immunocompromised.`
+  },
+  {
+    lo: 12, sector: `sector_4`, tag: `sector_4`, compartment: `viral_airway`, ageGroup: `pediatric`, behavior: `viral_replication`,
+    entity: `Parainfluenza & Croup`, badgeMeta: `CP 9.5 • Upper Airway`,
+    etiology: `Children aged 6 months to 3 years; autumn/early winter; Parainfluenza virus types 1 & 2.`,
+    pathogenesis: `Paramyxovirus (HN + F proteins) causes subglottic mucosal inflammation and edema at the cricoid ring (narrowest pediatric airway segment).`,
+    hallmarks: `Subglottic narrowing ("steeple sign") on AP neck radiograph; clinical diagnosis without routine imaging if classic.`,
+    clinical: `Prodromal URI -> seal-like barking cough, hoarseness, and inspiratory stridor worse at night.`,
+    management: `Single-dose oral dexamethasone for all severities + nebulized racemic epinephrine if stridor at rest. Guild Secret: Distinguish from H. influenzae epiglottitis (thumbprint sign, drooling, tripod).`
+  },
+  {
+    lo: 13, sector: `sector_5`, tag: `sector_5`, compartment: `pulm_pharmacology`, ageGroup: `adult_elderly`, behavior: `receptor_pathway`,
+    entity: `Bronchodilators (SABA/LABA/Theophylline)`, badgeMeta: `CP 9.3 • Autonomic Pharm`,
+    etiology: `Acute asthma/COPD bronchospasm (SABA), maintenance control (LABA + ICS), or refractory COPD/asthma (theophylline, LAMA).`,
+    pathogenesis: `Albuterol/salmeterol activate Gs-coupled beta-2 receptors -> ↑cAMP -> MLCK inhibition -> bronchodilation. Theophylline inhibits PDE (↑cAMP) and blocks adenosine receptors.`,
+    hallmarks: `Reversibility on spirometry (>=12% and >=200 mL FEV1 rise post-albuterol); SABA causes tremor, hypokalemia (Na+/K+ ATPase), tachycardia.`,
+    clinical: `Albuterol = acute rescue; Salmeterol/formoterol = long-acting controller (never monotherapy in asthma); Tiotropium = M3 antagonist in COPD.`,
+    management: `Theophylline has narrow therapeutic index (arrhythmias, seizures, GI upset); CYP450 inhibitors (ciprofloxacin, macrolides) spike toxicity. Guild Secret: Adenosine reversal by theophylline triggers neuro/cardiac toxicity.`
+  },
+  {
+    lo: 14, sector: `sector_5`, tag: `sector_5`, compartment: `pulm_pharmacology`, ageGroup: `all`, behavior: `receptor_pathway`,
+    entity: `Inhaled Corticosteroids & Cromolyn`, badgeMeta: `CP 9.1 • Anti-Inflammatory`,
+    etiology: `Persistent asthma controller therapy (ICS: fluticasone, budesonide) and exercise/allergy prophylaxis (cromolyn).`,
+    pathogenesis: `ICS bind cytosolic glucocorticoid receptors -> translocate to nucleus -> inhibit NF-kappaB & PLA2 -> ↓cytokines, ↓eosinophils, ↑beta-2 receptor synthesis. Cromolyn stabilizes mast cell Ca2+ influx.`,
+    hallmarks: `ICS reduces bronchial hyperresponsiveness and FeNO; oral candidiasis (thrush) and dysphonia from local mucosal immunosuppression.`,
+    clinical: `First-line daily controller for persistent asthma; budesonide-formoterol MART therapy reduces exacerbations.`,
+    management: `Rinse mouth + use spacer after ICS to prevent Candida thrush; cromolyn is prophylactic only (useless in acute attack). Guild Secret: OMT OA/AA release balances parasympathetic bronchoconstriction.`
+  },
+  {
+    lo: 15, sector: `sector_5`, tag: `sector_5`, compartment: `pulm_pharmacology`, ageGroup: `pediatric`, behavior: `receptor_pathway`,
+    entity: `Leukotriene Modifiers & Biologics`, badgeMeta: `CP 9.3 • Targeted Pharm`,
+    etiology: `Aspirin-exacerbated respiratory disease (AERD/Samter triad), exercise-induced asthma, allergic IgE asthma, severe eosinophilic asthma.`,
+    pathogenesis: `Zileuton inhibits 5-lipoxygenase (blocks LTB4 + CysLTs). Montelukast/zafirlukast block CysLT1 receptor. Omalizumab binds free IgE. Mepolizumab/reslizumab block IL-5 (benralizumab blocks IL-5R).`,
+    hallmarks: `Montelukast: neuropsychiatric warning (mood/suicidal ideation). Zileuton: hepatotoxicity (monitor LFTs). Omalizumab: elevated total serum IgE (30-700 IU/mL).`,
+    clinical: `Samter triad (asthma + nasal polyps + aspirin sensitivity via COX inhibition shunting arachidonate to 5-LOX); severe steroid-refractory eosinophilic asthma.`,
+    management: `Montelukast oral daily for AERD/pediatric asthma; zileuton requires LFT monitoring; biologics reserved for severe refractory phenotypes. Guild Secret: Blocking COX in AERD floods 5-LOX -> massive LTC4/D4/E4 bronchospasm.`
+  }
+];
+
+const ALL_QUESTIONS = [
+  // LO 1: Streptococcus pneumoniae
+  {
+    id: `RS01-Q1`, lo: 1, sector: `sector_1`, compartment: `typical_atypical_pna`, ageGroup: `adult_elderly`, behavior: `toxin_capsule`,
+    loTitle: `Sector I • Streptococcus pneumoniae`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Streptococcus pneumoniae`,
+    stem: `A 68-year-old man with alcohol use disorder develops sudden rigors, fever to 39.4°C, right pleuritic chest pain, and rust-colored sputum. Examination shows bronchial breath sounds, egophony, and dullness over the right lower lung field. Which pathogen is most likely responsible?`,
+    clue: `Rust-colored sputum plus lobar consolidation findings in an older alcoholic patient point to the #1 cause of typical CAP.`,
+    choices: [`Streptococcus pneumoniae`, `Mycoplasma pneumoniae`, `Klebsiella pneumoniae`],
+    correctIndex: 0,
+    explanation: `Correct: Sudden onset rigors, pleuritic pain, rusty sputum, and lobar consolidation with egophony are classic for Streptococcus pneumoniae CAP. Distractor exclusion: Mycoplasma causes insidious atypical walking pneumonia without lobar consolidation; Klebsiella produces thick mucoid currant-jelly sputum with cavitary necrosis.`,
+    secondOrderClue: `Rigors + rusty sputum + egophony -> lobar pneumonia -> S. pneumoniae.`,
+    phase1Pearl: `Polysaccharide capsule is the primary virulence factor preventing C3b opsonization.`,
+    phase2Hallmark: `Lancet-shaped gram-positive diplococci; alpha-hemolytic, optochin-sensitive, bile-soluble.`,
+    phase3Secret: `Empiric inpatient CAP: ceftriaxone + azithromycin (or levofloxacin); OMT T1-T6 sympathetic normalization.`,
+    dossierBullets: {
+      p1: [`Polysaccharide capsule blocks phagocytosis`, `IgA protease cleaves mucosal IgA`],
+      p2: [`Optochin-sensitive, bile-soluble diplococci`, `Rusty sputum with lobar consolidation`],
+      p3: [`PCV/PPSV vaccination prevents invasive disease`, `High risk in functional/anatomic asplenia`]
+    }
+  },
+  {
+    id: `RS01-Q2`, lo: 1, sector: `sector_1`, compartment: `typical_atypical_pna`, ageGroup: `immunocompromised`, behavior: `toxin_capsule`,
+    loTitle: `Sector I • Streptococcus pneumoniae`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Polysaccharide capsule loss`,
+    stem: `A 14-year-old boy with sickle cell disease is hospitalized for severe bacteremic pneumonia. His splenic autosplenectomy impairs clearance of the causative encapsulated organism. Which bacterial structure directly prevents C3b-mediated opsonization and splenic macrophage phagocytosis?`,
+    clue: `Sickle cell patients lose splenic clearance of encapsulated bacteria because this outer layer blocks C3b binding.`,
+    choices: [`Polysaccharide capsule`, `Peptidoglycan teichoic acid`, `Cell-wall mycolic acids`],
+    correctIndex: 0,
+    explanation: `Correct: The polysaccharide capsule of S. pneumoniae sterically shields cell-wall C3b from macrophage complement receptors, making opsonization and splenic clearance critical. Distractor exclusion: Teichoic acid triggers inflammation but does not block opsonization; mycolic acids belong to Mycobacterium tuberculosis.`,
+    secondOrderClue: `Sickle cell asplenia -> impaired IgM/complement opsonization -> encapsulated S. pneumoniae.`,
+    phase1Pearl: `Unencapsulated strains are non-virulent; positive quellung reaction reflects capsular swelling.`,
+    phase2Hallmark: `Howell-Jolly bodies on peripheral smear signal functional asplenia.`,
+    phase3Secret: `Vaccinate asplenic patients against SHiN (S. pneumoniae, H. influenzae type B, N. meningitidis).`,
+    dossierBullets: {
+      p1: [`Capsule prevents C3b opsonization`, `Pneumolysin forms pores in host cells`],
+      p2: [`Quellung reaction swells capsule with antisera`, `Alpha-hemolytic green zone on blood agar`],
+      p3: [`Prophylactic penicillin in young sickle cell kids`, `OMT rib raising eases thoracic sympathetic tone`]
+    }
+  },
+  {
+    id: `RS01-Q3`, lo: 1, sector: `sector_1`, compartment: `typical_atypical_pna`, ageGroup: `adult_elderly`, behavior: `toxin_capsule`,
+    loTitle: `Sector I • Streptococcus pneumoniae`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Optochin-sensitive diplococci`,
+    stem: `Sputum culture from an outpatient with lobar pneumonia yields alpha-hemolytic colonies on blood agar. Laboratory testing shows growth inhibition around an optochin disc and complete lysis upon bile salt addition. Which organism profile matches these microbiological hallmarks?`,
+    clue: `Think of the classic Sketchy Micro mnemonic: "Optochin" = "O" for Pneumococcus, and bile-soluble.`,
+    choices: [`Streptococcus pneumoniae`, `Viridans streptococci`, `Enterococcus faecalis`],
+    correctIndex: 0,
+    explanation: `Correct: S. pneumoniae is alpha-hemolytic, optochin-sensitive, and bile-soluble. Distractor exclusion: Viridans streptococci are alpha-hemolytic but optochin-resistant and bile-insoluble; Enterococcus is gamma-hemolytic and grows in 6.5% NaCl and bile.`,
+    secondOrderClue: `Alpha-hemolysis + optochin sensitivity + bile solubility -> S. pneumoniae (vs. viridans).`,
+    phase1Pearl: `PBP mutations (not beta-lactamase) confer penicillin resistance in S. pneumoniae.`,
+    phase2Hallmark: `Lancet-shaped gram+ diplococci with neutrophil-rich alveolar exudate (red/gray hepatization).`,
+    phase3Secret: `If macrolide-resistant (>25%), treat outpatient CAP with amoxicillin-clavulanate + doxycycline or respiratory FQ.`,
+    dossierBullets: {
+      p1: [`Altered PBP lowers beta-lactam affinity`, `Autolysin mediates bile solubility`],
+      p2: [`Optochin-sensitive and bile-soluble`, `Gray hepatization: fibrinopurulent exudate`],
+      p3: [`Ceftriaxone + vancomycin for pneumococcal meningitis`, `Thoracic inlet release before lymphatic pump`]
+    }
+  },
+
+  // LO 2: Legionella pneumophila
+  {
+    id: `RS02-Q1`, lo: 2, sector: `sector_1`, compartment: `typical_atypical_pna`, ageGroup: `adult_elderly`, behavior: `intracellular_fungal`,
+    loTitle: `Sector I • Legionella pneumophila`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Legionella pneumophila`,
+    stem: `A 63-year-old male smoker returns from a convention hotel with fever to 40.2°C, pulse 78/min, watery diarrhea, confusion, and a patchy right lower lobe infiltrate. Serum sodium is 128 mEq/L. Which pathogen best explains this multisystem pneumonia?`,
+    clue: `Pneumonia + GI diarrhea + CNS confusion + hyponatremia + relative bradycardia = aerosolized water bug.`,
+    choices: [`Legionella pneumophila`, `Mycoplasma pneumoniae`, `Streptococcus pneumoniae`],
+    correctIndex: 0,
+    explanation: `Correct: Legionella pneumophila causes atypical pneumonia with extrapulmonary GI (watery diarrhea), CNS (confusion), hyponatremia, and relative bradycardia (Faget sign) after hotel/cooling-tower exposure. Distractor exclusion: Mycoplasma lacks severe hyponatremia and watery diarrhea; S. pneumoniae causes productive rusty sputum without Faget sign.`,
+    secondOrderClue: `Hotel AC + pneumonia + diarrhea + Na <130 + relative bradycardia -> Legionella.`,
+    phase1Pearl: `Aerosolized from warm water reservoirs; no person-to-person transmission.`,
+    phase2Hallmark: `Urinary antigen test detects serogroup 1 rapidly; requires silver stain on tissue.`,
+    phase3Secret: `Treat with azithromycin or levofloxacin; beta-lactams fail due to intracellular niche.`,
+    dossierBullets: {
+      p1: [`Thrives in cooling towers and hot tubs`, `Infects alveolar macrophages`],
+      p2: [`Hyponatremia and relative bradycardia`, `Patchy unilateral or multilobar infiltrate`],
+      p3: [`Azithromycin or respiratory fluoroquinolone`, `No respiratory isolation needed`]
+    }
+  },
+  {
+    id: `RS02-Q2`, lo: 2, sector: `sector_1`, compartment: `typical_atypical_pna`, ageGroup: `adult_elderly`, behavior: `intracellular_fungal`,
+    loTitle: `Sector I • Legionella pneumophila`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Phagolysosome fusion blockade`,
+    stem: `A respiratory therapist develops mild Pontiac fever after cleaning a contaminated hospital humidifier, whereas an immunocompromised coworker develops severe Legionnaires pneumonia. By what intracellular mechanism does this gram-negative rod survive inside alveolar macrophages?`,
+    clue: `Like M. tuberculosis, this water-dwelling pathogen prevents the phagosome from acidifying and fusing.`,
+    choices: [`Inhibition of phagolysosome fusion`, `Cleavage of secretory IgA`, `Ribosylation of Gi protein`],
+    correctIndex: 0,
+    explanation: `Correct: Legionella pneumophila survives and replicates within alveolar macrophages by using a type IV secretion system to block phagosome-lysosome fusion. Distractor exclusion: IgA protease is classic for S. pneumoniae/H. influenzae/Neisseria; Gi ADP-ribosylation is caused by Bordetella pertussis toxin.`,
+    secondOrderClue: `Intracellular macrophage survival -> requires cell-penetrating macrolide or fluoroquinolone.`,
+    phase1Pearl: `Type IV secretion system (Dot/Icm) remodels the phagosome to evade lysosomal destruction.`,
+    phase2Hallmark: `Gram stain shows abundant neutrophils with poorly visible thin gram-negative rods.`,
+    phase3Secret: `Macrolides (50S) and fluoroquinolones (DNA gyrase) achieve high intracellular macrophage levels.`,
+    dossierBullets: {
+      p1: [`Blocks phagolysosome fusion in macrophages`, `Requires intracellular-active antibiotics`],
+      p2: [`Poorly stains on routine Gram stain`, `Silver stain reveals intracellular bacilli`],
+      p3: [`Pontiac fever is self-limited without PNA`, `Check urinary antigen for rapid confirmation`]
+    }
+  },
+  {
+    id: `RS02-Q3`, lo: 2, sector: `sector_1`, compartment: `typical_atypical_pna`, ageGroup: `adult_elderly`, behavior: `intracellular_fungal`,
+    loTitle: `Sector I • Legionella pneumophila`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `BCYE agar with iron & cysteine`,
+    stem: `Bronchoalveolar lavage fluid from a patient with severe pneumonia, diarrhea, and hyponatremia shows numerous PMNs but no organisms on standard Gram stain or routine blood agar. Which specialized culture medium is required to isolate this fastidious pathogen?`,
+    clue: `Remember the "BCYE" charcoal grill from Sketchy Micro supplemented with iron and cysteine.`,
+    choices: [`Buffered charcoal yeast extract agar`, `Thayer-Martin chocolate agar`, `Sabouraud dextrose agar`],
+    correctIndex: 0,
+    explanation: `Correct: Legionella pneumophila requires buffered charcoal yeast extract (BCYE) agar supplemented with L-cysteine and iron salts for growth. Distractor exclusion: Thayer-Martin isolates Neisseria; Sabouraud agar isolates fungi.`,
+    secondOrderClue: `PMNs + negative Gram stain + water exposure -> BCYE agar (iron + cysteine).`,
+    phase1Pearl: `Charcoal detoxifies fatty acids in the agar while iron and cysteine supply essential growth factors.`,
+    phase2Hallmark: `Silver stain (Dieterle/Warthin-Starry) + BCYE agar + urine antigen assay.`,
+    phase3Secret: `Azithromycin inhibits 50S ribosomal translocation; watch for QT prolongation on ECG.`,
+    dossierBullets: {
+      p1: [`Requires L-cysteine and iron to grow`, `Charcoal scavenges toxic free radicals`],
+      p2: [`BCYE agar is diagnostic culture standard`, `Urinary antigen detects L. pneumophila type 1`],
+      p3: [`Azithromycin or levofloxacin first-line`, `T1-T4 viscerosomatic Chapman points in 2nd-4th ICS`]
+    }
+  },
+
+  // LO 3: Mycoplasma pneumoniae
+  {
+    id: `RS03-Q1`, lo: 3, sector: `sector_1`, compartment: `typical_atypical_pna`, ageGroup: `pediatric`, behavior: `toxin_capsule`,
+    loTitle: `Sector I • Mycoplasma pneumoniae`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Mycoplasma pneumoniae`,
+    stem: `A 20-year-old college sophomore living in a dormitory develops 10 days of headache, sore throat, low-grade fever, and a hacking nonproductive cough. Chest radiograph shows diffuse bilateral interstitial infiltrates despite minimal auscultatory rales. Which pathogen is most likely?`,
+    clue: `Dormitory/military recruit + dry cough + "CXR looks worse than the patient" = walking pneumonia.`,
+    choices: [`Mycoplasma pneumoniae`, `Streptococcus pneumoniae`, `Pseudomonas aeruginosa`],
+    correctIndex: 0,
+    explanation: `Correct: Mycoplasma pneumoniae causes atypical "walking pneumonia" in young adults (<30 y) in crowded settings, with bilateral interstitial infiltrates out of proportion to mild physical findings. Distractor exclusion: S. pneumoniae causes abrupt lobar consolidation; Pseudomonas causes severe necrotizing nosocomial or CF pneumonia.`,
+    secondOrderClue: `Young adult + dry cough + diffuse interstitial CXR > exam findings -> Mycoplasma.`,
+    phase1Pearl: `Lacks a peptidoglycan cell wall; plasma membrane contains sterols (cholesterol) for rigidity.`,
+    phase2Hallmark: `Diffuse reticular/interstitial infiltrates; bullous myringitis (tympanic vesicles) may appear.`,
+    phase3Secret: `Macrolide (azithromycin) or doxycycline; beta-lactams are completely ineffective.`,
+    dossierBullets: {
+      p1: [`No peptidoglycan cell wall; sterol membrane`, `P1 adhesin binds ciliated epithelium`],
+      p2: [`CXR appears worse than clinical exam`, `Fried-egg colonies on Eaton agar`],
+      p3: [`Treat with azithromycin or doxycycline`, `Can trigger erythema multiforme / SJS`]
+    }
+  },
+  {
+    id: `RS03-Q2`, lo: 3, sector: `sector_1`, compartment: `typical_atypical_pna`, ageGroup: `pediatric`, behavior: `toxin_capsule`,
+    loTitle: `Sector I • Mycoplasma pneumoniae`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Lack of peptidoglycan cell wall`,
+    stem: `A 22-year-old military recruit with insidious nonproductive cough and bilateral interstitial infiltrates shows no clinical improvement after 5 days of oral amoxicillin. Which structural property of the causative organism explains intrinsic resistance to all beta-lactam antibiotics?`,
+    clue: `Beta-lactams target PBPs that cross-link peptidoglycan — what if the bug has no coat?`,
+    choices: [`Absence of peptidoglycan cell wall`, `Production of extended-spectrum beta-lactamase`, `Mutation of D-Ala-D-Ala to D-Ala-D-Lac`],
+    correctIndex: 0,
+    explanation: `Correct: Mycoplasma pneumoniae lacks a cell wall entirely, rendering penicillins, cephalosporins, and vancomycin ineffective because there is no peptidoglycan synthesis to inhibit. Distractor exclusion: ESBL degrades beta-lactams in Enterobacterales like Klebsiella; D-Ala-D-Lac mediates vancomycin resistance in VRE.`,
+    secondOrderClue: `Failed amoxicillin in walking PNA -> no cell wall -> switch to 50S macrolide or 30S tetracycline.`,
+    phase1Pearl: `Sterols acquired from host stabilize the trilaminar plasma membrane in place of a cell wall.`,
+    phase2Hallmark: `Invisible on Gram stain; requires Eaton agar with cholesterol/serum.`,
+    phase3Secret: `Azithromycin inhibits 50S translocation; avoid tetracyclines in children <8 y or pregnancy.`,
+    dossierBullets: {
+      p1: [`Intrinsic beta-lactam resistance (no PBPs)`, `Ciliostasis causes persistent dry cough`],
+      p2: [`Pleomorphic organism unseen on Gram stain`, `Grows slowly on Eaton agar`],
+      p3: [`Macrolides or respiratory FQs are active`, `Monitor for Stevens-Johnson syndrome`]
+    }
+  },
+  {
+    id: `RS03-Q3`, lo: 3, sector: `sector_1`, compartment: `typical_atypical_pna`, ageGroup: `pediatric`, behavior: `toxin_capsule`,
+    loTitle: `Sector I • Mycoplasma pneumoniae`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `IgM cold agglutinins`,
+    stem: `A 19-year-old woman recovering from atypical pneumonia develops painful acrocyanosis of her fingers in cold weather and mild anemia with hemoglobin 9.6 g/dL, elevated indirect bilirubin, and reticulocytosis. Which autoantibody mediates this complication?`,
+    clue: `"Mycoplasma gets cold without a coat" — think of the pentameric antibody active at 4°C.`,
+    choices: [`IgM cold agglutinins against I antigen`, `IgG warm autoantibodies against Rh`, `IgE antibodies against mast cells`],
+    correctIndex: 0,
+    explanation: `Correct: Mycoplasma pneumoniae induces polyclonal IgM cold agglutinins targeting erythrocyte I antigen, causing complement-mediated hemolysis and cold-induced agglutination. Distractor exclusion: Warm autoimmune hemolytic anemia is IgG-mediated (e.g., SLE, CLL); IgE mediates type I hypersensitivity.`,
+    secondOrderClue: `Walking PNA + cold-induced hemolysis/acrocyanosis -> IgM cold agglutinin titer.`,
+    phase1Pearl: `IgM fixes complement on RBCs in cool peripheral capillaries, causing intravascular/extravascular hemolysis.`,
+    phase2Hallmark: `RBC clumping on blood smear at room temperature that reverses upon warming to 37°C.`,
+    phase3Secret: `Keep patient warm + treat underlying Mycoplasma with azithromycin.`,
+    dossierBullets: {
+      p1: [`Cross-reactive IgM targets RBC I antigen`, `Fixes complement at low temperatures`],
+      p2: [`Positive direct Coombs for C3d`, `Clumped RBCs resolve on warming`],
+      p3: [`Treat with azithromycin + thermal warming`, `Avoid cold transfusions`]
+    }
+  },
+
+  // LO 4: Pseudomonas aeruginosa
+  {
+    id: `RS04-Q1`, lo: 4, sector: `sector_2`, compartment: `opportunistic_nosocomial`, ageGroup: `immunocompromised`, behavior: `toxin_capsule`,
+    loTitle: `Sector II • Pseudomonas aeruginosa`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Pseudomonas aeruginosa`,
+    stem: `An ICU patient on mechanical ventilation for 8 days develops fever, purulent green sputum, and new necrotic skin ulcers with black eschar (ecthyma gangrenosum) on the thigh. Blood cultures grow a non-lactose-fermenting, oxidase-positive gram-negative rod. Which organism is responsible?`,
+    clue: `VAP + black necrotic skin ulcers (ecthyma gangrenosum) + oxidase-positive non-lactose fermenter.`,
+    choices: [`Pseudomonas aeruginosa`, `Klebsiella pneumoniae`, `Streptococcus pneumoniae`],
+    correctIndex: 0,
+    explanation: `Correct: Pseudomonas aeruginosa causes ventilator-associated pneumonia and perivascular bacterial invasion leading to ecthyma gangrenosum; it is an obligate aerobic, oxidase-positive, non-lactose-fermenting gram-negative rod. Distractor exclusion: Klebsiella is a lactose fermenter; S. pneumoniae is gram-positive.`,
+    secondOrderClue: `ICU VAP + ecthyma gangrenosum + oxidase(+) GNR -> Pseudomonas aeruginosa.`,
+    phase1Pearl: `Exotoxin A inactivates elongation factor-2 (EF-2) via ADP-ribosylation, halting host protein synthesis.`,
+    phase2Hallmark: `Blue-green pyocyanin/pyoverdine pigment and sweet grape-like odor on agar.`,
+    phase3Secret: `Treat empirically with piperacillin-tazobactam, cefepime, ceftazidime, or meropenem.`,
+    dossierBullets: {
+      p1: [`Exotoxin A inhibits EF-2 (like diphtheria)`, `Pyocyanin generates reactive oxygen species`],
+      p2: [`Oxidase-positive, obligate aerobe GNR`, `Ecthyma gangrenosum: necrotic black ulcers`],
+      p3: [`Cefepime, piperacillin-tazobactam, or meropenem`, `Dual coverage in septic shock / severe VAP`]
+    }
+  },
+  {
+    id: `RS04-Q2`, lo: 4, sector: `sector_2`, compartment: `opportunistic_nosocomial`, ageGroup: `immunocompromised`, behavior: `toxin_capsule`,
+    loTitle: `Sector II • Pseudomonas aeruginosa`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `EF-2 ADP-ribosylation`,
+    stem: `A 16-year-old girl with cystic fibrosis has chronic pulmonary colonization by mucoid Pseudomonas aeruginosa producing thick alginate biofilm. Which molecular target in host airway cells is inactivated by Pseudomonal exotoxin A?`,
+    clue: `Shared molecular target with Corynebacterium diphtheriae exotoxin — halts peptide chain elongation.`,
+    choices: [`Elongation factor-2 (EF-2)`, `60S ribosomal subunit RNA`, `Gs alpha subunit`],
+    correctIndex: 0,
+    explanation: `Correct: Pseudomonas exotoxin A ADP-ribosylates eukaryotic elongation factor-2 (EF-2), inhibiting protein synthesis and inducing host cell death. Distractor exclusion: 60S rRNA depurination is caused by Shiga toxin; Gs activation is caused by cholera toxin.`,
+    secondOrderClue: `CF mucoid biofilm + exotoxin A -> EF-2 inactivation (identical to diphtheria toxin).`,
+    phase1Pearl: `Alginate exopolysaccharide forms mucoid biofilms in CF airways, shielding bacteria from antibiotics and neutrophils.`,
+    phase2Hallmark: `Mucoid colonies on culture; bronchiectasis with tram-track markings on CT.`,
+    phase3Secret: `Inhaled tobramycin (30S aminoglycoside) suppresses chronic CF Pseudomonas colonization.`,
+    dossierBullets: {
+      p1: [`Exotoxin A ADP-ribosylates host EF-2`, `Alginate capsule creates thick CF biofilm`],
+      p2: [`Mucoid phenotype correlates with CF decline`, `Non-lactose fermenter (clear on MacConkey)`],
+      p3: [`Inhaled tobramycin or aztreonam in CF`, `Lymphatic pump aids mucus clearance in CF`]
+    }
+  },
+  {
+    id: `RS04-Q3`, lo: 4, sector: `sector_2`, compartment: `opportunistic_nosocomial`, ageGroup: `immunocompromised`, behavior: `toxin_capsule`,
+    loTitle: `Sector II • Pseudomonas aeruginosa`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Piperacillin-tazobactam or cefepime`,
+    stem: `A neutropenic patient with acute myeloid leukemia develops hospital-acquired pneumonia due to Pseudomonas aeruginosa. The team considers ertapenem monotherapy versus an alternative beta-lactam. Which antibiotic provides reliable antipseudomonal coverage?`,
+    clue: `Remember Sketchy Pharm: Ertapenem lacks Pseudomonas coverage, whereas 4th-gen cephalosporins and ureidopenicillins hit it.`,
+    choices: [`Cefepime`, `Ertapenem`, `Ceftriaxone`],
+    correctIndex: 0,
+    explanation: `Correct: Cefepime (4th-generation cephalosporin) covers Pseudomonas aeruginosa reliably alongside piperacillin-tazobactam, ceftazidime, meropenem, imipenem, aztreonam, and ciprofloxacin. Distractor exclusion: Ertapenem uniquely lacks Pseudomonas coverage among carbapenems; ceftriaxone (3rd-gen) does not cover Pseudomonas (ceftazidime does).`,
+    secondOrderClue: `4th-gen cephalosporin ("4th General Prime") = Cefepime -> broad-spectrum + Pseudomonas.`,
+    phase1Pearl: `Beta-lactams bind PBPs to block peptidoglycan cross-linking; Pseudomonas often expresses inducible AmpC beta-lactamase.`,
+    phase2Hallmark: `Blue-green wound/sputum exudate fluorescing under Wood lamp (pyoverdine).`,
+    phase3Secret: `Ciprofloxacin is the only oral agent reliably active against Pseudomonas.`,
+    dossierBullets: {
+      p1: [`PBP inhibition blocks cell-wall cross-linking`, `Porin loss + efflux pumps drive resistance`],
+      p2: [`Pyoverdine fluoresces green under UV light`, `Gram-negative rod, oxidase positive`],
+      p3: [`Use cefepime, ceftazidime, or pip-tazo`, `Avoid ertapenem and ceftriaxone for Pseudomonas`]
+    }
+  },
+
+  // LO 5: Klebsiella pneumoniae
+  {
+    id: `RS05-Q1`, lo: 5, sector: `sector_2`, compartment: `opportunistic_nosocomial`, ageGroup: `adult_elderly`, behavior: `toxin_capsule`,
+    loTitle: `Sector II • Klebsiella pneumoniae`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Klebsiella pneumoniae`,
+    stem: `A 58-year-old man with chronic alcohol use disorder is admitted after an unwitnessed aspiration episode with high fever, rigors, and thick, gelatinous, blood-tinged "currant-jelly" sputum. Chest radiograph shows right upper lobe consolidation with a downward-bowing horizontal fissure. Which pathogen is most likely?`,
+    clue: `Alcoholic aspiration + currant-jelly sputum + bulging fissure sign on CXR.`,
+    choices: [`Klebsiella pneumoniae`, `Streptococcus pneumoniae`, `Legionella pneumophila`],
+    correctIndex: 0,
+    explanation: `Correct: Klebsiella pneumoniae classically causes aspiration pneumonia in alcoholics/diabetics with thick mucoid currant-jelly sputum and heavy lobar edema causing a bulging interlobar fissure. Distractor exclusion: S. pneumoniae causes rusty (not gelatinous currant-jelly) sputum; Legionella causes patchy infiltrates with diarrhea and hyponatremia.`,
+    secondOrderClue: `Alcoholic aspiration + currant-jelly sputum + bulging fissure -> Klebsiella.`,
+    phase1Pearl: `Massive polysaccharide capsule prevents C3b opsonization and macrophage engulfment.`,
+    phase2Hallmark: `Large pink mucoid colonies on MacConkey agar (lactose fermenter); non-motile.`,
+    phase3Secret: `Treat with ceftriaxone or fluoroquinolone; drain abscess if necrotizing cavitation forms.`,
+    dossierBullets: {
+      p1: [`Thick mucoid polysaccharide capsule`, `Causes severe suppurative lobar necrosis`],
+      p2: [`Currant-jelly sputum and bulging fissure sign`, `Lactose-fermenting pink mucoid colonies`],
+      p3: [`High risk in alcoholics, diabetics, aspiration`, `3rd-gen cephalosporin or carbapenem if ESBL`]
+    }
+  },
+  {
+    id: `RS05-Q2`, lo: 5, sector: `sector_2`, compartment: `opportunistic_nosocomial`, ageGroup: `adult_elderly`, behavior: `toxin_capsule`,
+    loTitle: `Sector II • Klebsiella pneumoniae`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `KPC carbapenemase enzyme`,
+    stem: `An ICU patient with ventilator-associated Klebsiella pneumoniae pneumonia fails piperacillin-tazobactam and subsequently fails meropenem therapy. Susceptibility testing reveals plasmid-mediated hydrolysis of nearly all beta-lactam rings. Which resistance mechanism is present?`,
+    clue: `First Aid 2025 specifically highlights this organism as a classic producer of carbapenemases.`,
+    choices: [`Carbapenemase (KPC) production`, `D-Ala-D-Lac cell wall substitution`, `50S ribosomal methylation`],
+    correctIndex: 0,
+    explanation: `Correct: Carbapenem-resistant Klebsiella pneumoniae produces carbapenemases (e.g., KPC) that hydrolyze penicillins, cephalosporins, monobactams, and carbapenems. Distractor exclusion: D-Ala-D-Lac confers vancomycin resistance in Enterococcus; 50S methylation confers macrolide/clindamycin resistance.`,
+    secondOrderClue: `Meropenem failure in ICU Klebsiella -> plasmid-encoded KPC carbapenemase.`,
+    phase1Pearl: `Serine or metallo-beta-lactamases cleave the beta-lactam ring of imipenem/meropenem.`,
+    phase2Hallmark: `Imipenem always requires cilastatin to block renal dehydropeptidase-I degradation.`,
+    phase3Secret: `Reserve carbapenems for ESBL organisms; meropenem lowers seizure risk compared to imipenem.`,
+    dossierBullets: {
+      p1: [`KPC carbapenemases hydrolyze carbapenems`, `ESBL plasmids confer cephalosporin resistance`],
+      p2: [`Imipenem + cilastatin blocks renal DHP-1`, `Meropenem is stable to renal DHP-1`],
+      p3: [`Strict contact precautions for CRE outbreaks`, `Use carbapenems for ESBL-producing Klebsiella`]
+    }
+  },
+  {
+    id: `RS05-Q3`, lo: 5, sector: `sector_2`, compartment: `opportunistic_nosocomial`, ageGroup: `adult_elderly`, behavior: `toxin_capsule`,
+    loTitle: `Sector II • Klebsiella pneumoniae`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Mucoid lactose-fermenting GNR`,
+    stem: `A diabetic patient with necrotizing right upper lobe pneumonia has sputum plated on MacConkey agar. After 24 hours, large, glistening, stringy pink colonies appear; the organism is oxidase-negative and urease-positive. Which laboratory feature distinguishes it from Pseudomonas?`,
+    clue: `Pink colonies on MacConkey agar mean lactose fermentation; stringy mucoid texture reflects its huge capsule.`,
+    choices: [`Pink mucoid colonies on MacConkey agar`, `Blue-green pyocyanin pigment`, `Growth on BCYE agar with cysteine`],
+    correctIndex: 0,
+    explanation: `Correct: Klebsiella pneumoniae ferments lactose, forming large mucoid pink colonies on MacConkey agar, and is oxidase-negative. Distractor exclusion: Pseudomonas is a non-lactose fermenter (colorless on MacConkey) and oxidase-positive with blue-green pyocyanin; Legionella requires BCYE agar.`,
+    secondOrderClue: `MacConkey pink mucoid + urease(+) + oxidase(-) -> Klebsiella pneumoniae.`,
+    phase1Pearl: `Capsule prevents complement activation and causes glistening string-test-positive colonies.`,
+    phase2Hallmark: `Pink mucoid colonies on MacConkey; abscess cavities on chest CT.`,
+    phase3Secret: `Treat non-ESBL community aspiration with ceftriaxone; assess swallowing to prevent recurrence.`,
+    dossierBullets: {
+      p1: [`Lactose fermenter + urease positive`, `Thick capsule gives stringy mucoid sheen`],
+      p2: [`Pink colonies on MacConkey (vs. clear Pseudomonas)`, `Cavitary necrosis in upper lobes`],
+      p3: [`Aspiration precautions + OMT thoracic release`, `Monitor for empyema needing chest tube`]
+    }
+  },
+
+  // LO 6: Pneumocystis jirovecii
+  {
+    id: `RS06-Q1`, lo: 6, sector: `sector_2`, compartment: `opportunistic_nosocomial`, ageGroup: `immunocompromised`, behavior: `intracellular_fungal`,
+    loTitle: `Sector II • Pneumocystis jirovecii`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Pneumocystis jirovecii pneumonia`,
+    stem: `A 34-year-old man with untreated HIV (CD4+ count 65 cells/mm3) presents with 3 weeks of progressive exertional dyspnea, dry cough, and fever. Pulse oximetry drops from 95% at rest to 83% on ambulation, and chest CT reveals diffuse bilateral ground-glass opacities. Which diagnosis is most likely?`,
+    clue: `CD4 <200 + subacute dry cough + exertional desaturation + bilateral ground-glass opacities.`,
+    choices: [`Pneumocystis jirovecii pneumonia`, `Mycoplasma pneumoniae pneumonia`, `Legionella pneumonia`],
+    correctIndex: 0,
+    explanation: `Correct: Pneumocystis jirovecii pneumonia (PJP) presents subacutely in HIV patients with CD4 <200 cells/mm3 with exertional hypoxemia, elevated LDH, and bilateral ground-glass infiltrates. Distractor exclusion: Mycoplasma affects immunocompetent young adults; Legionella presents acutely with high fever, GI diarrhea, and hyponatremia.`,
+    secondOrderClue: `CD4 <200 + bilateral ground-glass infiltrates + elevated LDH -> PJP.`,
+    phase1Pearl: `Cell-mediated CD4+ T-cell immunity is required to clear alveolar Pneumocystis cysts.`,
+    phase2Hallmark: `Crushed ping-pong ball / disc-shaped cysts on Gomori methenamine silver (GMS) stain of BAL.`,
+    phase3Secret: `High-dose TMP-SMX; add prednisone if PaO2 <70 mmHg or A-a gradient >=35 mmHg.`,
+    dossierBullets: {
+      p1: [`Yeast-like fungus reactivating at CD4 <200`, `Foamy pink alveolar exudate on H&E`],
+      p2: [`Bilateral ground-glass opacities; elevated LDH`, `Cup/disc cysts on methenamine silver stain`],
+      p3: [`TMP-SMX primary treatment & prophylaxis`, `Add corticosteroids for severe hypoxemia`]
+    }
+  },
+  {
+    id: `RS06-Q2`, lo: 6, sector: `sector_2`, compartment: `opportunistic_nosocomial`, ageGroup: `immunocompromised`, behavior: `intracellular_fungal`,
+    loTitle: `Sector II • Pneumocystis jirovecii`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Sequential folate synthesis blockade`,
+    stem: `A patient with AIDS and CD4+ count of 140 cells/mm3 starts prophylactic TMP-SMX to prevent Pneumocystis jirovecii pneumonia. How do the two components of this regimen act synergistically to kill the organism?`,
+    clue: `Sulfamethoxazole is a PABA analog; trimethoprim hits the next enzyme down the tetrahydrofolate pathway.`,
+    choices: [`Inhibit dihydropteroate synthase and DHFR`, `Inhibit 14-alpha-demethylase and squalene epoxidase`, `Bind ergosterol and form membrane pores`],
+    correctIndex: 0,
+    explanation: `Correct: Sulfamethoxazole inhibits dihydropteroate synthase (DHPS) and trimethoprim inhibits dihydrofolate reductase (DHFR), sequentially blocking tetrahydrofolate and DNA synthesis. Distractor exclusion: Azoles/terbinafine target ergosterol synthesis; amphotericin B binds ergosterol.`,
+    secondOrderClue: `CD4 <200 prophylaxis -> TMP-SMX -> sequential DHPS + DHFR blockade.`,
+    phase1Pearl: `Sequential folate inhibition is bactericidal/fungicidal even though P. jirovecii lacks ergosterol (azoles fail).`,
+    phase2Hallmark: `Serum (1->3)-beta-D-glucan is markedly elevated in PJP.`,
+    phase3Secret: `Alternative prophylaxis if sulfa-allergic: dapsone, atovaquone, or aerosolized pentamidine.`,
+    dossierBullets: {
+      p1: [`SMX blocks DHPS; TMP blocks DHFR`, `Lacks ergosterol -> resistant to amphotericin/azoles`],
+      p2: [`Beta-D-glucan cell wall marker is positive`, `Wide A-a gradient on ABG`],
+      p3: [`Prophylaxis starts at CD4 <200 cells/mm3`, `Switch to pentamidine/primaquine+clinda if G6PD-deficient`]
+    }
+  },
+  {
+    id: `RS06-Q3`, lo: 6, sector: `sector_2`, compartment: `opportunistic_nosocomial`, ageGroup: `immunocompromised`, behavior: `intracellular_fungal`,
+    loTitle: `Sector II • Pneumocystis jirovecii`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `TMP-SMX plus systemic corticosteroids`,
+    stem: `A 40-year-old man with HIV presents with severe PJP confirmed by bronchoalveolar lavage silver stain. Room-air ABG shows PaO2 58 mmHg and an A-a gradient of 46 mmHg. Alongside IV TMP-SMX, which adjunct reduces respiratory failure and mortality?`,
+    clue: `Antibiotic lysis of Pneumocystis triggers intense alveolar inflammation — dampen it when PaO2 <70 or A-a >=35.`,
+    choices: [`Oral or IV corticosteroids`, `Nebulized amphotericin B`, `Oral itraconazole`],
+    correctIndex: 0,
+    explanation: `Correct: Adjunctive corticosteroids (prednisone) are indicated in moderate-to-severe PJP (PaO2 <70 mmHg or A-a gradient >=35 mmHg) to blunt inflammatory lung injury triggered by organism death. Distractor exclusion: Amphotericin B and itraconazole are ineffective because P. jirovecii lacks ergosterol in its membrane.`,
+    secondOrderClue: `PJP + PaO2 <70 or A-a >=35 -> TMP-SMX + prednisone.`,
+    phase1Pearl: `Corticosteroids suppress NF-kappaB cytokine storm caused by fungal lysis inside alveoli.`,
+    phase2Hallmark: `GMS stain shows dark-staining disc-shaped cysts; H&E shows acellular foamy exudate.`,
+    phase3Secret: `Monitor TMP-SMX for hyperkalemia, bone marrow suppression, and interstitial nephritis.`,
+    dossierBullets: {
+      p1: [`Fungal lysis triggers alveolar inflammation`, `Steroids prevent worsening hypoxia on therapy`],
+      p2: [`PaO2 <70 or A-a >=35 is steroid threshold`, `Pneumatoceles predispose to pneumothorax`],
+      p3: [`Start ART within 2 weeks after PJP therapy`, `Avoid dapsone/primaquine without G6PD screen`]
+    }
+  },
+
+  // LO 7: Mycobacterium tuberculosis
+  {
+    id: `RS07-Q1`, lo: 7, sector: `sector_3`, compartment: `granulomatous_fungal`, ageGroup: `adult_elderly`, behavior: `intracellular_fungal`,
+    loTitle: `Sector III • Mycobacterium tuberculosis`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Reactivation pulmonary tuberculosis`,
+    stem: `A 52-year-old man who recently immigrated from Southeast Asia presents with 6 weeks of productive cough, hemoptysis, drenching night sweats, and a 7-kg weight loss. Chest radiograph demonstrates a cavitary lesion in the right upper lung apex. Which diagnosis is most likely?`,
+    clue: `Night sweats + hemoptysis + weight loss + upper lobe cavitary lesion (high O2 tension) = reactivation TB.`,
+    choices: [`Reactivation pulmonary tuberculosis`, `Primary pulmonary histoplasmosis`, `Klebsiella aspiration pneumonia`],
+    correctIndex: 0,
+    explanation: `Correct: Reactivation tuberculosis classically localizes to the oxygen-rich lung apices, producing caseating cavitary lesions, hemoptysis, night sweats, and weight loss. Distractor exclusion: Primary histoplasmosis usually causes lower/mid-lung infiltrates and hilar calcifications; Klebsiella presents acutely with currant-jelly sputum.`,
+    secondOrderClue: `Apical cavitary lesion + night sweats + hemoptysis -> reactivation M. tuberculosis.`,
+    phase1Pearl: `High apical V/Q ratio and PaO2 favor aerobic M. tuberculosis reactivation.`,
+    phase2Hallmark: `Caseating granulomas with Langhans giant cells and acid-fast bacilli on Ziehl-Neelsen stain.`,
+    phase3Secret: `Place in airborne negative-pressure isolation (N95) and obtain 3 sputum AFB smears/PCR.`,
+    dossierBullets: {
+      p1: [`Obligate aerobe thrives in high-O2 lung apices`, `TNF-alpha maintains granuloma integrity`],
+      p2: [`Caseating necrosis + Langhans giant cells`, `Apical cavitary lesion on CXR`],
+      p3: [`Airborne isolation + RIPE 4-drug induction`, `Screen before starting anti-TNF biologics`]
+    }
+  },
+  {
+    id: `RS07-Q2`, lo: 7, sector: `sector_3`, compartment: `granulomatous_fungal`, ageGroup: `adult_elderly`, behavior: `intracellular_fungal`,
+    loTitle: `Sector III • Mycobacterium tuberculosis`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Cord factor and sulfatides`,
+    stem: `A patient with rheumatoid arthritis develops disseminated miliary tuberculosis 4 months after initiating infliximab. Which mycobacterial cell-wall virulence factor stimulates TNF-alpha release and serpentine cord growth to drive granuloma formation?`,
+    clue: `Anti-TNF therapy breaks down granulomas formed around this trehalose dimycolate virulence factor.`,
+    choices: [`Cord factor (trehalose dimycolate)`, `Polysaccharide capsule`, `Protein A`],
+    correctIndex: 0,
+    explanation: `Correct: Cord factor (trehalose dimycolate) inhibits macrophage migration, stimulates TNF-alpha secretion, and promotes caseating granuloma formation; sulfatides block phagolysosome fusion. Distractor exclusion: Polysaccharide capsule characterizes S. pneumoniae/Klebsiella; Protein A binds IgG Fc in Staphylococcus aureus.`,
+    secondOrderClue: `Infliximab (anti-TNF) -> granuloma breakdown -> miliary TB reactivation.`,
+    phase1Pearl: `Mycolic acid cell wall resists decolorization by acid-alcohol (acid-fast) and survives macrophages via sulfatides.`,
+    phase2Hallmark: `Ghon complex = subpleural lower/mid-lobe parenchymal focus + ipsilateral hilar node.`,
+    phase3Secret: `Always perform PPD or IGRA (QuantiFERON) before starting TNF-alpha inhibitors.`,
+    dossierBullets: {
+      p1: [`Cord factor drives TNF-alpha granulomas`, `Sulfatides block phagolysosome fusion`],
+      p2: [`Mycolic acids confer acid-fast staining`, `Grows slowly on Lowenstein-Jensen agar`],
+      p3: [`Latent TB: INH 9 mo (+ B6) or rifampin 4 mo`, `IGRA has no false positives from BCG vaccine`]
+    }
+  },
+  {
+    id: `RS07-Q3`, lo: 7, sector: `sector_3`, compartment: `granulomatous_fungal`, ageGroup: `adult_elderly`, behavior: `intracellular_fungal`,
+    loTitle: `Sector III • Mycobacterium tuberculosis`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Ethambutol-induced optic neuropathy`,
+    stem: `A 44-year-old man receiving RIPE therapy for active pulmonary tuberculosis reports blurred vision and difficulty distinguishing red from green traffic lights at week 6. Which drug-induced toxicity is most likely, and which vitamin prevents peripheral neuropathy from another RIPE agent?`,
+    clue: `"E" for Eye (ethambutol optic neuritis); INH depletes vitamin B6.`,
+    choices: [`Ethambutol; pyridoxine (vitamin B6)`, `Rifampin; thiamine (vitamin B1)`, `Pyrazinamide; cobalamin (vitamin B12)`],
+    correctIndex: 0,
+    explanation: `Correct: Ethambutol inhibits arabinosyltransferase and causes dose-dependent retrobulbar optic neuritis (red-green color blindness, decreased acuity), while pyridoxine (B6) prevents isoniazid-induced peripheral neuropathy. Distractor exclusion: Rifampin causes orange body fluids and CYP450 induction; pyrazinamide causes hyperuricemia and hepatotoxicity.`,
+    secondOrderClue: `RIPE + red-green blindness -> Ethambutol; INH neurotoxicity -> give B6.`,
+    phase1Pearl: `Rifampin inhibits bacterial DNA-dependent RNA polymerase; INH inhibits mycolic acid synthesis (activated by KatG).`,
+    phase2Hallmark: `Check baseline visual acuity and Ishihara color plates before starting ethambutol.`,
+    phase3Secret: `Stop ethambutol immediately upon visual symptoms; monitor LFTs for R, I, and P hepatotoxicity.`,
+    dossierBullets: {
+      p1: [`INH (KatG) blocks mycolic acid synthesis`, `Ethambutol blocks arabinosyltransferase`],
+      p2: [`Red-green dyschromatopsia = optic neuritis`, `Pyrazinamide elevates serum uric acid (gout)`],
+      p3: [`Supplement vitamin B6 with all INH regimens`, `Rifampin induces CYP450 -> lowers OCP/warfarin`]
+    }
+  },
+
+  // LO 8: Histoplasma capsulatum
+  {
+    id: `RS08-Q1`, lo: 8, sector: `sector_3`, compartment: `granulomatous_fungal`, ageGroup: `immunocompromised`, behavior: `intracellular_fungal`,
+    loTitle: `Sector III • Histoplasma capsulatum`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Histoplasma capsulatum`,
+    stem: `A 36-year-old spelunker from Kentucky with advanced HIV develops fever, weight loss, hepatosplenomegaly, palatal ulcers, and pancytopenia. Bone marrow biopsy shows macrophages packed with tiny 2-4 micrometer oval budding yeasts. Which pathogen is responsible?`,
+    clue: `Ohio/Mississippi valley cave + bird/bat droppings + tiny intracellular yeasts inside macrophages ("Histo hides").`,
+    choices: [`Histoplasma capsulatum`, `Blastomyces dermatitidis`, `Coccidioides immitis`],
+    correctIndex: 0,
+    explanation: `Correct: Histoplasma capsulatum is endemic to the Ohio and Mississippi River valleys (bat/bird guano) and uniquely survives as tiny oval yeasts (smaller than an RBC) inside macrophages, causing disseminated hepatosplenomegaly and pancytopenia in HIV. Distractor exclusion: Blastomyces is an extracellular broad-based budding yeast the size of an RBC; Coccidioides forms giant spherules.`,
+    secondOrderClue: `Mississippi/Ohio cave + tiny yeasts inside macrophages -> Histoplasma capsulatum.`,
+    phase1Pearl: `Thermally dimorphic: mold with tuberculate macroconidia at 25°C, intracellular yeast at 37°C.`,
+    phase2Hallmark: `Macrophages filled with 2-4 um yeasts (smaller than RBC); calcified hilar nodes on CXR.`,
+    phase3Secret: `Disseminated disease requires IV liposomal amphotericin B followed by oral itraconazole.`,
+    dossierBullets: {
+      p1: [`Mold in cold (25°C), yeast in heat (37°C)`, `Multiplies inside macrophage phagolysosomes`],
+      p2: [`Only dimorphic fungus smaller than an RBC`, `Calcified granulomas mimic pulmonary TB`],
+      p3: [`Amphotericin B for severe/disseminated disease`, `Itraconazole for mild-moderate pulmonary disease`]
+    }
+  },
+  {
+    id: `RS08-Q2`, lo: 8, sector: `sector_3`, compartment: `granulomatous_fungal`, ageGroup: `adult_elderly`, behavior: `intracellular_fungal`,
+    loTitle: `Sector III • Histoplasma capsulatum`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Thermal dimorphism at 37°C`,
+    stem: `An immunocompetent farmer in Indiana clears an old chicken coop and inhales fungal microconidia. Once the spores reach the warm 37°C alveolar environment, what morphologic transition enables dissemination within alveolar macrophages?`,
+    clue: `Remember the Sketchy rule: "Mold in the cold, yeast in the heat" (except Coccidioides spherules).`,
+    choices: [`Conversion from mold to intracellular yeast`, `Conversion from yeast to pseudohyphae`, `Formation of giant endospore spherules`],
+    correctIndex: 0,
+    explanation: `Correct: Histoplasma capsulatum exhibits thermal dimorphism, growing as a filamentous mold in soil at 25°C and converting into small budding yeasts inside macrophages at 37°C body temperature. Distractor exclusion: Candida albicans forms pseudohyphae at 37°C; Coccidioides immitis forms spherules packed with endospores.`,
+    secondOrderClue: `Chicken coop dust (25°C mold) -> inhaled -> 37°C yeast inside macrophages.`,
+    phase1Pearl: `Yeast phase upregulates cell-wall alpha-(1,3)-glucan to mask beta-glucan from host Dectin-1 receptors.`,
+    phase2Hallmark: `Urinary Histoplasma antigen has high sensitivity in disseminated disease.`,
+    phase3Secret: `Mild pulmonary histoplasmosis in immunocompetent hosts often resolves spontaneously; treat persistent cases with itraconazole.`,
+    dossierBullets: {
+      p1: [`Conidia convert to budding yeast at 37°C`, `Alpha-glucan masks PAMPs from macrophages`],
+      p2: [`Urine/serum antigen detects disseminated load`, `Epithelioid granulomas with central calcification`],
+      p3: [`Itraconazole inhibits 14-alpha-demethylase`, `Check itraconazole drug interactions (CYP3A4)`]
+    }
+  },
+  {
+    id: `RS08-Q3`, lo: 8, sector: `sector_3`, compartment: `granulomatous_fungal`, ageGroup: `immunocompromised`, behavior: `intracellular_fungal`,
+    loTitle: `Sector III • Histoplasma capsulatum`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Amphotericin B then itraconazole`,
+    stem: `A patient with AIDS presents with disseminated histoplasmosis, respiratory distress, and hepatosplenomegaly. Initial induction uses an intravenous polyene antifungal that creates membrane pores, followed by oral azole step-down. What is this sequential regimen and the polyene's main dose-limiting toxicity?`,
+    clue: `"Amphoterrible" binds ergosterol to punch holes and damages renal tubules (RTA, ↓K+, ↓Mg2+).`,
+    choices: [`Amphotericin B -> itraconazole; nephrotoxicity`, `Fluconazole -> caspofungin; hepatotoxicity`, `TMP-SMX -> prednisone; hyperkalemia`],
+    correctIndex: 0,
+    explanation: `Correct: Severe disseminated histoplasmosis is induced with IV liposomal amphotericin B (binds ergosterol, causing nephrotoxicity and K+/Mg2+ wasting) and stepped down to oral itraconazole. Distractor exclusion: Fluconazole has inferior activity against Histoplasma compared to itraconazole; TMP-SMX treats PJP, not Histoplasma.`,
+    secondOrderClue: `Disseminated Histoplasma -> Amphotericin B induction -> Itraconazole maintenance.`,
+    phase1Pearl: `Amphotericin B binds fungal ergosterol to form transmembrane ion pores causing cell leakage.`,
+    phase2Hallmark: `Expect normocytic anemia, hypokalemia, hypomagnesemia, and distal RTA during amphotericin B.`,
+    phase3Secret: `Pre-hydrate with normal saline and use liposomal amphotericin B to minimize nephrotoxicity.`,
+    dossierBullets: {
+      p1: [`Amphotericin B forms pores in ergosterol`, `Itraconazole blocks lanosterol 14-alpha-demethylase`],
+      p2: [`Monitor BUN/Cr, K+, and Mg2+ daily`, `Shake-and-bake infusion chills/fever`],
+      p3: [`Hydrate with NS before amphotericin infusion`, `Itraconazole requires acidic stomach for absorption`]
+    }
+  },
+
+  // LO 9: Coccidioides & Blastomyces
+  {
+    id: `RS09-Q1`, lo: 9, sector: `sector_3`, compartment: `granulomatous_fungal`, ageGroup: `adult_elderly`, behavior: `intracellular_fungal`,
+    loTitle: `Sector III • Coccidioides & Blastomyces`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Coccidioides immitis spherules`,
+    stem: `A 41-year-old construction worker in Bakersfield, California develops fever, dry cough, painful erythematous pretibial nodules (erythema nodosum), and symmetric knee arthralgias ("desert rheumatism") 2 weeks after an earthquake. Sputum microscopy shows giant thick-walled spherules filled with endospores. Which pathogen is this?`,
+    clue: `Southwestern US/San Joaquin Valley + earthquake dust + erythema nodosum + giant spherules with endospores.`,
+    choices: [`Coccidioides immitis`, `Blastomyces dermatitidis`, `Histoplasma capsulatum`],
+    correctIndex: 0,
+    explanation: `Correct: Coccidioides immitis (San Joaquin Valley fever) spikes after dust storms or earthquakes in the SW United States, presenting with pneumonia, erythema nodosum, and arthralgias, and forms large spherules packed with endospores at 37°C. Distractor exclusion: Blastomyces forms broad-based budding yeast in the Great Lakes/Mississippi valley; Histoplasma forms tiny intracellular yeasts.`,
+    secondOrderClue: `SW USA dust/earthquake + Valley fever + giant spherules -> Coccidioides immitis.`,
+    phase1Pearl: `Inhaled barrel-shaped arthroconidia transform into multinucleated spherules (30-60 um) in alveoli.`,
+    phase2Hallmark: `Thick-walled spherules larger than RBCs containing numerous endospores.`,
+    phase3Secret: `Fluconazole penetrates CSF best for Coccidioides meningitis; itraconazole or amphotericin B for pulmonary/disseminated.`,
+    dossierBullets: {
+      p1: [`Arthroconidia convert to spherules in tissue`, `Rupturing spherules release endospores`],
+      p2: [`Spherules are much larger than host RBCs`, `Erythema nodosum predicts strong CMI response`],
+      p3: [`Fluconazole is drug of choice for CNS meningitis`, `Amphotericin B for pregnant or severe patients`]
+    }
+  },
+  {
+    id: `RS09-Q2`, lo: 9, sector: `sector_3`, compartment: `granulomatous_fungal`, ageGroup: `adult_elderly`, behavior: `intracellular_fungal`,
+    loTitle: `Sector III • Coccidioides & Blastomyces`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Blastomyces broad-based budding`,
+    stem: `A 49-year-old hunter from Wisconsin presents with chronic cough, low-grade fever, crusted verrucous skin plaques on his forearm that mimic squamous cell carcinoma, and a lytic rib lesion. Skin biopsy reveals thick-walled yeasts approximately the size of an RBC exhibiting broad-based budding. Which organism is isolated?`,
+    clue: `Great Lakes/Wisconsin + verrucous skin lesions + bone lytic lesions + "Broad-based bud = Blasto".`,
+    choices: [`Blastomyces dermatitidis`, `Coccidioides immitis`, `Cryptococcus neoformans`],
+    correctIndex: 0,
+    explanation: `Correct: Blastomyces dermatitidis is endemic to the Great Lakes and Mississippi/Ohio valleys, causing pulmonary infiltrates, verrucous skin plaques, and lytic osteomyelitis, with characteristic broad-based budding yeasts equal in size to RBCs. Distractor exclusion: Coccidioides forms endospore-filled spherules; Cryptococcus shows narrow-based budding with a thick mucicarmine-positive capsule.`,
+    secondOrderClue: `Great Lakes + pneumonia + verrucous skin + broad-based budding -> Blastomyces.`,
+    phase1Pearl: `BAD-1 surface adhesin binds host macrophages and dampens TNF-alpha response.`,
+    phase2Hallmark: `Broad-based budding yeast (8-15 um, same size as RBC) with doubly refractile cell wall.`,
+    phase3Secret: `Itraconazole for mild-moderate pneumonia/skin/bone; amphotericin B for severe/CNS disease.`,
+    dossierBullets: {
+      p1: [`Broad-based budding yeast at 37°C`, `BAD-1 adhesin suppresses TNF-alpha`],
+      p2: [`Same size as RBC (vs. tiny Histoplasma)`, `Verrucous skin ulcers mimic SCC on biopsy`],
+      p3: [`Itraconazole (mild) vs. Amphotericin B (severe)`, `Check chest CT and skin/bone dissemination`]
+    }
+  },
+  {
+    id: `RS09-Q3`, lo: 9, sector: `sector_3`, compartment: `granulomatous_fungal`, ageGroup: `adult_elderly`, behavior: `intracellular_fungal`,
+    loTitle: `Sector III • Coccidioides & Blastomyces`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `14-alpha-demethylase inhibition`,
+    stem: `A patient with chronic cavitary pulmonary blastomycosis is prescribed oral itraconazole for 6 months. By what molecular mechanism does this triazole antifungal arrest fungal membrane assembly?`,
+    clue: `All azoles block the CYP450-dependent enzyme converting lanosterol to ergosterol.`,
+    choices: [`Inhibits lanosterol 14-alpha-demethylase`, `Inhibits squalene epoxidase`, `Inhibits beta-(1,3)-D-glucan synthase`],
+    correctIndex: 0,
+    explanation: `Correct: Triazoles (itraconazole, fluconazole, voriconazole) inhibit fungal CYP450 14-alpha-demethylase, preventing conversion of lanosterol to ergosterol. Distractor exclusion: Terbinafine inhibits squalene epoxidase; echinocandins (caspofungin) inhibit beta-(1,3)-D-glucan synthase.`,
+    secondOrderClue: `Itraconazole for Blasto/Histo -> 14-alpha-demethylase blockade -> ↓ergosterol.`,
+    phase1Pearl: `Mammalian CYP450 inhibition causes drug-drug interactions and rare hepatotoxicity; itraconazole also has negative inotropy.`,
+    phase2Hallmark: `Azoles are fungistatic against most dimorphic molds and require prolonged courses.`,
+    phase3Secret: `Avoid itraconazole in systolic heart failure (negative inotrope); give with food/acidic beverage.`,
+    dossierBullets: {
+      p1: [`Blocks lanosterol -> ergosterol conversion`, `Inhibits host hepatic CYP450 enzymes`],
+      p2: [`Monitor LFTs during prolonged azole therapy`, `Oral capsules need gastric acid (avoid PPIs)`],
+      p3: [`Fluconazole preferred for Cocci CNS meningitis`, `Amphotericin B preferred in pregnancy (azoles teratogenic)`]
+    }
+  },
+
+  // LO 10: Influenza A & B
+  {
+    id: `RS10-Q1`, lo: 10, sector: `sector_4`, compartment: `viral_airway`, ageGroup: `adult_elderly`, behavior: `viral_replication`,
+    loTitle: `Sector IV • Influenza A & B`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Post-influenza Staphylococcus aureus PNA`,
+    stem: `A 67-year-old woman begins recovering from PCR-confirmed influenza A when, on day 6, she develops sudden recurrent high fever, tachypnea, cyanosis, and hemoptysis. Chest radiograph reveals bilateral multilobar necrotizing infiltrates with pneumatoceles. Which secondary superinfection is most likely?`,
+    clue: `Classic board two-hit sequence: Influenza damages respiratory cilia -> rapid necrotizing cavitary pneumonia.`,
+    choices: [`Staphylococcus aureus superinfection`, `Mycoplasma pneumoniae superinfection`, `Respiratory syncytial virus coinfection`],
+    correctIndex: 0,
+    explanation: `Correct: Influenza destroys ciliated respiratory epithelium, predisposing patients to severe secondary bacterial pneumonia (S. pneumoniae, H. influenzae, and classically fulminant necrotizing MRSA/S. aureus pneumonia with pneumatoceles). Distractor exclusion: Mycoplasma causes mild interstitial pneumonia; RSV causes infant bronchiolitis.`,
+    secondOrderClue: `Flu recovery -> sudden relapse + hemoptysis + pneumatoceles -> S. aureus (MRSA) pneumonia.`,
+    phase1Pearl: `Viral neuraminidase strips host sialic acid mucins and damages cilia, exposing basement membrane receptors for bacterial adherence.`,
+    phase2Hallmark: `Grapelike clusters of gram-positive cocci (catalase+, coagulase+) and necrotizing cavitations.`,
+    phase3Secret: `Add empiric MRSA coverage (vancomycin or linezolid) + ceftriaxone immediately.`,
+    dossierBullets: {
+      p1: [`Flu destroys mucociliary escalator`, `Exposes host fibronectin/integrins to S. aureus`],
+      p2: [`Pneumatoceles and empyema on chest imaging`, `Gram-positive cocci in clusters`],
+      p3: [`Treat with vancomycin or linezolid (MRSA)`, `Linezolid inhibits 50S; avoid SSRI serotonin syndrome`]
+    }
+  },
+  {
+    id: `RS10-Q2`, lo: 10, sector: `sector_4`, compartment: `viral_airway`, ageGroup: `all`, behavior: `viral_replication`,
+    loTitle: `Sector IV • Influenza A & B`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Segmented RNA reassortment (shift)`,
+    stem: `A novel avian-swine-human influenza A strain emerges capable of triggering a global pandemic due to sudden replacement of its hemagglutinin (H) and neuraminidase (N) surface glycoproteins. Which viral genomic property enables this abrupt antigenic shift?`,
+    clue: `Antigenic DRIFT = point mutations causing epidemics; antigenic SHIFT = swapping pieces of an 8-segment genome.`,
+    choices: [`Reassortment of 8 segmented ssRNA strands`, `Reverse transcriptase error-prone replication`, `Point mutations in viral polymerase`],
+    correctIndex: 0,
+    explanation: `Correct: Influenza possesses an 8-segment negative-sense ssRNA genome, allowing co-infection in animal reservoirs (swine) to swap entire HA/NA RNA segments (antigenic shift -> pandemics). Distractor exclusion: Retroviruses use reverse transcriptase; point mutations in HA/NA cause gradual antigenic drift (seasonal epidemics).`,
+    secondOrderClue: `8 segmented ssRNA strands -> co-infection segment swap -> antigenic shift -> pandemic.`,
+    phase1Pearl: `HA binds host sialic acid for endocytosis; NA cleaves sialic acid for progeny virion budding.`,
+    phase2Hallmark: `Replicates uniquely inside the host cell NUCLEUS (unlike most RNA viruses) to snatch host 5' mRNA caps.`,
+    phase3Secret: `Annual vaccination updates strains against seasonal antigenic drift.`,
+    dossierBullets: {
+      p1: [`8-segment (-)ssRNA -> antigenic shift`, `Point mutations in HA/NA -> antigenic drift`],
+      p2: [`Enveloped helical RNA virus replicating in nucleus`, `HA mediates entry; NA mediates release`],
+      p3: [`Live-attenuated intranasal vaccine contraindicated in pregnancy/asthma`, `Avoid aspirin in pediatric flu (Reye syndrome)`]
+    }
+  },
+  {
+    id: `RS10-Q3`, lo: 10, sector: `sector_4`, compartment: `viral_airway`, ageGroup: `adult_elderly`, behavior: `viral_replication`,
+    loTitle: `Sector IV • Influenza A & B`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Neuraminidase inhibition (oseltamivir)`,
+    stem: `A 71-year-old man with COPD develops abrupt fever, diffuse myalgias, and dry cough 18 hours ago during a local influenza A outbreak. Rapid molecular swab is positive. Which antiviral started within 48 hours shortens illness by blocking progeny virion release?`,
+    clue: `Oseltamivir and zanamivir keep new virions trapped on the host cell surface sialic acid.`,
+    choices: [`Oseltamivir (neuraminidase inhibitor)`, `Acyclovir (guanosine analog)`, `Ribavirin (IMP dehydrogenase inhibitor)`],
+    correctIndex: 0,
+    explanation: `Correct: Oseltamivir inhibits influenza A and B neuraminidase, preventing cleavage of host sialic acid and trapping newly budded virions on the infected cell surface. Distractor exclusion: Acyclovir treats HSV/VZV via viral thymidine kinase; ribavirin inhibits IMP dehydrogenase (used in select severe RSV/HCV).`,
+    secondOrderClue: `Flu <48h -> oseltamivir/zanamivir -> inhibits neuraminidase -> blocks virion release.`,
+    phase1Pearl: `Baloxavir marboxil is a single-dose oral cap-dependent endonuclease inhibitor active against influenza A and B.`,
+    phase2Hallmark: `Amantadine/rimantadine (M2 uncoating inhibitors) are obsolete due to widespread resistance and lack of Flu B activity.`,
+    phase3Secret: `Oseltamivir is safe in pregnancy; inhaled zanamivir can trigger bronchospasm in asthma/COPD.`,
+    dossierBullets: {
+      p1: [`Oseltamivir/zanamivir inhibit viral neuraminidase`, `Virions clump at cell surface unable to bud`],
+      p2: [`Most effective when started within 48 hours`, `Baloxavir blocks viral RNA cap-snatching`],
+      p3: [`Avoid zanamivir in COPD/asthma (bronchospasm)`, `OMT thoracic pump + OA/AA release support recovery`]
+    }
+  },
+
+  // LO 11: Respiratory Syncytial Virus (RSV)
+  {
+    id: `RS11-Q1`, lo: 11, sector: `sector_4`, compartment: `viral_airway`, ageGroup: `pediatric`, behavior: `viral_replication`,
+    loTitle: `Sector IV • Respiratory Syncytial Virus`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `RSV acute bronchiolitis`,
+    stem: `A 4-month-old boy born at 36 weeks presents in January with 2 days of rhinorrhea followed by tachypnea (66/min), subcostal retractions, nasal flaring, diffuse end-expiratory wheezes, and crackles. Chest radiograph shows bilateral lung hyperinflation and flattened diaphragms. Which diagnosis is most likely?`,
+    clue: `Infant <1 year + winter wheezing + crackles + hyperinflation on CXR = #1 cause of bronchiolitis.`,
+    choices: [`Respiratory syncytial virus bronchiolitis`, `Parainfluenza croup`, `Pertussis paroxysmal stage`],
+    correctIndex: 0,
+    explanation: `Correct: Respiratory syncytial virus (RSV) is the leading cause of bronchiolitis in infants <1 year, presenting with upper respiratory prodrome followed by small-airway wheezing, crackles, retractions, and CXR hyperinflation. Distractor exclusion: Croup causes inspiratory stridor and barking cough with steeple sign; pertussis causes paroxysmal coughing spells with inspiratory whoop and lymphocytosis.`,
+    secondOrderClue: `Infant winter wheezing + crackles + hyperinflated CXR -> RSV bronchiolitis.`,
+    phase1Pearl: `Small bronchioles plug with necrotic epithelial debris, mucus, and fibrin, causing air trapping.`,
+    phase2Hallmark: `Hyperinflation, flattened hemidiaphragms, and peribronchial cuffing on chest radiograph.`,
+    phase3Secret: `Mainstay therapy is supportive (suctioning, humidified O2, hydration); routine albuterol/steroids are not recommended.`,
+    dossierBullets: {
+      p1: [`Bronchiolar edema + mucus plugs trap air`, `Leads to both atelectasis and hyperinflation`],
+      p2: [`#1 cause of infant bronchiolitis (<1 y)`, `CXR shows flattened diaphragms`],
+      p3: [`Supportive care: O2, nasal bulb suction, fluids`, `OMT rib raising + diaphragm release ease work of breathing`]
+    }
+  },
+  {
+    id: `RS11-Q2`, lo: 11, sector: `sector_4`, compartment: `viral_airway`, ageGroup: `pediatric`, behavior: `viral_replication`,
+    loTitle: `Sector IV • Respiratory Syncytial Virus`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `F (fusion) surface protein`,
+    stem: `Respiratory epithelial cytology from an infant hospitalized with severe viral bronchiolitis reveals large multinucleated giant cells bridging adjacent infected cells. Which viral surface glycoprotein mediates this cell-to-cell fusion?`,
+    clue: `Paramyxoviruses fuse host plasma membranes together using this lettered protein ("Syncytial" = fused cells).`,
+    choices: [`F (fusion) protein`, `Hemagglutinin-neuraminidase (HN)`, `Matrix (M2) ion channel`],
+    correctIndex: 0,
+    explanation: `Correct: RSV uses its surface F (fusion) glycoprotein to fuse host respiratory epithelial membranes together, forming characteristic multinucleated syncytia. Distractor exclusion: RSV uniquely lacks both hemagglutinin and neuraminidase (unlike parainfluenza/mumps/measles); M2 ion channel belongs to influenza A.`,
+    secondOrderClue: `RSV multinucleated syncytia -> F (fusion) protein (targeted by palivizumab).`,
+    phase1Pearl: `RSV is a nonsegmented negative-sense ssRNA paramyxovirus that replicates in the cytoplasm.`,
+    phase2Hallmark: `Multinucleated giant cells (syncytia) on respiratory histology.`,
+    phase3Secret: `Monoclonal antibodies palivizumab and nirsevimab bind the F protein to prevent RSV entry.`,
+    dossierBullets: {
+      p1: [`F protein fuses infected and adjacent cells`, `RSV lacks hemagglutinin and neuraminidase`],
+      p2: [`Cytoplasmic replication; multinucleated syncytia`, `Rapid PCR or antigen testing confirms RSV`],
+      p3: [`Palivizumab targets F protein in high-risk infants`, `Ribavirin reserved only for severe immunocompromised`]
+    }
+  },
+  {
+    id: `RS11-Q3`, lo: 11, sector: `sector_4`, compartment: `viral_airway`, ageGroup: `pediatric`, behavior: `viral_replication`,
+    loTitle: `Sector IV • Respiratory Syncytial Virus`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Palivizumab anti-F prophylaxis`,
+    stem: `A 2-month-old infant born at 27 weeks gestation with bronchopulmonary dysplasia is being discharged in November. Which immunoprophylaxis directly blocks RSV F-protein-mediated viral fusion during winter?`,
+    clue: `Think of the humanized monoclonal antibody used for premature infants and congenital heart/lung disease.`,
+    choices: [`Palivizumab (anti-F monoclonal antibody)`, `Oseltamivir (neuraminidase inhibitor)`, `Aerosolized albuterol`],
+    correctIndex: 0,
+    explanation: `Correct: Palivizumab (and newer long-acting nirsevimab) is a monoclonal antibody targeting the RSV F protein, providing passive immunoprophylaxis to high-risk premature infants and those with chronic lung disease or hemodynamically significant CHD. Distractor exclusion: Oseltamivir targets influenza neuraminidase; albuterol does not prevent RSV infection.`,
+    secondOrderClue: `Premature infant (<29 wk) / BPD in winter -> anti-F mAb (palivizumab/nirsevimab).`,
+    phase1Pearl: `Passive IgG neutralization blocks F-protein conformational fusion with the host plasma membrane.`,
+    phase2Hallmark: `Given monthly during RSV season (palivizumab) or single-dose (nirsevimab).`,
+    phase3Secret: `Strictly emphasize hand hygiene and smoke avoidance to families; monitor infants for apnea.`,
+    dossierBullets: {
+      p1: [`Anti-F mAb blocks viral entry & syncytia`, `Passive immunity for premature/BPD/CHD infants`],
+      p2: [`Not effective as treatment once hospitalized`, `RSV predisposes to recurrent childhood wheezing`],
+      p3: [`Discharge checklist: seasonal prophylaxis + O2 plan`, `Hospitalize if SpO2 <90%, dehydration, or apnea`]
+    }
+  },
+
+  // LO 12: Parainfluenza & Croup
+  {
+    id: `RS12-Q1`, lo: 12, sector: `sector_4`, compartment: `viral_airway`, ageGroup: `pediatric`, behavior: `viral_replication`,
+    loTitle: `Sector IV • Parainfluenza & Croup`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Viral laryngotracheobronchitis (croup)`,
+    stem: `An 18-month-old girl awakens at 2:00 AM with a seal-like barking cough, hoarse cry, and inspiratory stridor at rest following 2 days of low-grade fever and rhinorrhea. She has no drooling and takes fluids easily. Which diagnosis is most likely?`,
+    clue: `Toddler + barking cough + hoarseness + inspiratory stridor worse at night without drooling.`,
+    choices: [`Parainfluenza laryngotracheobronchitis (croup)`, `Haemophilus influenzae epiglottitis`, `Bronchial foreign body aspiration`],
+    correctIndex: 0,
+    explanation: `Correct: Parainfluenza virus (most commonly type 1) causes croup (laryngotracheobronchitis), characterized by subglottic edema, seal-like barking cough, hoarseness, and inspiratory stridor worse at night. Distractor exclusion: Epiglottitis presents with high fever, toxic appearance, drooling, dysphagia, and tripod posture; foreign body causes sudden unilateral wheezing without viral prodrome.`,
+    secondOrderClue: `Toddler + nocturnal barking cough + stridor + no drooling -> Parainfluenza croup.`,
+    phase1Pearl: `Paramyxovirus with HN (hemagglutinin-neuraminidase) and F proteins causes subglottic mucosal edema.`,
+    phase2Hallmark: `Subglottic tracheal narrowing ("steeple sign") on AP neck radiograph.`,
+    phase3Secret: `Administer single-dose oral dexamethasone + nebulized racemic epinephrine for stridor at rest.`,
+    dossierBullets: {
+      p1: [`Parainfluenza types 1 & 2 cause 75% of croup`, `Inflammation narrows subglottic cricoid ring`],
+      p2: [`Barking cough + inspiratory stridor + steeple sign`, `Preserved voice? No—hoarseness is prominent`],
+      p3: [`Dexamethasone for all; racemic epi if stridor at rest`, `Keep child calm; agitation worsens airway turbulence`]
+    }
+  },
+  {
+    id: `RS12-Q2`, lo: 12, sector: `sector_4`, compartment: `viral_airway`, ageGroup: `pediatric`, behavior: `viral_replication`,
+    loTitle: `Sector IV • Parainfluenza & Croup`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Subglottic cricoid edema`,
+    stem: `Why does mild parainfluenza viral inflammation produce dramatic inspiratory stridor and high-velocity airway resistance in a 15-month-old child compared with an adult?`,
+    clue: `Poiseuille law: Resistance is inversely proportional to radius to the fourth power (r^4) at the narrowest pediatric ring.`,
+    choices: [`Subglottic narrowing at the cricoid ring (R ~ 1/r^4)`, `Supraglottic aryepiglottic swelling`, `Bronchoconstriction of terminal bronchioles`],
+    correctIndex: 0,
+    explanation: `Correct: In young children, the cricoid cartilage is the narrowest non-distensible part of the upper airway; by Poiseuille law (R proportional to 1/r^4), even 1 mm of subglottic mucosal edema sharply increases inspiratory airway resistance. Distractor exclusion: Supraglottic swelling characterizes epiglottitis ("thumbprint sign"); terminal bronchiole plugging causes expiratory wheezing in RSV.`,
+    secondOrderClue: `Pediatric cricoid ring + Poiseuille 1/r^4 -> subglottic edema -> inspiratory stridor.`,
+    phase1Pearl: `Laminar-to-turbulent airflow transition during crying dramatically amplifies work of breathing.`,
+    phase2Hallmark: `AP neck X-ray demonstrates symmetric tapering below the vocal cords ("steeple sign").`,
+    phase3Secret: `Racemic epinephrine triggers alpha-1 arteriolar vasoconstriction to rapidly shrink subglottic edema.`,
+    dossierBullets: {
+      p1: [`Cricoid ring is narrowest pediatric airway point`, `Poiseuille law: small edema spikes resistance (1/r^4)`],
+      p2: [`Inspiratory stridor indicates extrathoracic obstruction`, `Expiratory wheeze indicates intrathoracic obstruction`],
+      p3: [`Alpha-1 vasoconstriction from racemic epi reduces edema`, `Observe 3-4h post-epinephrine for rebound stridor`]
+    }
+  },
+  {
+    id: `RS12-Q3`, lo: 12, sector: `sector_4`, compartment: `viral_airway`, ageGroup: `pediatric`, behavior: `viral_replication`,
+    loTitle: `Sector IV • Parainfluenza & Croup`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Dexamethasone plus racemic epinephrine`,
+    stem: `A 2-year-old boy with croup has audible inspiratory stridor at rest, suprasternal retractions, and a steeple sign on AP neck film. Along with keeping him calm on his parent's lap, what is the most appropriate pharmacologic management?`,
+    clue: `Mild croup gets dexamethasone alone; stridor AT REST requires adding a rapid mucosal vasoconstrictor.`,
+    choices: [`Oral dexamethasone plus nebulized racemic epinephrine`, `Inhaled albuterol plus oral azithromycin`, `IV ceftriaxone plus emergent intubation`],
+    correctIndex: 0,
+    explanation: `Correct: All children with croup receive dexamethasone (anti-inflammatory reduction of airway edema over hours), and those with stridor at rest require nebulized racemic epinephrine for immediate alpha-1 vasoconstriction. Distractor exclusion: Albuterol targets lower airways and does not relieve subglottic edema; IV ceftriaxone + airway control is for bacterial epiglottitis.`,
+    secondOrderClue: `Croup + stridor AT REST -> dexamethasone + nebulized racemic epinephrine.`,
+    phase1Pearl: `Epinephrine alpha-1 agonism shrinks mucosal edema within minutes, bridging until dexamethasone takes effect (~2-4 hours).`,
+    phase2Hallmark: `Steeple sign on AP X-ray (croup) vs. Thumbprint sign on lateral X-ray (epiglottitis).`,
+    phase3Secret: `Never force a supine exam or tongue blade in suspected epiglottitis; croup rarely requires intubation.`,
+    dossierBullets: {
+      p1: [`Dexamethasone suppresses subglottic cytokines`, `Racemic epi constricts mucosal arterioles (alpha-1)`],
+      p2: [`Steeple sign (AP) = croup; Thumbprint (lateral) = epiglottitis`, `Croup is clinical; avoid unnecessary neck X-rays`],
+      p3: [`Observe >=3h after racemic epi for rebound edema`, `OMT suboccipital/cervical fascia release aids drainage`]
+    }
+  },
+
+  // LO 13: Bronchodilators (SABA, LABA, Theophylline)
+  {
+    id: `RS13-Q1`, lo: 13, sector: `sector_5`, compartment: `pulm_pharmacology`, ageGroup: `adult_elderly`, behavior: `receptor_pathway`,
+    loTitle: `Sector V • Bronchodilators`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Gs-cAMP-MLCK inhibition`,
+    stem: `A 24-year-old woman with acute asthma exacerbation receives nebulized albuterol and experiences rapid bronchodilation along with mild hand tremor and serum potassium drop from 4.0 to 3.4 mEq/L. Which intracellular signaling cascade mediates albuterol's airway smooth muscle relaxation?`,
+    clue: `Beta-2 receptors couple to Gs -> adenylyl cyclase -> ↑cAMP -> turns OFF myosin light-chain kinase.`,
+    choices: [`Gs activation -> ↑cAMP -> MLCK phosphorylation/inhibition`, `Gq activation -> ↑IP3 -> Ca2+ release`, `Gi activation -> ↓cAMP -> K+ channel opening`],
+    correctIndex: 0,
+    explanation: `Correct: Beta-2 agonists (albuterol, salmeterol, formoterol) stimulate Gs-coupled receptors, raising cAMP and PKA activity, which phosphorylates and inactivates myosin light-chain kinase (MLCK) to relax bronchial smooth muscle. Distractor exclusion: Gq/IP3 mediates M3/H1/LTD4 bronchoconstriction; Gi mediates M2 inhibition.`,
+    secondOrderClue: `Albuterol (beta-2) -> Gs -> ↑cAMP -> PKA inhibits MLCK -> bronchodilation + ↓K+.`,
+    phase1Pearl: `Beta-2 stimulation also drives Na+/K+-ATPase in skeletal muscle, shifting K+ intracellularly (useful in hyperkalemia).`,
+    phase2Hallmark: `Reversible obstruction on spirometry: FEV1 increases >=12% and >=200 mL post-albuterol.`,
+    phase3Secret: `Never use LABA (salmeterol) as monotherapy in asthma due to increased asthma-related death risk; always pair with ICS.`,
+    dossierBullets: {
+      p1: [`Beta-2 -> Gs -> ↑cAMP -> PKA inhibits MLCK`, `Drives Na+/K+ ATPase -> transient hypokalemia`],
+      p2: [`Post-bronchodilator FEV1 jump >=12% & >=200 mL`, `Side effects: tachycardia, tremor, ↓K+`],
+      p3: [`Albuterol = rescue; Formoterol/Salmeterol = controller`, `Add ipratropium (M3 blocker) in severe acute asthma`]
+    }
+  },
+  {
+    id: `RS13-Q2`, lo: 13, sector: `sector_5`, compartment: `pulm_pharmacology`, ageGroup: `adult_elderly`, behavior: `receptor_pathway`,
+    loTitle: `Sector V • Bronchodilators`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Theophylline CYP450 toxicity`,
+    stem: `A 66-year-old man with severe COPD taking chronic oral theophylline starts ciprofloxacin for a urinary tract infection. Three days later he develops persistent vomiting, palpitations, ventricular ectopy, and a generalized tonic-clonic seizure. What caused this acute presentation?`,
+    clue: `Theophylline has a narrow therapeutic window; fluoroquinolones and macrolides inhibit CYP450 metabolism.`,
+    choices: [`Ciprofloxacin-induced theophylline toxicity`, `Albuterol-induced hypokalemic arrhythmia`, `Tiotropium anticholinergic delirium`],
+    correctIndex: 0,
+    explanation: `Correct: Ciprofloxacin and macrolides inhibit hepatic CYP450 metabolism of theophylline, precipitating life-threatening toxicity (nausea/vomiting, tachyarrhythmias, seizures) due to PDE inhibition and adenosine receptor antagonism. Distractor exclusion: Albuterol causes sinus tachycardia/tremor rather than seizures; tiotropium has minimal systemic CNS absorption.`,
+    secondOrderClue: `COPD on theophylline + ciprofloxacin/macrolide -> ↑theophylline -> vomiting, arrhythmia, seizures.`,
+    phase1Pearl: `Theophylline blocks phosphodiesterase (raising cAMP) and antagonizes adenosine A1/A2 receptors (causing CNS/cardiac toxicity).`,
+    phase2Hallmark: `Serum theophylline level >20 mcg/mL confirms toxicity.`,
+    phase3Secret: `Treat severe theophylline toxicity with activated charcoal, benzodiazepines for seizures, and beta-blockers/hemodialysis.`,
+    dossierBullets: {
+      p1: [`Inhibits PDE (↑cAMP) + blocks adenosine receptors`, `Metabolized by CYP450 (inhibited by cipro/macrolides)`],
+      p2: [`Narrow therapeutic index; check serum drug levels`, `Classic triad: GI emesis, arrhythmias, seizures`],
+      p3: [`Stop drug; give charcoal + benzos for seizures`, `Rifampin/smoking induce CYP450 and lower levels`]
+    }
+  },
+  {
+    id: `RS13-Q3`, lo: 13, sector: `sector_5`, compartment: `pulm_pharmacology`, ageGroup: `adult_elderly`, behavior: `receptor_pathway`,
+    loTitle: `Sector V • Bronchodilators`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Tiotropium M3 muscarinic blockade`,
+    stem: `A 69-year-old smoker with GOLD group B COPD (FEV1/FVC 0.58) experiences daily dyspnea despite PRN albuterol. His physician initiates a once-daily inhaled agent that blocks M3 receptors on airway smooth muscle and submucosal glands without crossing the blood-brain barrier. Which agent is this?`,
+    clue: `Quaternary ammonium antimuscarinics (ipratropium = SAMA, tiotropium = LAMA) stay trapped in the lung.`,
+    choices: [`Tiotropium (LAMA)`, `Salmeterol (LABA)`, `Fluticasone (ICS)`],
+    correctIndex: 0,
+    explanation: `Correct: Tiotropium is a long-acting muscarinic antagonist (LAMA) that blocks bronchial M3 receptors (Gq -> ↓IP3/Ca2+) to reduce bronchoconstriction and mucus secretion; its quaternary charge limits systemic/CNS absorption. Distractor exclusion: Salmeterol activates beta-2 receptors; fluticasone is an inhaled glucocorticoid.`,
+    secondOrderClue: `COPD daily bronchodilator + M3 blockade + quaternary ammonium -> Tiotropium (LAMA).`,
+    phase1Pearl: `Inhibiting M3 Gq signaling prevents acetylcholine-mediated vagal bronchoconstriction and goblet cell mucus release.`,
+    phase2Hallmark: `COPD spirometry shows fixed FEV1/FVC <0.70 post-bronchodilator and decreased DLCO in emphysema.`,
+    phase3Secret: `LAMA or LABA is first-line maintenance in COPD; avoid systemic anticholinergic excess (xerostomia, urinary retention).`,
+    dossierBullets: {
+      p1: [`Blocks M3 Gq receptors on smooth muscle/glands`, `Quaternary amine prevents CNS penetration`],
+      p2: [`FEV1/FVC <0.70 on PFTs defines COPD`, `Decreases COPD exacerbations & hospitalizations`],
+      p3: [`Caution in narrow-angle glaucoma and BPH`, `OMT OA/AA release reduces vagal bronchoconstriction`]
+    }
+  },
+
+  // LO 14: Inhaled Corticosteroids & Mast Cell Stabilizers
+  {
+    id: `RS14-Q1`, lo: 14, sector: `sector_5`, compartment: `pulm_pharmacology`, ageGroup: `all`, behavior: `receptor_pathway`,
+    loTitle: `Sector V • ICS & Mast Cell Stabilizers`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Inhibition of NF-kappaB & PLA2`,
+    stem: `A 17-year-old boy with moderate persistent asthma begins daily inhaled fluticasone. Within 2 weeks his nocturnal awakenings cease and bronchial hyperresponsiveness declines. Which nuclear mechanism primarily accounts for the anti-inflammatory efficacy of inhaled corticosteroids?`,
+    clue: `Lipophilic steroids enter the cytoplasm, dimerize, enter the nucleus, and turn off inflammatory gene transcription.`,
+    choices: [`Nuclear inhibition of NF-kappaB & PLA2 synthesis`, `Direct Gs stimulation of beta-2 receptors`, `Competitive blockade of CysLT1 receptors`],
+    correctIndex: 0,
+    explanation: `Correct: Corticosteroids bind intracellular glucocorticoid receptors, translocate to the nucleus, suppress NF-kappaB transcription of inflammatory cytokines, upregulate annexin-1 to inhibit phospholipase A2, and increase beta-2 receptor expression. Distractor exclusion: Beta-2 stimulation is the mechanism of albuterol/salmeterol; CysLT1 blockade is montelukast.`,
+    secondOrderClue: `ICS asthma controller -> nuclear GR -> suppresses NF-kappaB & PLA2 + upregulates beta-2.`,
+    phase1Pearl: `By inhibiting PLA2 via lipocortin/annexin-1, steroids halt both COX (prostaglandins) and 5-LOX (leukotrienes).`,
+    phase2Hallmark: `Decreases sputum eosinophils and fractional exhaled nitric oxide (FeNO).`,
+    phase3Secret: `Slow onset — useless alone for acute status asthmaticus unless paired with SABA/formoterol and systemic steroids.`,
+    dossierBullets: {
+      p1: [`Binds cytosolic receptor -> suppresses NF-kappaB`, `Induces annexin-1 -> inhibits phospholipase A2`],
+      p2: [`Upregulates bronchial beta-2 adrenergic receptors`, `Lowers airway eosinophils and FeNO`],
+      p3: [`First-line daily controller for persistent asthma`, `Use spacer and rinse mouth after every dose`]
+    }
+  },
+  {
+    id: `RS14-Q2`, lo: 14, sector: `sector_5`, compartment: `pulm_pharmacology`, ageGroup: `all`, behavior: `receptor_pathway`,
+    loTitle: `Sector V • ICS & Mast Cell Stabilizers`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Oral candidiasis (thrush)`,
+    stem: `A 31-year-old woman with well-controlled persistent asthma using daily budesonide develops white, curd-like plaques on her buccal mucosa and soft palate that scrape off easily leaving an erythematous base. Which preventive measure best avoids this adverse effect?`,
+    clue: `ICS deposits in the oropharynx and causes local immunosuppression -> Candida albicans thrush.`,
+    choices: [`Use a valved holding spacer and rinse mouth`, `Switch from budesonide to oral prednisone`, `Add prophylactic oral fluconazole daily`],
+    correctIndex: 0,
+    explanation: `Correct: Oropharyngeal deposition of inhaled corticosteroids suppresses local mucosal immunity, predisposing to oral candidiasis (thrush) and dysphonia; using a spacer and rinsing/spitting with water after inhalation prevents this. Distractor exclusion: Systemic prednisone increases immunosuppression and systemic toxicity; chronic fluconazole prophylaxis is unnecessary.`,
+    secondOrderClue: `ICS + scrapable white oral plaques (Candida) -> spacer + rinse/spit; treat with nystatin.`,
+    phase1Pearl: `Local corticosteroid deposition impairs mucosal T-cell and macrophage clearance of Candida.`,
+    phase2Hallmark: `KOH prep shows budding yeasts and pseudohyphae; lesions scrape off (unlike oral hairy leukoplakia).`,
+    phase3Secret: `Treat established thrush with nystatin swish-and-swallow (or clotrimazole troches) and reinforce rinsing.`,
+    dossierBullets: {
+      p1: [`Local mucosal immunosuppression permits Candida`, `Also causes vocal cord myopathy (dysphonia)`],
+      p2: [`Pseudohyphae on KOH prep; scrapes off leaving red base`, `Zero systemic adrenal suppression at standard doses`],
+      p3: [`Spacer traps large droplets; rinse & spit water`, `Nystatin swish-and-swallow clears oral thrush`]
+    }
+  },
+  {
+    id: `RS14-Q3`, lo: 14, sector: `sector_5`, compartment: `pulm_pharmacology`, ageGroup: `pediatric`, behavior: `receptor_pathway`,
+    loTitle: `Sector V • ICS & Mast Cell Stabilizers`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Cromolyn mast cell stabilization`,
+    stem: `A 12-year-old boy experiences reproducible wheezing 15 minutes into cold-air soccer practice. His pediatrician prescribes an inhaled prophylactic agent taken 15 minutes before exercise that inhibits Ca2+ influx into airway mast cells. Which drug and therapeutic limitation apply?`,
+    clue: `Cromolyn ("Chrome dome" around mast cells) prevents degranulation BEFORE triggers, never during an attack.`,
+    choices: [`Cromolyn; ineffective for acute bronchospasm`, `Albuterol; causes systemic thrush`, `Ipratropium; requires weekly LFTs`],
+    correctIndex: 0,
+    explanation: `Correct: Cromolyn sodium stabilizes mast cell membranes by blocking Ca2+-mediated degranulation (preventing histamine/leukotriene release), making it strictly prophylactic for exercise-induced or allergic asthma and completely ineffective in acute attacks. Distractor exclusion: Albuterol treats acute bronchospasm and does not cause thrush; ipratropium does not require LFT monitoring.`,
+    secondOrderClue: `Pre-exercise mast cell stabilizer -> Cromolyn -> prophylaxis ONLY, useless in acute attack.`,
+    phase1Pearl: `Inhibits mast cell chloride channels and Ca2+ influx, preventing preformed histamine and newly formed leukotriene release.`,
+    phase2Hallmark: `Very safe adverse-effect profile (mild cough/throat irritation) but requires frequent dosing.`,
+    phase3Secret: `For acute exercise-induced bronchospasm, albuterol 15 min pre-exercise is superior; cromolyn is second-line prophylaxis.`,
+    dossierBullets: {
+      p1: [`Blocks mast cell Ca2+ influx & degranulation`, `Prevents both early and late asthmatic responses`],
+      p2: [`Strictly prophylactic; zero bronchodilator effect`, `Minimal systemic toxicity`],
+      p3: [`Never use cromolyn during acute asthma attack`, `Pair thoracic inlet/rib raising to optimize lymphatics`]
+    }
+  },
+
+  // LO 15: Leukotriene Modifiers & Monoclonal Biologics
+  {
+    id: `RS15-Q1`, lo: 15, sector: `sector_5`, compartment: `pulm_pharmacology`, ageGroup: `adult_elderly`, behavior: `receptor_pathway`,
+    loTitle: `Sector V • Leukotriene & Biologics`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Aspirin-exacerbated respiratory disease`,
+    stem: `A 38-year-old woman with adult-onset asthma and recurrent bilateral nasal polyps takes ibuprofen for a headache and develops severe wheezing, rhinorrhea, and flushing 45 minutes later. Which arachidonic acid shift drives this reaction, and which oral drug class specifically treats it?`,
+    clue: `Samter triad (asthma + nasal polyps + NSAID sensitivity): blocking COX shunts arachidonate into 5-LOX.`,
+    choices: [`5-LOX shunt to leukotrienes; montelukast/zileuton`, `COX-2 upregulation; omalizumab`, `Mast cell IgE cross-linking; cromolyn`],
+    correctIndex: 0,
+    explanation: `Correct: In aspirin-exacerbated respiratory disease (Samter triad), COX-1 inhibition shunts arachidonic acid toward 5-lipoxygenase, generating excess bronchoconstricting cysteinyl leukotrienes (LTC4/D4/E4); leukotriene modifiers (montelukast, zileuton) directly block this pathway. Distractor exclusion: It is a non-IgE biochemical shunt rather than IgE cross-linking or COX-2 upregulation.`,
+    secondOrderClue: `Asthma + nasal polyps + NSAID wheezing (Samter) -> 5-LOX shunt -> montelukast / zileuton.`,
+    phase1Pearl: `Cysteinyl leukotrienes (LTC4, LTD4, LTE4) bind Gq-coupled CysLT1 receptors causing potent bronchospasm and mucus secretion.`,
+    phase2Hallmark: `High urinary LTE4 levels and eosinophilic nasal polyposis.`,
+    phase3Secret: `Avoid all non-selective NSAIDs/aspirin (unless desensitized); montelukast carries neuropsychiatric mood warning.`,
+    dossierBullets: {
+      p1: [`COX-1 block shunts arachidonate to 5-LOX`, `CysLTs cause 1000x stronger bronchospasm than histamine`],
+      p2: [`Samter triad: asthma, nasal polyps, ASA sensitivity`, `High eosinophils in polyp tissue and sputum`],
+      p3: [`Treat with montelukast or zileuton (monitor LFTs)`, `Screen montelukast users for mood/suicidal thoughts`]
+    }
+  },
+  {
+    id: `RS15-Q2`, lo: 15, sector: `sector_5`, compartment: `pulm_pharmacology`, ageGroup: `pediatric`, behavior: `receptor_pathway`,
+    loTitle: `Sector V • Leukotriene & Biologics`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Zileuton 5-lipoxygenase inhibition`,
+    stem: `A patient with aspirin-exacerbated asthma is started on zileuton rather than montelukast to suppress both neutrophil-chemotactic LTB4 and bronchoconstricting cysteinyl leukotrienes. Which enzyme does zileuton inhibit, and which lab must be monitored?`,
+    clue: `Zileuton hits the upstream enzyme before LTA4 splits into LTB4 and LTC4/D4/E4; watch the liver.`,
+    choices: [`5-lipoxygenase; serum transaminases (LFTs)`, `CysLT1 receptor; serum potassium`, `Phospholipase A2; fasting glucose`],
+    correctIndex: 0,
+    explanation: `Correct: Zileuton directly inhibits 5-lipoxygenase (5-LOX), blocking synthesis of all leukotrienes (LTB4, LTC4, LTD4, LTE4), and requires periodic liver function test (LFT) monitoring due to hepatotoxicity. Distractor exclusion: Montelukast blocks CysLT1 downstream; phospholipase A2 is inhibited by corticosteroids.`,
+    secondOrderClue: `Blocks LTB4 + CysLTs -> Zileuton (5-LOX inhibitor) -> hepatotoxicity -> check LFTs.`,
+    phase1Pearl: `Blocking 5-LOX prevents LTB4-driven neutrophil chemotaxis in addition to cysteinyl leukotriene bronchoconstriction.`,
+    phase2Hallmark: `Elevated ALT/AST during the first 3 months of zileuton therapy.`,
+    phase3Secret: `Contraindicated in active liver disease; inhibits CYP1A2 (raises theophylline and warfarin levels).`,
+    dossierBullets: {
+      p1: [`Zileuton inhibits 5-lipoxygenase (upstream)`, `Montelukast/zafirlukast block CysLT1 (downstream)`],
+      p2: [`Check baseline and serial LFTs on zileuton`, `Monitor for Churg-Strauss (EGPA) unmasking on steroid taper`],
+      p3: [`Zileuton raises theophylline via CYP1A2 inhibition`, `Montelukast is preferred in kids (no LFT check)`]
+    }
+  },
+  {
+    id: `RS15-Q3`, lo: 15, sector: `sector_5`, compartment: `pulm_pharmacology`, ageGroup: `adult_elderly`, behavior: `receptor_pathway`,
+    loTitle: `Sector V • Leukotriene & Biologics`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Omalizumab vs. mepolizumab targets`,
+    stem: `A 29-year-old man has severe allergic asthma uncontrolled on high-dose ICS/LABA, with perennial dust-mite sensitization and elevated serum IgE (420 IU/mL). His allergist prescribes omalizumab. How does omalizumab differ mechanistically from mepolizumab?`,
+    clue: `"Omal-IgE-mab" neutralizes free IgE; "Mepo-IL5-mab" blocks the eosinophil maturation cytokine.`,
+    choices: [`Omalizumab binds free IgE; mepolizumab binds IL-5`, `Omalizumab binds IL-5; mepolizumab binds IgE`, `Omalizumab blocks IL-4R; mepolizumab blocks CysLT1`],
+    correctIndex: 0,
+    explanation: `Correct: Omalizumab is a monoclonal antibody binding the Fc region of free serum IgE (preventing Fc-epsilon-RI mast cell/basophil sensitization), whereas mepolizumab (and reslizumab) neutralizes IL-5 to block eosinophil maturation and survival. Distractor exclusion: Dupilumab blocks IL-4R-alpha (IL-4/IL-13); montelukast blocks CysLT1.`,
+    secondOrderClue: `High IgE allergic asthma -> Omalizumab (anti-IgE); high blood eosinophils -> Mepolizumab (anti-IL-5).`,
+    phase1Pearl: `Omalizumab binds free IgE without cross-linking mast-cell-bound IgE, leading to Fc-epsilon-RI downregulation.`,
+    phase2Hallmark: `Screen total serum IgE (30-700 IU/mL) for omalizumab vs. peripheral eosinophil count (>=150-300) for mepolizumab.`,
+    phase3Secret: `Observe patients in clinic after omalizumab injection for rare anaphylaxis (black-box warning).`,
+    dossierBullets: {
+      p1: [`Omalizumab binds free IgE -> ↓FcεRI density`, `Mepolizumab binds IL-5 -> ↓eosinophil survival`],
+      p2: [`IgE asthma -> omalizumab; Eosinophilic -> mepolizumab`, `Benralizumab targets IL-5R-alpha directly`],
+      p3: [`Monitor for anaphylaxis post-omalizumab injection`, `OMT lymphatic pump & rib raising support severe asthma`]
+    }
+  }
+];
+
+let appState = {
+  hp: 100,
+  xp: 0,
+  streak: 0,
+  deck: [],
+  deckIdx: 0,
+  missedIds: [],
+  masteredIds: [],
+  timerEnabled: false,
+  timeoutMode: `review`,
+  hintsVisible: false,
+  masterSound: true,
+  sfxOn: true,
+  bgmOn: false,
+  bgmVolume: 0.35,
+  filters: {
+    sector: `all`,
+    compartment: `all`,
+    ageGroup: `all`,
+    behavior: `all`,
+    angle: `all`,
+    phase: `all`,
+    lo: `all`
+  }
+};
+
+let currentShuffledChoices = [];
+let currentCorrectLane = 0;
+let timerInterval = null;
+let timeLeft = GAME_CONFIG.timerSeconds;
+let metaFadeTimer = null;
+let isMenuOpen = false;
+let isOutcomeOpen = false;
+let isCodexOpen = false;
+let codexSector = `all`;
+
+// 3D Synthwave Engine State
+let canvas, ctx;
+let animFrameId = null;
+let dustParticles = [];
+let portalProgress = 0;
+let targetedLane = 1;
+let craftX = 0.5;
+let craftTargetX = 0.5;
+let audioCtx = null;
+let bgmInterval = null;
+let customAudioEl = null;
+
+function initParticles() {
+  dustParticles = [];
+  for (let i = 0; i < 150; i++) {
+    dustParticles.push({
+      x: (Math.random() - 0.5) * 2.2,
+      y: Math.random() * 0.9 - 0.15,
+      z: Math.random(),
+      size: 2 + Math.random() * 2.5
+    });
+  }
+}
+
+function getCurrentQuestion() {
+  if (!appState.deck.length) return ALL_QUESTIONS[0];
+  return appState.deck[appState.deckIdx % appState.deck.length];
+}
+
+function buildDeck(shuffleOrder) {
+  const f = appState.filters;
+  let filtered = ALL_QUESTIONS.filter(q => {
+    if (f.sector === `missed`) {
+      if (!appState.missedIds.includes(q.id)) return false;
+    } else if (f.sector !== `all` && q.sector !== f.sector) {
+      return false;
+    }
+    if (f.compartment !== `all` && q.compartment !== f.compartment) return false;
+    if (f.ageGroup !== `all` && q.ageGroup !== f.ageGroup && q.ageGroup !== `all`) return false;
+    if (f.behavior !== `all` && q.behavior !== f.behavior) return false;
+    if (f.angle !== `all` && q.angle !== f.angle) return false;
+    if (f.phase !== `all` && q.phaseFocus !== f.phase) return false;
+    if (f.lo !== `all` && q.lo !== Number(f.lo)) return false;
+    return true;
+  });
+
+  if (!filtered.length) filtered = ALL_QUESTIONS.slice();
+  if (shuffleOrder) {
+    for (let i = filtered.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+    }
+  }
+  appState.deck = filtered;
+  if (appState.deckIdx >= appState.deck.length) appState.deckIdx = 0;
+}
+
+function renderSkillTree() {
+  const grid = document.getElementById(`skill-tree-grid`);
+  if (!grid) return;
+  grid.innerHTML = CODEX_DATA.map(item => {
+    const active = String(appState.filters.lo) === String(item.lo) ? `is-selected` : ``;
+    const count = ALL_QUESTIONS.filter(q => q.lo === item.lo && appState.masteredIds.includes(q.id)).length;
+    return `<button type="button" class="skill-node ${active}" onclick="selectSkillTreeLo(${item.lo})">
+      <div class="skill-node-top"><span>LO ${item.lo} • ${item.badgeMeta}</span><span>${count}/3</span></div>
+      <div class="skill-node-name">${item.entity}</div>
+    </button>`;
+  }).join(``);
+}
+
+function selectSkillTreeLo(loNum) {
+  appState.filters.lo = String(appState.filters.lo) === String(loNum) ? `all` : String(loNum);
+  appState.deckIdx = 0;
+  buildDeck(false);
+  renderSkillTree();
+  loadCurrentQuestion();
+  persistAppState();
+  playSfx(`steer`);
+}
+
+function loadCurrentQuestion() {
+  const q = getCurrentQuestion();
+  const theme = LO_VISUAL_THEMES[q.lo] || LO_VISUAL_THEMES[1];
+
+  const loBadge = document.getElementById(`lo-badge`);
+  const angleBadge = document.getElementById(`angle-badge`);
+  const phaseBadge = document.getElementById(`phase-badge`);
+  const corrBadge = document.getElementById(`corridor-badge`);
+  const metaBox = document.getElementById(`meta-badges`);
+
+  if (loBadge) loBadge.textContent = q.loTitle;
+  if (angleBadge) angleBadge.textContent = q.angle.toUpperCase();
+  if (phaseBadge) phaseBadge.textContent = q.phaseFocus.toUpperCase();
+  if (corrBadge) corrBadge.textContent = theme.tag;
+
+  if (metaBox) {
+    metaBox.classList.remove(`is-faded`);
+    clearTimeout(metaFadeTimer);
+    metaFadeTimer = setTimeout(() => metaBox.classList.add(`is-faded`), GAME_CONFIG.metaFadeMs);
+  }
+
+  const stemEl = document.getElementById(`q-stem-text`);
+  const clueEl = document.getElementById(`q-clue-text`);
+  if (stemEl) stemEl.textContent = q.stem;
+  if (clueEl) clueEl.textContent = q.clue;
+
+  const indexed = q.choices.map((txt, idx) => ({ txt, isCorrect: idx === q.correctIndex }));
+  for (let i = indexed.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indexed[i], indexed[j]] = [indexed[j], indexed[i]];
+  }
+  currentShuffledChoices = indexed;
+  currentCorrectLane = indexed.findIndex(c => c.isCorrect);
+
+  for (let i = 0; i < 3; i++) {
+    const laneTxt = document.getElementById(`lane-${i}-text`);
+    if (laneTxt && indexed[i]) laneTxt.textContent = indexed[i].txt;
+    const card = document.getElementById(`lane-card-${i}`);
+    if (card) card.classList.remove(`is-targeted`, `is-fused`);
+  }
+
+  portalProgress = 0.08;
+  targetedLane = 1;
+  craftTargetX = 0.5;
+  updateTelemetryUI();
+  resetQuestionTimer();
+}
+
+function updateTelemetryUI() {
+  const hpEl = document.getElementById(`hp-text`);
+  const hpChip = document.getElementById(`hp-chip`);
+  const xpEl = document.getElementById(`xp-text`);
+  const stEl = document.getElementById(`streak-text`);
+  const gtEl = document.getElementById(`gate-text`);
+  if (hpEl) hpEl.textContent = appState.hp;
+  if (hpChip) hpChip.classList.toggle(`is-low`, appState.hp <= 30);
+  if (xpEl) xpEl.textContent = appState.xp;
+  if (stEl) stEl.textContent = appState.streak;
+  if (gtEl) gtEl.textContent = `${appState.deckIdx + 1}/${appState.deck.length}`;
+}
+
+function syncTimerControlsUI() {
+  const btn = document.getElementById(`menu-timer-btn`);
+  const chip = document.getElementById(`timer-chip`);
+  const tTxt = document.getElementById(`timer-text`);
+  if (btn) {
+    btn.textContent = appState.timerEnabled ? `⏱ 50s Timer: ON [T]` : `⏱ 50s Timer: OFF [T]`;
+    btn.classList.toggle(`is-active`, appState.timerEnabled);
+  }
+  if (!appState.timerEnabled) {
+    if (tTxt) tTxt.textContent = `OFF`;
+    if (chip) chip.classList.remove(`is-urgent`);
+  } else {
+    if (tTxt) tTxt.textContent = `${timeLeft}s`;
+    if (chip) chip.classList.toggle(`is-urgent`, timeLeft <= 10);
+  }
+}
+
+function resetQuestionTimer() {
+  clearInterval(timerInterval);
+  timeLeft = GAME_CONFIG.timerSeconds;
+  syncTimerControlsUI();
+  if (!appState.timerEnabled) return;
+  timerInterval = setInterval(() => {
+    if (isMenuOpen || isOutcomeOpen || isCodexOpen) return;
+    timeLeft--;
+    syncTimerControlsUI();
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      if (appState.timeoutMode === `review`) {
+        resolveAnswer(-1, true);
+      } else {
+        timeLeft = 0;
+        syncTimerControlsUI();
+      }
+    }
+  }, 1000);
+}
+
+function toggleTimerEnabled() {
+  appState.timerEnabled = !appState.timerEnabled;
+  resetQuestionTimer();
+  persistAppState();
+  playSfx(`steer`);
+}
+
+function startTimedRun() {
+  appState.timerEnabled = true;
+  if (isMenuOpen) toggleMenuDrawer();
+  restartDeck(false);
+}
+
+function onTimeoutModeChange(val) {
+  appState.timeoutMode = val === `hold` ? `hold` : `review`;
+  persistAppState();
+}
+
+function selectLane(laneIdx) {
+  if (isOutcomeOpen || isCodexOpen || isMenuOpen) return;
+  targetedLane = laneIdx;
+  craftTargetX = laneIdx === 0 ? 0.2 : laneIdx === 1 ? 0.5 : 0.8;
+  for (let i = 0; i < 3; i++) {
+    const c = document.getElementById(`lane-card-${i}`);
+    if (c) {
+      c.classList.toggle(`is-targeted`, i === laneIdx);
+      c.classList.toggle(`is-fused`, i === laneIdx);
+    }
+  }
+  portalProgress = 1;
+  resolveAnswer(laneIdx, false);
+}
+
+function renderDossierBullets(ulId, items) {
+  const ul = document.getElementById(ulId);
+  if (!ul) return;
+  const arr = Array.isArray(items) ? items : [String(items || ``)];
+  ul.innerHTML = arr.filter(Boolean).map(line => `<li>• ${line}</li>`).join(``);
+}
+
+function resolveAnswer(laneIdx, isTimeout) {
+  clearInterval(timerInterval);
+  const q = getCurrentQuestion();
+  const isCorrect = !isTimeout && laneIdx === currentCorrectLane;
+  const vignette = document.getElementById(`vignette-overlay`);
+
+  let xpGain = 0;
+  if (isCorrect) {
+    appState.streak += 1;
+    xpGain = 100 + Math.min(appState.streak * 15, 75);
+    appState.xp += xpGain;
+    if (!appState.masteredIds.includes(q.id)) appState.masteredIds.push(q.id);
+    appState.missedIds = appState.missedIds.filter(id => id !== q.id);
+
+    if (appState.streak > 0 && appState.streak % GAME_CONFIG.streakHealEvery === 0) {
+      appState.hp = Math.min(100, appState.hp + GAME_CONFIG.streakHealAmount);
+      const toast = document.getElementById(`heal-toast`);
+      if (toast) {
+        toast.classList.add(`is-shown`);
+        setTimeout(() => toast.classList.remove(`is-shown`), 2200);
+      }
+    }
+    if (vignette) {
+      vignette.className = `vignette-overlay is-win`;
+      setTimeout(() => vignette.className = `vignette-overlay`, 400);
+    }
+    playSfx(`win`);
+  } else {
+    appState.streak = 0;
+    appState.hp = Math.max(0, appState.hp - 20);
+    if (!appState.missedIds.includes(q.id)) appState.missedIds.push(q.id);
+    if (vignette) {
+      vignette.className = `vignette-overlay is-hit`;
+      setTimeout(() => vignette.className = `vignette-overlay`, 450);
+    }
+    playSfx(`hit`);
+  }
+
+  updateTelemetryUI();
+  renderSkillTree();
+  persistAppState();
+
+  const verdictEl = document.getElementById(`outcome-verdict`);
+  if (verdictEl) {
+    if (isTimeout) {
+      verdictEl.textContent = `⏱ TIME'S UP — ${q.shortAnswer}`;
+      verdictEl.className = `popup-verdict is-timeout`;
+    } else if (isCorrect) {
+      verdictEl.textContent = `✔ CORRECT — ${q.shortAnswer}`;
+      verdictEl.className = `popup-verdict is-correct`;
+    } else {
+      verdictEl.textContent = `✖ INCORRECT — ${q.shortAnswer}`;
+      verdictEl.className = `popup-verdict is-wrong`;
+    }
+  }
+
+  const metaEl = document.getElementById(`outcome-entity-meta`);
+  const xpEl = document.getElementById(`outcome-xp-delta`);
+  const hpEl = document.getElementById(`outcome-hp-delta`);
+  if (metaEl) metaEl.textContent = `${q.loTitle} • ${q.angle}`;
+  if (xpEl) xpEl.textContent = isCorrect ? `+${xpGain} XP` : `+0 XP`;
+  if (hpEl) hpEl.textContent = isCorrect ? `HP ${appState.hp}` : `HP ${appState.hp} (-20)`;
+
+  const parts = q.explanation.split(`Distractor exclusion:`);
+  const expBullets = [parts[0].trim()];
+  if (parts[1]) expBullets.push(`Distractor exclusion: ${parts[1].trim()}`);
+
+  renderDossierBullets(`dossier-explanation`, expBullets);
+  renderDossierBullets(`dossier-second-order`, [q.secondOrderClue]);
+  renderDossierBullets(`dossier-phase1`, [q.phase1Pearl]);
+  renderDossierBullets(`dossier-phase2`, [q.phase2Hallmark]);
+  renderDossierBullets(`dossier-phase3`, [q.phase3Secret]);
+
+  renderDossierBullets(`dossier-angle-1`, q.dossierBullets.p1);
+  renderDossierBullets(`dossier-angle-2`, q.dossierBullets.p2);
+  renderDossierBullets(`dossier-angle-3`, q.dossierBullets.p3);
+
+  isOutcomeOpen = true;
+  const ob = document.getElementById(`outcome-backdrop`);
+  if (ob) ob.classList.add(`is-open`);
+}
+
+function closeOutcomeAndNext() {
+  isOutcomeOpen = false;
+  const ob = document.getElementById(`outcome-backdrop`);
+  if (ob) ob.classList.remove(`is-open`);
+  if (appState.hp <= 0) appState.hp = 100;
+  appState.deckIdx = (appState.deckIdx + 1) % appState.deck.length;
+  loadCurrentQuestion();
+  persistAppState();
+}
+
+function skipCurrentQuestion() {
+  appState.deckIdx = (appState.deckIdx + 1) % appState.deck.length;
+  loadCurrentQuestion();
+  persistAppState();
+  playSfx(`steer`);
+}
+
+function skipFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  skipCurrentQuestion();
+}
+
+function syncHintsUI() {
+  const app = document.getElementById(`xr-app`);
+  const menuBtn = document.getElementById(`menu-hints-btn`);
+  if (app) {
+    app.classList.toggle(`hints-visible`, appState.hintsVisible);
+    app.classList.toggle(`hints-hidden`, !appState.hintsVisible);
+  }
+  if (menuBtn) {
+    menuBtn.textContent = appState.hintsVisible ? `💡 Hints: ON [H]` : `💡 Hints: OFF [H]`;
+    menuBtn.classList.toggle(`is-active`, appState.hintsVisible);
+  }
+}
+
+function toggleHintsBar() {
+  appState.hintsVisible = !appState.hintsVisible;
+  syncHintsUI();
+  playSfx(`steer`);
+  persistAppState();
+}
+
+function toggleMenuDrawer() {
+  isMenuOpen = !isMenuOpen;
+  const mb = document.getElementById(`menu-backdrop`);
+  const btn = document.getElementById(`menu-toggle-btn`);
+  if (mb) mb.classList.toggle(`is-open`, isMenuOpen);
+  if (btn) {
+    btn.classList.toggle(`is-active`, isMenuOpen);
+    btn.setAttribute(`aria-expanded`, String(isMenuOpen));
+  }
+  if (isMenuOpen) renderSkillTree();
+}
+
+function openCodexFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  openCodex();
+}
+
+function openCodex() {
+  isCodexOpen = true;
+  const cb = document.getElementById(`codex-backdrop`);
+  if (cb) cb.classList.add(`is-open`);
+  renderCodexTable();
+}
+
+function closeCodex() {
+  isCodexOpen = false;
+  const cb = document.getElementById(`codex-backdrop`);
+  if (cb) cb.classList.remove(`is-open`);
+}
+
+function setCodexSector(sec) {
+  codexSector = sec;
+  document.querySelectorAll(`[data-codex-sector]`).forEach(btn => {
+    btn.classList.toggle(`is-active`, btn.dataset.codexSector === sec);
+  });
+  renderCodexTable();
+}
+
+function renderCodexTable() {
+  const tbody = document.getElementById(`codex-tbody`);
+  const qInput = document.getElementById(`codex-search-input`);
+  if (!tbody) return;
+  const query = (qInput ? qInput.value : ``).trim().toLowerCase();
+  const rows = CODEX_DATA.filter(item => {
+    if (codexSector !== `all` && item.sector !== codexSector) return false;
+    if (!query) return true;
+    const blob = `${item.entity} ${item.badgeMeta} ${item.etiology} ${item.pathogenesis} ${item.hallmarks} ${item.clinical} ${item.management}`.toLowerCase();
+    return blob.includes(query);
+  });
+  tbody.innerHTML = rows.map(item => `<tr>
+    <td class="amboss-scan-target"><strong>LO ${item.lo}: ${item.entity}</strong><br><span style="color:var(--secondary);font-size:0.74rem;">${item.badgeMeta}</span></td>
+    <td class="amboss-scan-target">${item.etiology}</td>
+    <td class="amboss-scan-target">${item.pathogenesis}</td>
+    <td class="amboss-scan-target">${item.hallmarks}</td>
+    <td class="amboss-scan-target">${item.clinical}</td>
+    <td class="amboss-scan-target">${item.management}</td>
+  </tr>`).join(``);
+}
+
+function onFilterChange() {
+  appState.filters.sector = document.getElementById(`sector-filter`)?.value || `all`;
+  appState.filters.compartment = document.getElementById(`compartment-filter`)?.value || `all`;
+  appState.filters.ageGroup = document.getElementById(`age-filter`)?.value || `all`;
+  appState.filters.behavior = document.getElementById(`behavior-filter`)?.value || `all`;
+  appState.filters.angle = document.getElementById(`angle-filter`)?.value || `all`;
+  appState.deckIdx = 0;
+  buildDeck(false);
+  loadCurrentQuestion();
+  persistAppState();
+}
+
+function setPhaseFilter(phase) {
+  appState.filters.phase = phase;
+  document.querySelectorAll(`[data-phase]`).forEach(btn => {
+    btn.classList.toggle(`is-active`, btn.dataset.phase === phase);
+  });
+  appState.deckIdx = 0;
+  buildDeck(false);
+  loadCurrentQuestion();
+  persistAppState();
+}
+
+function restartDeck(shuffle) {
+  appState.hp = 100;
+  appState.streak = 0;
+  appState.deckIdx = 0;
+  buildDeck(shuffle);
+  loadCurrentQuestion();
+  if (isMenuOpen) toggleMenuDrawer();
+  persistAppState();
+  playSfx(`win`);
+}
+
+function handleResetMastery(btn) {
+  if (!btn) return;
+  if (btn.dataset.armed !== `true`) {
+    btn.dataset.armed = `true`;
+    btn.textContent = `⚠ Confirm Reset?`;
+    setTimeout(() => {
+      if (btn.dataset.armed === `true`) {
+        btn.dataset.armed = `false`;
+        btn.textContent = `🗑 Reset Mastery`;
+      }
+    }, 3500);
+    return;
+  }
+  btn.dataset.armed = `false`;
+  btn.textContent = `🗑 Reset Mastery`;
+  appState.hp = 100;
+  appState.xp = 0;
+  appState.streak = 0;
+  appState.missedIds = [];
+  appState.masteredIds = [];
+  appState.deckIdx = 0;
+  buildDeck(false);
+  renderSkillTree();
+  loadCurrentQuestion();
+  persistAppState();
+}
+
+// AUDIO SUITE
+function ensureAudioCtx() {
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) audioCtx = new AC();
+  }
+  if (audioCtx && audioCtx.state === `suspended`) audioCtx.resume();
+}
+
+function playSfx(type) {
+  if (!appState.masterSound || !appState.sfxOn) return;
+  try {
+    ensureAudioCtx();
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    const now = audioCtx.currentTime;
+    if (type === `win`) {
+      osc.type = `triangle`;
+      osc.frequency.setValueAtTime(523.25, now);
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.14);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      osc.start(now);
+      osc.stop(now + 0.23);
+    } else if (type === `hit`) {
+      osc.type = `sawtooth`;
+      osc.frequency.setValueAtTime(160, now);
+      osc.frequency.exponentialRampToValueAtTime(65, now + 0.24);
+      gain.gain.setValueAtTime(0.14, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.26);
+      osc.start(now);
+      osc.stop(now + 0.27);
+    } else {
+      osc.type = `sine`;
+      osc.frequency.setValueAtTime(420, now);
+      gain.gain.setValueAtTime(0.06, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc.start(now);
+      osc.stop(now + 0.09);
+    }
+  } catch (e) {}
+}
+
+function syncAudioUI() {
+  const mBtn = document.getElementById(`master-sound-btn`);
+  const sBtn = document.getElementById(`sfx-btn`);
+  const bBtn = document.getElementById(`bgm-btn`);
+  if (mBtn) {
+    mBtn.textContent = appState.masterSound ? `🔊 Master Sound: ON` : `🔇 Master Sound: OFF`;
+    mBtn.classList.toggle(`is-active`, appState.masterSound);
+  }
+  if (sBtn) {
+    sBtn.textContent = appState.sfxOn ? `🎹 SFX: ON` : `🎹 SFX: OFF`;
+    sBtn.classList.toggle(`is-active`, appState.sfxOn);
+  }
+  if (bBtn) {
+    bBtn.textContent = appState.bgmOn ? `🧟 Zombies BGM: ON` : `🧟 Zombies BGM: OFF`;
+    bBtn.classList.toggle(`is-active`, appState.bgmOn);
+  }
+}
+
+function toggleMasterSound() {
+  appState.masterSound = !appState.masterSound;
+  if (!appState.masterSound) stopBgm();
+  else if (appState.bgmOn) startBgm();
+  syncAudioUI();
+  persistAppState();
+}
+
+function toggleSfx() {
+  appState.sfxOn = !appState.sfxOn;
+  syncAudioUI();
+  persistAppState();
+}
+
+function toggleBgm() {
+  appState.bgmOn = !appState.bgmOn;
+  if (appState.bgmOn && appState.masterSound) startBgm();
+  else stopBgm();
+  syncAudioUI();
+  persistAppState();
+}
+
+function setBgmVolume(val) {
+  appState.bgmVolume = Math.max(0, Math.min(1, Number(val) / 100));
+  if (customAudioEl) customAudioEl.volume = appState.bgmVolume;
+  persistAppState();
+}
+
+function startBgm() {
+  stopBgm();
+  if (customAudioEl) {
+    customAudioEl.volume = appState.bgmVolume;
+    customAudioEl.play().catch(() => {});
+    return;
+  }
+  ensureAudioCtx();
+  if (!audioCtx) return;
+  const notes = [110, 130.81, 146.83, 130.81, 103.83, 130.81, 164.81, 146.83];
+  let step = 0;
+  bgmInterval = setInterval(() => {
+    if (!appState.bgmOn || !appState.masterSound || !audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = `triangle`;
+    osc.frequency.setValueAtTime(notes[step % notes.length], audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.06 * appState.bgmVolume, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.34);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.35);
+    step++;
+  }, 380);
+}
+
+function stopBgm() {
+  clearInterval(bgmInterval);
+  bgmInterval = null;
+  if (customAudioEl) customAudioEl.pause();
+}
+
+function loadCustomAudio(input) {
+  const file = input?.files?.[0];
+  if (!file) return;
+  if (customAudioEl) customAudioEl.pause();
+  const url = URL.createObjectURL(file);
+  customAudioEl = new Audio(url);
+  customAudioEl.loop = true;
+  customAudioEl.volume = appState.bgmVolume;
+  appState.bgmOn = true;
+  if (appState.masterSound) customAudioEl.play().catch(() => {});
+  syncAudioUI();
+}
+
+// 3D SYNTHWAVE CANVAS ENGINE
+function resizeCanvas() {
+  const vp = document.getElementById(`viewport-band`);
+  if (!canvas || !vp) return;
+  canvas.width = vp.clientWidth;
+  canvas.height = vp.clientHeight;
+}
+
+function renderSynthwaveFrame() {
+  if (!canvas || !ctx) return;
+  const w = canvas.width;
+  const h = canvas.height;
+  if (!w || !h) {
+    animFrameId = requestAnimationFrame(renderSynthwaveFrame);
+    return;
+  }
+
+  const q = getCurrentQuestion();
+  const theme = LO_VISUAL_THEMES[q.lo] || LO_VISUAL_THEMES[1];
+  const horizonY = h * 0.24;
+  const vanishX = w * 0.5;
+
+  ctx.fillStyle = `#0a0a12`;
+  ctx.fillRect(0, 0, w, h);
+
+  // 150 Crisp 3D Square Pixel-Dust Particles (No ovals/blobs)
+  ctx.fillStyle = theme.particleColor;
+  for (let i = 0; i < dustParticles.length; i++) {
+    const p = dustParticles[i];
+    p.z -= 0.0045;
+    if (p.z <= 0.02) {
+      p.z = 1;
+      p.x = (Math.random() - 0.5) * 2.2;
+      p.y = Math.random() * 0.9 - 0.15;
+    }
+    const scale = 1 / p.z;
+    const sx = vanishX + p.x * w * 0.34 * scale;
+    const sy = horizonY + p.y * h * 0.3 * scale;
+    if (sx >= 0 && sx <= w && sy >= 0 && sy <= h) {
+      const sz = Math.max(1.5, p.size * (1.2 - p.z));
+      ctx.globalAlpha = Math.min(0.85, (1 - p.z) * 0.95);
+      ctx.fillRect(sx, sy, sz, sz);
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // Infinite Wireframe Floor
+  ctx.strokeStyle = `rgba(${theme.gridRgb}, 0.36)`;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let i = -10; i <= 10; i++) {
+    const bx = vanishX + i * (w * 0.11);
+    ctx.moveTo(vanishX, horizonY);
+    ctx.lineTo(bx, h);
+  }
+  const timeOffset = (performance.now() * 0.0005) % 1;
+  for (let r = 0; r < 12; r++) {
+    const t = ((r + timeOffset) / 12);
+    const y = horizonY + Math.pow(t, 2.2) * (h - horizonY);
+    ctx.moveTo(0, y);
+    ctx.lineTo(w, y);
+  }
+  ctx.stroke();
+
+  // 3 Teal Perspective Track Rails
+  const railTargets = [0.22, 0.5, 0.78];
+  ctx.strokeStyle = theme.railColor;
+  ctx.lineWidth = 2;
+  for (let i = 0; i < 3; i++) {
+    ctx.beginPath();
+    ctx.moveTo(vanishX + (i - 1) * 18, horizonY);
+    ctx.lineTo(w * railTargets[i], h);
+    ctx.stroke();
+  }
+
+  // 1:1 Portal Fusion Frames tracking live getBoundingClientRect()
+  const vpRect = canvas.getBoundingClientRect();
+  const portalColors = [`#ff2d78`, `#00ffcc`, `#ffe04a`];
+  portalProgress = Math.min(1, portalProgress + 0.018);
+
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`lane-card-${i}`);
+    if (!card) continue;
+    const r = card.getBoundingClientRect();
+    const targetX = r.left - vpRect.left;
+    const targetY = r.top - vpRect.top;
+    const targetW = r.width;
+    const targetH = r.height;
+
+    const startX = vanishX + (i - 1) * 26 - 14;
+    const startY = horizonY;
+    const curX = startX + (targetX - startX) * portalProgress;
+    const curY = startY + (targetY - startY) * portalProgress;
+    const curW = 28 + (targetW - 28) * portalProgress;
+    const curH = 18 + (targetH - 18) * portalProgress;
+
+    ctx.save();
+    ctx.strokeStyle = portalColors[i];
+    ctx.lineWidth = i === targetedLane ? 3 : 1.75;
+    ctx.shadowColor = portalColors[i];
+    ctx.shadowBlur = i === targetedLane ? 16 : 8;
+    ctx.strokeRect(curX, curY, curW, curH);
+    ctx.restore();
+  }
+
+  // Solid Geometric Teal Diamond Craft
+  craftX += (craftTargetX - craftX) * 0.16;
+  const cx = w * craftX;
+  const cy = h * 0.88;
+  ctx.save();
+  ctx.fillStyle = `#00ffcc`;
+  ctx.strokeStyle = `#34a88f`;
+  ctx.lineWidth = 2;
+  ctx.shadowColor = `#00ffcc`;
+  ctx.shadowBlur = 14;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - 16);
+  ctx.lineTo(cx + 18, cy + 6);
+  ctx.lineTo(cx, cy + 16);
+  ctx.lineTo(cx - 18, cy + 6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+
+  animFrameId = requestAnimationFrame(renderSynthwaveFrame);
+}
+
+// KEYBOARD SHORTCUTS
+document.addEventListener(`keydown`, e => {
+  if (e.target && [`INPUT`, `SELECT`, `TEXTAREA`].includes(e.target.tagName)) {
+    if (e.key === `Escape` && isCodexOpen) closeCodex();
+    return;
+  }
+  const k = e.key.toLowerCase();
+  if (e.key === `Escape`) {
+    if (isCodexOpen) closeCodex();
+    else if (isMenuOpen) toggleMenuDrawer();
+    return;
+  }
+  if (isOutcomeOpen) {
+    if (e.key === ` ` || e.key === `Enter`) {
+      e.preventDefault();
+      closeOutcomeAndNext();
+    }
+    return;
+  }
+  if (k === `m`) { e.preventDefault(); toggleMenuDrawer(); return; }
+  if (k === `c`) { e.preventDefault(); isCodexOpen ? closeCodex() : openCodex(); return; }
+  if (k === `h`) { e.preventDefault(); toggleHintsBar(); return; }
+  if (k === `s`) { e.preventDefault(); skipCurrentQuestion(); return; }
+  if (k === `t`) { e.preventDefault(); toggleTimerEnabled(); return; }
+  if (isMenuOpen || isCodexOpen) return;
+
+  if (k === `1` || k === `a` || e.key === `ArrowLeft`) { e.preventDefault(); selectLane(0); }
+  else if (k === `2` || k === `w` || e.key === `ArrowUp`) { e.preventDefault(); selectLane(1); }
+  else if (k === `3` || k === `d` || e.key === `ArrowRight`) { e.preventDefault(); selectLane(2); }
+});
+
+// STATE PERSISTENCE VIA GEMINI NOTEBOOK SHIM API
+async function persistAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.setAppState !== `function`) return;
+  try {
+    await window.notebookAppApi.setAppState({
+      hp: appState.hp,
+      xp: appState.xp,
+      streak: appState.streak,
+      deckIdx: appState.deckIdx,
+      missedIds: appState.missedIds,
+      masteredIds: appState.masteredIds,
+      timerEnabled: appState.timerEnabled,
+      timeoutMode: appState.timeoutMode,
+      hintsVisible: appState.hintsVisible,
+      masterSound: appState.masterSound,
+      sfxOn: appState.sfxOn,
+      bgmOn: appState.bgmOn,
+      bgmVolume: appState.bgmVolume,
+      filters: appState.filters
+    });
+  } catch (e) {}
+}
+
+async function restoreAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.getAppState !== `function`) return;
+  try {
+    const saved = await window.notebookAppApi.getAppState();
+    if (!saved) return;
+    if (typeof saved.hp === `number`) appState.hp = saved.hp;
+    if (typeof saved.xp === `number`) appState.xp = saved.xp;
+    if (typeof saved.streak === `number`) appState.streak = saved.streak;
+    if (typeof saved.deckIdx === `number`) appState.deckIdx = saved.deckIdx;
+    if (Array.isArray(saved.missedIds)) appState.missedIds = saved.missedIds;
+    if (Array.isArray(saved.masteredIds)) appState.masteredIds = saved.masteredIds;
+    if (typeof saved.timerEnabled === `boolean`) appState.timerEnabled = saved.timerEnabled;
+    if (saved.timeoutMode) appState.timeoutMode = saved.timeoutMode;
+    if (typeof saved.hintsVisible === `boolean`) appState.hintsVisible = saved.hintsVisible;
+    if (typeof saved.masterSound === `boolean`) appState.masterSound = saved.masterSound;
+    if (typeof saved.sfxOn === `boolean`) appState.sfxOn = saved.sfxOn;
+    if (typeof saved.bgmOn === `boolean`) appState.bgmOn = saved.bgmOn;
+    if (typeof saved.bgmVolume === `number`) appState.bgmVolume = saved.bgmVolume;
+    if (saved.filters) appState.filters = Object.assign({}, appState.filters, saved.filters);
+
+    const sf = document.getElementById(`sector-filter`);
+    const cf = document.getElementById(`compartment-filter`);
+    const af = document.getElementById(`age-filter`);
+    const bf = document.getElementById(`behavior-filter`);
+    const anf = document.getElementById(`angle-filter`);
+    const tm = document.getElementById(`timeout-mode-select`);
+    const vol = document.getElementById(`bgm-volume-slider`);
+
+    if (sf) sf.value = appState.filters.sector;
+    if (cf) cf.value = appState.filters.compartment;
+    if (af) af.value = appState.filters.ageGroup;
+    if (bf) bf.value = appState.filters.behavior;
+    if (anf) anf.value = appState.filters.angle;
+    if (tm) tm.value = appState.timeoutMode;
+    if (vol) vol.value = String(Math.round(appState.bgmVolume * 100));
+
+    document.querySelectorAll(`[data-phase]`).forEach(btn => {
+      btn.classList.toggle(`is-active`, btn.dataset.phase === appState.filters.phase);
+    });
+  } catch (e) {}
+}
+
+async function initApp() {
+  canvas = document.getElementById(`xr-canvas`);
+  if (canvas) ctx = canvas.getContext(`2d`);
+  initParticles();
+  resizeCanvas();
+  window.addEventListener(`resize`, resizeCanvas);
+
+  await restoreAppState();
+  syncHintsUI();
+  syncAudioUI();
+  buildDeck(false);
+  renderSkillTree();
+  loadCurrentQuestion();
+
+  cancelAnimationFrame(animFrameId);
+  renderSynthwaveFrame();
+
+  if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === `function`) {
+    window.notebookAppApi.notifyAppReady();
+  }
+}
+
+document.addEventListener(`DOMContentLoaded`, initApp);
+</script>
+</body>
+</html>
