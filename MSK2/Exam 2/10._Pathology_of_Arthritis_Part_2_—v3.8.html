@@ -1,0 +1,4313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="artifact-type" content="tool">
+<meta name="design-style" content="neon_noir">
+<title>Lecture 10: Pathology of Arthritis (Part 2) — XR 3-Lane Diagnostic Runner</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --background: #0a0a12;
+  --surface-container-low: #111118;
+  --surface-container: #141422;
+  --surface-container-high: #1e1e30;
+  --surface-overlay: rgba(10, 10, 18, 0.92);
+  --surface-glass: rgba(16, 16, 28, 0.96);
+  --surface-stem: rgba(24, 12, 26, 0.86);
+  --surface-lane-card: rgba(16, 16, 30, 0.88);
+  --surface-lane-card-hover: rgba(24, 20, 42, 0.94);
+
+  --on-surface: #e8e0f0;
+  --on-surface-bright: #ffffff;
+  --on-surface-variant: #a098b0;
+  --outline: #5a5068;
+  --outline-variant: #302840;
+
+  --primary: #ff2d78;
+  --on-primary: #1a0010;
+  --secondary: #00ffcc;
+  --on-secondary: #001a14;
+  --tertiary: #ffe04a;
+  --on-tertiary: #1a1500;
+  --data-4: #b388ff;
+  --positive: #00e6a8;
+  --warning: #ffe04a;
+  --error: #ff4444;
+  --focus: #00ffcc;
+
+  --font-headline: 'Sora', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-label: 'Space Mono', monospace;
+
+  --game-headline-size: clamp(1.15rem, 1rem + 0.45vw, 1.48rem);
+  --game-stem-size: clamp(1.04rem, 0.98rem + 0.28vw, 1.24rem);
+  --game-body-size: clamp(0.98rem, 0.94rem + 0.16vw, 1.08rem);
+  --game-label-size: 0.78rem;
+  --game-micro-size: 0.68rem;
+
+  --card-min-h: 158px;
+  --card-pad-y: 1.25rem;
+  --card-pad-x: 1.2rem;
+  --card-font: clamp(1.06rem, 1.0rem + 0.24vw, 1.24rem);
+  --card-gap: 1rem;
+  --stem-pad-y: 0.62rem;
+  --stem-pad-x: 1.1rem;
+
+  --modal-display-size: clamp(1.25rem, 1.1rem + 0.7vw, 1.75rem);
+  --modal-headline-size: clamp(1rem, 0.94rem + 0.3vw, 1.22rem);
+  --modal-body-size: clamp(0.875rem, 0.85rem + 0.12vw, 0.96rem);
+  --modal-label-size: 0.72rem;
+
+  --space-xs: 0.25rem;
+  --space-sm: 0.45rem;
+  --space-md: 0.85rem;
+  --space-lg: 1.25rem;
+  --rounded: 0.18rem;
+  --rounded-lg: 0.38rem;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+
+  --glow-text: 0 0 8px currentColor;
+  --glow-primary: 0 0 18px color-mix(in srgb, var(--primary) 48%, transparent);
+  --glow-secondary: 0 0 18px color-mix(in srgb, var(--secondary) 44%, transparent);
+  --glow-tertiary: 0 0 18px color-mix(in srgb, var(--tertiary) 46%, transparent);
+  --neon-border: 1px solid color-mix(in srgb, var(--primary) 32%, transparent);
+  --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 58%, transparent);
+  --neon-border-cyan: 1px solid color-mix(in srgb, var(--secondary) 42%, transparent);
+  --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+  --neon-inset-cyan: inset 0 0 12px color-mix(in srgb, var(--secondary) 10%, transparent);
+  --scanlines: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in srgb, var(--on-surface) 2.5%, transparent) 3px 4px);
+  --vignette-damage: radial-gradient(circle at center, transparent 45%, color-mix(in srgb, var(--error) 65%, transparent) 100%);
+  --vignette-heal: radial-gradient(circle at center, transparent 45%, color-mix(in srgb, var(--positive) 55%, transparent) 100%);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--background);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: var(--game-body-size);
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+}
+
+button, input, select {
+  font-family: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+#xr-app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background);
+  background-image: var(--scanlines);
+  overflow: hidden;
+}
+
+#xr-app.hints-visible {
+  --card-min-h: 90px;
+  --card-pad-y: 0.6rem;
+  --card-pad-x: 0.9rem;
+  --card-font: clamp(0.94rem, 0.9rem + 0.16vw, 1.06rem);
+  --card-gap: 0.7rem;
+  --stem-pad-y: 0.4rem;
+  --stem-pad-x: 0.95rem;
+  --game-stem-size: clamp(0.95rem, 0.91rem + 0.2vw, 1.1rem);
+}
+
+.top-mini-bar {
+  flex-shrink: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.28rem 0.65rem;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.menu-mini-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 32px;
+  padding: 0.22rem 0.65rem;
+  background: var(--surface-container);
+  color: var(--secondary);
+  border: var(--neon-border-cyan);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+}
+.menu-mini-btn:hover,
+.menu-mini-btn.is-active {
+  border-color: var(--secondary);
+  background: var(--surface-container-high);
+  box-shadow: var(--glow-secondary);
+  text-shadow: var(--glow-text);
+}
+
+.mini-telemetry {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.45rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--on-surface-variant);
+}
+.mini-telemetry::-webkit-scrollbar { display: none; }
+
+.tele-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.24rem;
+  white-space: nowrap;
+  padding: 0.14rem 0.42rem;
+  border-radius: var(--rounded);
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+}
+.tele-chip.is-hp { color: var(--positive); border-color: color-mix(in srgb, var(--positive) 40%, transparent); }
+.tele-chip.is-hp.is-low { color: var(--error); border-color: var(--error); }
+.tele-chip.is-xp { color: var(--secondary); }
+.tele-chip.is-streak { color: var(--tertiary); }
+.tele-chip.is-timer { color: var(--secondary); border-color: color-mix(in srgb, var(--secondary) 40%, transparent); }
+.tele-chip.is-timer.is-off { color: var(--on-surface-variant); border-color: var(--outline-variant); }
+.tele-chip.is-timer.is-hold { color: var(--tertiary); border-color: var(--tertiary); }
+.tele-chip.is-timer.is-urgent { color: var(--error); border-color: var(--error); }
+
+.question-stage {
+  flex-shrink: 0;
+  z-index: 12;
+  background: linear-gradient(180deg, rgba(17, 17, 24, 0.96) 0%, rgba(10, 10, 18, 0.84) 100%);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 0.4rem 0.85rem 0.48rem;
+  text-align: center;
+  transition: padding var(--dur-short) var(--ease-out);
+}
+
+#xr-app.hints-visible .question-stage {
+  padding: 0.28rem 0.75rem 0.34rem;
+}
+
+.question-container {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.question-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  max-height: 92px;
+  opacity: 1;
+  margin-bottom: 0.34rem;
+  overflow: hidden;
+  transition: opacity 400ms var(--ease-out), max-height 400ms var(--ease-out), margin-bottom 400ms var(--ease-out);
+}
+
+.question-meta-row.is-faded {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+}
+
+.meta-badge {
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  padding: 0.14rem 0.46rem;
+  border-radius: var(--rounded);
+  border: 1px solid var(--outline);
+  background: var(--surface-container);
+  color: var(--secondary);
+}
+.meta-badge.is-angle {
+  border-color: color-mix(in srgb, var(--primary) 54%, transparent);
+  color: var(--primary);
+}
+.meta-badge.is-phase {
+  border-color: color-mix(in srgb, var(--tertiary) 54%, transparent);
+  color: var(--tertiary);
+}
+.meta-badge.is-corridor {
+  border-color: color-mix(in srgb, var(--data-4) 55%, transparent);
+  color: var(--data-4);
+}
+
+.question-stem-box {
+  width: 100%;
+  max-width: 1020px;
+  margin: 0 auto;
+  background: var(--surface-stem);
+  border: var(--neon-border-lit);
+  box-shadow: var(--neon-inset);
+  border-radius: var(--rounded-lg);
+  padding: var(--stem-pad-y) var(--stem-pad-x);
+  max-height: 30dvh;
+  overflow-y: auto;
+  text-align: center;
+  transition: padding var(--dur-short) var(--ease-out);
+}
+
+#xr-app.hints-visible .question-stem-box {
+  max-height: 23dvh;
+}
+
+.question-stem {
+  margin: 0 auto;
+  font-family: var(--font-body);
+  font-size: var(--game-stem-size);
+  font-weight: 600;
+  color: var(--on-surface-bright);
+  text-align: center;
+  line-height: 1.4;
+  transition: font-size var(--dur-short) var(--ease-out);
+}
+
+.viewport-shell {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  background: var(--background);
+  overflow: hidden;
+}
+
+#xr-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.lane-overlay-container {
+  position: absolute;
+  top: 52%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(1120px, calc(100% - 1.5rem));
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--card-gap);
+  z-index: 10;
+  pointer-events: none;
+  transition: gap var(--dur-short) var(--ease-out);
+}
+
+.lane-dom-card {
+  --lane-color: var(--secondary);
+  pointer-events: auto;
+  position: relative;
+  background: rgba(14, 17, 27, 0.76);
+  backdrop-filter: blur(8px);
+  border: 1px solid color-mix(in srgb, var(--secondary) 38%, transparent);
+  border-radius: 0.45rem;
+  padding: var(--card-pad-y) var(--card-pad-x);
+  min-height: var(--card-min-h);
+  text-align: center;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--card-font);
+  font-weight: 700;
+  color: var(--on-surface-bright);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55),
+              inset 0 0 12px rgba(0, 255, 204, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+  line-height: 1.35;
+  touch-action: manipulation;
+  transition: min-height var(--dur-short) var(--ease-out),
+              padding var(--dur-short) var(--ease-out),
+              font-size var(--dur-short) var(--ease-out),
+              transform var(--dur-micro) var(--ease-out),
+              border-color var(--dur-short) var(--ease-out),
+              box-shadow var(--dur-short) var(--ease-out),
+              background-color var(--dur-short) var(--ease-out);
+}
+
+.lane-dom-card.lane-0 { --lane-color: var(--primary); }
+.lane-dom-card.lane-1 { --lane-color: var(--secondary); }
+.lane-dom-card.lane-2 { --lane-color: var(--tertiary); }
+
+.lane-dom-card:hover,
+.lane-dom-card.is-targeted {
+  border-color: color-mix(in srgb, var(--lane-color) 85%, transparent);
+  background: rgba(18, 22, 36, 0.92);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--lane-color) 32%, transparent),
+              inset 0 0 14px color-mix(in srgb, var(--lane-color) 10%, transparent);
+  transform: translateY(-2px);
+}
+
+.lane-dom-card.is-fused {
+  border-color: color-mix(in srgb, var(--lane-color) 78%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--lane-color) 28%, transparent),
+              inset 0 0 12px color-mix(in srgb, var(--lane-color) 10%, transparent);
+}
+
+.lane-dom-card.is-fused.is-targeted {
+  border-color: var(--lane-color);
+  box-shadow: 0 0 26px color-mix(in srgb, var(--lane-color) 42%, transparent),
+              inset 0 0 16px color-mix(in srgb, var(--lane-color) 14%, transparent);
+}
+
+.lane-dom-card.is-selected {
+  background: color-mix(in srgb, var(--lane-color) 20%, rgba(14, 17, 27, 0.96));
+  border-color: var(--lane-color);
+  box-shadow: 0 0 30px color-mix(in srgb, var(--lane-color) 65%, transparent);
+  transform: scale(1.015);
+}
+
+.lane-card-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.lane-portal-name {
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  opacity: 0.88;
+}
+
+.lane-key-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 0.06em;
+  padding: 0.12rem 0.45rem;
+  border-radius: 0.22rem;
+  border: 1px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  background: rgba(255, 45, 120, 0.08);
+}
+
+.lane-choice-body {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  text-align: center;
+}
+
+.fusion-lock-tag {
+  font-family: var(--font-label);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+  text-align: center;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity 220ms var(--ease-out), max-height 220ms var(--ease-out);
+}
+
+.lane-dom-card.is-fused .fusion-lock-tag {
+  opacity: 0.72;
+  max-height: 20px;
+}
+
+.vignette-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 12;
+  transition: opacity var(--dur-short) var(--ease-out);
+}
+.vignette-overlay.is-damage { background: var(--vignette-damage); opacity: 1; }
+.vignette-overlay.is-heal { background: var(--vignette-heal); opacity: 1; }
+
+.heal-toast {
+  position: absolute;
+  top: 0.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface-glass);
+  border: 1px solid var(--positive);
+  color: var(--positive);
+  font-family: var(--font-label);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.25rem 0.7rem;
+  border-radius: var(--rounded);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-short) var(--ease-out);
+  z-index: 15;
+}
+.heal-toast.is-visible { opacity: 1; }
+
+#hints-bar {
+  flex-shrink: 0;
+  z-index: 15;
+  background: var(--surface-container);
+  border-top: 2px solid color-mix(in srgb, var(--tertiary) 55%, transparent);
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.45);
+  padding: 0.48rem 0.85rem;
+  max-height: 22dvh;
+  overflow-y: auto;
+  text-align: center;
+}
+
+#xr-app.hints-hidden #hints-bar {
+  display: none;
+}
+
+.hints-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  text-align: center;
+}
+
+.hints-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.hints-tag {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tertiary);
+}
+
+.hints-subtag {
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  color: var(--secondary);
+  opacity: 0.9;
+}
+
+.hints-text {
+  margin: 0 auto;
+  font-size: clamp(0.88rem, 0.84rem + 0.16vw, 0.98rem);
+  color: var(--on-surface);
+  text-align: center;
+  line-height: 1.4;
+}
+
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: var(--surface-overlay);
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0.75rem;
+  overflow-y: auto;
+}
+.menu-backdrop.is-open { display: flex; }
+
+#top-menu-drawer {
+  width: min(1040px, 100%);
+  max-height: calc(100dvh - 1.5rem);
+  overflow-y: auto;
+  background: var(--surface-glass);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--secondary);
+  box-shadow: var(--glow-secondary);
+  border-radius: var(--rounded-lg);
+  padding: 1rem 1.15rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  text-align: center;
+}
+
+.menu-top-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  text-align: left;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.menu-title-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.brand-kicker {
+  display: inline-block;
+  align-self: flex-start;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  text-shadow: var(--glow-text);
+}
+
+.brand-title {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: var(--game-headline-size);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--on-surface-bright);
+}
+
+.menu-section-label {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--secondary);
+  text-align: left;
+  margin-bottom: 0.35rem;
+}
+
+.btn-neon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  background: var(--surface-container);
+  color: var(--primary);
+  border: var(--neon-border-lit);
+  border-radius: var(--rounded);
+  padding: 0.42rem 0.8rem;
+  min-height: 40px;
+  font-family: var(--font-label);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: box-shadow var(--dur-short) var(--ease-out),
+              border-color var(--dur-short) var(--ease-out),
+              background-color var(--dur-short) var(--ease-out);
+}
+.btn-neon:hover:not(:disabled) {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+  background: var(--surface-container-high);
+  text-shadow: var(--glow-text);
+}
+.btn-neon:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-neon.is-cyan { color: var(--secondary); border-color: color-mix(in srgb, var(--secondary) 48%, transparent); }
+.btn-neon.is-cyan:hover:not(:disabled) { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.btn-neon.is-yellow { color: var(--tertiary); border-color: color-mix(in srgb, var(--tertiary) 48%, transparent); }
+.btn-neon.is-yellow:hover:not(:disabled) { border-color: var(--tertiary); box-shadow: var(--glow-tertiary); }
+.btn-neon.is-purple { color: var(--data-4); border-color: color-mix(in srgb, var(--data-4) 52%, transparent); }
+.btn-neon.is-purple:hover:not(:disabled) { border-color: var(--data-4); box-shadow: 0 0 14px color-mix(in srgb, var(--data-4) 40%, transparent); }
+.btn-neon.is-active { background: var(--surface-container-high); box-shadow: var(--glow-secondary); }
+
+.menu-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+  gap: 0.45rem;
+}
+
+.controls-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: flex-start;
+  gap: 0.65rem;
+}
+
+.control-field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  flex: 1 1 200px;
+}
+
+.control-field label {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--on-surface-variant);
+}
+
+.neon-select {
+  width: 100%;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-bottom: 2px solid var(--secondary);
+  border-radius: var(--rounded);
+  padding: 0.35rem 0.6rem;
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  min-height: 40px;
+  cursor: pointer;
+}
+
+.volume-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 40px;
+}
+.volume-slider {
+  flex: 1 1 auto;
+  accent-color: var(--secondary);
+  cursor: pointer;
+}
+
+.phase-mix-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.phase-mix-pill {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  padding: 0.35rem 0.65rem;
+  min-height: 36px;
+  border-radius: var(--rounded);
+  border: 1px solid var(--outline);
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.phase-mix-pill.is-selected {
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: var(--glow-primary);
+}
+
+.menu-divider {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--outline-variant);
+  margin: 0.1rem 0;
+}
+
+.skill-tree-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: 0.45rem;
+}
+
+.skill-node {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.55rem 0.65rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.skill-node:hover { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.skill-node.is-mastered { border-color: var(--positive); }
+.skill-node.is-active-filter { border-color: var(--primary); background: var(--surface-container-high); }
+
+.skill-node-top {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  color: var(--secondary);
+}
+.skill-node-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--on-surface);
+  line-height: 1.3;
+}
+.skill-node-meta {
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  color: var(--on-surface-variant);
+}
+
+.hotkey-guide {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  color: var(--on-surface-variant);
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.45rem 0.65rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.inline-toast {
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  color: var(--tertiary);
+  text-align: left;
+  min-height: 1.1em;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--surface-overlay);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+}
+.modal-backdrop.is-open { display: flex; }
+
+#outcome-popup-modal {
+  width: 80vw;
+  height: 80vh;
+  max-width: 1120px;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-align: center;
+  font-size: var(--modal-body-size);
+}
+
+.popup-header {
+  flex-shrink: 0;
+  background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 0.55rem 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.popup-header-centered {
+  justify-content: center;
+  flex-wrap: wrap;
+  text-align: center;
+}
+.popup-verdict {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: var(--modal-headline-size);
+  font-weight: 800;
+  text-align: center;
+}
+.popup-verdict.is-correct { color: var(--positive); }
+.popup-verdict.is-wrong { color: var(--error); }
+.popup-verdict.is-cyan { color: var(--secondary); }
+
+.popup-question-pin {
+  flex-shrink: 0;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 0.45rem 0.85rem;
+  max-height: 18vh;
+  overflow-y: auto;
+  text-align: center;
+}
+.popup-question-pin-label {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  color: var(--secondary);
+  margin-bottom: 2px;
+  text-align: center;
+}
+.popup-question-pin-text {
+  margin: 0 auto;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--on-surface);
+  text-align: center;
+  line-height: 1.45;
+}
+
+.popup-scroll-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  text-align: center;
+}
+
+.dossier-block {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  padding: 0.65rem 0.85rem;
+  text-align: center;
+}
+.dossier-block.is-highlight {
+  border-color: color-mix(in srgb, var(--secondary) 45%, transparent);
+  box-shadow: var(--neon-inset-cyan);
+}
+.dossier-block-title {
+  margin: 0 0 0.25rem 0;
+  font-family: var(--font-label);
+  font-size: var(--modal-label-size);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--secondary);
+  text-align: center;
+}
+.dossier-block p,
+.dossier-line {
+  margin: 0 auto;
+  font-size: 0.88rem;
+  color: var(--on-surface);
+  text-align: center;
+  line-height: 1.5;
+}
+.dossier-line + .dossier-line { margin-top: 0.25rem; }
+
+.choice-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.choice-box {
+  background: var(--surface-container);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  padding: 0.5rem;
+  text-align: center;
+}
+.choice-box p {
+  margin: 0 auto;
+  text-align: center;
+}
+.choice-box.is-right { border-color: var(--positive); }
+.choice-box.is-wrong { border-color: var(--error); }
+.choice-box-tag {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+  margin-bottom: 2px;
+  text-align: center;
+}
+
+.angle-dossier-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.angle-mini-card {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.65rem 0.55rem;
+  text-align: center;
+}
+.angle-mini-card strong {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--primary);
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.popup-footer {
+  flex-shrink: 0;
+  background: var(--surface-container-high);
+  border-top: 1px solid var(--outline-variant);
+  padding: 0.5rem 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+#codex-modal {
+  width: min(94vw, 1340px);
+  height: 85vh;
+  background: var(--surface-container);
+  border: var(--neon-border-cyan);
+  box-shadow: var(--glow-secondary);
+  border-radius: var(--rounded-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-align: center;
+  font-size: var(--modal-body-size);
+}
+.codex-controls {
+  flex-shrink: 0;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 0.6rem 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: center;
+  gap: 0.55rem;
+}
+.codex-search-input {
+  width: 100%;
+  background: var(--surface-container);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-bottom: 2px solid var(--secondary);
+  border-radius: var(--rounded);
+  padding: 0.35rem 0.7rem;
+  min-width: 220px;
+  min-height: 38px;
+  font-size: var(--modal-body-size);
+}
+.codex-table-wrap {
+  flex: 1 1 auto;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.55rem 0.85rem;
+}
+.codex-table {
+  width: 100%;
+  min-width: 820px;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+  text-align: left;
+}
+.codex-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-container-high);
+  color: var(--secondary);
+  font-family: var(--font-label);
+  font-size: var(--modal-label-size);
+  text-transform: uppercase;
+  padding: 0.55rem;
+  border-bottom: 2px solid var(--outline);
+}
+.codex-table td {
+  padding: 0.55rem;
+  border-bottom: 1px solid var(--outline-variant);
+  vertical-align: top;
+  line-height: 1.45;
+}
+.codex-table tbody tr:nth-child(even) { background: var(--surface-container-low); }
+
+#run-summary-modal {
+  width: min(92vw, 840px);
+  max-height: 86vh;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  padding: 1.15rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  overflow: hidden;
+  font-size: var(--modal-body-size);
+}
+.summary-subtitle { margin: 0; color: var(--on-surface-variant); text-align: center; }
+.summary-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.summary-tile {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  padding: 0.55rem;
+  text-align: center;
+}
+.summary-tile-val {
+  display: block;
+  font-family: var(--font-headline);
+  font-size: var(--modal-display-size);
+  font-weight: 800;
+  color: var(--secondary);
+}
+.summary-tile-label {
+  font-family: var(--font-label);
+  font-size: var(--modal-label-size);
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+.missed-review-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.55rem;
+  text-align: left;
+  min-height: 110px;
+}
+.missed-item {
+  background: var(--surface-container);
+  border-left: 3px solid var(--error);
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--rounded);
+  font-size: 0.86rem;
+  margin-bottom: 0.4rem;
+  line-height: 1.45;
+}
+.missed-empty {
+  color: var(--positive);
+  font-family: var(--font-label);
+  font-size: var(--modal-label-size);
+  text-align: center;
+  padding: 1rem;
+}
+
+.shake-anim { animation: viewport-shake 300ms var(--ease-out); }
+@keyframes viewport-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); }
+  40% { transform: translateX(7px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+@media (max-width: 600px) {
+  :root {
+    --game-stem-size: 0.96rem;
+    --card-min-h: 96px;
+    --card-pad-y: 0.78rem;
+    --card-pad-x: 0.9rem;
+    --card-font: 0.97rem;
+    --card-gap: 0.65rem;
+    --stem-pad-y: 0.48rem;
+    --stem-pad-x: 0.75rem;
+  }
+
+  #xr-app.hints-visible {
+    --game-stem-size: 0.88rem;
+    --card-min-h: 60px;
+    --card-pad-y: 0.44rem;
+    --card-pad-x: 0.75rem;
+    --card-font: 0.88rem;
+    --card-gap: 0.42rem;
+    --stem-pad-y: 0.34rem;
+    --stem-pad-x: 0.65rem;
+  }
+
+  .top-mini-bar { padding: 0.24rem 0.45rem; }
+  .menu-mini-btn { min-height: 34px; padding: 0.2rem 0.55rem; font-size: 0.72rem; }
+  .mini-telemetry { gap: 0.3rem; font-size: 0.68rem; }
+  .tele-chip.is-xp { display: none; }
+
+  .question-stage { padding: 0.34rem 0.5rem 0.4rem; }
+  .question-stem-box { max-height: 30dvh; }
+  #xr-app.hints-visible .question-stem-box { max-height: 22dvh; }
+
+  .lane-overlay-container {
+    top: 44%;
+    width: calc(100% - 1rem);
+    grid-template-columns: 1fr;
+  }
+  .lane-card-head, .lane-key-label { display: none; }
+
+  #hints-bar { padding: 0.4rem 0.65rem; max-height: 22dvh; }
+  .hints-text { font-size: 0.84rem; line-height: 1.35; }
+
+  .menu-backdrop { padding: 0.35rem; }
+  #top-menu-drawer { max-height: calc(100dvh - 0.7rem); padding: 0.8rem; }
+  .menu-actions-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .choice-compare-grid,
+  .angle-dossier-grid { grid-template-columns: 1fr; }
+  .summary-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .modal-backdrop { padding: 0.35rem; }
+  #outcome-popup-modal,
+  #codex-modal,
+  #run-summary-modal {
+    width: 96vw;
+    height: 92dvh;
+    max-height: 92dvh;
+  }
+  .popup-question-pin { max-height: 20dvh; }
+  .codex-table { min-width: 680px; font-size: 0.8rem; }
+}
+
+@media (max-height: 500px) and (pointer: coarse) {
+  :root {
+    --game-stem-size: 0.88rem;
+    --card-min-h: 82px;
+    --card-pad-y: 0.5rem;
+    --card-pad-x: 0.68rem;
+    --card-font: 0.86rem;
+    --card-gap: 0.55rem;
+    --stem-pad-y: 0.3rem;
+    --stem-pad-x: 0.7rem;
+  }
+
+  #xr-app.hints-visible {
+    --game-stem-size: 0.82rem;
+    --card-min-h: 54px;
+    --card-pad-y: 0.32rem;
+    --card-pad-x: 0.55rem;
+    --card-font: 0.8rem;
+    --card-gap: 0.45rem;
+    --stem-pad-y: 0.24rem;
+    --stem-pad-x: 0.6rem;
+  }
+
+  .top-mini-bar { padding: 0.16rem 0.5rem; }
+  .menu-mini-btn { min-height: 28px; padding: 0.14rem 0.5rem; font-size: 0.68rem; }
+  .question-stage { padding: 0.2rem 0.55rem; }
+  .question-stem-box { max-height: 25dvh; }
+  #xr-app.hints-visible .question-stem-box { max-height: 20dvh; }
+  .lane-overlay-container {
+    top: 46%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: calc(100% - 1rem);
+  }
+  .lane-card-head, .lane-key-label { display: none; }
+  #hints-bar { padding: 0.26rem 0.6rem; max-height: 20dvh; }
+  .hints-text { font-size: 0.78rem; line-height: 1.3; }
+  #outcome-popup-modal,
+  #codex-modal,
+  #run-summary-modal {
+    width: 96vw;
+    height: 94dvh;
+    max-height: 94dvh;
+  }
+}
+
+@media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+  html { font-size: 200%; }
+  .lane-overlay-container {
+    top: 44%;
+    width: calc(100% - 1rem);
+    grid-template-columns: 1fr;
+  }
+  .lane-card-head, .lane-key-label { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+<div id="xr-app" class="hints-hidden">
+
+  <div class="top-mini-bar">
+    <button type="button" class="menu-mini-btn" id="menu-toggle-btn" onclick="toggleMenuDrawer()" aria-expanded="false" aria-controls="top-menu-drawer">☰ MENU</button>
+    <div class="mini-telemetry" aria-label="Game Status">
+      <span class="tele-chip is-hp" id="hp-chip">HP <span id="hp-text">100</span></span>
+      <span class="tele-chip is-xp">XP <span id="xp-text">0</span></span>
+      <span class="tele-chip is-streak">⚡<span id="streak-text">0</span></span>
+      <span class="tele-chip"><span id="progress-text">1/30</span></span>
+      <span class="tele-chip is-timer is-off" id="timer-chip">⏱ OFF</span>
+    </div>
+  </div>
+
+  <div class="question-stage">
+    <div class="question-container">
+      <div class="question-meta-row" id="question-meta-row">
+        <span class="meta-badge" id="lo-badge">LO 1</span>
+        <span class="meta-badge is-angle" id="angle-badge">PRESENTATION → DIAGNOSIS</span>
+        <span class="meta-badge is-phase" id="phase-badge">PHASE 1: PATHOGENESIS</span>
+        <span class="meta-badge is-corridor" id="corridor-badge">CORRIDOR</span>
+      </div>
+      <div class="question-stem-box">
+        <p class="question-stem amboss-scan-target" id="q-stem-text">Loading diagnostic corridor…</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="viewport-shell" id="viewport-shell">
+    <canvas id="xr-canvas" aria-label="3D Perspective Diagnostic Corridor"></canvas>
+    <div class="lane-overlay-container" id="lane-overlay-container">
+      <div id="lane-0-card" class="lane-dom-card lane-0" role="button" tabindex="0"
+           onmouseenter="previewLaneTarget(0)" onpointerenter="previewLaneTarget(0)" onfocus="previewLaneTarget(0)"
+           onclick="selectLaneAndResolve(0)"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(0);}">
+        <div class="lane-card-head">
+          <span class="lane-portal-name">LEFT PORTAL</span>
+          <span class="lane-key-label">1 / A / ←</span>
+        </div>
+        <div class="lane-choice-body">
+          <span id="lane-0-text" class="amboss-scan-target">Option A</span>
+        </div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+      <div id="lane-1-card" class="lane-dom-card lane-1 is-targeted" role="button" tabindex="0"
+           onmouseenter="previewLaneTarget(1)" onpointerenter="previewLaneTarget(1)" onfocus="previewLaneTarget(1)"
+           onclick="selectLaneAndResolve(1)"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(1);}">
+        <div class="lane-card-head">
+          <span class="lane-portal-name">CENTER PORTAL</span>
+          <span class="lane-key-label">2 / W / ↑</span>
+        </div>
+        <div class="lane-choice-body">
+          <span id="lane-1-text" class="amboss-scan-target">Option B</span>
+        </div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+      <div id="lane-2-card" class="lane-dom-card lane-2" role="button" tabindex="0"
+           onmouseenter="previewLaneTarget(2)" onpointerenter="previewLaneTarget(2)" onfocus="previewLaneTarget(2)"
+           onclick="selectLaneAndResolve(2)"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(2);}">
+        <div class="lane-card-head">
+          <span class="lane-portal-name">RIGHT PORTAL</span>
+          <span class="lane-key-label">3 / D / →</span>
+        </div>
+        <div class="lane-choice-body">
+          <span id="lane-2-text" class="amboss-scan-target">Option C</span>
+        </div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+    </div>
+    <div class="vignette-overlay" id="vignette-overlay"></div>
+    <div class="heal-toast" id="heal-toast">✚ STREAK BONUS +25 HP</div>
+  </div>
+
+  <div id="hints-bar" aria-live="polite">
+    <div class="hints-inner">
+      <div class="hints-header-row">
+        <span class="hints-tag">💡 HINT [H]</span>
+        <span class="hints-subtag" id="hints-meta-ref">LO 1 • Phase 1</span>
+      </div>
+      <p class="hints-text amboss-scan-target" id="q-clue-text">—</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="menu-backdrop" id="menu-backdrop" onclick="if(event.target===this)toggleMenuDrawer()">
+  <div id="top-menu-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+    <div class="menu-top-header">
+      <div class="menu-title-stack">
+        <span class="brand-kicker" id="drawer-kicker">PATHOLOGY OF ARTHRITIS • ALEX GASPARIAN, PhD // Interactive XR Raid</span>
+        <h1 class="brand-title" id="drawer-title">Lecture 10: Pathology of Arthritis (Part 2) — XR 3-Lane Diagnostic Runner</h1>
+      </div>
+      <button type="button" class="btn-neon" onclick="toggleMenuDrawer()">✕ Close</button>
+    </div>
+
+    <div>
+      <div class="menu-section-label">Quick Actions &amp; Session Controls</div>
+      <div class="menu-actions-grid">
+        <button type="button" class="btn-neon is-yellow" id="menu-hints-btn" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+        <button type="button" class="btn-neon is-cyan" onclick="openCodexFromMenu()">📖 Loot Codex [C]</button>
+        <button type="button" class="btn-neon is-yellow" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+        <button type="button" class="btn-neon is-cyan" id="menu-timer-btn" onclick="toggleTimerActive()">⏱ 50s Timer: OFF [T]</button>
+        <button type="button" class="btn-neon" onclick="startTimedSession()">⚡ Start 50s Timed Run</button>
+        <button type="button" class="btn-neon is-yellow" id="master-sound-btn" onclick="toggleMasterSound()">🔊 Sound: ON</button>
+        <button type="button" class="btn-neon is-cyan" id="audio-toggle-btn" onclick="toggleSfx()">🔊 SFX: ON</button>
+        <button type="button" class="btn-neon is-purple" id="menu-bgm-btn" onclick="toggleBgm()">🎵 Zombies BGM: OFF</button>
+        <button type="button" class="btn-neon is-cyan" onclick="document.getElementById('bgm-file-input').click()">📂 Custom MP3/WAV</button>
+        <button type="button" class="btn-neon" onclick="restartOrdered()">↺ Restart Ordered</button>
+        <button type="button" class="btn-neon is-cyan" onclick="restartRandomized()">🔀 Shuffle Deck</button>
+        <button type="button" class="btn-neon is-yellow" id="reset-run-btn" onclick="handleResetMastery(this)">⚠ Reset Mastery</button>
+      </div>
+      <input type="file" id="bgm-file-input" accept="audio/*" style="display:none" onchange="handleCustomBgmUpload(event)">
+    </div>
+
+    <hr class="menu-divider">
+
+    <div class="controls-strip">
+      <div class="control-field">
+        <label for="sector-filter">Dungeon Sector (LO / Review Queue)</label>
+        <select id="sector-filter" class="neon-select" onchange="applyFilters()">
+          <option value="all">All Sectors</option>
+          <option value="missed" id="missed-sector-option">🎯 Missed Gates Only (0)</option>
+        </select>
+      </div>
+      <div class="control-field">
+        <label for="angle-filter">Question Angle</label>
+        <select id="angle-filter" class="neon-select" onchange="applyFilters()">
+          <option value="all">All 3 Angles</option>
+          <option value="Presentation -> Diagnosis">Angle 1: Presentation → Diagnosis</option>
+          <option value="Mechanism -> Pathophysiology">Angle 2: Mechanism → Pathophysiology</option>
+          <option value="Hallmarks -> Management">Angle 3: Hallmarks → Management</option>
+        </select>
+      </div>
+      <div class="control-field">
+        <label for="times-up-select">Time's Up Mode (50s Timer)</label>
+        <select id="times-up-select" class="neon-select" onchange="applyTimerSettings()">
+          <option value="fail">Time's Up = Wrong → Review Screen</option>
+          <option value="hold">Hold at 0s (No Penalty)</option>
+        </select>
+      </div>
+      <div class="control-field">
+        <label for="bgm-volume-slider">BGM Volume</label>
+        <div class="volume-row">
+          <input type="range" id="bgm-volume-slider" class="volume-slider" min="0" max="100" value="35" oninput="updateBgmVolume(this.value)">
+          <span style="font-family:var(--font-label);font-size:0.74rem;color:var(--secondary)" id="bgm-vol-label">35%</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="menu-section-label">Phase Distribution Filter (30% / 35% / 35%)</div>
+      <div class="phase-mix-strip">
+        <button type="button" class="phase-mix-pill is-selected" data-phase="all" onclick="setPhaseFilter('all')">All Phases (30/35/35%)</button>
+        <button type="button" class="phase-mix-pill" data-phase="Phase 1: Pathogenesis" onclick="setPhaseFilter('Phase 1: Pathogenesis')">Phase 1: Pathogenesis (30%)</button>
+        <button type="button" class="phase-mix-pill" data-phase="Phase 2: Histology / Structure" onclick="setPhaseFilter('Phase 2: Histology / Structure')">Phase 2: Histology / Structure (35%)</button>
+        <button type="button" class="phase-mix-pill" data-phase="Phase 3: Clinical & Management" onclick="setPhaseFilter('Phase 3: Clinical & Management')">Phase 3: Clinical &amp; Management (35%)</button>
+      </div>
+    </div>
+
+    <div class="inline-toast" id="menu-status-msg" role="status" aria-live="polite"></div>
+    <hr class="menu-divider">
+
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;flex-wrap:wrap;gap:0.4rem;">
+        <span class="menu-section-label" style="margin:0;">Objective Skill Tree (Tap to Deploy)</span>
+        <span style="font-family:var(--font-label);font-size:0.7rem;color:var(--on-surface-variant);" id="mastery-summary">Mastered: 0 / 5 LOs • Accuracy: --%</span>
+      </div>
+      <div class="skill-tree-grid" id="skill-tree-grid"></div>
+    </div>
+
+    <div class="hotkey-guide">
+      <strong>Keyboard Shortcuts:</strong> [1 / 2 / 3] or [A / W / D] or [← / ↑ / →] Select Portal • [H] Toggle Bottom Hints • [M] Menu • [C] Loot Codex • [S] Skip • [T] Toggle 50s Timer • [Space / Enter] Continue Review
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="outcome-backdrop" role="dialog" aria-modal="true" aria-labelledby="outcome-verdict">
+  <div id="outcome-popup-modal">
+    <div class="popup-header popup-header-centered">
+      <h2 class="popup-verdict" id="outcome-verdict">✔ CORRECT — ARTHRITIS</h2>
+      <span class="meta-badge" id="outcome-xp-delta">+100 XP</span>
+      <span class="meta-badge is-phase" id="outcome-hp-delta">+5 HP</span>
+    </div>
+    <div class="popup-question-pin">
+      <span class="popup-question-pin-label" id="outcome-lo-ref">Original Board Vignette</span>
+      <p class="popup-question-pin-text amboss-scan-target" id="outcome-question-text"></p>
+    </div>
+    <div class="popup-scroll-body" id="outcome-scroll-body">
+      <div class="dossier-block is-highlight">
+        <h3 class="dossier-block-title">1. Your Choice vs. Correct Answer</h3>
+        <div class="choice-compare-grid">
+          <div class="choice-box" id="your-choice-box">
+            <span class="choice-box-tag">Your Selected Lane</span>
+            <p id="your-choice-text" class="amboss-scan-target"></p>
+          </div>
+          <div class="choice-box is-right">
+            <span class="choice-box-tag">Correct Answer</span>
+            <p id="correct-choice-text" class="amboss-scan-target"></p>
+          </div>
+        </div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">2. Concise Explanation &amp; Distractor Exclusion</h3>
+        <div id="dossier-explanation" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">3. Second-Order Vignette Clue</h3>
+        <div id="dossier-board-clue" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">4. Core Mechanism &amp; Pathogenesis Pearls (Phase 1)</h3>
+        <div id="dossier-pathogenesis" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">5. High-Yield Morphology &amp; Structural Hallmarks (Phase 2)</h3>
+        <div id="dossier-morphology" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">6. Guild Master's Secret &amp; Clinical Management (Phase 3)</h3>
+        <div id="dossier-epi-tx" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block is-highlight">
+        <h3 class="dossier-block-title">7. Complete 3-Phase Topic Dossier</h3>
+        <div class="angle-dossier-grid">
+          <div class="angle-mini-card">
+            <strong>Phase 1: Pathogenesis</strong>
+            <div id="dossier-angle-1" class="amboss-scan-target"></div>
+          </div>
+          <div class="angle-mini-card">
+            <strong>Phase 2: Histology / Structure</strong>
+            <div id="dossier-angle-2" class="amboss-scan-target"></div>
+          </div>
+          <div class="angle-mini-card">
+            <strong>Phase 3: Clinical / Tx</strong>
+            <div id="dossier-angle-3" class="amboss-scan-target"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="popup-footer">
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(-180)">▲ Up</button>
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(180)">▼ Down</button>
+      <button type="button" class="btn-neon" id="continue-runner-btn" onclick="continueToNextGate()">▶ Continue Runner [Space / Enter]</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="codex-backdrop" role="dialog" aria-modal="true" aria-labelledby="codex-title">
+  <div id="codex-modal">
+    <div class="popup-header">
+      <h2 class="popup-verdict is-cyan" id="codex-title">Master Raid Loot Codex</h2>
+      <button type="button" class="btn-neon" onclick="closeCodex()">✕ Close [Esc]</button>
+    </div>
+    <div class="codex-controls">
+      <div class="control-field" style="flex:1 1 240px;">
+        <label for="codex-search">Search Entity, Mechanism, Sign, or Countermeasure</label>
+        <input type="text" id="codex-search" class="codex-search-input" placeholder="Search keyword…" oninput="renderCodexTable()">
+      </div>
+      <div class="phase-mix-strip">
+        <button type="button" class="phase-mix-pill is-selected" data-codex-tag="all" onclick="setCodexTag('all')">All Objectives</button>
+        <button type="button" class="phase-mix-pill" data-codex-tag="cat_1" onclick="setCodexTag('cat_1')">Bacterial &amp; TB</button>
+        <button type="button" class="phase-mix-pill" data-codex-tag="cat_2" onclick="setCodexTag('cat_2')">Lyme &amp; Viral</button>
+        <button type="button" class="phase-mix-pill" data-codex-tag="cat_3" onclick="setCodexTag('cat_3')">Crystal Arthropathies</button>
+      </div>
+    </div>
+    <div class="codex-table-wrap">
+      <table class="codex-table">
+        <thead>
+          <tr>
+            <th>LO &amp; Entity / Boss</th>
+            <th>Etiology / Trigger</th>
+            <th>Pathogenesis Cascade</th>
+            <th>Gross &amp; Histology Hallmarks</th>
+            <th>Clinical Presentation</th>
+            <th>Management &amp; Guild Secret</th>
+          </tr>
+        </thead>
+        <tbody id="codex-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="summary-backdrop" role="dialog" aria-modal="true" aria-labelledby="summary-title">
+  <div id="run-summary-modal">
+    <h2 class="popup-verdict is-cyan" id="summary-title">DIAGNOSTIC RUN COMPLETE</h2>
+    <p class="summary-subtitle" id="summary-subtitle">Lecture 10: Pathology of Arthritis (Part 2)</p>
+    <div class="summary-metrics">
+      <div class="summary-tile"><span class="summary-tile-val" id="sum-xp">0</span><span class="summary-tile-label">Total XP</span></div>
+      <div class="summary-tile"><span class="summary-tile-val" id="sum-acc">0%</span><span class="summary-tile-label">Accuracy</span></div>
+      <div class="summary-tile"><span class="summary-tile-val" id="sum-streak">0</span><span class="summary-tile-label">Best Streak</span></div>
+      <div class="summary-tile"><span class="summary-tile-val" id="sum-hp">100</span><span class="summary-tile-label">Final HP</span></div>
+    </div>
+    <div class="missed-review-list" id="missed-review-list"></div>
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:0.5rem;">
+      <button type="button" class="btn-neon is-yellow" id="retry-missed-btn" onclick="retryMissedOnly()">🎯 Retry Missed Gates</button>
+      <button type="button" class="btn-neon" onclick="restartOrdered()">↺ Restart In Order</button>
+      <button type="button" class="btn-neon is-cyan" onclick="restartRandomized()">🔀 Shuffle All</button>
+    </div>
+  </div>
+</div>
+
+<audio id="custom-bgm-audio" loop></audio>
+<api-shim></api-shim>
+<script>
+const GAME_CONFIG = {
+  title: `Lecture 10: Pathology of Arthritis (Part 2) — XR 3-Lane Diagnostic Runner`,
+  kicker: `PATHOLOGY OF ARTHRITIS • ALEX GASPARIAN, PhD // Interactive XR Raid`,
+  maxHp: 100,
+  hpPenalty: 15,
+  hpReward: 5,
+  healAmount: 25,
+  healStreakStep: 4,
+  stopDistanceMeters: 5,
+  gateStartDistance: 95,
+  gateApproachSpeed: 24,
+  timerSeconds: 50,
+  metaFadeMs: 3000
+};
+
+const LANE_COLORS = ['#ff2d78', '#00ffcc', '#ffe04a'];
+
+const DEFAULT_THEME_CYCLE = [
+  { tag: `DIAGNOSTIC VOID • GOLDEN PIXEL DUST`, particleColor: `#e8cf58`, gridRgb: `108, 92, 172`, railColor: `#34a88f` },
+  { tag: `DIAGNOSTIC VOID • AMBER SPARK DUST`, particleColor: `#f2a86b`, gridRgb: `122, 82, 160`, railColor: `#34a88f` },
+  { tag: `DIAGNOSTIC VOID • COOL CYAN PIXELS`, particleColor: `#66e6d6`, gridRgb: `92, 108, 174`, railColor: `#34a88f` },
+  { tag: `DIAGNOSTIC VOID • CRIMSON-GOLD DUST`, particleColor: `#ff6b8b`, gridRgb: `132, 78, 148`, railColor: `#34a88f` },
+  { tag: `DIAGNOSTIC VOID • VIOLET-GOLD PIXELS`, particleColor: `#c8a8ff`, gridRgb: `118, 92, 184`, railColor: `#34a88f` }
+];
+
+const LO_VISUAL_THEMES = {
+  1: {
+    tag: `PURULENT SYNOVIAL BREACH • CRIMSON SPARKS`,
+    particleColor: `#ff6b8b`,
+    gridRgb: `132, 78, 148`,
+    railColor: `#34a88f`
+  },
+  2: {
+    tag: `CASEATING GRANULOMA VAULT • AMBER DUST`,
+    particleColor: `#f2a86b`,
+    gridRgb: `122, 82, 160`,
+    railColor: `#34a88f`
+  },
+  3: {
+    tag: `SPIROCHETE & VIRAL NEXUS • COOL CYAN PIXELS`,
+    particleColor: `#66e6d6`,
+    gridRgb: `92, 108, 174`,
+    railColor: `#34a88f`
+  },
+  4: {
+    tag: `URATE TOPHUS CHAMBER • GOLDEN PIXEL DUST`,
+    particleColor: `#f5dc62`,
+    gridRgb: `112, 96, 168`,
+    railColor: `#34a88f`
+  },
+  5: {
+    tag: `CHONDROCALCINOSIS GRID • VIOLET-TEAL PIXELS`,
+    particleColor: `#c8a8ff`,
+    gridRgb: `118, 92, 184`,
+    railColor: `#34a88f`
+  }
+};
+
+const CODEX_DATA = [
+  {
+    lo: 1,
+    tag: `cat_1`,
+    entity: `Suppurative (Septic) Arthritis`,
+    badgeMeta: `Surgical Emergency`,
+    etiology: `Hematogenous seeding (#1), direct inoculation (trauma, surgery, arthrocentesis), contiguous soft tissue infection, or osteomyelitis extension. Pathogens: S. aureus (#1 overall), Streptococcus spp. (#2), N. gonorrhoeae (sexually active young adults), E. coli / Gram-negatives (older/immunocompromised), Candida (immunocompromised).`,
+    pathogenesis: `Synovium capillary fenestrations lack a limiting basement membrane, permitting rapid bacterial entry. Massive neutrophil recruitment releases neutrophil elastase, proteases, and inflammatory cytokines that drive irreversible articular chondrolysis within 48 hours.`,
+    hallmarks: `Purulent synovial fluid with >50,000 WBC/μL (frequently >100,000 WBC/μL), >75% neutrophils (PMNs), and decreased synovial glucose (<50% of serum glucose). Positive Gram stain and bacterial culture; marked knee joint effusion.`,
+    clinical: `Sudden onset of painful, swollen, warm, erythematous monoarthritis (most commonly knee) with severely restricted range of motion, fever, leukocytosis, and elevated ESR/CRP. Disseminated gonococcal disease adds tenosynovitis, dermatitis, and migratory polyarthralgias.`,
+    management: `Mandatory emergency synovial fluid aspiration BEFORE starting antibiotics, paired with urgent surgical or needle arthrocentesis drainage and prompt empiric IV antibiotics. Guild Master's Secret: Acute monoarthritis is septic arthritis until proven otherwise.`
+  },
+  {
+    lo: 2,
+    tag: `cat_1`,
+    entity: `Mycobacterial (Tuberculous) Arthritis`,
+    badgeMeta: `Granulomatous`,
+    etiology: `Mycobacterium tuberculosis reaching the joint via hematogenous spread from pulmonary tuberculosis or direct extension from adjacent tuberculous osteomyelitis (including spinal spread forming a psoas cold abscess).`,
+    pathogenesis: `Waxy mycolic acid cell wall resists clearance, eliciting T-cell–mediated chronic granulomatous synovitis with caseous necrosis and slow, progressive osteocartilaginous destruction.`,
+    hallmarks: `Caseating granulomatous synovitis with epithelioid histiocytes, caseous necrosis, and Langhans multinucleated giant cells containing horseshoe-arranged peripheral nuclei. Acid-fast (Ziehl-Neelsen) carbol fuchsin stain resists acid-alcohol decolorization.`,
+    clinical: `Chronic, indolent progressive monoarthritis predominantly affecting large weight-bearing joints (hip > knee > ankle), often accompanied by psoas cold abscess extension without acute purulent warmth.`,
+    management: `Confirm via synovial biopsy, AFB (Ziehl-Neelsen) stain, and mycobacterial cultures; treat with targeted anti-tuberculous therapy. Guild Master's Secret: Chronic monoarthritis + caseating granulomas + Langhans giant cells = TB arthritis.`
+  },
+  {
+    lo: 3,
+    tag: `cat_2`,
+    entity: `Lyme Arthritis & Viral Arthritis`,
+    badgeMeta: `Vector & Immune`,
+    etiology: `Lyme: Borrelia burgdorferi via Ixodes tick bite. Viral: Parvovirus B19, Chikungunya, HBV, HCV, Rubella, and HIV.`,
+    pathogenesis: `Lyme: OspA/OspC outer surface proteins and antigenic variation sustain persistent synovial immune stimulation months after infection. Viral: Transient immune-mediated synovitis (typically resolves in 1–6 weeks, though Chikungunya, HBV, HCV, and Parvovirus B19 may become chronic).`,
+    hallmarks: `Lyme: Chronic proliferative synovitis with papillary (villous) synovial hypertrophy, dense lymphoplasmacytic infiltrate, onion-skin arteritis, neovascularization, fibrin deposition, plus MRI large knee effusion and enlarged popliteal lymph nodes.`,
+    clinical: `Lyme: Intermittent or persistent monoarthritis/oligoarthritis (knee >> ankle, elbow, shoulder) with massive swelling out of proportion to pain, preceded by erythema migrans, CN VII palsy, or AV block. Viral: Acute/subacute symmetric small-joint polyarthritis (hands/wrists) with fever, rash, and lymphadenopathy mimicking RA.`,
+    management: `Lyme diagnosis: Two-tier ELISA + Western blot (or synovial fluid PCR); treat with doxycycline or amoxicillin (IV ceftriaxone for refractory arthritis). Viral diagnosis: Clinical pattern + virus-specific serology/PCR when indicated.`
+  },
+  {
+    lo: 4,
+    tag: `cat_3`,
+    entity: `Gout (Monosodium Urate Deposition)`,
+    badgeMeta: `Needle + Negative`,
+    etiology: `Hyperuricemia (>6.8 mg/dL at 37°C) caused by absent functional urate oxidase in humans, ~90% renal underexcretion (primary gout, CKD, diuretics, cyclosporine, dehydration, low-dose aspirin), or ~10% overproduction (leukemia, tumor lysis syndrome, HGPRT deficiency: Kelley-Seegmiller, Lesch-Nyhan).`,
+    pathogenesis: `Lower temperature in peripheral joints drops urate solubility, precipitating MSU crystals (especially 1st MTP). Macrophage phagocytosis induces lysosomal rupture, NLRP3 inflammasome assembly, caspase-1 activation, and mature IL-1β release driving neutrophilic influx.`,
+    hallmarks: `Synovial fluid shows needle-shaped, strongly negatively birefringent MSU crystals (yellow when parallel to slow compensator axis, blue when perpendicular). Tophi: formalin dissolves urate leaving pale amorphous eosinophilic zones rimmed by macrophages, foreign-body giant cells, and fibrosis; radiographs show "punched-out" / "rat-bite" overhanging cortical margin erosions.`,
+    clinical: `Four stages: asymptomatic hyperuricemia → acute gouty arthritis (sudden severe monoarthritis, classically 1st MTP podagra; triggers include alcohol, purines, dehydration, trauma, surgery, diuretics) → intercritical gout → chronic tophaceous gout with extruded chalky urate and deformities.`,
+    management: `Acute flare: NSAIDs, colchicine, or glucocorticoids (avoid low-dose aspirin because it promotes renal URAT1 urate retention). Chronic prevention: urate-lowering therapy (allopurinol, febuxostat, probenecid, pegloticase). Guild Master's Secret: Serum uric acid may be normal during an acute attack!`
+  },
+  {
+    lo: 5,
+    tag: `cat_3`,
+    entity: `CPPD (Pseudogout) & Hemochromatosis Arthropathy`,
+    badgeMeta: `Rhomboid + Positive`,
+    etiology: `Idiopathic advanced age (>50 years) or secondary metabolic disorders: hemochromatosis, hyperparathyroidism, hypomagnesemia, hypothyroidism, hypophosphatasia, ochronosis, and prior joint damage.`,
+    pathogenesis: `Inorganic pyrophosphate (PPi) dysregulation (ANKH transporter overexpression, altered tissue-nonspecific alkaline phosphatase, cartilage matrix aging, and iron-induced nucleation in hemochromatosis) promotes CPP crystal deposition in cartilage; crystal shedding activates the NLRP3 inflammasome → IL-1β → neutrophilic synovitis.`,
+    hallmarks: `Rhomboid-shaped, weakly positively birefringent CPP crystals (blue when parallel to slow compensator axis, yellow when perpendicular). Morphology: large dark purple fibrocartilage nodules rimmed by chronic fibroblastic reaction; radiography/arthroscopy shows punctate linear chondrocalcinosis of menisci and articular cartilage.`,
+    clinical: `Acute CPP arthritis (pseudogout): acute warm swollen knee monoarthritis mimicking gout or septic arthritis. Chronic CPP arthropathy: degenerative arthritis resembling OA (knees, wrists, MCPs, shoulders, ankles). Classic 2nd and 3rd MCP involvement points strongly to hemochromatosis.`,
+    management: `Confirm with polarized synovial fluid microscopy and screen for secondary metabolic causes (iron studies/hemochromatosis, PTH/calcium, Mg, alkaline phosphatase). Treat acute flares with NSAIDs, colchicine, or glucocorticoids; no crystal-lowering therapy exists (use low-dose colchicine for prophylaxis).`
+  }
+];
+
+const ALL_QUESTIONS = [
+  // =========================================================================
+  // LO 1: SUPPURATIVE (SEPTIC) ARTHRITIS (6 Questions: 2 P1, 1 P2, 3 P3)
+  // =========================================================================
+  {
+    id: `LO01-Q1`,
+    lo: 1,
+    loTitle: `LO 1: Suppurative (Septic) Arthritis`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Septic Arthritis (Urgent Aspiration)`,
+    stem: `A 58-year-old man presents with a 12-hour history of an acutely painful, warm, erythematous, and markedly swollen right knee with severe restriction of active and passive motion, temperature of 38.9°C, and elevated ESR and CRP. What is the presumptive diagnosis and mandatory immediate next diagnostic step?`,
+    clue: `Acute monoarthritis is a medical emergency that requires sampling joint fluid before empiric antimicrobial therapy.`,
+    choices: [
+      `Presumed septic arthritis; perform immediate arthrocentesis before antibiotics`,
+      `Acute gouty arthritis; initiate empiric oral colchicine and NSAIDs`,
+      `Lyme arthritis; order two-tier Borrelia ELISA and Western blot serology`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Acute monoarthritis must be presumed septic arthritis until proven otherwise, and immediate synovial fluid aspiration is mandatory before antibiotics to preserve culture yield and prevent rapid cartilage destruction. Distractor exclusion: Empiric gout therapy delays bactericidal clearance, while Lyme arthritis presents subacutely with disproportionate swelling and serologic rather than urgent aspiration-first triage.`,
+    secondOrderClue: `Acute warm monoarthritis + fever = septic arthritis until proven otherwise → aspirate BEFORE antibiotics.`,
+    phase1Pearl: `Hematogenous bacterial seeding of the synovium triggers rapid neutrophil-mediated chondrolysis within 48 hours if untreated.`,
+    phase2Hallmark: `Purulent synovial fluid demonstrating >50,000 WBC/μL (often >100,000/μL), >75% PMNs, and glucose <50% of serum levels.`,
+    phase3Secret: `Guild Master's Secret: Never withhold or delay arthrocentesis in an acute hot joint—always aspirate prior to initiating empiric IV antibiotics.`,
+    dossierBullets: {
+      p1: [
+        `Hematogenous spread is the #1 route of joint seeding`,
+        `Irreversible articular cartilage damage can occur within 48 hours`
+      ],
+      p2: [
+        `Purulent aspirate: >50,000 WBC/μL and >75% neutrophils`,
+        `Gram stain and bacterial culture confirm the causative organism`
+      ],
+      p3: [
+        `Knee is the most commonly affected joint in acute septic arthritis`,
+        `Mandatory arthrocentesis before antibiotics + urgent joint drainage`
+      ]
+    }
+  },
+  {
+    id: `LO01-Q2`,
+    lo: 1,
+    loTitle: `LO 1: Suppurative (Septic) Arthritis`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Neisseria gonorrhoeae Arthritis`,
+    stem: `A 23-year-old sexually active woman develops migratory polyarthralgias followed by painful swelling of her left wrist flexor tendon sheaths, scattered pustular skin lesions on the extremities, and an acute warm effusion of the right knee. Which organism is the most likely cause of this presentation?`,
+    clue: `Consider the classic bacterial pathogen associated with young sexually active adults, tenosynovitis, and dermatitis.`,
+    choices: [
+      `Neisseria gonorrhoeae`,
+      `Staphylococcus aureus`,
+      `Escherichia coli`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Neisseria gonorrhoeae classically causes septic arthritis in young, sexually active adults and uniquely presents with a disseminated triad of tenosynovitis, dermatitis, and migratory polyarthralgias before localizing to a purulent joint. Distractor exclusion: S. aureus is the #1 cause of septic arthritis overall across all ages without the dermatitis-tenosynovitis triad, and E. coli affects older or immunocompromised hosts.`,
+    secondOrderClue: `Sexually active young adult + tenosynovitis + pustular dermatitis + polyarthralgia → Neisseria gonorrhoeae.`,
+    phase1Pearl: `Hematogenous mucosal dissemination seeds synovial capillaries that lack a protective basement membrane.`,
+    phase2Hallmark: `Purulent neutrophil-rich synovial fluid (>50,000 WBC/μL) with Gram-negative diplococci on smear/culture.`,
+    phase3Secret: `Know the pathogen epidemiology: S. aureus is #1 overall, Streptococcus spp. is #2, N. gonorrhoeae hits sexually active young adults, and Gram-negatives hit elderly/immunocompromised hosts.`,
+    dossierBullets: {
+      p1: [
+        `Hematogenous dissemination from mucosal infection seeds synovium`,
+        `Lack of synovial basement membrane facilitates bacterial invasion`
+      ],
+      p2: [
+        `Purulent neutrophilic effusion with Gram-negative diplococci`,
+        `Culture yield is lower than S. aureus, requiring prompt sampling`
+      ],
+      p3: [
+        `Triad: tenosynovitis, dermatitis, and migratory polyarthralgias`,
+        `Must still distinguish from S. aureus (#1 overall) via fluid analysis`
+      ]
+    }
+  },
+  {
+    id: `LO01-Q3`,
+    lo: 1,
+    loTitle: `LO 1: Suppurative (Septic) Arthritis`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Synovium Lacks Basement Membrane`,
+    stem: `A 67-year-old man with Staphylococcus aureus bacteremia from a skin abscess develops acute septic arthritis of the hip within 24 hours. Which structural feature of normal synovial tissue directly facilitates this rapid hematogenous bacterial entry into the joint space?`,
+    clue: `Compare the vascular and lining barrier of the synovium to typical epithelialized membranes.`,
+    choices: [
+      `Synovial capillary fenestrations and absence of a limiting basement membrane`,
+      `Overexpression of ANKH pyrophosphate transporters in synovial lining cells`,
+      `Pre-existing lymphocytic onion-skin obliterative endarteritis of synovial arterioles`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: The synovium contains fenestrated capillaries and lacks a limiting basement membrane beneath its intimal lining, allowing circulating bacteria to seed the joint space directly during bacteremia. Distractor exclusion: ANKH transporter overexpression drives inorganic pyrophosphate elevation in CPPD, and onion-skin arteritis is a chronic proliferative hallmark of Lyme synovitis.`,
+    secondOrderClue: `Bacteremia → rapid joint seeding = fenestrated synovial capillaries + no limiting basement membrane.`,
+    phase1Pearl: `Hematogenous spread is the primary route of septic arthritis, though direct inoculation, soft-tissue spread, and osteomyelitis extension also occur.`,
+    phase2Hallmark: `Early acute hyperemic synovium rapidly transitions into a fibrinopurulent exudate packed with polymorphonuclear leukocytes.`,
+    phase3Secret: `Always examine for distant bacteremic sources (skin, endocarditis, urinary tract) when S. aureus or Gram-negative bacilli seed a joint.`,
+    dossierBullets: {
+      p1: [
+        `Synovial capillary fenestrations lack a limiting basement membrane`,
+        `Other entry routes: direct trauma/arthrocentesis, soft tissue, osteomyelitis`
+      ],
+      p2: [
+        `Rapid bacterial proliferation within nutrient-rich synovial fluid`,
+        `Fluid glucose drops (<50% serum) as bacteria and PMNs consume it`
+      ],
+      p3: [
+        `S. aureus is the #1 overall bacterial cause of septic arthritis`,
+        `Gram-negative bacilli (E. coli) target older or immunocompromised patients`
+      ]
+    }
+  },
+  {
+    id: `LO01-Q4`,
+    lo: 1,
+    loTitle: `LO 1: Suppurative (Septic) Arthritis`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Neutrophil Elastase & Proteases`,
+    stem: `A 49-year-old woman with untreated knee septic arthritis experiences permanent joint space narrowing and subchondral bone destruction just two days after symptom onset. Which cellular mechanism is primarily responsible for this rapid, irreversible chondrolysis within 48 hours?`,
+    clue: `Focus on the destructive enzymatic mediators released by the predominant leukocyte in purulent synovial fluid.`,
+    choices: [
+      `Massive neutrophil elastase, protease, and inflammatory cytokine release`,
+      `Macrophage NLRP3 inflammasome assembly triggered by monosodium urate crystals`,
+      `T-cell–mediated caseating granulomatous destruction by epithelioid histiocytes`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Massive neutrophilic infiltration releases neutrophil elastase, lysosomal proteases, and inflammatory cytokines that rapidly degrade articular cartilage matrix and cause irreversible chondrolysis within 48 hours. Distractor exclusion: NLRP3 activation by MSU drives sterile crystal inflammation in gout without rapid 48-hour septic cartilage dissolution, and caseating granulomas drive indolent chronic TB arthritis.`,
+    secondOrderClue: `Irreversible chondrolysis within 48 hours = neutrophil elastase + proteases + cytokines.`,
+    phase1Pearl: `Bacterial toxins plus host neutrophil elastase and metalloproteinases digest proteoglycans and collagen in articular cartilage.`,
+    phase2Hallmark: `Purulent exudate (>75% PMNs) coating eroded, dull articular cartilage surfaces.`,
+    phase3Secret: `Because chondrolysis becomes irreversible within 48 hours, joint decompression and drainage are as critical as antibiotics.`,
+    dossierBullets: {
+      p1: [
+        `Purulent neutrophil influx releases elastase, proteases, and cytokines`,
+        `Articular cartilage destruction becomes irreversible within 48 hours`
+      ],
+      p2: [
+        `Synovial fluid shows >50,000 WBC/μL with >75% neutrophils`,
+        `Loss of joint space reflects enzymatic cartilage matrix breakdown`
+      ],
+      p3: [
+        `Urgent surgical washout or repeated needle arthrocentesis removes enzymes`,
+        `Delay in drainage leads to permanent secondary osteoarthritis or ankylosis`
+      ]
+    }
+  },
+  {
+    id: `LO01-Q5`,
+    lo: 1,
+    loTitle: `LO 1: Suppurative (Septic) Arthritis`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `>50,000 WBC, >75% PMN, Low Glucose`,
+    stem: `Arthrocentesis of a 72-year-old man's swollen, painful knee yields thick, opaque yellow-green synovial fluid. Polarized light microscopy shows no birefringent crystals. Which synovial fluid profile confirms acute bacterial suppurative arthritis?`,
+    clue: `Look for the classic purulent cell count threshold, differential percentage, and metabolic glucose shift.`,
+    choices: [
+      `WBC >50,000/μL with >75% neutrophils and synovial glucose <50% of serum`,
+      `WBC 15,000/μL with lymphocytic predominance and normal synovial glucose`,
+      `WBC 25,000/μL with rhomboid weakly positively birefringent crystals`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Suppurative septic arthritis classically exhibits purulent synovial fluid with >50,000 WBC/μL (often >100,000/μL), >75% polymorphonuclear neutrophils, and markedly decreased glucose (<50% of serum glucose). Distractor exclusion: Lymphocytic predominance with normal glucose characterizes chronic proliferative synovitis (such as Lyme or TB), and rhomboid weakly positive crystals indicate CPPD pseudogout.`,
+    secondOrderClue: `>50,000 WBC/μL + >75% PMNs + glucose <50% serum = suppurative septic arthritis.`,
+    phase1Pearl: `Intense glycolysis by proliferating bacteria and activated neutrophils depletes synovial fluid glucose below half of serum concentration.`,
+    phase2Hallmark: `Turbid purulent fluid containing >50,000–100,000+ WBC/μL, >75% PMNs, and positive Gram stain.`,
+    phase3Secret: `Guild Master's Secret: Crystal arthropathies can also raise synovial WBCs, so always send Gram stain and culture even if crystals are suspected—coexisting infection and crystal disease can occur.`,
+    dossierBullets: {
+      p1: [
+        `Bacteria + neutrophils consume glucose, dropping synovial levels <50% serum`,
+        `Purulent neutrophil burst differentiates infection from viral synovitis`
+      ],
+      p2: [
+        `WBC >50,000/μL (frequently >100,000/μL) with >75% PMNs`,
+        `Negative polarized microscopy excludes gout and CPPD crystals`
+      ],
+      p3: [
+        `Always send aspirated fluid for cell count, Gram stain, and culture`,
+        `E. coli and Gram-negatives must be covered in elderly or immunocompromised patients`
+      ]
+    }
+  },
+  {
+    id: `LO01-Q6`,
+    lo: 1,
+    loTitle: `LO 1: Suppurative (Septic) Arthritis`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Urgent Drainage + IV Antibiotics`,
+    stem: `Synovial fluid from an acutely swollen knee reveals 115,000 WBC/μL (92% neutrophils) and Gram-positive cocci in clusters. In addition to initiating immediate intravenous anti-staphylococcal antibiotics, what intervention is essential to prevent irreversible cartilage destruction?`,
+    clue: `Antibiotics alone cannot clear toxic neutrophil proteases trapped inside an enclosed joint space.`,
+    choices: [
+      `Urgent surgical washout or repeated needle arthrocentesis drainage of the joint`,
+      `Intra-articular glucocorticoid injection to suppress synovial inflammation`,
+      `Oral allopurinol and low-dose colchicine prophylaxis after flare resolution`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Urgent joint drainage (via arthroscopic/surgical washout or serial needle arthrocentesis) combined with IV antibiotics is essential to evacuate purulent fluid, bacteria, and destructive neutrophil elastase/proteases. Distractor exclusion: Intra-articular corticosteroids are contraindicated in active joint infection, and allopurinol/colchicine treats hyperuricemia/gout rather than S. aureus sepsis.`,
+    secondOrderClue: `Gram-positive cocci in clusters + >100,000 WBC = S. aureus septic arthritis → IV antibiotics + urgent joint drainage.`,
+    phase1Pearl: `Physical evacuation halts ongoing proteolysis by neutrophil elastase and lowers intra-articular pressure that compromises epiphyseal blood supply.`,
+    phase2Hallmark: `Gram-positive cocci in clusters identify Staphylococcus aureus, the #1 overall cause of acute septic arthritis.`,
+    phase3Secret: `Dual pillar therapy for septic arthritis: prompt IV antibiotics (after aspiration) PLUS urgent mechanical joint drainage.`,
+    dossierBullets: {
+      p1: [
+        `Retained purulent exudate continues cartilage proteolysis even on antibiotics`,
+        `High intra-articular pressure impairs nutrient diffusion into cartilage`
+      ],
+      p2: [
+        `Gram-positive cocci in clusters = Staphylococcus aureus (#1 overall)`,
+        `Candida albicans occurs in immunocompromised patients`
+      ],
+      p3: [
+        `Urgent surgical drainage or serial needle arthrocentesis is mandatory`,
+        `Avoid intra-articular steroids in suspected or confirmed septic joints`
+      ]
+    }
+  },
+
+  // =========================================================================
+  // LO 2: MYCOBACTERIAL (TUBERCULOUS) ARTHRITIS (6 Questions: 1 P1, 3 P2, 2 P3)
+  // =========================================================================
+  {
+    id: `LO02-Q1`,
+    lo: 2,
+    loTitle: `LO 2: Mycobacterial (TB) Arthritis`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Mycobacterium tuberculosis Arthritis`,
+    stem: `A 44-year-old recent immigrant with a history of untreated pulmonary infection develops an indolent, progressively worsening monoarthritis of the right hip over 5 months, with low-grade fever, night sweats, and minimal joint warmth. Which pathogen most likely explains this chronic monoarthritis?`,
+    clue: `Think of an acid-fast bacillus causing chronic progressive monoarthritis favoring hip > knee > ankle.`,
+    choices: [
+      `Mycobacterium tuberculosis`,
+      `Staphylococcus aureus`,
+      `Borrelia burgdorferi`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Mycobacterium tuberculosis produces a chronic, indolent progressive monoarthritis favoring large weight-bearing joints (hip > knee > ankle), commonly after hematogenous spread from pulmonary TB. Distractor exclusion: S. aureus causes hyperacute warm purulent monoarthritis within hours to days, while Borrelia burgdorferi classically causes intermittent massive knee swelling with erythema migrans history.`,
+    secondOrderClue: `Pulmonary TB history + chronic progressive hip monoarthritis = Mycobacterium tuberculosis arthritis.`,
+    phase1Pearl: `Hematogenous seeding from primary or reactivated pulmonary TB or contiguous osteomyelitis establishes chronic granulomatous synovitis.`,
+    phase2Hallmark: `Synovial biopsy shows caseating granulomas, epithelioid histiocytes, and Langhans giant cells with horseshoe nuclei.`,
+    phase3Secret: `Guild Master's Secret: Remember the anatomic hierarchy for TB arthritis—hip > knee > ankle—and its indolent "cold" chronic course.`,
+    dossierBullets: {
+      p1: [
+        `Hematogenous spread from pulmonary TB or adjacent osteomyelitis`,
+        `Slow cell-mediated granulomatous inflammation rather than acute pus`
+      ],
+      p2: [
+        `Caseating granulomatous synovitis with Langhans giant cells`,
+        `Acid-fast bacilli visualized on Ziehl-Neelsen stain`
+      ],
+      p3: [
+        `Classic chronic progressive monoarthritis: hip > knee > ankle`,
+        `Absence of acute erythema/heat distinguishes it from S. aureus`
+      ]
+    }
+  },
+  {
+    id: `LO02-Q2`,
+    lo: 2,
+    loTitle: `LO 2: Mycobacterial (TB) Arthritis`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Psoas Cold Abscess Extension`,
+    stem: `A 52-year-old man with chronic tuberculous spondylitis and adjacent hip pain develops a painless, fluctuant swelling in the right groin tracking inferiorly along the iliopsoas sheath without overlying erythema. Which structural complication best accounts for this finding?`,
+    clue: `Tuberculous osteomyelitis and arthritis can dissect along fascial planes without classic acute purulent warmth.`,
+    choices: [
+      `Psoas cold abscess from contiguous tuberculous osteomyelitis extension`,
+      `Ruptured popliteal lymph node cyst secondary to Lyme synovitis`,
+      `Extruded subcutaneous urate tophus eroding the inguinal ligament`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Contiguous extension of Mycobacterium tuberculosis from vertebral or pelvic osteomyelitis dissects along the iliopsoas fascia to form a classic psoas cold abscess—fluctuant but lacking acute neutrophilic warmth. Distractor exclusion: Lyme arthritis causes enlarged popliteal lymph nodes around the knee, and gouty tophi extrude chalky white MSU around peripheral joints such as the 1st MTP or olecranon.`,
+    secondOrderClue: `Chronic TB osteomyelitis + fluctuant non-erythematous groin/flank mass = psoas cold abscess.`,
+    phase1Pearl: `Caseous necrosis from adjacent tuberculous osteomyelitis liquefies and tracks gravitationally inside the psoas sheath.`,
+    phase2Hallmark: `Caseating granulomatous lining enclosing necrotic debris without acute suppurative neutrophils ("cold" abscess).`,
+    phase3Secret: `Always evaluate for adjacent osteomyelitis and spinal involvement (Pott disease / psoas cold abscess) in patients with tuberculous hip arthritis.`,
+    dossierBullets: {
+      p1: [
+        `Direct extension from adjacent tuberculous osteomyelitis into joint/fascia`,
+        `Caseous debris lacks acute pyogenic hyperemia, creating a "cold" mass`
+      ],
+      p2: [
+        `Tracking along the iliopsoas compartment presents in the flank or groin`,
+        `Histology reveals caseous necrosis + epithelioid histiocytes`
+      ],
+      p3: [
+        `Requires synovial/abscess AFB stain, mycobacterial culture, and biopsy`,
+        `Distinguish from acute septic hip which demands immediate surgical washout`
+      ]
+    }
+  },
+  {
+    id: `LO02-Q3`,
+    lo: 2,
+    loTitle: `LO 2: Mycobacterial (TB) Arthritis`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Hematogenous / Osteomyelitis Granulomas`,
+    stem: `Following reactivation of pulmonary tuberculosis, bacilli enter the bloodstream and lodge in the synovium and subchondral bone of a patient's hip. Which immunopathologic cascade drives the subsequent chronic joint destruction?`,
+    clue: `Mycobacteria survive intracellularly inside macrophages, triggering a chronic T-cell–macrophage granulomatous response.`,
+    choices: [
+      `Caseating granulomatous synovitis driven by persistent mycobacteria and macrophage-epithelioid activation`,
+      `Acute neutrophil elastase chondrolysis triggered by bacterial entry across fenestrated capillaries`,
+      `NLRP3 inflammasome assembly and IL-1β release triggered by crystalline pyrophosphate shedding`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Mycobacterium tuberculosis spreads hematogenously from pulmonary TB or directly from adjacent osteomyelitis, inducing chronic T-cell–mediated activation of macrophages into epithelioid histiocytes and caseating granulomatous synovitis. Distractor exclusion: Acute neutrophil elastase chondrolysis characterizes suppurative bacterial arthritis (e.g., S. aureus), and NLRP3 activation by CPP crystals drives pseudogout.`,
+    secondOrderClue: `Pulmonary TB / adjacent osteomyelitis → persistent intracellular bacilli → caseating granulomatous synovitis.`,
+    phase1Pearl: `Waxy mycolic acid cell walls prevent routine enzymatic degradation, sustaining chronic granulomatous synovitis and gradual cartilage erosion.`,
+    phase2Hallmark: `Confluent caseating granulomas with central acellular necrosis, epithelioid macrophages, and Langhans giant cells.`,
+    phase3Secret: `Because TB arthritis progresses slowly over months, delayed diagnosis frequently leads to extensive osteoarticular destruction.`,
+    dossierBullets: {
+      p1: [
+        `Routes: hematogenous spread from pulmonary TB or adjacent osteomyelitis`,
+        `Chronic macrophage-T-cell cross-talk generates caseating granulomatous synovitis`
+      ],
+      p2: [
+        `Epithelioid histiocytes fuse into Langhans multinucleated giant cells`,
+        `Central caseous necrosis replaces normal synovial villi`
+      ],
+      p3: [
+        `Presents as chronic progressive monoarthritis rather than acute flare`,
+        `Synovial biopsy is often needed because routine fluid Gram stain is negative`
+      ]
+    }
+  },
+  {
+    id: `LO02-Q4`,
+    lo: 2,
+    loTitle: `LO 2: Mycobacterial (TB) Arthritis`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Langhans Giant Cells & Caseation`,
+    stem: `A synovial biopsy from a patient with chronic destructive ankle monoarthritis demonstrates central acellular pink necrosis surrounded by palisading epithelioid histiocytes and large multinucleated giant cells whose nuclei are arranged in a peripheral horseshoe arc. What do these histologic findings represent?`,
+    clue: `Contrast granulomas containing peripheral horseshoe nuclei with foreign-body giant cells having disorganized central nuclei.`,
+    choices: [
+      `Caseating granulomatous synovitis with Langhans giant cells of tuberculous arthritis`,
+      `Tophaceous foreign-body granulomatous reaction around dissolved monosodium urate`,
+      `Chronic proliferative synovitis with villous hypertrophy and onion-skin arteritis`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Central caseous necrosis rimmed by epithelioid histiocytes and Langhans multinucleated giant cells (characteristic peripheral horseshoe nuclear arrangement) is diagnostic of tuberculous granulomatous synovitis. Distractor exclusion: Gouty tophi show pale amorphous urate spaces rimmed by randomly arranged foreign-body giant cells without caseous necrosis, and Lyme synovitis shows lymphoplasmacytic papillary hypertrophy and onion-skin arteritis.`,
+    secondOrderClue: `Caseous necrosis + epithelioid histiocytes + horseshoe-nuclei Langhans giant cells = TB arthritis.`,
+    phase1Pearl: `Fusion of IFN-γ–activated epithelioid macrophages around persistent mycobacterial antigens forms Langhans giant cells.`,
+    phase2Hallmark: `Caseating granulomas + Langhans giant cells (peripheral horseshoe nuclei) + epithelioid histiocytes on synovial biopsy.`,
+    phase3Secret: `Board Pearl: Chronic monoarthritis + granulomas + Langhans giant cells = think TB arthritis immediately.`,
+    dossierBullets: {
+      p1: [
+        `Activated macrophages differentiate into epithelioid histiocytes and fuse`,
+        `Central caseation reflects immune-mediated tissue necrosis`
+      ],
+      p2: [
+        `Langhans giant cells display classic peripheral horseshoe-shaped nuclei`,
+        `Distinguish from foreign-body giant cells surrounding dissolved gout tophi`
+      ],
+      p3: [
+        `Synovial biopsy provides high diagnostic yield when fluid cultures lag`,
+        `Pair histology with AFB stain and mycobacterial culture`
+      ]
+    }
+  },
+  {
+    id: `LO02-Q5`,
+    lo: 2,
+    loTitle: `LO 2: Mycobacterial (TB) Arthritis`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Ziehl-Neelsen AFB Waxy Cell Wall`,
+    stem: `A synovial tissue smear is stained with carbol fuchsin and then washed with acid-alcohol decolorizer. While background synovial cells and other bacteria lose the red dye, slender beaded rods retain bright red staining. What biochemical property explains this diagnostic stain result?`,
+    clue: `Consider why mycobacteria resist acid-alcohol decolorization during the AFB (Ziehl-Neelsen) stain.`,
+    choices: [
+      `Waxy mycolic acid cell wall of Mycobacterium tuberculosis retaining carbol fuchsin`,
+      `Spirochetal outer surface protein C (OspC) binding carbol fuchsin in Lyme disease`,
+      `Polysaccharide capsule of Staphylococcus aureus resisting acid-alcohol wash`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: On an acid-fast bacillus (AFB / Ziehl-Neelsen) stain, Mycobacterium tuberculosis resists acid-alcohol decolorization and retains carbol fuchsin dye because of its thick waxy cell wall. Distractor exclusion: OspA/OspC are surface lipoproteins of Borrelia burgdorferi (not acid-fast), and S. aureus stains purple on standard Gram stain rather than acid-fast.`,
+    secondOrderClue: `Carbol fuchsin + acid-alcohol resistance = waxy mycobacterial cell wall on AFB (Ziehl-Neelsen) stain.`,
+    phase1Pearl: `The waxy mycobacterial cell envelope protects the organism against host phagolysosomal killing as well as acid-alcohol decolorization.`,
+    phase2Hallmark: `Bright red acid-fast bacilli on Ziehl-Neelsen / carbol fuchsin stain resistant to acid-alcohol wash.`,
+    phase3Secret: `Always request AFB smear, mycobacterial culture, and synovial biopsy together when evaluating chronic monoarthritis.`,
+    dossierBullets: {
+      p1: [
+        `Waxy cell wall confers resistance to host enzymatic digestion`,
+        `Explains slow, persistent intracellular survival in macrophages`
+      ],
+      p2: [
+        `AFB stain: carbol fuchsin applied, followed by acid-alcohol decolorization`,
+        `Mycobacteria retain red carbol fuchsin while most bacteria lose it`
+      ],
+      p3: [
+        `Essential confirmatory test alongside mycobacterial cultures`,
+        `Routine Gram stain misses M. tuberculosis`
+      ]
+    }
+  },
+  {
+    id: `LO02-Q6`,
+    lo: 2,
+    loTitle: `LO 2: Mycobacterial (TB) Arthritis`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Synovial Biopsy + Mycobacterial Culture`,
+    stem: `A 61-year-old man with chronic knee swelling and a 2-month history of progressive pain undergoes routine arthrocentesis showing negative Gram stain, negative polarized microscopy, and negative routine bacterial cultures at 48 hours. Radiographs show osteopenia and adjacent osteomyelitis. Which diagnostic workup confirms the suspected etiology?`,
+    clue: `Routine 48-hour bacterial cultures do not detect slow-growing acid-fast bacilli.`,
+    choices: [
+      `Synovial biopsy with AFB stain and dedicated mycobacterial cultures`,
+      `Repeat polarized microscopy looking for rhomboid CPP crystals`,
+      `Serum uric acid level and trial of empiric oral febuxostat`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: When chronic progressive monoarthritis has negative routine bacterial cultures and crystal microscopy, synovial biopsy (for granulomas/Langhans giant cells), AFB stain, and dedicated mycobacterial cultures are required to confirm M. tuberculosis arthritis. Distractor exclusion: Negative polarized microscopy excludes CPPD and MSU crystals, and empiric febuxostat does not treat infectious monoarthritis.`,
+    secondOrderClue: `Negative routine culture + chronic monoarthritis + osteomyelitis = synovial biopsy + AFB stain + mycobacterial culture.`,
+    phase1Pearl: `Contiguous extension from subchondral tuberculous osteomyelitis seeds the joint space without producing acute bacterial pus.`,
+    phase2Hallmark: `Biopsy captures caseating granulomas and Langhans giant cells even when synovial fluid AFB smear sensitivity is low.`,
+    phase3Secret: `Do not rule out infectious arthritis solely on a negative 48-hour routine bacterial culture when presentation is chronic and monoarticular.`,
+    dossierBullets: {
+      p1: [
+        `Extension from adjacent tuberculous osteomyelitis or pulmonary seeding`,
+        `Slow doubling time prevents growth on routine 48-hour culture plates`
+      ],
+      p2: [
+        `Biopsy demonstrates epithelioid histiocytes, caseation, Langhans cells`,
+        `AFB carbol fuchsin stain identifies waxy-walled bacilli`
+      ],
+      p3: [
+        `Order synovial biopsy + AFB stain + mycobacterial cultures`,
+        `Avoid empiric immunosuppression or intra-articular steroids before exclusion`
+      ]
+    }
+  },
+
+  // =========================================================================
+  // LO 3: LYME ARTHRITIS & VIRAL ARTHRITIS (6 Questions: 2 P1, 2 P2, 2 P3)
+  // =========================================================================
+  {
+    id: `LO03-Q1`,
+    lo: 3,
+    loTitle: `LO 3: Lyme & Viral Arthritis`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Lyme Arthritis (Borrelia burgdorferi)`,
+    stem: `A 31-year-old hiker presents with massive, tense unilateral swelling of the right knee that developed 4 months after an expanding annular skin rash and transient unilateral facial droop. Despite the huge effusion, he reports surprisingly mild pain and is able to bear weight. Which diagnosis is most likely?`,
+    clue: `Look for the classic vector-borne monoarthritis presenting months after erythema migrans with swelling out of proportion to pain.`,
+    choices: [
+      `Lyme arthritis caused by Ixodes-transmitted Borrelia burgdorferi`,
+      `Acute gouty arthritis triggered by hiking-induced dehydration`,
+      `Suppurative Staphylococcus aureus septic arthritis`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Massive knee swelling out of proportion to pain developing months after erythema migrans (or CN VII palsy / AV block) is the classic board presentation of Lyme arthritis caused by Borrelia burgdorferi via Ixodes ticks. Distractor exclusion: Acute gout causes excruciating pain (typically 1st MTP podagra), and S. aureus septic arthritis presents acutely with severe pain, warmth, and inability to move the joint.`,
+    secondOrderClue: `Massive knee swelling out of proportion to pain + prior erythema migrans / CN VII palsy / AV block = Lyme arthritis.`,
+    phase1Pearl: `Borrelia burgdorferi disseminates after Ixodes tick transmission and persists in synovial tissue months later.`,
+    phase2Hallmark: `Large knee effusion with chronic proliferative synovitis, papillary hypertrophy, and enlarged popliteal lymph nodes.`,
+    phase3Secret: `Guild Master's Secret: Knee >> ankle, elbow, or shoulder; massive swelling out of proportion to pain is the signature clinical clue.`,
+    dossierBullets: {
+      p1: [
+        `Transmitted by Ixodes ticks; arthritis appears months after infection`,
+        `Preceded by erythema migrans, facial nerve (CN VII) palsy, or AV block`
+      ],
+      p2: [
+        `Large knee effusion with chronic proliferative lymphoplasmacytic synovitis`,
+        `Enlarged popliteal lymph nodes visible on MRI`
+      ],
+      p3: [
+        `Intermittent or persistent monoarthritis/oligoarthritis (knee >> others)`,
+        `Diagnose via ELISA + Western blot; treat with doxycycline or amoxicillin`
+      ]
+    }
+  },
+  {
+    id: `LO03-Q2`,
+    lo: 3,
+    loTitle: `LO 3: Lyme & Viral Arthritis`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Viral Arthritis (Mimics RA)`,
+    stem: `A 29-year-old daycare teacher develops acute symmetric pain and swelling in the MCP, PIP, and wrist joints of both hands 10 days after a febrile illness with a facial and trunk rash and cervical lymphadenopathy. Which condition must be distinguished from early rheumatoid arthritis?`,
+    clue: `Consider an acute symmetric small-joint polyarthritis following fever, rash, and lymphadenopathy.`,
+    choices: [
+      `Viral arthritis (e.g., Parvovirus B19 or Chikungunya)`,
+      `Lyme arthritis (Borrelia burgdorferi)`,
+      `Calcium pyrophosphate deposition disease (pseudogout)`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Viral arthritis (Parvovirus B19, Chikungunya, HBV, HCV, Rubella, HIV) classically presents as an acute/subacute symmetric polyarthritis of the small joints of the hands and wrists accompanied by fever, rash, and lymphadenopathy, closely mimicking rheumatoid arthritis. Distractor exclusion: Lyme causes intermittent monoarthritis/oligoarthritis of large joints (knee), and acute CPPD causes monoarthritis of the knee in older adults (>50).`,
+    secondOrderClue: `Fever + rash + lymphadenopathy + acute symmetric small-joint hand/wrist polyarthritis = Viral arthritis mimicking RA.`,
+    phase1Pearl: `Transient immune-mediated synovitis develops in response to viral infection, typically resolving within 1–6 weeks.`,
+    phase2Hallmark: `Non-purulent transient immune-mediated synovitis without crystals or destructive rheumatoid pannus.`,
+    phase3Secret: `Board Pearl: While most viral arthritides resolve within 1–6 weeks, Chikungunya, HBV, HCV, and Parvovirus B19 are key exceptions that can become chronic.`,
+    dossierBullets: {
+      p1: [
+        `Causes: Parvovirus B19, Chikungunya, HBV, HCV, Rubella, HIV`,
+        `Transient immune-mediated synovitis; usually resolves in 1–6 weeks`
+      ],
+      p2: [
+        `Non-purulent inflammatory synovitis lacking bacterial pus or crystals`,
+        `Affects small joints of hands and wrists symmetrically`
+      ],
+      p3: [
+        `Closely mimics rheumatoid arthritis; screen with viral serology/PCR`,
+        `Chronic exceptions: Chikungunya, HBV, HCV, and Parvovirus B19`
+      ]
+    }
+  },
+  {
+    id: `LO03-Q3`,
+    lo: 3,
+    loTitle: `LO 3: Lyme & Viral Arthritis`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `OspA/OspC & Antigenic Variation`,
+    stem: `Months after an untreated Ixodes tick bite, a patient develops persistent chronic Lyme synovitis of the knee. Which pathogen-specific molecular mechanism enables Borrelia burgdorferi to evade host clearance and sustain chronic synovial inflammation?`,
+    clue: `Focus on the spirochete's regulated outer surface lipoproteins and immune evasion strategy.`,
+    choices: [
+      `Outer surface protein (OspA/OspC) switching and antigenic variation`,
+      `Release of neutrophil elastase across fenestrated synovial basement membranes`,
+      `Inorganic pyrophosphate crystallization mediated by ANKH overexpression`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Borrelia burgdorferi modulates outer surface proteins (OspA/OspC) as immune targets and utilizes antigenic variation to evade host antibody clearance, perpetuating chronic synovial inflammation months after inoculation. Distractor exclusion: Neutrophil elastase chondrolysis occurs in acute bacterial septic arthritis, and ANKH overexpression causes CPPD crystal formation.`,
+    secondOrderClue: `Borrelia burgdorferi chronic persistence = OspA/OspC immune targets + antigenic variation.`,
+    phase1Pearl: `OspA/OspC regulation adapts the spirochete from tick midgut to mammalian host, while antigenic variation sustains chronic synovitis.`,
+    phase2Hallmark: `Chronic proliferative synovitis with dense lymphoplasmacytic infiltrates and onion-skin arteritis.`,
+    phase3Secret: `Persistent synovial immune stimulation explains why Lyme arthritis develops months after initial erythema migrans.`,
+    dossierBullets: {
+      p1: [
+        `OspA and OspC serve as major outer surface protein immune targets`,
+        `Antigenic variation allows immune evasion and chronic joint persistence`
+      ],
+      p2: [
+        `Drives synovial hyperplasia and dense lymphoplasmacytic infiltration`,
+        `Accompanied by papillary hypertrophy, fibrin, and neovascularization`
+      ],
+      p3: [
+        `Requires antibiotics (doxycycline, amoxicillin, or IV ceftriaxone)`,
+        `PCR of synovial fluid can detect Borrelia DNA`
+      ]
+    }
+  },
+  {
+    id: `LO03-Q4`,
+    lo: 3,
+    loTitle: `LO 3: Lyme & Viral Arthritis`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Transient Immune-Mediated Synovitis`,
+    stem: `A 34-year-old man returning from a Caribbean outbreak develops severe symmetric wrist and finger polyarthritis following fever and rash. Unlike acute staphylococcal arthritis, his joint fluid is non-purulent and symptoms persist beyond 6 weeks. What mechanism underlies this viral joint pathology and its chronic potential?`,
+    clue: `Contrast viral arthritis pathology with purulent septic arthritis and note which viruses persist chronically.`,
+    choices: [
+      `Immune-mediated synovitis that is usually transient (1–6 weeks) but becomes chronic in Chikungunya, HBV, HCV, or Parvovirus B19`,
+      `Direct bacterial invasion of synovium lacking a basement membrane causing 48-hour chondrolysis`,
+      `Caseating granulomatous synovitis driven by acid-fast waxy cell wall lipids`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Viral arthritis arises from transient immune-mediated synovitis rather than purulent bacterial infection; while most cases resolve within 1–6 weeks, Chikungunya, HBV, HCV, and Parvovirus B19 are notable exceptions that can progress to chronic arthritis. Distractor exclusion: Direct bacterial chondrolysis defines suppurative arthritis, and caseating granulomas define TB arthritis.`,
+    secondOrderClue: `Viral arthritis = immune-mediated synovitis (1–6 weeks) → chronic exceptions: Chikungunya, HBV, HCV, Parvovirus B19.`,
+    phase1Pearl: `Immune complex deposition and host antiviral immune responses drive non-purulent synovitis without bacterial pus.`,
+    phase2Hallmark: `Non-purulent inflammatory synovitis (versus >50,000 WBC purulent septic fluid).`,
+    phase3Secret: `Guild Master's Secret: Memorize the 4 viruses that can become chronic—Chikungunya, HBV, HCV, and Parvovirus B19.`,
+    dossierBullets: {
+      p1: [
+        `Pathology is immune-mediated synovitis, not purulent septic destruction`,
+        `Typically self-limited and resolves within 1–6 weeks`
+      ],
+      p2: [
+        `Non-purulent fluid helps distinguish viral flares from septic arthritis`,
+        `Symmetric small joints of hands and wrists mimic RA`
+      ],
+      p3: [
+        `Chronic exceptions: Chikungunya, HBV, HCV, and Parvovirus B19`,
+        `Diagnose via clinical pattern plus virus-specific serology or PCR`
+      ]
+    }
+  },
+  {
+    id: `LO03-Q5`,
+    lo: 3,
+    loTitle: `LO 3: Lyme & Viral Arthritis`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Papillary Hypertrophy & Onion-Skin Arteritis`,
+    stem: `A synovial biopsy from a patient with chronic refractory monoarthritis of the knee reveals papillary (villous) synovial hypertrophy, synovial lining hyperplasia, neovascularization, fibrin deposition, a dense lymphoplasmacytic infiltrate, and concentric onion-skin thickening of small arterioles. What diagnosis do these histologic features support?`,
+    clue: `Match villous synovial hypertrophy, dense plasma cells, and concentric arteriolar thickening to the right infectious arthritis.`,
+    choices: [
+      `Chronic Lyme synovitis (Borrelia burgdorferi)`,
+      `Acute suppurative Staphylococcus aureus arthritis`,
+      `Chronic tophaceous monosodium urate gout`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Chronic Lyme synovitis is characterized histologically by papillary (villous) synovial hypertrophy, synovial hyperplasia, dense lymphoplasmacytic infiltrates, neovascularization, fibrin deposition, and obliterative onion-skin arteritis. Distractor exclusion: S. aureus shows acute neutrophilic exudate rather than villous lymphoplasmacytic hypertrophy, and gouty tophi show amorphous urate spaces with foreign-body giant cells.`,
+    secondOrderClue: `Papillary/villous synovial hypertrophy + dense lymphoplasmacytic infiltrate + onion-skin arteritis = Lyme synovitis.`,
+    phase1Pearl: `Chronic spirochetal antigen persistence recruits B cells, plasma cells, and T cells while injuring synovial microvasculature.`,
+    phase2Hallmark: `Papillary (villous) synovial hypertrophy + dense lymphoplasmacytic infiltrate + onion-skin arteritis + fibrin.`,
+    phase3Secret: `Even when oral doxycycline clears most cases, chronic proliferative synovitis may require IV ceftriaxone if refractory.`,
+    dossierBullets: {
+      p1: [
+        `Persistent Borrelia OspA/OspC stimulation drives chronic proliferative synovitis`,
+        `Microvascular injury produces concentric arteriolar wall thickening`
+      ],
+      p2: [
+        `Papillary (villous) synovial hypertrophy and synovial hyperplasia`,
+        `Dense lymphoplasmacytic infiltrate + neovascularization + onion-skin arteritis`
+      ],
+      p3: [
+        `Knee is by far the most common target (knee >> ankle, elbow, shoulder)`,
+        `Confirm with two-tier ELISA + Western blot or synovial PCR`
+      ]
+    }
+  },
+  {
+    id: `LO03-Q6`,
+    lo: 3,
+    loTitle: `LO 3: Lyme & Viral Arthritis`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Effusion, Popliteal Nodes & Two-Tier Test`,
+    stem: `MRI of a 26-year-old patient's markedly swollen, minimally painful knee demonstrates a large joint effusion, diffuse synovitis, and prominently enlarged popliteal lymph nodes. Which diagnostic confirmation and antimicrobial strategy are indicated?`,
+    clue: `Enlarged popliteal lymph nodes + large knee effusion on MRI point to a tick-borne spirochete.`,
+    choices: [
+      `Confirm with ELISA + Western blot (or synovial PCR) and treat with doxycycline, amoxicillin, or IV ceftriaxone`,
+      `Confirm with Ziehl-Neelsen AFB stain and start prolonged multidrug anti-tuberculous therapy`,
+      `Confirm with synovial fluid polarized light microscopy and initiate allopurinol`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Large knee effusion, synovitis, and enlarged popliteal lymph nodes on MRI are characteristic imaging findings of Lyme arthritis; diagnosis uses two-tier ELISA followed by Western blot (plus synovial PCR if needed), treated with doxycycline, amoxicillin, or IV ceftriaxone for refractory disease. Distractor exclusion: AFB stain diagnoses TB arthritis, and polarized microscopy diagnoses crystal arthropathies.`,
+    secondOrderClue: `MRI large knee effusion + synovitis + enlarged popliteal lymph nodes → Lyme arthritis → ELISA/Western blot + doxycycline.`,
+    phase1Pearl: `Regional lymphatic drainage of persistent Borrelia antigens causes prominent popliteal lymphadenopathy behind the affected knee.`,
+    phase2Hallmark: `Radiograph and MRI show large knee effusion, synovitis, and enlarged popliteal lymph nodes.`,
+    phase3Secret: `Oral doxycycline or amoxicillin is first-line for Lyme arthritis; escalate to IV ceftriaxone for refractory cases.`,
+    dossierBullets: {
+      p1: [
+        `Borrelia synovial infection stimulates regional popliteal lymph node hyperplasia`,
+        `Develops months after tick bite, erythema migrans, or AV block`
+      ],
+      p2: [
+        `MRI hallmark: large knee effusion, synovitis, and enlarged popliteal nodes`,
+        `Histology shows papillary hypertrophy and onion-skin arteritis`
+      ],
+      p3: [
+        `Diagnostic workup: ELISA followed by Western blot; synovial PCR for Borrelia DNA`,
+        `Treatment: doxycycline, amoxicillin, or IV ceftriaxone if refractory`
+      ]
+    }
+  },
+
+  // =========================================================================
+  // LO 4: GOUT & MONOSODIUM URATE (MSU) ARTHROPATHY (6 Questions: 2 P1, 2 P2, 2 P3)
+  // =========================================================================
+  {
+    id: `LO04-Q1`,
+    lo: 4,
+    loTitle: `LO 4: Gout (MSU Arthropathy)`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Acute Gout (Podagra; Normal Urate)`,
+    stem: `A 54-year-old man wakes at 3:00 AM with excruciating, throbbing pain, erythema, and swelling of his right first metatarsophalangeal (1st MTP) joint after a heavy steak and beer dinner. His serum uric acid drawn in the emergency department is 5.6 mg/dL. How should this normal serum uric acid result be interpreted?`,
+    clue: `Never exclude an acute crystal flare based solely on a blood urate level drawn during the attack.`,
+    choices: [
+      `Acute gouty arthritis (podagra) remains likely because serum uric acid may be normal during an acute attack; confirm with synovial fluid analysis`,
+      `Gout is excluded because hyperuricemia >6.8 mg/dL must be present on blood draw during every flare`,
+      `Normal serum uric acid confirms acute CPPD pseudogout of the 1st MTP joint`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Classic 1st MTP monoarthritis (podagra) triggered by alcohol and purine-rich food represents acute gout, and serum uric acid may be normal during an acute flare—definitive diagnosis requires synovial fluid crystal analysis. Distractor exclusion: A normal acute serum urate never rules out gout, and CPPD classically involves the knee (or wrists/MCPs) rather than 1st MTP podagra.`,
+    secondOrderClue: `1st MTP podagra + alcohol/purine trigger + normal serum urate during flare → still Gout → aspirate synovial fluid.`,
+    phase1Pearl: `Rapid urate shifts and acute inflammatory cytokines can transiently lower serum uric acid levels during an active flare.`,
+    phase2Hallmark: `Synovial fluid analysis under polarized light shows needle-shaped, strongly negatively birefringent MSU crystals.`,
+    phase3Secret: `Guild Master's Secret: Serum uric acid may be normal during an acute gout attack—synovial fluid crystal analysis is the diagnostic gold standard.`,
+    dossierBullets: {
+      p1: [
+        `Triggers: alcohol, purine-rich diet, dehydration, trauma, surgery, diuretics`,
+        `Chronic hyperuricemia (>6.8 mg/dL) precedes flare even if acute serum level dips`
+      ],
+      p2: [
+        `Needle-shaped, negatively birefringent MSU crystals in synovial fluid`,
+        `Podagra = classic acute monoarthritis of the 1st metatarsophalangeal joint`
+      ],
+      p3: [
+        `Do not rely on serum uric acid during an acute flare to rule out gout`,
+        `Treat acute flare with NSAIDs, colchicine, or glucocorticoids`
+      ]
+    }
+  },
+  {
+    id: `LO04-Q2`,
+    lo: 4,
+    loTitle: `LO 4: Gout (MSU Arthropathy)`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Tophus Histology & Rat-Bite Erosions`,
+    stem: `A 68-year-old man with a 15-year history of untreated gout develops firm periarticular nodules over his toes and elbows, one of which ulcerates and extrudes chalky-white material. Routine formalin-fixed H&E biopsy of a nodule shows pale eosinophilic amorphous spaces surrounded by macrophages, foreign-body giant cells, and fibrosis. Why are intact crystals absent on H&E, and what radiographic hallmark accompanies this stage?`,
+    clue: `Consider how routine tissue fixation affects urate crystals and how chronic tophi erode adjacent cortical bone.`,
+    choices: [
+      `Formalin dissolves urate crystals leaving pale amorphous zones; radiographs show punched-out "rat-bite" erosions with overhanging cortical margins`,
+      `Acid-alcohol washes away urate crystals; radiographs show linear meniscal chondrocalcinosis`,
+      `Macrophage elastase digests urate crystals; radiographs show uniform joint space narrowing without bone erosion`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Routine formalin processing dissolves monosodium urate crystals, leaving pale amorphous eosinophilic deposits surrounded by macrophages, foreign-body giant cells, and peripheral fibrosis (a gouty tophus); chronic tophaceous gout produces classic "punched-out" or "rat-bite" bone erosions with overhanging cortical margins. Distractor exclusion: Linear meniscal chondrocalcinosis is characteristic of CPPD, and acid-alcohol is part of the AFB stain for TB.`,
+    secondOrderClue: `Formalin-dissolved pale amorphous zone + foreign-body giant cells + rat-bite overhanging erosions = Chronic tophaceous gout.`,
+    phase1Pearl: `Four clinical stages progress from asymptomatic hyperuricemia → acute gout → intercritical gout → chronic tophaceous gout.`,
+    phase2Hallmark: `Formalin dissolves MSU leaving pale amorphous zones rimmed by foreign-body giant cells & fibrosis; radiographs show rat-bite overhanging cortical erosions.`,
+    phase3Secret: `Tophi accumulate in joints and soft tissues, causing progressive cartilage destruction, bone erosion, and joint deformity unless urate-lowering therapy is started.`,
+    dossierBullets: {
+      p1: [
+        `Repeated MSU crystal deposition leads to chronic tophaceous gout (stage 4)`,
+        `Ulcerated tophi extrude chalky-white monosodium urate material`
+      ],
+      p2: [
+        `Formalin dissolves MSU crystals → pale amorphous central spaces on H&E`,
+        `Purple rim of macrophages & foreign-body giant cells + outer pink fibrosis; rat-bite erosions`
+      ],
+      p3: [
+        `Four stages: asymptomatic hyperuricemia → acute → intercritical → chronic tophaceous`,
+        `Prevent progression with ULT (allopurinol, febuxostat, probenecid, pegloticase)`
+      ]
+    }
+  },
+  {
+    id: `LO04-Q3`,
+    lo: 4,
+    loTitle: `LO 4: Gout (MSU Arthropathy)`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `>6.8 mg/dL, No Urate Oxidase, Cool Temp`,
+    stem: `Humans develop hyperuricemia and painful gouty flares in distal peripheral joints such as the first metatarsophalangeal joint, whereas most other mammals do not. Which combination of evolutionary enzymatic loss, plasma saturation threshold, and local joint physics drives MSU crystallization at the 1st MTP?`,
+    clue: `Connect the missing purine-degrading enzyme in humans, the 37°C solubility limit, and temperature effects in distal toes.`,
+    choices: [
+      `Absence of functional urate oxidase, serum urate >6.8 mg/dL at 37°C, and lower peripheral temperature dropping MSU solubility`,
+      `Overexpression of urate oxidase, serum urate <4.0 mg/dL, and elevated core warmth in the hip joint`,
+      `Excess tissue-nonspecific alkaline phosphatase hydrolyzing inorganic pyrophosphate in knee fibrocartilage`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Humans lack functional urate oxidase (uricase), making uric acid the end product of purine catabolism; when serum urate exceeds its 37°C saturation threshold (>6.8 mg/dL)—most commonly from ~90% renal underexcretion—cooler temperatures in peripheral joints (like the 1st MTP) sharply decrease urate solubility and trigger MSU precipitation. Distractor exclusion: Humans lack rather than overexpress urate oxidase, and TNAP/pyrophosphate dysregulation causes CPPD.`,
+    secondOrderClue: `No urate oxidase + >6.8 mg/dL saturation at 37°C + cold peripheral 1st MTP solubility drop = MSU precipitation.`,
+    phase1Pearl: `~90% of primary gout results from decreased renal uric acid excretion (CKD, diuretics, cyclosporine, dehydration), whereas ~10% is overproduction (leukemia, TLS, HGPRT deficiency).`,
+    phase2Hallmark: `Precipitation of slender needle-shaped MSU crystals inside synovial fluid and periarticular tissues.`,
+    phase3Secret: `Remember the ~10% overproduction syndromes: partial HGPRT deficiency (Kelley-Seegmiller) and near-complete HGPRT deficiency (Lesch-Nyhan), plus tumor lysis syndrome.`,
+    dossierBullets: {
+      p1: [
+        `Lack of functional urate oxidase leaves uric acid as end product in humans`,
+        `Solubility limit >6.8 mg/dL at 37°C; cooler peripheral joint temp drops solubility`
+      ],
+      p2: [
+        `First MTP joint (podagra) is the classic cold peripheral nucleation site`,
+        `Forms needle-shaped negatively birefringent MSU crystals`
+      ],
+      p3: [
+        `~90% underexcretion (primary, CKD, diuretics, cyclosporine, low-dose ASA)`,
+        `~10% overproduction (leukemia, TLS, Kelley-Seegmiller, Lesch-Nyhan)`
+      ]
+    }
+  },
+  {
+    id: `LO04-Q4`,
+    lo: 4,
+    loTitle: `LO 4: Gout (MSU Arthropathy)`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Lysosomal Rupture → NLRP3 → IL-1β`,
+    stem: `Once monosodium urate crystals precipitate inside a joint space, resident synovial macrophages attempt to clear them. What intracellular signaling cascade converts crystal phagocytosis into explosive acute neutrophilic synovitis?`,
+    clue: `Trace the intracellular pathway from phagolysosomal damage to inflammasome caspase activation and cytokine secretion.`,
+    choices: [
+      `Macrophage phagocytosis → lysosomal rupture → NLRP3 inflammasome assembly → caspase-1 activation → mature IL-1β release`,
+      `TLR2 activation by outer surface protein C → B-cell clonal expansion → lymphoplasmacytic papillary hypertrophy`,
+      `Iron-induced crystal nucleation → tissue-nonspecific alkaline phosphatase activation → non-inflammatory chondrocalcinosis`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Macrophage phagocytosis of MSU crystals causes lysosomal rupture, activating the NLRP3 inflammasome, which activates caspase-1 to cleave and secrete mature IL-1β—recruiting a massive wave of neutrophils into the joint. Distractor exclusion: TLR/OspC lymphoplasmacytic synovitis belongs to Lyme arthritis, and iron-induced nucleation drives CPPD in hemochromatosis.`,
+    secondOrderClue: `MSU phagocytosis → lysosomal rupture → NLRP3 inflammasome → caspase-1 → mature IL-1β → neutrophilic influx.`,
+    phase1Pearl: `NLRP3 inflammasome activation and IL-1β release represent the central shared inflammatory hub of both MSU (gout) and CPP (pseudogout) crystal flares.`,
+    phase2Hallmark: `Dense neutrophilic infiltrate engulfing needle-shaped negatively birefringent MSU crystals in synovial fluid.`,
+    phase3Secret: `Colchicine blunts neutrophil migration and inflammasome-mediated inflammation during acute flares.`,
+    dossierBullets: {
+      p1: [
+        `Phagocytosis of MSU crystals causes lysosomal membrane rupture`,
+        `Triggers NLRP3 inflammasome → caspase-1 → mature IL-1β secretion`
+      ],
+      p2: [
+        `IL-1β drives massive neutrophilic influx into synovial fluid`,
+        `Intracellular and extracellular needle crystals visible on polarized microscopy`
+      ],
+      p3: [
+        `Acute flare countermeasures: NSAIDs, colchicine, or glucocorticoids`,
+        `Flare resolves completely during intercritical gout between early attacks`
+      ]
+    }
+  },
+  {
+    id: `LO04-Q5`,
+    lo: 4,
+    loTitle: `LO 4: Gout (MSU Arthropathy)`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Needle + Negative (Yellow Parallel)`,
+    stem: `Synovial fluid from an acutely swollen great toe is examined under compensated polarized light microscopy. Slender crystals appear bright yellow when oriented parallel to the slow axis of the red compensator and blue when oriented perpendicular to it. What crystal identity and birefringence does this describe?`,
+    clue: `Apply the high-yield mnemonic pairing shape, sign of birefringence, and color parallel to the slow axis.`,
+    choices: [
+      `Monosodium urate (MSU) crystals: needle-shaped with strong negative birefringence`,
+      `Calcium pyrophosphate (CPP) crystals: rhomboid-shaped with weak positive birefringence`,
+      `Basic calcium phosphate crystals: non-birefringent globular aggregates`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: MSU crystals are needle-shaped and strongly negatively birefringent, appearing yellow when parallel to the slow compensator axis and blue when perpendicular. Distractor exclusion: CPP crystals are rhomboid-shaped and weakly positively birefringent (blue when parallel, yellow when perpendicular), and basic calcium phosphate crystals are not needle-shaped negatively birefringent MSU.`,
+    secondOrderClue: `Needle + Negative (Yellow parallel, Blue perpendicular) = Gout (MSU).`,
+    phase1Pearl: `Crystal deposition from hyperuricemia (>6.8 mg/dL) forms ordered needle-shaped MSU lattices with strong optical birefringence.`,
+    phase2Hallmark: `Needle-shaped MSU crystals: strongly negatively birefringent (yellow parallel, blue perpendicular to slow axis).`,
+    phase3Secret: `Guild Master's Secret: "Needle + Negative = Gout; Rhomboid + Positive = CPPD" — yellow when parallel confirms negative birefringence.`,
+    dossierBullets: {
+      p1: [
+        `MSU precipitates at >6.8 mg/dL in cooler peripheral joints`,
+        `Phagocytosed by neutrophils and macrophages inside synovial fluid`
+      ],
+      p2: [
+        `Needle-shaped with strong negative birefringence on polarized light`,
+        `Yellow when parallel to slow axis; blue when perpendicular`
+      ],
+      p3: [
+        `Polarized light microscopy is the gold standard for crystal diagnosis`,
+        `Always pair with Gram stain/culture if septic arthritis cannot be excluded`
+      ]
+    }
+  },
+  {
+    id: `LO04-Q6`,
+    lo: 4,
+    loTitle: `LO 4: Gout (MSU Arthropathy)`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Avoid Low-Dose Aspirin (URAT1)`,
+    stem: `A 63-year-old man with recurrent gout flares and hypertension takes daily low-dose aspirin (81 mg) for cardioprotection and hydrochlorothiazide. He asks for an over-the-counter analgesic to add during acute flares, and his clinician warns against low-dose aspirin. Why is low-dose aspirin contraindicated in gout management?`,
+    clue: `Consider how low-dose salicylates interact with proximal tubular organic anion transporters handling uric acid.`,
+    choices: [
+      `Low-dose aspirin inhibits renal urate secretion/enhances URAT1 urate retention, worsening hyperuricemia`,
+      `Low-dose aspirin activates tissue-nonspecific alkaline phosphatase, precipitating CPPD chondrocalcinosis`,
+      `Low-dose aspirin directly stimulates caspase-1 cleavage of pro-IL-1β inside synovial neutrophils`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Low-dose aspirin (along with thiazide/loop diuretics and cyclosporine) promotes renal urate retention via URAT1 transporter effects, decreasing renal uric acid excretion and precipitating hyperuricemia and gout flares. Distractor exclusion: TNAP relates to CPPD pyrophosphate metabolism, and aspirin does not directly activate caspase-1.`,
+    secondOrderClue: `Low-dose aspirin → renal URAT1 urate retention → worsens hyperuricemia → avoid in gout.`,
+    phase1Pearl: `Decreased renal uric acid excretion accounts for ~90% of primary gout and is exacerbated by diuretics, cyclosporine, dehydration, and low-dose aspirin.`,
+    phase2Hallmark: `Repeated hyperuricemic flares accelerate progression from intercritical gout to chronic tophaceous erosions.`,
+    phase3Secret: `Treat acute flares with NSAIDs, colchicine, or glucocorticoids (NOT aspirin); use ULT (allopurinol, febuxostat, probenecid, pegloticase) for chronic prevention.`,
+    dossierBullets: {
+      p1: [
+        `~90% of gout stems from renal uric acid underexcretion`,
+        `Low-dose aspirin promotes URAT1-mediated renal urate retention`
+      ],
+      p2: [
+        `Sustained hyperuricemia (>6.8 mg/dL) promotes tophus deposition`,
+        `Chronic tophi produce punched-out rat-bite cortical erosions`
+      ],
+      p3: [
+        `Acute tx: NSAIDs, colchicine, or glucocorticoids (avoid low-dose ASA)`,
+        `Chronic ULT: allopurinol, febuxostat, probenecid, or pegloticase`
+      ]
+    }
+  },
+
+  // =========================================================================
+  // LO 5: CPPD (PSEUDOGOUT) & HEMOCHROMATOSIS ARTHROPATHY (6 Questions: 2 P1, 2 P2, 2 P3)
+  // =========================================================================
+  {
+    id: `LO05-Q1`,
+    lo: 5,
+    loTitle: `LO 5: CPPD (Pseudogout)`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Acute CPPD (Pseudogout of Knee)`,
+    stem: `A 74-year-old woman with no history of sexually transmitted infections or skin wounds develops sudden, severe pain, warmth, and swelling of her right knee 2 days after parathyroid surgery. Synovial fluid yields 38,000 WBC/μL with negative Gram stain and intracellular rhomboid crystals. Which diagnosis best fits this acute monoarthritis?`,
+    clue: `Older adult + knee monoarthritis + intracellular rhomboid crystals strongly points away from gout and sepsis.`,
+    choices: [
+      `Acute calcium pyrophosphate deposition (CPPD / pseudogout) arthritis`,
+      `Acute monosodium urate gouty podagra`,
+      `Chronic tuberculous granulomatous monoarthritis`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Acute CPP crystal arthritis (pseudogout) classically presents in adults over age 50 as an acute warm, swollen monoarthritis of the knee that closely mimics gout and septic arthritis, distinguished by rhomboid CPP crystals in synovial fluid. Distractor exclusion: Acute gout classically presents at the 1st MTP joint with needle-shaped MSU crystals, and TB arthritis presents indolently over months with granulomas.`,
+    secondOrderClue: `Older adult (>50) + acute warm knee monoarthritis + rhomboid crystals = Acute CPPD (pseudogout).`,
+    phase1Pearl: `CPP crystals deposit in articular cartilage and shed into the joint space, triggering NLRP3 inflammasome activation and IL-1β release.`,
+    phase2Hallmark: `Rhomboid-shaped, weakly positively birefringent CPP crystals in synovial fluid + knee chondrocalcinosis.`,
+    phase3Secret: `Guild Master's Secret: Acute pseudogout mimics both septic arthritis and gout—always aspirate the knee to run Gram stain/culture AND polarized microscopy.`,
+    dossierBullets: {
+      p1: [
+        `Most cases are idiopathic in advanced age (>50 years)`,
+        `CPP crystal shedding activates NLRP3 → IL-1β → neutrophilic synovitis`
+      ],
+      p2: [
+        `Rhomboid weakly positively birefringent crystals in synovial fluid`,
+        `Knee is the single most common joint in acute pseudogout`
+      ],
+      p3: [
+        `Mimics acute septic arthritis and acute gout`,
+        `Acute treatment mirrors gout: NSAIDs, colchicine, or glucocorticoids`
+      ]
+    }
+  },
+  {
+    id: `LO05-Q2`,
+    lo: 5,
+    loTitle: `LO 5: CPPD (Pseudogout)`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Meniscal Chondrocalcinosis`,
+    stem: `A 66-year-old man with chronic degenerative knee and wrist pain undergoes plain radiography and arthroscopy of the knee. Radiographs demonstrate punctate linear radiopaque bands within the hyaline articular cartilage and menisci, and arthroscopy confirms chalky calcification embedded in the meniscal fibrocartilage. What structural hallmark is shown?`,
+    clue: `Name the characteristic radiographic and gross cartilage calcification finding of chronic CPPD.`,
+    choices: [
+      `Chondrocalcinosis of articular cartilage and meniscal fibrocartilage`,
+      `Punched-out "rat-bite" overhanging cortical margin bone erosions`,
+      `Papillary villous synovial hypertrophy with enlarged popliteal lymph nodes`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Punctate linear radiopaque calcification of articular cartilage and knee menisci on radiograph/arthroscopy is chondrocalcinosis, the hallmark structural finding of CPPD. Distractor exclusion: Punched-out rat-bite erosions with overhanging cortical margins characterize chronic tophaceous gout, and papillary hypertrophy with popliteal lymphadenopathy characterizes Lyme arthritis.`,
+    secondOrderClue: `Linear radiopaque meniscal & articular cartilage calcification = Chondrocalcinosis (CPPD).`,
+    phase1Pearl: `Abnormal inorganic pyrophosphate accumulation within aging or metabolically altered cartilage matrix nucleates CPP deposits.`,
+    phase2Hallmark: `Radiographic/arthroscopic meniscal & cartilage chondrocalcinosis; H&E shows large dark purple CPP nodules in pale pink fibrocartilage.`,
+    phase3Secret: `Chronic CPP crystal arthropathy produces degenerative changes resembling osteoarthritis in knees, wrists, MCPs, shoulders, and ankles.`,
+    dossierBullets: {
+      p1: [
+        `Asymptomatic CPP cartilage deposition precedes acute pseudogout or chronic OA-like disease`,
+        `Prior joint damage and aging (>50) predispose cartilage to calcification`
+      ],
+      p2: [
+        `Chondrocalcinosis: punctate linear calcification in menisci and articular cartilage`,
+        `Histology: large dark purple CPP nodules rimmed by chronic fibroblastic tissue`
+      ],
+      p3: [
+        `Chronic CPP arthropathy affects knees, wrists, MCPs, shoulders, and ankles`,
+        `No crystal-lowering therapy exists; low-dose colchicine prevents recurrent flares`
+      ]
+    }
+  },
+  {
+    id: `LO05-Q3`,
+    lo: 5,
+    loTitle: `LO 5: CPPD (Pseudogout)`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Inorganic Pyrophosphate Dysregulation`,
+    stem: `A 59-year-old man with hereditary hemochromatosis develops widespread cartilage calcification and chronic arthropathy of the 2nd and 3rd MCP joints. Which biochemical mechanism drives calcium pyrophosphate crystal formation inside his articular cartilage?`,
+    clue: `Connect ANKH pyrophosphate export, tissue-nonspecific alkaline phosphatase, cartilage aging, and iron nucleation.`,
+    choices: [
+      `Inorganic pyrophosphate (PPi) dysregulation via ANKH overexpression, altered TNAP activity, cartilage aging, and iron-induced nucleation`,
+      `Absence of functional urate oxidase causing plasma uric acid saturation above 6.8 mg/dL`,
+      `Synovial capillary fenestrations lacking a basement membrane permitting bacterial invasion`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: CPPD arises from inorganic pyrophosphate (PPi) dysregulation—including ANKH transporter overexpression exporting PPi into cartilage matrix, altered tissue-nonspecific alkaline phosphatase (TNAP) activity, cartilage aging, and iron-induced crystal nucleation in hemochromatosis. Distractor exclusion: Absent urate oxidase causes hyperuricemia in gout, and absent synovial basement membrane facilitates septic arthritis.`,
+    secondOrderClue: `ANKH overexpression + TNAP dysregulation + cartilage aging + iron nucleation = PPi accumulation → CPPD.`,
+    phase1Pearl: `Elevated extracellular inorganic pyrophosphate combines with calcium inside cartilage matrix to precipitate CPP crystals; iron promotes nucleation in hemochromatosis.`,
+    phase2Hallmark: `Large dark purple basophilic CPP crystal nodules embedded in pale pink fibrocartilage with chondrocalcinosis.`,
+    phase3Secret: `Guild Master's Secret: Know this extremely well—hemochromatosis predisposes to CPPD via iron-induced nucleation and classically involves the 2nd and 3rd MCP joints!`,
+    dossierBullets: {
+      p1: [
+        `ANKH transporter overexpression raises extracellular inorganic pyrophosphate (PPi)`,
+        `TNAP alterations (e.g., hypophosphatasia), aging, and iron nucleation promote CPP deposition`
+      ],
+      p2: [
+        `CPP crystals deposit within articular cartilage and meniscal fibrocartilage`,
+        `Radiographs reveal linear chondrocalcinosis; 2nd & 3rd MCPs suggest hemochromatosis`
+      ],
+      p3: [
+        `Screen secondary CPPD patients for hemochromatosis, hyperPTH, hypoMg, hypothyroidism`,
+        `Iron overload promotes crystal formation even before severe cirrhosis develops`
+      ]
+    }
+  },
+  {
+    id: `LO05-Q4`,
+    lo: 5,
+    loTitle: `LO 5: CPPD (Pseudogout)`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `CPP Shedding → NLRP3 → IL-1β`,
+    stem: `A patient with asymptomatic knee chondrocalcinosis undergoes minor knee trauma and develops an acute hot, swollen monoarticular flare 24 hours later. What pathophysiologic step transforms clinically silent cartilage CPP deposits into an acute inflammatory attack?`,
+    clue: `Explain how pre-formed cartilage crystals enter the synovial cavity and ignite neutrophilic inflammation.`,
+    choices: [
+      `CPP crystals shed from cartilage into the joint space and activate the NLRP3 inflammasome → IL-1β → neutrophilic inflammation`,
+      `CPP crystals dissolve in synovial fluid to release iron ions that trigger Borrelia antigenic variation`,
+      `Trauma induces synovial T-cells to fuse macrophages into Langhans giant cells with caseous necrosis`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: CPP crystals deposited in articular cartilage shed into the synovial joint space (often precipitated by trauma, surgery, or illness) and activate the NLRP3 inflammasome, stimulating IL-1β release and neutrophil-mediated acute synovitis. Distractor exclusion: Borrelia antigenic variation occurs in Lyme disease, and Langhans giant cells with caseation define TB arthritis.`,
+    secondOrderClue: `Cartilage CPP crystal shedding → NLRP3 inflammasome → IL-1β → neutrophilic inflammation (pseudogout flare).`,
+    phase1Pearl: `Both gout (MSU) and pseudogout (CPP) converge on NLRP3 inflammasome → IL-1β → neutrophil recruitment once crystals enter the joint space.`,
+    phase2Hallmark: `Intracellular rhomboid weakly positively birefringent CPP crystals inside synovial neutrophils.`,
+    phase3Secret: `Because CPP crystal shedding can be triggered by intercurrent illness or surgery, postoperative acute knee monoarthritis should prompt arthrocentesis for both sepsis and pseudogout.`,
+    dossierBullets: {
+      p1: [
+        `Asymptomatic CPP deposits in cartilage shed into the joint cavity`,
+        `Activates NLRP3 inflammasome → IL-1β release → neutrophilic inflammation`
+      ],
+      p2: [
+        `Neutrophils phagocytose rhomboid weakly positively birefringent CPP crystals`,
+        `Underlying cartilage retains radiopaque chondrocalcinosis`
+      ],
+      p3: [
+        `Acute flare mimics gout and septic arthritis—mandatory fluid aspiration`,
+        `Controlled acutely with NSAIDs, colchicine, or glucocorticoids`
+      ]
+    }
+  },
+  {
+    id: `LO05-Q5`,
+    lo: 5,
+    loTitle: `LO 5: CPPD (Pseudogout)`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Rhomboid + Weakly Positive (Blue Parallel)`,
+    stem: `Compensated polarized light microscopy of synovial fluid aspirated from an elderly man's swollen knee demonstrates chunky, geometric crystals that appear blue when aligned parallel to the slow axis of the red compensator and yellow when perpendicular. What crystal morphology and birefringence are present?`,
+    clue: `Contrast the geometric shape and parallel-axis color against needle-shaped MSU crystals.`,
+    choices: [
+      `Rhomboid-shaped calcium pyrophosphate (CPP) crystals with weak positive birefringence`,
+      `Needle-shaped monosodium urate (MSU) crystals with strong negative birefringence`,
+      `Elongated acid-fast mycobacterial rods retaining carbol fuchsin stain`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: CPP crystals are characteristically rhomboid-shaped and weakly positively birefringent, appearing blue when parallel to the slow compensator axis and yellow when perpendicular. Distractor exclusion: MSU crystals are needle-shaped and strongly negatively birefringent (yellow when parallel), and AFB rods are seen on Ziehl-Neelsen stain rather than polarized crystal microscopy.`,
+    secondOrderClue: `Rhomboid + Weakly Positive (Blue parallel, Yellow perpendicular) = CPPD (Pseudogout).`,
+    phase1Pearl: `Calcium pyrophosphate precipitates in cartilage matrix and sheds into joint fluid during acute pseudogout flares.`,
+    phase2Hallmark: `Rhomboid-shaped, weakly positively birefringent CPP crystals (blue when parallel to slow axis).`,
+    phase3Secret: `Guild Master's Secret: Rhomboid crystals + weak positive birefringence + knee in older adults = CPPD (pseudogout).`,
+    dossierBullets: {
+      p1: [
+        `Formed from PPi dysregulation and cartilage calcification`,
+        `Shed into joint fluid to trigger NLRP3-driven neutrophil recruitment`
+      ],
+      p2: [
+        `Rhomboid shape with weak positive birefringence under polarized light`,
+        `Blue when parallel to slow axis; yellow when perpendicular`
+      ],
+      p3: [
+        `Polarized light microscopy is the gold standard over radiographs alone`,
+        `Differentiates pseudogout from needle-shaped negatively birefringent gout`
+      ]
+    }
+  },
+  {
+    id: `LO05-Q6`,
+    lo: 5,
+    loTitle: `LO 5: CPPD (Pseudogout)`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Screen Hemochromatosis; Low-Dose Colchicine`,
+    stem: `A 46-year-old man is diagnosed with CPPD after presenting with chondrocalcinosis and degenerative arthritis of his knees plus his 2nd and 3rd MCP joints. Because he is younger than 50, what secondary metabolic workup and chronic prevention strategy are most appropriate?`,
+    clue: `Remember the metabolic disorders predisposing to secondary CPPD—especially 2nd/3rd MCP disease—and note that no drug dissolves CPP crystals.`,
+    choices: [
+      `Screen for hemochromatosis, hyperparathyroidism, hypomagnesemia, hypothyroidism, and hypophosphatasia; prevent recurrent flares with low-dose colchicine (no crystal-lowering therapy exists)`,
+      `Start allopurinol or febuxostat to lower pyrophosphate below 6.8 mg/dL and dissolve meniscal chondrocalcinosis`,
+      `Screen only for Borrelia burgdorferi antibodies and initiate a 28-day course of oral doxycycline`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: CPPD in a younger adult (<50) or involving the 2nd and 3rd MCP joints warrants screening for secondary metabolic triggers—hemochromatosis (classic 2nd/3rd MCP association), hyperparathyroidism, hypomagnesemia, hypothyroidism, hypophosphatasia, and ochronosis; unlike gout, no crystal-lowering therapy exists, so recurrent attacks are prevented with low-dose colchicine. Distractor exclusion: Allopurinol/febuxostat lower uric acid in gout (not CPP crystals), and doxycycline treats Lyme arthritis.`,
+    secondOrderClue: `CPPD <50 yrs or 2nd/3rd MCPs → screen hemochromatosis/hyperPTH/hypoMg/hypoTNAP; no ULT → low-dose colchicine prophylaxis.`,
+    phase1Pearl: `Secondary metabolic causes accelerate PPi dysregulation (hypophosphatasia lowers TNAP) or promote crystal nucleation (iron in hemochromatosis).`,
+    phase2Hallmark: `2nd and 3rd MCP degenerative changes with chondrocalcinosis are classic for hemochromatosis arthropathy.`,
+    phase3Secret: `High-Yield Contrast: Gout has urate-lowering therapy (allopurinol, febuxostat, probenecid, pegloticase), whereas CPPD has NO crystal-lowering therapy—use low-dose colchicine for recurrent attack prevention.`,
+    dossierBullets: {
+      p1: [
+        `Secondary triggers: hemochromatosis, hyperparathyroidism, hypomagnesemia`,
+        `Also screen hypothyroidism, hypophosphatasia, ochronosis, prior trauma`
+      ],
+      p2: [
+        `2nd and 3rd MCP arthropathy + chondrocalcinosis = hemochromatosis clue`,
+        `Chronic arthropathy mimics OA in knees, wrists, MCPs, shoulders, ankles`
+      ],
+      p3: [
+        `Acute flares: NSAIDs, colchicine, or glucocorticoids`,
+        `Chronic: NO crystal-lowering therapy exists; low-dose colchicine prevents flares`
+      ]
+    }
+  }
+];
+
+// =========================================================================
+// RUNTIME STATE
+// =========================================================================
+let activeDeck = [];
+let missedQuestions = [];
+let masteredIds = [];
+let currentIndex = 0;
+let currentLane = 1;
+let hasChosenLane = false;
+let craftVisualLane = 1;
+let playerHp = GAME_CONFIG.maxHp;
+let playerXp = 0;
+let bestXp = 0;
+let streak = 0;
+let bestStreak = 0;
+let correctCount = 0;
+let answeredCount = 0;
+let healCheckpointCounter = 0;
+let gateDistance = GAME_CONFIG.gateStartDistance;
+let isStoppedAtGate = false;
+let isModalOpen = false;
+let isMenuOpen = false;
+let isRunFinished = false;
+let isHintsVisible = false;
+let isSoundEnabled = true;
+let isSfxEnabled = true;
+let isTimerEnabled = false;
+let isTimesUpFailEnabled = true;
+let timeRemaining = GAME_CONFIG.timerSeconds;
+let timerIntervalId = null;
+let metaFadeTimeoutId = null;
+let phaseFilter = 'all';
+let codexTag = 'all';
+let lastFrameTime = 0;
+let animFrameId = null;
+let trackScrollOffset = 0;
+let particleTime = 0;
+let warpSurgeTimer = 0;
+let portalFlareLane = -1;
+let portalFlareTimer = 0;
+let lastSteerSfxTime = 0;
+let audioCtx = null;
+let portalHitboxes = [];
+let isBgmPlaying = false;
+let bgmVolume = 0.35;
+let customBgmUrl = null;
+let customBgmName = '';
+
+const bgmNodes = {
+  masterGain: null,
+  droneOsc1: null,
+  droneOsc2: null,
+  lfoOsc: null,
+  noiseSource: null,
+  noteIntervalId: null,
+  stepIndex: 0
+};
+
+const PARALLAX_PARTICLES = Array.from({ length: 150 }, (_, idx) => {
+  const theta = idx * 2.399963229728653;
+  const radiusBias = 0.08 + Math.sqrt(((idx * 0.754877666) % 1)) * 1.15;
+  return {
+    dx: Math.cos(theta) * radiusBias,
+    dy: Math.sin(theta) * radiusBias * 0.72 - 0.16,
+    z: 0.04 + ((idx + 0.5) / 150) * 0.96,
+    speed: 0.085 + (idx % 7) * 0.018,
+    baseSize: 1.4 + (idx % 4) * 1.25
+  };
+});
+
+function getThemeForLo(loNum) {
+  if (LO_VISUAL_THEMES[loNum]) return LO_VISUAL_THEMES[loNum];
+  const idx = Math.abs((Number(loNum) || 1) - 1) % DEFAULT_THEME_CYCLE.length;
+  return DEFAULT_THEME_CYCLE[idx];
+}
+
+function ensureAudioContext() {
+  if (!isSoundEnabled) return null;
+  if (!audioCtx && (window.AudioContext || window.webkitAudioContext)) {
+    const Ctor = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new Ctor();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
+  return audioCtx;
+}
+
+function playSfx(type) {
+  if (!isSoundEnabled || !isSfxEnabled) return;
+  try {
+    const ctx = ensureAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    if (type === 'steer') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(340, now);
+      osc.frequency.exponentialRampToValueAtTime(520, now + 0.07);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc.start(now);
+      osc.stop(now + 0.08);
+    } else if (type === 'correct') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, now);
+      osc.frequency.setValueAtTime(659.25, now + 0.07);
+      osc.frequency.setValueAtTime(783.99, now + 0.14);
+      gain.gain.setValueAtTime(0.13, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+      osc.start(now);
+      osc.stop(now + 0.28);
+    } else if (type === 'heal') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(440, now);
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.22);
+      gain.gain.setValueAtTime(0.13, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      osc.start(now);
+      osc.stop(now + 0.25);
+    } else if (type === 'wrong') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(175, now);
+      osc.frequency.exponentialRampToValueAtTime(75, now + 0.26);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.27);
+      osc.start(now);
+      osc.stop(now + 0.27);
+    } else if (type === 'warp') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(260, now);
+      osc.frequency.exponentialRampToValueAtTime(680, now + 0.15);
+      gain.gain.setValueAtTime(0.06, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+      osc.start(now);
+      osc.stop(now + 0.16);
+    }
+  } catch (e) {}
+}
+
+function triggerHauntedPianoNote(ctx, dest, freq) {
+  const now = ctx.currentTime;
+  const osc1 = ctx.createOscillator();
+  const osc2 = ctx.createOscillator();
+  const env = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  osc1.type = 'triangle';
+  osc2.type = 'sine';
+  osc1.frequency.setValueAtTime(freq, now);
+  osc2.frequency.setValueAtTime(freq * 2.003, now);
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(1200, now);
+  filter.frequency.exponentialRampToValueAtTime(340, now + 1.4);
+  env.gain.setValueAtTime(0.0001, now);
+  env.gain.linearRampToValueAtTime(0.14, now + 0.025);
+  env.gain.exponentialRampToValueAtTime(0.0001, now + 1.65);
+  osc1.connect(filter);
+  osc2.connect(filter);
+  filter.connect(env);
+  env.connect(dest);
+  osc1.start(now);
+  osc2.start(now);
+  osc1.stop(now + 1.7);
+  osc2.stop(now + 1.7);
+}
+
+function startProceduralZombiesBgm() {
+  stopProceduralZombiesBgm();
+  if (!isSoundEnabled) return;
+  const ctx = ensureAudioContext();
+  if (!ctx) return;
+  const master = ctx.createGain();
+  master.gain.setValueAtTime(bgmVolume * 0.45, ctx.currentTime);
+  master.connect(ctx.destination);
+  bgmNodes.masterGain = master;
+
+  const droneFilter = ctx.createBiquadFilter();
+  droneFilter.type = 'lowpass';
+  droneFilter.frequency.setValueAtTime(165, ctx.currentTime);
+  droneFilter.Q.setValueAtTime(2.5, ctx.currentTime);
+  const droneGain = ctx.createGain();
+  droneGain.gain.setValueAtTime(0.18, ctx.currentTime);
+  const d1 = ctx.createOscillator();
+  const d2 = ctx.createOscillator();
+  d1.type = 'sawtooth';
+  d2.type = 'sawtooth';
+  d1.frequency.setValueAtTime(55.0, ctx.currentTime);
+  d2.frequency.setValueAtTime(55.45, ctx.currentTime);
+  const lfo = ctx.createOscillator();
+  const lfoGain = ctx.createGain();
+  lfo.type = 'sine';
+  lfo.frequency.setValueAtTime(0.14, ctx.currentTime);
+  lfoGain.gain.setValueAtTime(48, ctx.currentTime);
+  lfo.connect(lfoGain);
+  lfoGain.connect(droneFilter.frequency);
+  d1.connect(droneFilter);
+  d2.connect(droneFilter);
+  droneFilter.connect(droneGain);
+  droneGain.connect(master);
+  d1.start();
+  d2.start();
+  lfo.start();
+  bgmNodes.droneOsc1 = d1;
+  bgmNodes.droneOsc2 = d2;
+  bgmNodes.lfoOsc = lfo;
+
+  const bufSize = ctx.sampleRate * 2;
+  const noiseBuf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+  const data = noiseBuf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * 0.35;
+  const noise = ctx.createBufferSource();
+  noise.buffer = noiseBuf;
+  noise.loop = true;
+  const noiseFilter = ctx.createBiquadFilter();
+  noiseFilter.type = 'bandpass';
+  noiseFilter.frequency.setValueAtTime(950, ctx.currentTime);
+  noiseFilter.Q.setValueAtTime(1.4, ctx.currentTime);
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.025, ctx.currentTime);
+  noise.connect(noiseFilter);
+  noiseFilter.connect(noiseGain);
+  noiseGain.connect(master);
+  noise.start();
+  bgmNodes.noiseSource = noise;
+
+  const hauntedPattern = [
+    440.00, 523.25, 493.88, 392.00,
+    440.00, 329.63, 349.23, 329.63,
+    440.00, 523.25, 587.33, 523.25,
+    493.88, 392.00, 329.63, 0
+  ];
+  bgmNodes.stepIndex = 0;
+  const stepNote = () => {
+    if (!isSoundEnabled || !isBgmPlaying || !bgmNodes.masterGain) return;
+    const freq = hauntedPattern[bgmNodes.stepIndex % hauntedPattern.length];
+    bgmNodes.stepIndex++;
+    if (freq > 0) triggerHauntedPianoNote(ctx, bgmNodes.masterGain, freq);
+  };
+  stepNote();
+  bgmNodes.noteIntervalId = setInterval(stepNote, 620);
+}
+
+function stopProceduralZombiesBgm() {
+  if (bgmNodes.noteIntervalId) {
+    clearInterval(bgmNodes.noteIntervalId);
+    bgmNodes.noteIntervalId = null;
+  }
+  ['droneOsc1', 'droneOsc2', 'lfoOsc', 'noiseSource'].forEach((k) => {
+    if (bgmNodes[k]) {
+      try { bgmNodes[k].stop(); } catch (e) {}
+      try { bgmNodes[k].disconnect(); } catch (e) {}
+      bgmNodes[k] = null;
+    }
+  });
+  if (bgmNodes.masterGain) {
+    try { bgmNodes.masterGain.disconnect(); } catch (e) {}
+    bgmNodes.masterGain = null;
+  }
+}
+
+function syncSoundControlsUI() {
+  const masterBtn = document.getElementById('master-sound-btn');
+  const sfxBtn = document.getElementById('audio-toggle-btn');
+  const menuBgmBtn = document.getElementById('menu-bgm-btn');
+  const volLabel = document.getElementById('bgm-vol-label');
+  if (masterBtn) masterBtn.textContent = isSoundEnabled ? `🔊 Sound: ON` : `🔇 Sound: OFF`;
+  if (sfxBtn) sfxBtn.textContent = (isSoundEnabled && isSfxEnabled) ? `🔊 SFX: ON` : `🔇 SFX: OFF`;
+  const bgmActive = isSoundEnabled && isBgmPlaying;
+  if (menuBgmBtn) {
+    menuBgmBtn.textContent = bgmActive
+      ? (customBgmUrl ? `🎵 Custom BGM: ON (${customBgmName})` : `🎵 Zombies BGM: ON`)
+      : (customBgmUrl ? `🎵 Custom BGM: OFF` : `🎵 Zombies BGM: OFF`);
+  }
+  if (volLabel) volLabel.textContent = `${Math.round(bgmVolume * 100)}%`;
+}
+
+function toggleMasterSound() {
+  isSoundEnabled = !isSoundEnabled;
+  const customAudio = document.getElementById('custom-bgm-audio');
+  if (!isSoundEnabled) {
+    stopProceduralZombiesBgm();
+    if (customAudio) customAudio.pause();
+  } else if (isBgmPlaying) {
+    if (customBgmUrl && customAudio) {
+      stopProceduralZombiesBgm();
+      customAudio.volume = bgmVolume;
+      customAudio.play().catch(() => {});
+    } else {
+      startProceduralZombiesBgm();
+    }
+  }
+  syncSoundControlsUI();
+  persistAppState();
+}
+
+function toggleSfx() {
+  isSfxEnabled = !isSfxEnabled;
+  if (isSfxEnabled && !isSoundEnabled) isSoundEnabled = true;
+  syncSoundControlsUI();
+  persistAppState();
+}
+
+function toggleBgm() {
+  const customAudio = document.getElementById('custom-bgm-audio');
+  isBgmPlaying = !isBgmPlaying;
+  if (isBgmPlaying) {
+    if (!isSoundEnabled) isSoundEnabled = true;
+    if (customBgmUrl && customAudio) {
+      stopProceduralZombiesBgm();
+      customAudio.volume = bgmVolume;
+      customAudio.play().catch(() => {});
+    } else {
+      startProceduralZombiesBgm();
+    }
+  } else {
+    stopProceduralZombiesBgm();
+    if (customAudio) customAudio.pause();
+  }
+  syncSoundControlsUI();
+  persistAppState();
+}
+
+function updateBgmVolume(val) {
+  bgmVolume = Math.max(0, Math.min(1, Number(val) / 100));
+  const customAudio = document.getElementById('custom-bgm-audio');
+  if (customAudio) customAudio.volume = bgmVolume;
+  if (bgmNodes.masterGain && audioCtx) {
+    bgmNodes.masterGain.gain.setTargetAtTime(bgmVolume * 0.45, audioCtx.currentTime, 0.05);
+  }
+  syncSoundControlsUI();
+  persistAppState();
+}
+
+function handleCustomBgmUpload(evt) {
+  const file = evt.target && evt.target.files ? evt.target.files[0] : null;
+  if (!file) return;
+  if (customBgmUrl) URL.revokeObjectURL(customBgmUrl);
+  customBgmUrl = URL.createObjectURL(file);
+  customBgmName = file.name.length > 16 ? file.name.slice(0, 13) + '…' : file.name;
+  isSoundEnabled = true;
+  isBgmPlaying = true;
+  const customAudio = document.getElementById('custom-bgm-audio');
+  stopProceduralZombiesBgm();
+  if (customAudio) {
+    customAudio.src = customBgmUrl;
+    customAudio.volume = bgmVolume;
+    customAudio.play().catch(() => {});
+  }
+  syncSoundControlsUI();
+  persistAppState();
+}
+
+function fisherYatesShuffle(arr) {
+  const copy = arr.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = copy[i];
+    copy[i] = copy[j];
+    copy[j] = tmp;
+  }
+  return copy;
+}
+
+function shuffleQuestionOptions(q) {
+  const indexed = q.choices.map((text, idx) => ({ text, isCorrect: idx === q.correctIndex }));
+  const shuffled = fisherYatesShuffle(indexed);
+  return {
+    ...q,
+    choices: shuffled.map((item) => item.text),
+    correctIndex: shuffled.findIndex((item) => item.isCorrect)
+  };
+}
+
+function getComboMultiplier() {
+  return Math.min(3.0, 1.0 + streak * 0.25);
+}
+
+function initDynamicSelectors() {
+  document.title = GAME_CONFIG.title;
+  const titleEl = document.getElementById('drawer-title');
+  const kickerEl = document.getElementById('drawer-kicker');
+  const codexTitle = document.getElementById('codex-title');
+  if (titleEl) titleEl.textContent = GAME_CONFIG.title;
+  if (kickerEl) kickerEl.textContent = GAME_CONFIG.kicker;
+  if (codexTitle) codexTitle.textContent = `Master Raid Loot Codex (${CODEX_DATA.length} Objectives)`;
+
+  const sectorSelect = document.getElementById('sector-filter');
+  if (sectorSelect) {
+    sectorSelect.innerHTML =
+      `<option value="all">All Sectors (${ALL_QUESTIONS.length} Gates)</option>` +
+      CODEX_DATA.map((c) => {
+        const meta = c.badgeMeta ? ` (${c.badgeMeta})` : '';
+        return `<option value="${c.lo}">LO ${c.lo}: ${c.entity}${meta}</option>`;
+      }).join('') +
+      `<option value="missed" id="missed-sector-option">🎯 Missed Gates Only (${missedQuestions.length})</option>`;
+  }
+  buildSkillTree();
+}
+
+function syncMissedOptionLabel() {
+  const opt = document.getElementById('missed-sector-option');
+  if (opt) opt.textContent = `🎯 Missed Gates Only (${missedQuestions.length})`;
+}
+
+function buildSkillTree() {
+  const grid = document.getElementById('skill-tree-grid');
+  if (!grid) return;
+  const secVal = document.getElementById('sector-filter')?.value || 'all';
+  let masteredLos = 0;
+  grid.innerHTML = CODEX_DATA.map((c) => {
+    const loQs = ALL_QUESTIONS.filter((q) => q.lo === c.lo);
+    const done = loQs.filter((q) => masteredIds.includes(q.id)).length;
+    const isMastered = done === loQs.length && loQs.length > 0;
+    if (isMastered) masteredLos++;
+    const isActive = String(secVal) === String(c.lo);
+    const metaTag = c.badgeMeta ? ` • ${c.badgeMeta}` : '';
+    return `<button type="button" class="skill-node ${isMastered ? 'is-mastered' : ''} ${isActive ? 'is-active-filter' : ''}" onclick="selectSectorFromTree(${c.lo})">
+      <div class="skill-node-top"><span>LO ${c.lo}${metaTag}</span><span>${done}/${loQs.length}</span></div>
+      <div class="skill-node-title">${c.entity}</div>
+      <div class="skill-node-meta">${isMastered ? '✔ MASTERED' : 'TAP TO DEPLOY'}</div>
+    </button>`;
+  }).join('');
+  const sumEl = document.getElementById('mastery-summary');
+  const acc = answeredCount > 0 ? `${Math.round((correctCount / answeredCount) * 100)}%` : '--%';
+  if (sumEl) sumEl.textContent = `Mastered: ${masteredLos} / ${CODEX_DATA.length} LOs • Accuracy: ${acc}`;
+}
+
+function selectSectorFromTree(loNum) {
+  const sel = document.getElementById('sector-filter');
+  if (sel) sel.value = String(loNum);
+  applyFilters();
+  if (isMenuOpen) toggleMenuDrawer();
+}
+
+function setPhaseFilter(val) {
+  phaseFilter = val;
+  document.querySelectorAll('.phase-mix-pill[data-phase]').forEach((p) => {
+    p.classList.toggle('is-selected', p.dataset.phase === val);
+  });
+  applyFilters();
+}
+
+function buildDeck(randomize, customSource) {
+  const secVal = document.getElementById('sector-filter')?.value || 'all';
+  const angVal = document.getElementById('angle-filter')?.value || 'all';
+  const msgEl = document.getElementById('menu-status-msg');
+  let pool;
+
+  if (Array.isArray(customSource) && customSource.length > 0) {
+    pool = customSource.slice();
+  } else if (secVal === 'missed') {
+    pool = missedQuestions.filter((q) => {
+      const matchAng = angVal === 'all' || q.angle === angVal;
+      const matchPha = phaseFilter === 'all' || q.phaseFocus === phaseFilter;
+      return matchAng && matchPha;
+    });
+  } else {
+    pool = ALL_QUESTIONS.filter((q) => {
+      const matchLo = secVal === 'all' || String(q.lo) === String(secVal);
+      const matchAng = angVal === 'all' || q.angle === angVal;
+      const matchPha = phaseFilter === 'all' || q.phaseFocus === phaseFilter;
+      return matchLo && matchAng && matchPha;
+    });
+  }
+
+  if (!pool.length) {
+    pool = ALL_QUESTIONS.slice();
+    if (msgEl) {
+      msgEl.textContent = secVal === 'missed'
+        ? `No missed gates yet — loaded all ${ALL_QUESTIONS.length} gates.`
+        : `No gates matched that filter combo — restored all ${ALL_QUESTIONS.length} gates.`;
+    }
+  } else if (msgEl) {
+    msgEl.textContent = `Active Queue: ${pool.length} gates ready.`;
+  }
+
+  const ordered = randomize ? fisherYatesShuffle(pool) : pool.slice();
+  activeDeck = ordered.map(shuffleQuestionOptions);
+}
+
+function getCurrentQuestion() {
+  if (!activeDeck.length) buildDeck(false);
+  return activeDeck[currentIndex] || activeDeck[0];
+}
+
+function toggleMenuDrawer() {
+  isMenuOpen = !isMenuOpen;
+  const backdrop = document.getElementById('menu-backdrop');
+  const btn = document.getElementById('menu-toggle-btn');
+  if (backdrop) backdrop.classList.toggle('is-open', isMenuOpen);
+  if (btn) {
+    btn.classList.toggle('is-active', isMenuOpen);
+    btn.setAttribute('aria-expanded', String(isMenuOpen));
+  }
+  if (isMenuOpen) {
+    syncMissedOptionLabel();
+    buildSkillTree();
+  }
+}
+
+function syncHintsUI() {
+  const app = document.getElementById('xr-app');
+  const menuBtn = document.getElementById('menu-hints-btn');
+  if (app) {
+    app.classList.toggle('hints-visible', isHintsVisible);
+    app.classList.toggle('hints-hidden', !isHintsVisible);
+  }
+  if (menuBtn) {
+    menuBtn.textContent = isHintsVisible ? `💡 Hints: ON [H]` : `💡 Hints: OFF [H]`;
+    menuBtn.classList.toggle('is-active', isHintsVisible);
+  }
+}
+
+function toggleHintsBar() {
+  isHintsVisible = !isHintsVisible;
+  syncHintsUI();
+  playSfx('steer');
+  persistAppState();
+}
+
+function openCodexFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  openCodex();
+}
+
+function skipFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  skipCurrentQuestion();
+}
+
+function syncTimerControlsUI() {
+  const modeSel = document.getElementById('times-up-select');
+  const menuTimerBtn = document.getElementById('menu-timer-btn');
+  const chip = document.getElementById('timer-chip');
+  if (modeSel) modeSel.value = isTimesUpFailEnabled ? 'fail' : 'hold';
+  if (menuTimerBtn) {
+    menuTimerBtn.textContent = isTimerEnabled ? `⏱ 50s Timer: ON [T]` : `⏱ 50s Timer: OFF [T]`;
+    menuTimerBtn.classList.toggle('is-active', isTimerEnabled);
+  }
+  if (!chip) return;
+  chip.classList.remove('is-off', 'is-hold', 'is-urgent');
+  if (!isTimerEnabled) {
+    chip.textContent = `⏱ OFF`;
+    chip.classList.add('is-off');
+  } else if (timeRemaining === 0 && !isTimesUpFailEnabled) {
+    chip.textContent = `⏱ HOLD`;
+    chip.classList.add('is-hold');
+  } else {
+    chip.textContent = `⏱ ${timeRemaining}s`;
+    if (timeRemaining <= 10) chip.classList.add('is-urgent');
+  }
+}
+
+function applyTimerSettings() {
+  const modeSel = document.getElementById('times-up-select');
+  if (modeSel) isTimesUpFailEnabled = modeSel.value === 'fail';
+  syncTimerControlsUI();
+  persistAppState();
+}
+
+function toggleTimerActive() {
+  if (isRunFinished) return;
+  isTimerEnabled = !isTimerEnabled;
+  if (isTimerEnabled) {
+    startQuestionTimer();
+    playSfx('steer');
+  } else {
+    if (timerIntervalId) clearInterval(timerIntervalId);
+    syncTimerControlsUI();
+  }
+  persistAppState();
+}
+
+function startTimedSession() {
+  isTimerEnabled = true;
+  isTimesUpFailEnabled = true;
+  if (isMenuOpen) toggleMenuDrawer();
+  syncTimerControlsUI();
+  startQuestionTimer();
+  playSfx('warp');
+  persistAppState();
+}
+
+function startQuestionTimer() {
+  if (timerIntervalId) clearInterval(timerIntervalId);
+  timeRemaining = GAME_CONFIG.timerSeconds;
+  syncTimerControlsUI();
+  if (!isTimerEnabled) return;
+  timerIntervalId = setInterval(() => {
+    if (isModalOpen || isMenuOpen || isRunFinished || !isTimerEnabled) return;
+    if (timeRemaining > 0) {
+      timeRemaining--;
+      syncTimerControlsUI();
+      if (timeRemaining === 0) {
+        if (isTimesUpFailEnabled) {
+          clearInterval(timerIntervalId);
+          resolveGateChoice(-1);
+        } else {
+          syncTimerControlsUI();
+        }
+      }
+    }
+  }, 1000);
+}
+
+function updateTelemetryUI() {
+  const hpText = document.getElementById('hp-text');
+  const hpChip = document.getElementById('hp-chip');
+  const xpText = document.getElementById('xp-text');
+  const streakText = document.getElementById('streak-text');
+  const progText = document.getElementById('progress-text');
+  const clampedHp = Math.max(0, playerHp);
+  if (hpText) hpText.textContent = `${clampedHp}`;
+  if (hpChip) hpChip.classList.toggle('is-low', clampedHp <= 30);
+  if (xpText) xpText.textContent = `${playerXp}`;
+  if (streakText) streakText.textContent = `${streak}`;
+  if (progText) progText.textContent = `${Math.min(currentIndex + 1, activeDeck.length)}/${activeDeck.length}`;
+  syncTimerControlsUI();
+  syncSoundControlsUI();
+  syncHintsUI();
+}
+
+function triggerAmbossRescan() {
+  const stage = document.querySelector('.question-stage');
+  if (stage) stage.setAttribute('data-amboss-timestamp', String(Date.now()));
+}
+
+function scheduleMetadataAutoHide() {
+  const metaRow = document.getElementById('question-meta-row');
+  if (!metaRow) return;
+  if (metaFadeTimeoutId) {
+    clearTimeout(metaFadeTimeoutId);
+    metaFadeTimeoutId = null;
+  }
+  metaRow.classList.remove('is-faded');
+  metaFadeTimeoutId = setTimeout(() => {
+    metaRow.classList.add('is-faded');
+  }, GAME_CONFIG.metaFadeMs);
+}
+
+function updateLaneHighlight() {
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`lane-${i}-card`);
+    if (card) {
+      card.classList.toggle('is-targeted', i === currentLane);
+      card.classList.toggle('is-selected', hasChosenLane && i === currentLane);
+    }
+  }
+}
+
+function previewLaneTarget(laneIndex) {
+  if (isModalOpen || isMenuOpen || isRunFinished) return;
+  if (laneIndex < 0 || laneIndex > 2) return;
+  if (currentLane !== laneIndex) {
+    currentLane = laneIndex;
+    updateLaneHighlight();
+    const now = performance.now();
+    if (now - lastSteerSfxTime > 95) {
+      lastSteerSfxTime = now;
+      playSfx('steer');
+    }
+  }
+}
+
+function updateQuestionStageUI() {
+  const q = getCurrentQuestion();
+  const theme = getThemeForLo(q.lo);
+  const loBadge = document.getElementById('lo-badge');
+  const angleBadge = document.getElementById('angle-badge');
+  const phaseBadge = document.getElementById('phase-badge');
+  const corridorBadge = document.getElementById('corridor-badge');
+  const stemEl = document.getElementById('q-stem-text');
+  const clueEl = document.getElementById('q-clue-text');
+  const hintRefEl = document.getElementById('hints-meta-ref');
+
+  if (loBadge) loBadge.textContent = q.loTitle;
+  if (angleBadge) angleBadge.textContent = q.angle.replace('->', '→');
+  if (phaseBadge) phaseBadge.textContent = q.phaseFocus;
+  if (corridorBadge) corridorBadge.textContent = `CORRIDOR: ${theme.tag}`;
+  if (stemEl) stemEl.textContent = q.stem;
+  if (clueEl) clueEl.textContent = q.clue;
+  if (hintRefEl) hintRefEl.textContent = `${q.loTitle} • ${q.phaseFocus}`;
+
+  for (let i = 0; i < 3; i++) {
+    const txt = document.getElementById(`lane-${i}-text`);
+    if (txt) txt.textContent = q.choices[i] || '';
+  }
+
+  updateLaneHighlight();
+  scheduleMetadataAutoHide();
+  triggerAmbossRescan();
+}
+
+function applyFilters() {
+  buildDeck(false);
+  resetRunState();
+  buildSkillTree();
+  persistAppState();
+}
+
+function restartOrdered() {
+  closeAllModals();
+  if (isMenuOpen) toggleMenuDrawer();
+  buildDeck(false);
+  resetRunState();
+}
+
+function restartRandomized() {
+  closeAllModals();
+  if (isMenuOpen) toggleMenuDrawer();
+  buildDeck(true);
+  resetRunState();
+}
+
+function retryMissedOnly() {
+  if (!missedQuestions.length) return;
+  const copy = missedQuestions.slice();
+  closeAllModals();
+  buildDeck(true, copy);
+  resetRunState();
+}
+
+function handleResetMastery(btn) {
+  if (!btn) return;
+  if (btn.dataset.armed !== 'true') {
+    btn.dataset.armed = 'true';
+    btn.textContent = `⚠ Confirm Reset?`;
+    setTimeout(() => {
+      if (btn.dataset.armed === 'true') {
+        btn.dataset.armed = 'false';
+        btn.textContent = `⚠ Reset Mastery`;
+      }
+    }, 3200);
+    return;
+  }
+  btn.dataset.armed = 'false';
+  btn.textContent = `⚠ Reset Mastery`;
+  masteredIds = [];
+  missedQuestions = [];
+  bestXp = 0;
+  bestStreak = 0;
+  phaseFilter = 'all';
+  const sf = document.getElementById('sector-filter');
+  const af = document.getElementById('angle-filter');
+  if (sf) sf.value = 'all';
+  if (af) af.value = 'all';
+  document.querySelectorAll('.phase-mix-pill[data-phase]').forEach((p) => {
+    p.classList.toggle('is-selected', p.dataset.phase === 'all');
+  });
+  syncMissedOptionLabel();
+  buildDeck(false);
+  resetRunState();
+  buildSkillTree();
+  persistAppState();
+}
+
+function resetRunState() {
+  currentIndex = 0;
+  playerHp = GAME_CONFIG.maxHp;
+  playerXp = 0;
+  streak = 0;
+  correctCount = 0;
+  answeredCount = 0;
+  healCheckpointCounter = 0;
+  if (document.getElementById('sector-filter')?.value !== 'missed') {
+    missedQuestions = [];
+  }
+  isRunFinished = false;
+  isModalOpen = false;
+  syncMissedOptionLabel();
+  prepareNextGate();
+  updateTelemetryUI();
+}
+
+function prepareNextGate() {
+  currentLane = 1;
+  hasChosenLane = false;
+  craftVisualLane = 1;
+  gateDistance = GAME_CONFIG.gateStartDistance;
+  isStoppedAtGate = false;
+  warpSurgeTimer = 0.45;
+  portalFlareLane = -1;
+  portalFlareTimer = 0;
+  for (let i = 0; i < 3; i++) {
+    document.getElementById(`lane-${i}-card`)?.classList.remove('is-fused', 'is-selected');
+  }
+  updateQuestionStageUI();
+  updateTelemetryUI();
+  startQuestionTimer();
+  playSfx('warp');
+}
+
+function triggerVignette(type) {
+  const vig = document.getElementById('vignette-overlay');
+  const shell = document.getElementById('viewport-shell');
+  if (vig) {
+    vig.classList.remove('is-damage', 'is-heal');
+    void vig.offsetWidth;
+    vig.classList.add(type === 'damage' ? 'is-damage' : 'is-heal');
+    setTimeout(() => vig.classList.remove('is-damage', 'is-heal'), 420);
+  }
+  if (type === 'damage' && shell) {
+    shell.classList.remove('shake-anim');
+    void shell.offsetWidth;
+    shell.classList.add('shake-anim');
+  }
+}
+
+function showHealToast(amount) {
+  const toast = document.getElementById('heal-toast');
+  if (!toast) return;
+  toast.textContent = `✚ STREAK BONUS +${amount} HP`;
+  toast.classList.add('is-visible');
+  setTimeout(() => toast.classList.remove('is-visible'), 2000);
+}
+
+function selectLaneAndResolve(laneIndex) {
+  if (isModalOpen || isMenuOpen || isRunFinished) return;
+  if (laneIndex < 0 || laneIndex > 2) return;
+  currentLane = laneIndex;
+  hasChosenLane = true;
+  portalFlareLane = laneIndex;
+  portalFlareTimer = 0.35;
+  updateLaneHighlight();
+  playSfx('steer');
+  resolveGateChoice(laneIndex);
+}
+
+function resolveGateChoice(chosenLane) {
+  if (timerIntervalId) clearInterval(timerIntervalId);
+  isModalOpen = true;
+  const q = getCurrentQuestion();
+  const isTimesUp = chosenLane === -1;
+  const isCorrect = !isTimesUp && chosenLane === q.correctIndex;
+  answeredCount++;
+
+  let xpDelta = 0;
+  let hpDeltaLabel = '';
+
+  if (isCorrect) {
+    correctCount++;
+    streak++;
+    if (streak > bestStreak) bestStreak = streak;
+    if (!masteredIds.includes(q.id)) masteredIds.push(q.id);
+    const prevHp = playerHp;
+    playerHp = Math.min(GAME_CONFIG.maxHp, playerHp + GAME_CONFIG.hpReward);
+    const smallGain = playerHp - prevHp;
+    hpDeltaLabel = smallGain > 0 ? `+${smallGain} HP` : `MAX HP`;
+    xpDelta = Math.round(100 * getComboMultiplier());
+    playerXp += xpDelta;
+    if (playerXp > bestXp) bestXp = playerXp;
+    healCheckpointCounter++;
+    playSfx('correct');
+    if (healCheckpointCounter >= GAME_CONFIG.healStreakStep) {
+      healCheckpointCounter = 0;
+      const beforeHeal = playerHp;
+      playerHp = Math.min(GAME_CONFIG.maxHp, playerHp + GAME_CONFIG.healAmount);
+      const gained = playerHp - beforeHeal;
+      hpDeltaLabel = gained > 0 ? `+${gained} HP` : `MAX HP`;
+      triggerVignette('heal');
+      showHealToast(gained > 0 ? gained : GAME_CONFIG.healAmount);
+      playSfx('heal');
+    }
+  } else {
+    streak = 0;
+    healCheckpointCounter = 0;
+    playerHp = Math.max(0, playerHp - GAME_CONFIG.hpPenalty);
+    hpDeltaLabel = `-${GAME_CONFIG.hpPenalty} HP`;
+    if (!missedQuestions.some((item) => item.id === q.id)) missedQuestions.push(q);
+    syncMissedOptionLabel();
+    triggerVignette('damage');
+    playSfx('wrong');
+  }
+
+  updateTelemetryUI();
+  populateOutcomeModal(q, chosenLane, isCorrect, xpDelta, hpDeltaLabel, isTimesUp);
+  persistAppState();
+}
+
+function renderDossierBullets(el, lines) {
+  if (!el) return;
+  const items = (Array.isArray(lines) ? lines : [lines])
+    .flatMap((line) => String(line || '').split(/\n|<br\s*\/?>/i))
+    .map((line) => line.replace(/^\s*[•\-\*]\s*/, '').trim())
+    .filter(Boolean);
+  el.innerHTML = items.map((line) => `<p class="dossier-line">• ${line}</p>`).join('');
+}
+
+function populateOutcomeModal(q, chosenLane, isCorrect, xpDelta, hpDeltaLabel, isTimesUp) {
+  const verdict = document.getElementById('outcome-verdict');
+  const xpBadge = document.getElementById('outcome-xp-delta');
+  const hpBadge = document.getElementById('outcome-hp-delta');
+  const loRef = document.getElementById('outcome-lo-ref');
+  const qText = document.getElementById('outcome-question-text');
+  const yourBox = document.getElementById('your-choice-box');
+  const yourText = document.getElementById('your-choice-text');
+  const rightText = document.getElementById('correct-choice-text');
+  const expEl = document.getElementById('dossier-explanation');
+  const clueEl = document.getElementById('dossier-board-clue');
+  const pathEl = document.getElementById('dossier-pathogenesis');
+  const morphEl = document.getElementById('dossier-morphology');
+  const txEl = document.getElementById('dossier-epi-tx');
+  const ang1El = document.getElementById('dossier-angle-1');
+  const ang2El = document.getElementById('dossier-angle-2');
+  const ang3El = document.getElementById('dossier-angle-3');
+  const contBtn = document.getElementById('continue-runner-btn');
+  const backdrop = document.getElementById('outcome-backdrop');
+  const scrollBody = document.getElementById('outcome-scroll-body');
+
+  const correctAnswerLabel = (q.shortAnswer && q.shortAnswer.trim())
+    ? q.shortAnswer.trim()
+    : (q.choices[q.correctIndex] || q.loTitle || 'Correct Answer');
+
+  if (verdict) {
+    verdict.textContent = isTimesUp
+      ? `⏱ TIME'S UP — ${correctAnswerLabel}`
+      : (isCorrect ? `✔ CORRECT — ${correctAnswerLabel}` : `✖ INCORRECT — ${correctAnswerLabel}`);
+    verdict.className = `popup-verdict ${isCorrect ? 'is-correct' : 'is-wrong'}`;
+  }
+  if (xpBadge) {
+    xpBadge.textContent = isCorrect
+      ? `+${xpDelta} XP (${getComboMultiplier().toFixed(2)}x)`
+      : (isTimesUp ? `+0 XP (Time Expired)` : `+0 XP (Streak Reset)`);
+  }
+  if (hpBadge) hpBadge.textContent = hpDeltaLabel;
+  if (loRef) loRef.textContent = `${q.loTitle} • ${q.angle.replace('->', '→')} • ${q.phaseFocus}`;
+  if (qText) qText.textContent = q.stem;
+
+  if (yourBox) {
+    yourBox.classList.remove('is-right', 'is-wrong');
+    yourBox.classList.add(isCorrect ? 'is-right' : 'is-wrong');
+  }
+  if (yourText) yourText.textContent = isTimesUp ? `⏱ Time's Up (No Selection)` : (q.choices[chosenLane] || '');
+  if (rightText) rightText.textContent = q.choices[q.correctIndex] || '';
+
+  const expParts = String(q.explanation || '').split(/\s+Distractor exclusion:\s*/i);
+  if (expParts.length > 1) {
+    renderDossierBullets(expEl, [expParts[0], `Distractor exclusion: ${expParts[1]}`]);
+  } else {
+    const expSentences = String(q.explanation || '').split(/(?<=\.)\s+/).filter(Boolean);
+    renderDossierBullets(expEl, expSentences.length ? expSentences : [q.explanation]);
+  }
+  renderDossierBullets(clueEl, [q.secondOrderClue, `Quick Hint: ${q.clue}`]);
+  renderDossierBullets(pathEl, [q.phase1Pearl]);
+  renderDossierBullets(morphEl, [q.phase2Hallmark]);
+  renderDossierBullets(txEl, [q.phase3Secret]);
+  renderDossierBullets(ang1El, q.dossierBullets?.p1 || [q.phase1Pearl]);
+  renderDossierBullets(ang2El, q.dossierBullets?.p2 || [q.phase2Hallmark]);
+  renderDossierBullets(ang3El, q.dossierBullets?.p3 || [q.phase3Secret]);
+
+  if (contBtn) {
+    if (playerHp <= 0) contBtn.textContent = `⚠ HP DEPLETED — VIEW SUMMARY`;
+    else if (currentIndex + 1 >= activeDeck.length) contBtn.textContent = `🏁 FINISH RUN — VIEW SUMMARY`;
+    else contBtn.textContent = `▶ Continue Runner [Space / Enter]`;
+  }
+  if (scrollBody) scrollBody.scrollTop = 0;
+  if (backdrop) backdrop.classList.add('is-open');
+  setTimeout(triggerAmbossRescan, 50);
+}
+
+function scrollOutcomeBody(deltaY) {
+  const body = document.getElementById('outcome-scroll-body');
+  if (!body) return;
+  if (typeof body.scrollBy === 'function') {
+    body.scrollBy({ top: deltaY, behavior: 'smooth' });
+  } else {
+    body.scrollTop = Math.max(0, body.scrollTop + deltaY);
+  }
+}
+
+function continueToNextGate() {
+  document.getElementById('outcome-backdrop')?.classList.remove('is-open');
+  isModalOpen = false;
+  if (playerHp <= 0 || currentIndex + 1 >= activeDeck.length) {
+    openSummaryModal();
+    return;
+  }
+  currentIndex++;
+  prepareNextGate();
+}
+
+function skipCurrentQuestion() {
+  if (isModalOpen || isRunFinished) return;
+  if (timerIntervalId) clearInterval(timerIntervalId);
+  playSfx('steer');
+  if (currentIndex + 1 >= activeDeck.length) {
+    openSummaryModal();
+    return;
+  }
+  currentIndex++;
+  prepareNextGate();
+}
+
+function openSummaryModal() {
+  isRunFinished = true;
+  if (timerIntervalId) clearInterval(timerIntervalId);
+  const sumTitle = document.getElementById('summary-title');
+  const sumSub = document.getElementById('summary-subtitle');
+  const sumXp = document.getElementById('sum-xp');
+  const sumAcc = document.getElementById('sum-acc');
+  const sumStreak = document.getElementById('sum-streak');
+  const sumHp = document.getElementById('sum-hp');
+  const missedList = document.getElementById('missed-review-list');
+  const retryBtn = document.getElementById('retry-missed-btn');
+  const backdrop = document.getElementById('summary-backdrop');
+  const acc = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
+
+  if (sumTitle) {
+    sumTitle.textContent = playerHp <= 0 ? `BIO-SUIT BREACHED (0 HP)` : `DIAGNOSTIC RUN COMPLETE`;
+    sumTitle.className = `popup-verdict ${playerHp <= 0 ? 'is-wrong' : 'is-correct'}`;
+  }
+  if (sumSub) sumSub.textContent = `Completed ${answeredCount} of ${activeDeck.length} gates (${correctCount} correct) • Best XP: ${bestXp}`;
+  if (sumXp) sumXp.textContent = `${playerXp}`;
+  if (sumAcc) sumAcc.textContent = `${acc}%`;
+  if (sumStreak) sumStreak.textContent = `${bestStreak}`;
+  if (sumHp) sumHp.textContent = `${Math.max(0, playerHp)}`;
+
+  if (missedList) {
+    if (!missedQuestions.length) {
+      missedList.innerHTML = `<div class="missed-empty">✔ FLAWLESS RUN — ZERO MISSED DIAGNOSTIC GATES!</div>`;
+      if (retryBtn) retryBtn.style.display = 'none';
+    } else {
+      missedList.innerHTML = missedQuestions.map((mq) => {
+        const correctOpt = mq.choices[mq.correctIndex] || '';
+        return `<div class="missed-item"><strong style="color:var(--secondary)">${mq.loTitle}</strong><br>${mq.stem}<br><strong>Correct:</strong> ${correctOpt}<br><span style="color:var(--on-surface-variant)"><strong>Clue:</strong> ${mq.clue}</span></div>`;
+      }).join('');
+      if (retryBtn) {
+        retryBtn.style.display = 'inline-flex';
+        retryBtn.textContent = `🎯 Retry Missed Gates (${missedQuestions.length})`;
+      }
+    }
+  }
+  if (backdrop) backdrop.classList.add('is-open');
+  persistAppState();
+}
+
+function closeAllModals() {
+  ['outcome-backdrop', 'codex-backdrop', 'summary-backdrop'].forEach((id) => {
+    document.getElementById(id)?.classList.remove('is-open');
+  });
+  isModalOpen = false;
+}
+
+function openCodex() {
+  isModalOpen = true;
+  renderCodexTable();
+  document.getElementById('codex-backdrop')?.classList.add('is-open');
+}
+
+function closeCodex() {
+  document.getElementById('codex-backdrop')?.classList.remove('is-open');
+  if (!document.getElementById('outcome-backdrop')?.classList.contains('is-open') &&
+      !document.getElementById('summary-backdrop')?.classList.contains('is-open')) {
+    isModalOpen = false;
+  }
+}
+
+function setCodexTag(tag) {
+  codexTag = tag;
+  document.querySelectorAll('.phase-mix-pill[data-codex-tag]').forEach((p) => {
+    p.classList.toggle('is-selected', p.dataset.codexTag === tag);
+  });
+  renderCodexTable();
+}
+
+function renderCodexTable() {
+  const tbody = document.getElementById('codex-tbody');
+  if (!tbody) return;
+  const query = (document.getElementById('codex-search')?.value || '').trim().toLowerCase();
+  const rows = CODEX_DATA.filter((item) => {
+    if (codexTag !== 'all' && item.tag !== codexTag) return false;
+    if (!query) return true;
+    const blob = `${item.lo} ${item.entity} ${item.etiology} ${item.pathogenesis} ${item.hallmarks} ${item.clinical} ${item.management}`.toLowerCase();
+    return blob.includes(query);
+  });
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="6">No matching entities found.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map((r) => {
+    const metaTag = r.badgeMeta ? ` • ${r.badgeMeta}` : '';
+    return `<tr>
+      <td class="amboss-scan-target"><small style="color:var(--primary);font-family:var(--font-label);">LO ${r.lo}${metaTag}</small><br><strong>${r.entity}</strong></td>
+      <td class="amboss-scan-target">${r.etiology}</td>
+      <td class="amboss-scan-target">${r.pathogenesis}</td>
+      <td class="amboss-scan-target">${r.hallmarks}</td>
+      <td class="amboss-scan-target">${r.clinical}</td>
+      <td class="amboss-scan-target">${r.management}</td>
+    </tr>`;
+  }).join('');
+}
+
+function handleCanvasPointer(evt) {
+  if (isModalOpen || isMenuOpen || isRunFinished) return;
+  const canvas = document.getElementById('xr-canvas');
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const cx = evt.clientX - rect.left;
+  const cy = evt.clientY - rect.top;
+  for (let i = 0; i < portalHitboxes.length; i++) {
+    const b = portalHitboxes[i];
+    if (cx >= b.x && cx <= b.x + b.w && cy >= b.y && cy <= b.y + b.h) {
+      selectLaneAndResolve(b.lane);
+      return;
+    }
+  }
+}
+
+function handleCanvasHover(evt) {
+  if (isModalOpen || isMenuOpen || isRunFinished) return;
+  const canvas = document.getElementById('xr-canvas');
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const cx = evt.clientX - rect.left;
+  const cy = evt.clientY - rect.top;
+  for (let i = 0; i < portalHitboxes.length; i++) {
+    const b = portalHitboxes[i];
+    if (cx >= b.x && cx <= b.x + b.w && cy >= b.y && cy <= b.y + b.h) {
+      previewLaneTarget(b.lane);
+      return;
+    }
+  }
+}
+
+function handleKeyControls(e) {
+  const activeTag = document.activeElement ? document.activeElement.tagName : '';
+  if (activeTag === 'INPUT' || activeTag === 'SELECT' || activeTag === 'TEXTAREA') {
+    if (e.key === 'Escape') {
+      closeCodex();
+      if (isMenuOpen) toggleMenuDrawer();
+    }
+    return;
+  }
+
+  const key = e.key.toLowerCase();
+  const outcomeOpen = document.getElementById('outcome-backdrop')?.classList.contains('is-open');
+  const codexOpen = document.getElementById('codex-backdrop')?.classList.contains('is-open');
+
+  if (e.key === 'Escape') {
+    if (codexOpen) { closeCodex(); return; }
+    if (isMenuOpen) { toggleMenuDrawer(); return; }
+  }
+
+  if (codexOpen) {
+    if (key === 'c') { e.preventDefault(); closeCodex(); }
+    return;
+  }
+
+  if (outcomeOpen) {
+    if (key === ' ' || key === 'enter') {
+      e.preventDefault();
+      continueToNextGate();
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      scrollOutcomeBody(140);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      scrollOutcomeBody(-140);
+    }
+    return;
+  }
+
+  if (key === 'm') { e.preventDefault(); toggleMenuDrawer(); return; }
+  if (isMenuOpen || isRunFinished) return;
+
+  if (key === 'h') {
+    e.preventDefault();
+    toggleHintsBar();
+  } else if (key === 'c') {
+    e.preventDefault();
+    openCodex();
+  } else if (key === 's') {
+    e.preventDefault();
+    skipCurrentQuestion();
+  } else if (key === 't') {
+    e.preventDefault();
+    toggleTimerActive();
+  } else if (key === '1' || key === 'a' || e.key === 'ArrowLeft') {
+    e.preventDefault();
+    selectLaneAndResolve(0);
+  } else if (key === '2' || key === 'w' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    selectLaneAndResolve(1);
+  } else if (key === '3' || key === 'd' || e.key === 'ArrowRight') {
+    e.preventDefault();
+    selectLaneAndResolve(2);
+  }
+}
+
+function drawPixelStarfield(ctx, cssW, cssH, vpX, horizonY, theme, dt, warpMult) {
+  const spreadX = cssW * 0.58;
+  const spreadY = cssH * 0.64;
+
+  ctx.save();
+  ctx.fillStyle = theme.particleColor || '#e8cf58';
+
+  for (let i = 0; i < PARALLAX_PARTICLES.length; i++) {
+    const p = PARALLAX_PARTICLES[i];
+    if (!isModalOpen && !isMenuOpen && !isRunFinished) {
+      p.z -= p.speed * dt * warpMult;
+      if (p.z <= 0.03) p.z = 1.0;
+    }
+
+    const invZ = 1 / (p.z + 0.14);
+    const normDepth = 1 - p.z;
+    const px = vpX + p.dx * spreadX * (invZ * 0.22);
+    const py = horizonY + p.dy * spreadY * (invZ * 0.24);
+
+    if (px < -16 || px > cssW + 16 || py < -16 || py > cssH + 16) continue;
+
+    const sz = Math.min(10.5, Math.max(1.2, p.baseSize * (0.28 + Math.pow(normDepth, 2.2) * 1.9)));
+    const alpha = Math.min(0.88, Math.pow(normDepth, 0.7) * 0.85 + 0.08);
+
+    ctx.globalAlpha = alpha;
+    ctx.fillRect(Math.round(px - sz * 0.5), Math.round(py - sz * 0.5), sz, sz);
+  }
+  ctx.restore();
+}
+
+function renderRunnerFrame(timestamp) {
+  const canvas = document.getElementById('xr-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const dpr = Math.min(window.devicePixelRatio || 1, 2.25);
+  const cssW = canvas.clientWidth || 390;
+  const cssH = canvas.clientHeight || 360;
+  if (canvas.width !== Math.round(cssW * dpr) || canvas.height !== Math.round(cssH * dpr)) {
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+  }
+
+  const dt = lastFrameTime ? Math.min(0.05, (timestamp - lastFrameTime) / 1000) : 0.016;
+  lastFrameTime = timestamp;
+  particleTime += dt;
+
+  if (warpSurgeTimer > 0) warpSurgeTimer = Math.max(0, warpSurgeTimer - dt);
+  if (portalFlareTimer > 0) portalFlareTimer = Math.max(0, portalFlareTimer - dt);
+
+  const warpFrac = warpSurgeTimer / 0.45;
+  const warpSpeedMult = 1 + warpFrac * 4.2;
+
+  if (!isModalOpen && !isMenuOpen && !isRunFinished) {
+    if (gateDistance > GAME_CONFIG.stopDistanceMeters) {
+      gateDistance = Math.max(GAME_CONFIG.stopDistanceMeters, gateDistance - GAME_CONFIG.gateApproachSpeed * dt);
+      trackScrollOffset = (trackScrollOffset + dt * 2.1 * warpSpeedMult) % 1;
+    } else {
+      trackScrollOffset = (trackScrollOffset + dt * 0.35) % 1;
+      if (!isStoppedAtGate) {
+        isStoppedAtGate = true;
+        for (let i = 0; i < 3; i++) {
+          document.getElementById(`lane-${i}-card`)?.classList.add('is-fused');
+        }
+      }
+    }
+  }
+
+  craftVisualLane += (currentLane - craftVisualLane) * Math.min(1, dt * 14);
+
+  const q = getCurrentQuestion();
+  const theme = getThemeForLo(q.lo);
+  const isPortraitCompact = cssW <= 600;
+  const horizonY = cssH * (isPortraitCompact ? 0.50 : 0.57);
+  const vpX = cssW * 0.5;
+  const floorH = cssH - horizonY;
+
+  ctx.save();
+  ctx.scale(dpr, dpr);
+
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, cssH);
+  bgGrad.addColorStop(0, '#070710');
+  bgGrad.addColorStop(Math.max(0.1, horizonY / cssH), '#090915');
+  bgGrad.addColorStop(1, '#0d0d1c');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, cssW, cssH);
+
+  const gridRgb = theme.gridRgb || '108, 92, 172';
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, horizonY, cssW, floorH);
+  ctx.clip();
+
+  const rowCount = 16;
+  ctx.lineWidth = 1;
+  for (let i = 0; i < rowCount; i++) {
+    const t = (i + trackScrollOffset) / rowCount;
+    const persp = Math.pow(t, 2.35);
+    const y = horizonY + persp * floorH;
+    ctx.strokeStyle = `rgba(${gridRgb}, ${(0.04 + persp * 0.34).toFixed(3)})`;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(cssW, y);
+    ctx.stroke();
+  }
+
+  const colSpan = 22;
+  const bottomSpacing = cssW * 0.11;
+  for (let c = -colSpan; c <= colSpan; c++) {
+    const xBot = vpX + c * bottomSpacing;
+    const xTop = vpX + c * (bottomSpacing * 0.045);
+    const distFade = Math.max(0.08, 1 - Math.abs(c) / (colSpan + 2));
+    const lineGrad = ctx.createLinearGradient(xTop, horizonY, xBot, cssH);
+    lineGrad.addColorStop(0, `rgba(${gridRgb}, 0.02)`);
+    lineGrad.addColorStop(0.35, `rgba(${gridRgb}, ${(0.18 * distFade).toFixed(3)})`);
+    lineGrad.addColorStop(1, `rgba(${gridRgb}, ${(0.34 * distFade).toFixed(3)})`);
+    ctx.strokeStyle = lineGrad;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(xTop, horizonY);
+    ctx.lineTo(xBot, cssH);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  const fogGrad = ctx.createLinearGradient(0, horizonY - 24, 0, horizonY + 46);
+  fogGrad.addColorStop(0, 'rgba(8, 8, 18, 0)');
+  fogGrad.addColorStop(0.5, 'rgba(8, 8, 18, 0.85)');
+  fogGrad.addColorStop(1, 'rgba(8, 8, 18, 0)');
+  ctx.fillStyle = fogGrad;
+  ctx.fillRect(0, horizonY - 24, cssW, 70);
+
+  drawPixelStarfield(ctx, cssW, cssH, vpX, horizonY, theme, dt, warpSpeedMult);
+
+  const laneTrackBottomX = isPortraitCompact
+    ? [vpX - cssW * 0.44, vpX, vpX + cssW * 0.44]
+    : [vpX - cssW * 0.27, vpX, vpX + cssW * 0.27];
+  const laneTrackTopX = [vpX - 28, vpX, vpX + 28];
+
+  for (let l = 0; l < 3; l++) {
+    const isTargetedLane = l === currentLane;
+    const railGrad = ctx.createLinearGradient(laneTrackTopX[l], horizonY, laneTrackBottomX[l], cssH);
+    railGrad.addColorStop(0, 'rgba(52, 168, 143, 0.05)');
+    railGrad.addColorStop(0.28, isTargetedLane ? '#00ffcc' : 'rgba(52, 168, 143, 0.65)');
+    railGrad.addColorStop(1, isTargetedLane ? '#00ffcc' : 'rgba(52, 168, 143, 0.85)');
+
+    ctx.save();
+    ctx.fillStyle = railGrad;
+    if (isTargetedLane) {
+      ctx.shadowColor = '#00ffcc';
+      ctx.shadowBlur = 12;
+    }
+    const topHalf = isTargetedLane ? 1.4 : 0.9;
+    const botHalf = isTargetedLane ? 5.5 : 3.6;
+    ctx.beginPath();
+    ctx.moveTo(laneTrackTopX[l] - topHalf, horizonY);
+    ctx.lineTo(laneTrackTopX[l] + topHalf, horizonY);
+    ctx.lineTo(laneTrackBottomX[l] + botHalf, cssH);
+    ctx.lineTo(laneTrackBottomX[l] - botHalf, cssH);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  const depthProgress = 1 - Math.min(1, Math.max(0, (gateDistance - GAME_CONFIG.stopDistanceMeters) / (GAME_CONFIG.gateStartDistance - GAME_CONFIG.stopDistanceMeters)));
+  const easeProgress = Math.pow(depthProgress, 1.35);
+  const canvasRect = canvas.getBoundingClientRect();
+  portalHitboxes = [];
+
+  for (let laneIdx = 0; laneIdx < 3; laneIdx++) {
+    const cardEl = document.getElementById(`lane-${laneIdx}-card`);
+    const spreadFrac = laneIdx - 1;
+    let targetCx = vpX + spreadFrac * (cssW * 0.31);
+    let targetCy = cssH * 0.52;
+    let targetW = isPortraitCompact ? (cssW - 16) : Math.min(cssW * 0.29, 350);
+    let targetH = isPortraitCompact ? 92 : 148;
+
+    if (cardEl && canvasRect.width > 0) {
+      const r = cardEl.getBoundingClientRect();
+      if (r.width > 10 && r.height > 10) {
+        targetCx = (r.left - canvasRect.left) + r.width * 0.5;
+        targetCy = (r.top - canvasRect.top) + r.height * 0.5;
+        targetW = r.width;
+        targetH = r.height;
+      }
+    }
+
+    const startCx = vpX + spreadFrac * 26;
+    const startCy = horizonY - 4;
+    const startW = 24;
+    const startH = 20;
+
+    const gx = startCx + (targetCx - startCx) * easeProgress;
+    const gy = startCy + (targetCy - startCy) * easeProgress;
+    const gw = startW + (targetW - startW) * easeProgress;
+    const gh = startH + (targetH - startH) * easeProgress;
+    const fusePad = easeProgress * 3;
+    const boxX = gx - gw * 0.5 - fusePad;
+    const boxY = gy - gh * 0.5 - fusePad;
+    const boxW = gw + fusePad * 2;
+    const boxH = gh + fusePad * 2;
+
+    portalHitboxes.push({ lane: laneIdx, x: boxX, y: boxY, w: boxW, h: boxH });
+
+    const pColor = LANE_COLORS[laneIdx];
+    const isTargeted = laneIdx === currentLane;
+    const isFlaring = portalFlareLane === laneIdx && portalFlareTimer > 0;
+    const isFusedNow = depthProgress >= 0.98;
+
+    ctx.save();
+    ctx.strokeStyle = pColor;
+    ctx.fillStyle = pColor;
+    ctx.lineWidth = isFlaring ? 6.5 : (isFusedNow ? (isTargeted ? 4.5 : 3.2) : (isTargeted ? 4 : 2.8));
+    ctx.shadowColor = pColor;
+    ctx.shadowBlur = isFlaring ? 26 : (isFusedNow ? (isTargeted ? 20 : 12) : (isTargeted ? 14 : 7));
+
+    ctx.globalAlpha = isFlaring ? 0.28 : (isTargeted ? 0.14 : 0.06);
+    if (typeof ctx.roundRect === 'function') {
+      ctx.beginPath();
+      ctx.roundRect(boxX, boxY, boxW, boxH, 8);
+      ctx.fill();
+      ctx.globalAlpha = isTargeted ? 0.98 : (isFusedNow ? 0.82 : 0.72);
+      ctx.stroke();
+    } else {
+      ctx.fillRect(boxX, boxY, boxW, boxH);
+      ctx.globalAlpha = isTargeted ? 0.98 : (isFusedNow ? 0.82 : 0.72);
+      ctx.strokeRect(boxX, boxY, boxW, boxH);
+    }
+    ctx.restore();
+  }
+
+  const craftY = cssH * (isPortraitCompact ? 0.91 : 0.93);
+  const craftT = Math.max(0, Math.min(1, (craftY - horizonY) / Math.max(1, floorH)));
+  const interpRailTop = vpX + (craftVisualLane - 1) * 28;
+  const interpRailBot = vpX + (craftVisualLane - 1) * (isPortraitCompact ? cssW * 0.44 : cssW * 0.27);
+  const craftX = interpRailTop + (interpRailBot - interpRailTop) * craftT;
+  const hoverBob = Math.sin(particleTime * 4.5) * 2;
+  const bankTilt = (currentLane - craftVisualLane) * 0.12;
+  const craftHalfW = isPortraitCompact ? 34 : 52;
+  const craftHalfH = isPortraitCompact ? 38 : 54;
+
+  ctx.save();
+  ctx.translate(craftX, craftY + hoverBob);
+  ctx.rotate(bankTilt);
+  ctx.shadowColor = '#00e6b8';
+  ctx.shadowBlur = 16;
+
+  const craftGrad = ctx.createLinearGradient(0, -craftHalfH, 0, craftHalfH * 0.6);
+  craftGrad.addColorStop(0, '#50caa8');
+  craftGrad.addColorStop(1, '#268b72');
+  ctx.fillStyle = craftGrad;
+  ctx.beginPath();
+  ctx.moveTo(0, -craftHalfH);
+  ctx.lineTo(craftHalfW, 0);
+  ctx.lineTo(0, craftHalfH);
+  ctx.lineTo(-craftHalfW, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(0, 255, 204, 0.55)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.restore();
+  animFrameId = requestAnimationFrame(renderRunnerFrame);
+}
+
+async function persistAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.setAppState !== 'function') return;
+  try {
+    await window.notebookAppApi.setAppState({
+      bestXp,
+      bestStreak,
+      masteredIds,
+      isHintsVisible,
+      isSoundEnabled,
+      isSfxEnabled,
+      isTimerEnabled,
+      isTimesUpFailEnabled,
+      bgmVolume,
+      phaseFilter,
+      sectorFilter: document.getElementById('sector-filter')?.value || 'all',
+      angleFilter: document.getElementById('angle-filter')?.value || 'all'
+    });
+  } catch (e) {}
+}
+
+async function restoreAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.getAppState !== 'function') return;
+  try {
+    const s = await window.notebookAppApi.getAppState();
+    if (!s) return;
+    if (typeof s.bestXp === 'number') bestXp = s.bestXp;
+    if (typeof s.bestStreak === 'number') bestStreak = s.bestStreak;
+    if (Array.isArray(s.masteredIds)) masteredIds = s.masteredIds;
+    if (typeof s.isHintsVisible === 'boolean') isHintsVisible = s.isHintsVisible;
+    if (typeof s.isSoundEnabled === 'boolean') isSoundEnabled = s.isSoundEnabled;
+    if (typeof s.isSfxEnabled === 'boolean') isSfxEnabled = s.isSfxEnabled;
+    if (typeof s.isTimerEnabled === 'boolean') isTimerEnabled = s.isTimerEnabled;
+    if (typeof s.isTimesUpFailEnabled === 'boolean') isTimesUpFailEnabled = s.isTimesUpFailEnabled;
+    if (typeof s.bgmVolume === 'number') {
+      bgmVolume = s.bgmVolume;
+      const slider = document.getElementById('bgm-volume-slider');
+      if (slider) slider.value = String(Math.round(bgmVolume * 100));
+    }
+    if (s.phaseFilter) {
+      phaseFilter = s.phaseFilter;
+      document.querySelectorAll('.phase-mix-pill[data-phase]').forEach((p) => {
+        p.classList.toggle('is-selected', p.dataset.phase === phaseFilter);
+      });
+    }
+    const sf = document.getElementById('sector-filter');
+    const af = document.getElementById('angle-filter');
+    if (sf && s.sectorFilter) sf.value = s.sectorFilter;
+    if (af && s.angleFilter) af.value = s.angleFilter;
+  } catch (e) {}
+}
+
+async function initRunnerGame() {
+  initDynamicSelectors();
+  await restoreAppState();
+  syncHintsUI();
+  syncMissedOptionLabel();
+  buildDeck(false);
+  updateTelemetryUI();
+  prepareNextGate();
+
+  const canvas = document.getElementById('xr-canvas');
+  if (canvas) {
+    canvas.addEventListener('click', handleCanvasPointer);
+    canvas.addEventListener('mousemove', handleCanvasHover);
+    canvas.addEventListener('pointermove', handleCanvasHover);
+  }
+  window.addEventListener('keydown', handleKeyControls);
+
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  animFrameId = requestAnimationFrame(renderRunnerFrame);
+
+  if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === 'function') {
+    window.notebookAppApi.notifyAppReady();
+  }
+}
+
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', initRunnerGame);
+} else {
+  initRunnerGame();
+}
+</script>
+</body>
+</html>

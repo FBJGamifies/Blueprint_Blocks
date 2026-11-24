@@ -1,0 +1,4339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="artifact-type" content="tool">
+<meta name="design-style" content="neon_noir">
+<title>Lecture 14: Pediatric Growth, Development &amp; Osteopathic Approach — XR 3-Lane Diagnostic Runner (v3.8)</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --background: #0a0a12;
+  --surface-container-low: #111118;
+  --surface-container: #141422;
+  --surface-container-high: #1e1e30;
+  --surface-overlay: rgba(10, 10, 18, 0.92);
+  --surface-glass: rgba(16, 16, 28, 0.96);
+  --surface-stem: rgba(24, 12, 26, 0.86);
+  --surface-lane-card: rgba(16, 16, 30, 0.88);
+  --surface-lane-card-hover: rgba(24, 20, 42, 0.94);
+
+  --on-surface: #e8e0f0;
+  --on-surface-bright: #ffffff;
+  --on-surface-variant: #a098b0;
+  --outline: #5a5068;
+  --outline-variant: #302840;
+
+  --primary: #ff2d78;
+  --on-primary: #1a0010;
+  --secondary: #00ffcc;
+  --on-secondary: #001a14;
+  --tertiary: #ffe04a;
+  --on-tertiary: #1a1500;
+  --data-4: #b388ff;
+  --positive: #00e6a8;
+  --warning: #ffe04a;
+  --error: #ff4444;
+  --focus: #00ffcc;
+
+  --font-headline: 'Sora', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-label: 'Space Mono', monospace;
+
+  --game-headline-size: clamp(1.15rem, 1rem + 0.45vw, 1.48rem);
+  --game-stem-size: clamp(1.04rem, 0.98rem + 0.28vw, 1.24rem);
+  --game-body-size: clamp(0.98rem, 0.94rem + 0.16vw, 1.08rem);
+  --game-label-size: 0.78rem;
+  --game-micro-size: 0.68rem;
+
+  --card-min-h: 158px;
+  --card-pad-y: 1.25rem;
+  --card-pad-x: 1.2rem;
+  --card-font: clamp(1.06rem, 1.0rem + 0.24vw, 1.24rem);
+  --card-gap: 1rem;
+  --stem-pad-y: 0.62rem;
+  --stem-pad-x: 1.1rem;
+
+  --modal-display-size: clamp(1.25rem, 1.1rem + 0.7vw, 1.75rem);
+  --modal-headline-size: clamp(1rem, 0.94rem + 0.3vw, 1.22rem);
+  --modal-body-size: clamp(0.875rem, 0.85rem + 0.12vw, 0.96rem);
+  --modal-label-size: 0.72rem;
+
+  --space-xs: 0.25rem;
+  --space-sm: 0.45rem;
+  --space-md: 0.85rem;
+  --space-lg: 1.25rem;
+  --rounded: 0.18rem;
+  --rounded-lg: 0.38rem;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+
+  --glow-text: 0 0 8px currentColor;
+  --glow-primary: 0 0 18px color-mix(in srgb, var(--primary) 48%, transparent);
+  --glow-secondary: 0 0 18px color-mix(in srgb, var(--secondary) 44%, transparent);
+  --glow-tertiary: 0 0 18px color-mix(in srgb, var(--tertiary) 46%, transparent);
+  --neon-border: 1px solid color-mix(in srgb, var(--primary) 32%, transparent);
+  --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 58%, transparent);
+  --neon-border-cyan: 1px solid color-mix(in srgb, var(--secondary) 42%, transparent);
+  --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+  --neon-inset-cyan: inset 0 0 12px color-mix(in srgb, var(--secondary) 10%, transparent);
+  --scanlines: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in srgb, var(--on-surface) 2.5%, transparent) 3px 4px);
+  --vignette-damage: radial-gradient(circle at center, transparent 45%, color-mix(in srgb, var(--error) 65%, transparent) 100%);
+  --vignette-heal: radial-gradient(circle at center, transparent 45%, color-mix(in srgb, var(--positive) 55%, transparent) 100%);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--background);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: var(--game-body-size);
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+}
+
+button, input, select {
+  font-family: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+#xr-app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background);
+  background-image: var(--scanlines);
+  overflow: hidden;
+}
+
+#xr-app.hints-visible {
+  --card-min-h: 90px;
+  --card-pad-y: 0.6rem;
+  --card-pad-x: 0.9rem;
+  --card-font: clamp(0.94rem, 0.9rem + 0.16vw, 1.06rem);
+  --card-gap: 0.7rem;
+  --stem-pad-y: 0.4rem;
+  --stem-pad-x: 0.95rem;
+  --game-stem-size: clamp(0.95rem, 0.91rem + 0.2vw, 1.1rem);
+}
+
+.top-mini-bar {
+  flex-shrink: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.28rem 0.65rem;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.menu-mini-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 32px;
+  padding: 0.22rem 0.65rem;
+  background: var(--surface-container);
+  color: var(--secondary);
+  border: var(--neon-border-cyan);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+}
+.menu-mini-btn:hover,
+.menu-mini-btn.is-active {
+  border-color: var(--secondary);
+  background: var(--surface-container-high);
+  box-shadow: var(--glow-secondary);
+  text-shadow: var(--glow-text);
+}
+
+.mini-telemetry {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.45rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--on-surface-variant);
+}
+.mini-telemetry::-webkit-scrollbar { display: none; }
+
+.tele-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.24rem;
+  white-space: nowrap;
+  padding: 0.14rem 0.42rem;
+  border-radius: var(--rounded);
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+}
+.tele-chip.is-hp { color: var(--positive); border-color: color-mix(in srgb, var(--positive) 40%, transparent); }
+.tele-chip.is-hp.is-low { color: var(--error); border-color: var(--error); }
+.tele-chip.is-xp { color: var(--secondary); }
+.tele-chip.is-streak { color: var(--tertiary); }
+.tele-chip.is-timer { color: var(--secondary); border-color: color-mix(in srgb, var(--secondary) 40%, transparent); }
+.tele-chip.is-timer.is-off { color: var(--on-surface-variant); border-color: var(--outline-variant); }
+.tele-chip.is-timer.is-hold { color: var(--tertiary); border-color: var(--tertiary); }
+.tele-chip.is-timer.is-urgent { color: var(--error); border-color: var(--error); }
+
+.question-stage {
+  flex-shrink: 0;
+  z-index: 12;
+  background: linear-gradient(180deg, rgba(17, 17, 24, 0.96) 0%, rgba(10, 10, 18, 0.84) 100%);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 0.4rem 0.85rem 0.48rem;
+  text-align: center;
+  transition: padding var(--dur-short) var(--ease-out);
+}
+
+#xr-app.hints-visible .question-stage {
+  padding: 0.28rem 0.75rem 0.34rem;
+}
+
+.question-container {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.question-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  max-height: 92px;
+  opacity: 1;
+  margin-bottom: 0.34rem;
+  overflow: hidden;
+  transition: opacity 400ms var(--ease-out), max-height 400ms var(--ease-out), margin-bottom 400ms var(--ease-out);
+}
+
+.question-meta-row.is-faded {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+}
+
+.meta-badge {
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  padding: 0.14rem 0.46rem;
+  border-radius: var(--rounded);
+  border: 1px solid var(--outline);
+  background: var(--surface-container);
+  color: var(--secondary);
+}
+.meta-badge.is-angle {
+  border-color: color-mix(in srgb, var(--primary) 54%, transparent);
+  color: var(--primary);
+}
+.meta-badge.is-phase {
+  border-color: color-mix(in srgb, var(--tertiary) 54%, transparent);
+  color: var(--tertiary);
+}
+.meta-badge.is-corridor {
+  border-color: color-mix(in srgb, var(--data-4) 55%, transparent);
+  color: var(--data-4);
+}
+
+.question-stem-box {
+  width: 100%;
+  max-width: 1020px;
+  margin: 0 auto;
+  background: var(--surface-stem);
+  border: var(--neon-border-lit);
+  box-shadow: var(--neon-inset);
+  border-radius: var(--rounded-lg);
+  padding: var(--stem-pad-y) var(--stem-pad-x);
+  max-height: 30dvh;
+  overflow-y: auto;
+  text-align: center;
+  transition: padding var(--dur-short) var(--ease-out);
+}
+
+#xr-app.hints-visible .question-stem-box {
+  max-height: 23dvh;
+}
+
+.question-stem {
+  margin: 0 auto;
+  font-family: var(--font-body);
+  font-size: var(--game-stem-size);
+  font-weight: 600;
+  color: var(--on-surface-bright);
+  text-align: center;
+  line-height: 1.4;
+  transition: font-size var(--dur-short) var(--ease-out);
+}
+
+.viewport-shell {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  background: var(--background);
+  overflow: hidden;
+}
+
+#xr-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.lane-overlay-container {
+  position: absolute;
+  top: 52%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(1120px, calc(100% - 1.5rem));
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--card-gap);
+  z-index: 10;
+  pointer-events: none;
+  transition: gap var(--dur-short) var(--ease-out);
+}
+
+.lane-dom-card {
+  --lane-color: var(--secondary);
+  pointer-events: auto;
+  position: relative;
+  background: rgba(14, 17, 27, 0.76);
+  backdrop-filter: blur(8px);
+  border: 1px solid color-mix(in srgb, var(--secondary) 38%, transparent);
+  border-radius: 0.45rem;
+  padding: var(--card-pad-y) var(--card-pad-x);
+  min-height: var(--card-min-h);
+  text-align: center;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--card-font);
+  font-weight: 700;
+  color: var(--on-surface-bright);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55),
+              inset 0 0 12px rgba(0, 255, 204, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+  line-height: 1.35;
+  touch-action: manipulation;
+  transition: min-height var(--dur-short) var(--ease-out),
+              padding var(--dur-short) var(--ease-out),
+              font-size var(--dur-short) var(--ease-out),
+              transform var(--dur-micro) var(--ease-out),
+              border-color var(--dur-short) var(--ease-out),
+              box-shadow var(--dur-short) var(--ease-out),
+              background-color var(--dur-short) var(--ease-out);
+}
+
+.lane-dom-card.lane-0 { --lane-color: var(--primary); }
+.lane-dom-card.lane-1 { --lane-color: var(--secondary); }
+.lane-dom-card.lane-2 { --lane-color: var(--tertiary); }
+
+.lane-dom-card:hover,
+.lane-dom-card.is-targeted {
+  border-color: color-mix(in srgb, var(--lane-color) 85%, transparent);
+  background: rgba(18, 22, 36, 0.92);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--lane-color) 32%, transparent),
+              inset 0 0 14px color-mix(in srgb, var(--lane-color) 10%, transparent);
+  transform: translateY(-2px);
+}
+
+.lane-dom-card.is-fused {
+  border-color: color-mix(in srgb, var(--lane-color) 78%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--lane-color) 28%, transparent),
+              inset 0 0 12px color-mix(in srgb, var(--lane-color) 10%, transparent);
+}
+
+.lane-dom-card.is-fused.is-targeted {
+  border-color: var(--lane-color);
+  box-shadow: 0 0 26px color-mix(in srgb, var(--lane-color) 42%, transparent),
+              inset 0 0 16px color-mix(in srgb, var(--lane-color) 14%, transparent);
+}
+
+.lane-dom-card.is-selected {
+  background: color-mix(in srgb, var(--lane-color) 20%, rgba(14, 17, 27, 0.96));
+  border-color: var(--lane-color);
+  box-shadow: 0 0 30px color-mix(in srgb, var(--lane-color) 65%, transparent);
+  transform: scale(1.015);
+}
+
+.lane-card-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.lane-portal-name {
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  opacity: 0.88;
+}
+
+.lane-key-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 0.06em;
+  padding: 0.12rem 0.45rem;
+  border-radius: 0.22rem;
+  border: 1px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  background: rgba(255, 45, 120, 0.08);
+}
+
+.lane-choice-body {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  text-align: center;
+}
+
+.fusion-lock-tag {
+  font-family: var(--font-label);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+  text-align: center;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity 220ms var(--ease-out), max-height 220ms var(--ease-out);
+}
+
+.lane-dom-card.is-fused .fusion-lock-tag {
+  opacity: 0.72;
+  max-height: 20px;
+}
+
+.vignette-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 12;
+  transition: opacity var(--dur-short) var(--ease-out);
+}
+.vignette-overlay.is-damage { background: var(--vignette-damage); opacity: 1; }
+.vignette-overlay.is-heal { background: var(--vignette-heal); opacity: 1; }
+
+.heal-toast {
+  position: absolute;
+  top: 0.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface-glass);
+  border: 1px solid var(--positive);
+  color: var(--positive);
+  font-family: var(--font-label);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.25rem 0.7rem;
+  border-radius: var(--rounded);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-short) var(--ease-out);
+  z-index: 15;
+}
+.heal-toast.is-visible { opacity: 1; }
+
+#hints-bar {
+  flex-shrink: 0;
+  z-index: 15;
+  background: var(--surface-container);
+  border-top: 2px solid color-mix(in srgb, var(--tertiary) 55%, transparent);
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.45);
+  padding: 0.48rem 0.85rem;
+  max-height: 22dvh;
+  overflow-y: auto;
+  text-align: center;
+}
+
+#xr-app.hints-hidden #hints-bar {
+  display: none;
+}
+
+.hints-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  text-align: center;
+}
+
+.hints-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.hints-tag {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tertiary);
+}
+
+.hints-subtag {
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  color: var(--secondary);
+  opacity: 0.9;
+}
+
+.hints-text {
+  margin: 0 auto;
+  font-size: clamp(0.88rem, 0.84rem + 0.16vw, 0.98rem);
+  color: var(--on-surface);
+  text-align: center;
+  line-height: 1.4;
+}
+
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: var(--surface-overlay);
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0.75rem;
+  overflow-y: auto;
+}
+.menu-backdrop.is-open { display: flex; }
+
+#top-menu-drawer {
+  width: min(1040px, 100%);
+  max-height: calc(100dvh - 1.5rem);
+  overflow-y: auto;
+  background: var(--surface-glass);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--secondary);
+  box-shadow: var(--glow-secondary);
+  border-radius: var(--rounded-lg);
+  padding: 1rem 1.15rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  text-align: center;
+}
+
+.menu-top-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  text-align: left;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.menu-title-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.brand-kicker {
+  display: inline-block;
+  align-self: flex-start;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  text-shadow: var(--glow-text);
+}
+
+.brand-title {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: var(--game-headline-size);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--on-surface-bright);
+}
+
+.menu-section-label {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--secondary);
+  text-align: left;
+  margin-bottom: 0.35rem;
+}
+
+.btn-neon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  background: var(--surface-container);
+  color: var(--primary);
+  border: var(--neon-border-lit);
+  border-radius: var(--rounded);
+  padding: 0.42rem 0.8rem;
+  min-height: 40px;
+  font-family: var(--font-label);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: box-shadow var(--dur-short) var(--ease-out),
+              border-color var(--dur-short) var(--ease-out),
+              background-color var(--dur-short) var(--ease-out);
+}
+.btn-neon:hover:not(:disabled) {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+  background: var(--surface-container-high);
+  text-shadow: var(--glow-text);
+}
+.btn-neon:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-neon.is-cyan { color: var(--secondary); border-color: color-mix(in srgb, var(--secondary) 48%, transparent); }
+.btn-neon.is-cyan:hover:not(:disabled) { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.btn-neon.is-yellow { color: var(--tertiary); border-color: color-mix(in srgb, var(--tertiary) 48%, transparent); }
+.btn-neon.is-yellow:hover:not(:disabled) { border-color: var(--tertiary); box-shadow: var(--glow-tertiary); }
+.btn-neon.is-purple { color: var(--data-4); border-color: color-mix(in srgb, var(--data-4) 52%, transparent); }
+.btn-neon.is-purple:hover:not(:disabled) { border-color: var(--data-4); box-shadow: 0 0 14px color-mix(in srgb, var(--data-4) 40%, transparent); }
+.btn-neon.is-active { background: var(--surface-container-high); box-shadow: var(--glow-secondary); }
+
+.menu-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+  gap: 0.45rem;
+}
+
+.controls-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: flex-start;
+  gap: 0.65rem;
+}
+
+.control-field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  flex: 1 1 200px;
+}
+
+.control-field label {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--on-surface-variant);
+}
+
+.neon-select {
+  width: 100%;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-bottom: 2px solid var(--secondary);
+  border-radius: var(--rounded);
+  padding: 0.35rem 0.6rem;
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  min-height: 40px;
+  cursor: pointer;
+}
+
+.volume-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 40px;
+}
+.volume-slider {
+  flex: 1 1 auto;
+  accent-color: var(--secondary);
+  cursor: pointer;
+}
+
+.phase-mix-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.phase-mix-pill {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  padding: 0.35rem 0.65rem;
+  min-height: 36px;
+  border-radius: var(--rounded);
+  border: 1px solid var(--outline);
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.phase-mix-pill.is-selected {
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: var(--glow-primary);
+}
+
+.menu-divider {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--outline-variant);
+  margin: 0.1rem 0;
+}
+
+.skill-tree-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: 0.45rem;
+}
+
+.skill-node {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.55rem 0.65rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.skill-node:hover { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.skill-node.is-mastered { border-color: var(--positive); }
+.skill-node.is-active-filter { border-color: var(--primary); background: var(--surface-container-high); }
+
+.skill-node-top {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  color: var(--secondary);
+}
+.skill-node-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--on-surface);
+  line-height: 1.3;
+}
+.skill-node-meta {
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  color: var(--on-surface-variant);
+}
+
+.hotkey-guide {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  color: var(--on-surface-variant);
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.45rem 0.65rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.inline-toast {
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  color: var(--tertiary);
+  text-align: left;
+  min-height: 1.1em;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--surface-overlay);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+}
+.modal-backdrop.is-open { display: flex; }
+
+#outcome-popup-modal {
+  width: 80vw;
+  height: 80vh;
+  max-width: 1120px;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-align: center;
+  font-size: var(--modal-body-size);
+}
+
+.popup-header {
+  flex-shrink: 0;
+  background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 0.55rem 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.popup-header-centered {
+  justify-content: center;
+  flex-wrap: wrap;
+  text-align: center;
+}
+.popup-verdict {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: var(--modal-headline-size);
+  font-weight: 800;
+  text-align: center;
+}
+.popup-verdict.is-correct { color: var(--positive); }
+.popup-verdict.is-wrong { color: var(--error); }
+.popup-verdict.is-cyan { color: var(--secondary); }
+
+.popup-question-pin {
+  flex-shrink: 0;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 0.45rem 0.85rem;
+  max-height: 18vh;
+  overflow-y: auto;
+  text-align: center;
+}
+.popup-question-pin-label {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  color: var(--secondary);
+  margin-bottom: 2px;
+  text-align: center;
+}
+.popup-question-pin-text {
+  margin: 0 auto;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--on-surface);
+  text-align: center;
+  line-height: 1.45;
+}
+
+.popup-scroll-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  text-align: center;
+}
+
+.dossier-block {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  padding: 0.65rem 0.85rem;
+  text-align: center;
+}
+.dossier-block.is-highlight {
+  border-color: color-mix(in srgb, var(--secondary) 45%, transparent);
+  box-shadow: var(--neon-inset-cyan);
+}
+.dossier-block-title {
+  margin: 0 0 0.25rem 0;
+  font-family: var(--font-label);
+  font-size: var(--modal-label-size);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--secondary);
+  text-align: center;
+}
+.dossier-block p,
+.dossier-line {
+  margin: 0 auto;
+  font-size: 0.88rem;
+  color: var(--on-surface);
+  text-align: center;
+  line-height: 1.5;
+}
+.dossier-line + .dossier-line { margin-top: 0.25rem; }
+
+.choice-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.choice-box {
+  background: var(--surface-container);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  padding: 0.5rem;
+  text-align: center;
+}
+.choice-box p {
+  margin: 0 auto;
+  text-align: center;
+}
+.choice-box.is-right { border-color: var(--positive); }
+.choice-box.is-wrong { border-color: var(--error); }
+.choice-box-tag {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+  margin-bottom: 2px;
+  text-align: center;
+}
+
+.angle-dossier-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.angle-mini-card {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.65rem 0.55rem;
+  text-align: center;
+}
+.angle-mini-card strong {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--primary);
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.popup-footer {
+  flex-shrink: 0;
+  background: var(--surface-container-high);
+  border-top: 1px solid var(--outline-variant);
+  padding: 0.5rem 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+#codex-modal {
+  width: min(94vw, 1340px);
+  height: 85vh;
+  background: var(--surface-container);
+  border: var(--neon-border-cyan);
+  box-shadow: var(--glow-secondary);
+  border-radius: var(--rounded-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-align: center;
+  font-size: var(--modal-body-size);
+}
+.codex-controls {
+  flex-shrink: 0;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 0.6rem 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: center;
+  gap: 0.55rem;
+}
+.codex-search-input {
+  width: 100%;
+  background: var(--surface-container);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-bottom: 2px solid var(--secondary);
+  border-radius: var(--rounded);
+  padding: 0.35rem 0.7rem;
+  min-width: 220px;
+  min-height: 38px;
+  font-size: var(--modal-body-size);
+}
+.codex-table-wrap {
+  flex: 1 1 auto;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.55rem 0.85rem;
+}
+.codex-table {
+  width: 100%;
+  min-width: 820px;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+  text-align: left;
+}
+.codex-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-container-high);
+  color: var(--secondary);
+  font-family: var(--font-label);
+  font-size: var(--modal-label-size);
+  text-transform: uppercase;
+  padding: 0.55rem;
+  border-bottom: 2px solid var(--outline);
+}
+.codex-table td {
+  padding: 0.55rem;
+  border-bottom: 1px solid var(--outline-variant);
+  vertical-align: top;
+  line-height: 1.45;
+}
+.codex-table tbody tr:nth-child(even) { background: var(--surface-container-low); }
+
+#run-summary-modal {
+  width: min(92vw, 840px);
+  max-height: 86vh;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  padding: 1.15rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  overflow: hidden;
+  font-size: var(--modal-body-size);
+}
+.summary-subtitle { margin: 0; color: var(--on-surface-variant); text-align: center; }
+.summary-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.summary-tile {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  padding: 0.55rem;
+  text-align: center;
+}
+.summary-tile-val {
+  display: block;
+  font-family: var(--font-headline);
+  font-size: var(--modal-display-size);
+  font-weight: 800;
+  color: var(--secondary);
+}
+.summary-tile-label {
+  font-family: var(--font-label);
+  font-size: var(--modal-label-size);
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+.missed-review-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.55rem;
+  text-align: left;
+  min-height: 110px;
+}
+.missed-item {
+  background: var(--surface-container);
+  border-left: 3px solid var(--error);
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--rounded);
+  font-size: 0.86rem;
+  margin-bottom: 0.4rem;
+  line-height: 1.45;
+}
+.missed-empty {
+  color: var(--positive);
+  font-family: var(--font-label);
+  font-size: var(--modal-label-size);
+  text-align: center;
+  padding: 1rem;
+}
+
+.shake-anim { animation: viewport-shake 300ms var(--ease-out); }
+@keyframes viewport-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); }
+  40% { transform: translateX(7px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+@media (max-width: 600px) {
+  :root {
+    --game-stem-size: 0.96rem;
+    --card-min-h: 96px;
+    --card-pad-y: 0.78rem;
+    --card-pad-x: 0.9rem;
+    --card-font: 0.97rem;
+    --card-gap: 0.65rem;
+    --stem-pad-y: 0.48rem;
+    --stem-pad-x: 0.75rem;
+  }
+
+  #xr-app.hints-visible {
+    --game-stem-size: 0.88rem;
+    --card-min-h: 60px;
+    --card-pad-y: 0.44rem;
+    --card-pad-x: 0.75rem;
+    --card-font: 0.88rem;
+    --card-gap: 0.42rem;
+    --stem-pad-y: 0.34rem;
+    --stem-pad-x: 0.65rem;
+  }
+
+  .top-mini-bar { padding: 0.24rem 0.45rem; }
+  .menu-mini-btn { min-height: 34px; padding: 0.2rem 0.55rem; font-size: 0.72rem; }
+  .mini-telemetry { gap: 0.3rem; font-size: 0.68rem; }
+  .tele-chip.is-xp { display: none; }
+
+  .question-stage { padding: 0.34rem 0.5rem 0.4rem; }
+  .question-stem-box { max-height: 30dvh; }
+  #xr-app.hints-visible .question-stem-box { max-height: 22dvh; }
+
+  .lane-overlay-container {
+    top: 44%;
+    width: calc(100% - 1rem);
+    grid-template-columns: 1fr;
+  }
+  .lane-card-head, .lane-key-label { display: none; }
+
+  #hints-bar { padding: 0.4rem 0.65rem; max-height: 22dvh; }
+  .hints-text { font-size: 0.84rem; line-height: 1.35; }
+
+  .menu-backdrop { padding: 0.35rem; }
+  #top-menu-drawer { max-height: calc(100dvh - 0.7rem); padding: 0.8rem; }
+  .menu-actions-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .choice-compare-grid,
+  .angle-dossier-grid { grid-template-columns: 1fr; }
+  .summary-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .modal-backdrop { padding: 0.35rem; }
+  #outcome-popup-modal,
+  #codex-modal,
+  #run-summary-modal {
+    width: 96vw;
+    height: 92dvh;
+    max-height: 92dvh;
+  }
+  .popup-question-pin { max-height: 20dvh; }
+  .codex-table { min-width: 680px; font-size: 0.8rem; }
+}
+
+@media (max-height: 500px) and (pointer: coarse) {
+  :root {
+    --game-stem-size: 0.88rem;
+    --card-min-h: 82px;
+    --card-pad-y: 0.5rem;
+    --card-pad-x: 0.68rem;
+    --card-font: 0.86rem;
+    --card-gap: 0.55rem;
+    --stem-pad-y: 0.3rem;
+    --stem-pad-x: 0.7rem;
+  }
+
+  #xr-app.hints-visible {
+    --game-stem-size: 0.82rem;
+    --card-min-h: 54px;
+    --card-pad-y: 0.32rem;
+    --card-pad-x: 0.55rem;
+    --card-font: 0.8rem;
+    --card-gap: 0.45rem;
+    --stem-pad-y: 0.24rem;
+    --stem-pad-x: 0.6rem;
+  }
+
+  .top-mini-bar { padding: 0.16rem 0.5rem; }
+  .menu-mini-btn { min-height: 28px; padding: 0.14rem 0.5rem; font-size: 0.68rem; }
+  .question-stage { padding: 0.2rem 0.55rem; }
+  .question-stem-box { max-height: 25dvh; }
+  #xr-app.hints-visible .question-stem-box { max-height: 20dvh; }
+  .lane-overlay-container {
+    top: 46%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: calc(100% - 1rem);
+  }
+  .lane-card-head, .lane-key-label { display: none; }
+  #hints-bar { padding: 0.26rem 0.6rem; max-height: 20dvh; }
+  .hints-text { font-size: 0.78rem; line-height: 1.3; }
+  #outcome-popup-modal,
+  #codex-modal,
+  #run-summary-modal {
+    width: 96vw;
+    height: 94dvh;
+    max-height: 94dvh;
+  }
+}
+
+@media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+  html { font-size: 200%; }
+  .lane-overlay-container {
+    top: 44%;
+    width: calc(100% - 1rem);
+    grid-template-columns: 1fr;
+  }
+  .lane-card-head, .lane-key-label { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+<div id="xr-app" class="hints-hidden">
+
+  <!-- BAND 1: ULTRA-SLIM TOP BAR (SMALL MENU BUTTON + COMPACT READOUTS ONLY) -->
+  <div class="top-mini-bar">
+    <button type="button" class="menu-mini-btn" id="menu-toggle-btn" onclick="toggleMenuDrawer()" aria-expanded="false" aria-controls="top-menu-drawer">☰ MENU</button>
+    <div class="mini-telemetry" aria-label="Game Status">
+      <span class="tele-chip is-hp" id="hp-chip">HP <span id="hp-text">100</span></span>
+      <span class="tele-chip is-xp">XP <span id="xp-text">0</span></span>
+      <span class="tele-chip is-streak">⚡<span id="streak-text">0</span></span>
+      <span class="tele-chip"><span id="progress-text">1/30</span></span>
+      <span class="tele-chip is-timer is-off" id="timer-chip">⏱ OFF</span>
+    </div>
+  </div>
+
+  <!-- BAND 2: QUESTION DISPLAYED AT THE TOP (METADATA + CORRIDOR BADGE AUTO-HIDE AFTER 3 SECONDS) -->
+  <div class="question-stage">
+    <div class="question-container">
+      <div class="question-meta-row" id="question-meta-row">
+        <span class="meta-badge" id="lo-badge">LO 1</span>
+        <span class="meta-badge is-angle" id="angle-badge">PRESENTATION → DIAGNOSIS</span>
+        <span class="meta-badge is-phase" id="phase-badge">PHASE 1: PATHOGENESIS</span>
+        <span class="meta-badge is-corridor" id="corridor-badge">CORRIDOR</span>
+      </div>
+      <div class="question-stem-box">
+        <p class="question-stem amboss-scan-target" id="q-stem-text">Loading diagnostic corridor…</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- BAND 3: CENTER INTERACTIVE 3D XR VIEWPORT + 3 COLOR-CODED CENTERED ANSWER CARDS -->
+  <div class="viewport-shell" id="viewport-shell">
+    <canvas id="xr-canvas" aria-label="3D Perspective Diagnostic Corridor"></canvas>
+    <div class="lane-overlay-container" id="lane-overlay-container">
+      <div id="lane-0-card" class="lane-dom-card lane-0" role="button" tabindex="0"
+           onmouseenter="previewLaneTarget(0)" onpointerenter="previewLaneTarget(0)" onfocus="previewLaneTarget(0)"
+           onclick="selectLaneAndResolve(0)"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(0);}">
+        <div class="lane-card-head">
+          <span class="lane-portal-name">LEFT PORTAL</span>
+          <span class="lane-key-label">1 / A / ←</span>
+        </div>
+        <div class="lane-choice-body">
+          <span id="lane-0-text" class="amboss-scan-target">Option A</span>
+        </div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+      <div id="lane-1-card" class="lane-dom-card lane-1 is-targeted" role="button" tabindex="0"
+           onmouseenter="previewLaneTarget(1)" onpointerenter="previewLaneTarget(1)" onfocus="previewLaneTarget(1)"
+           onclick="selectLaneAndResolve(1)"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(1);}">
+        <div class="lane-card-head">
+          <span class="lane-portal-name">CENTER PORTAL</span>
+          <span class="lane-key-label">2 / W / ↑</span>
+        </div>
+        <div class="lane-choice-body">
+          <span id="lane-1-text" class="amboss-scan-target">Option B</span>
+        </div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+      <div id="lane-2-card" class="lane-dom-card lane-2" role="button" tabindex="0"
+           onmouseenter="previewLaneTarget(2)" onpointerenter="previewLaneTarget(2)" onfocus="previewLaneTarget(2)"
+           onclick="selectLaneAndResolve(2)"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(2);}">
+        <div class="lane-card-head">
+          <span class="lane-portal-name">RIGHT PORTAL</span>
+          <span class="lane-key-label">3 / D / →</span>
+        </div>
+        <div class="lane-choice-body">
+          <span id="lane-2-text" class="amboss-scan-target">Option C</span>
+        </div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+    </div>
+    <div class="vignette-overlay" id="vignette-overlay"></div>
+    <div class="heal-toast" id="heal-toast">✚ STREAK BONUS +25 HP</div>
+  </div>
+
+  <!-- BAND 4: BOTTOM HINTS BAR (TOGGLED BY [H] OR MENU) -->
+  <div id="hints-bar" aria-live="polite">
+    <div class="hints-inner">
+      <div class="hints-header-row">
+        <span class="hints-tag">💡 HINT [H]</span>
+        <span class="hints-subtag" id="hints-meta-ref">LO 1 • Phase 1</span>
+      </div>
+      <p class="hints-text amboss-scan-target" id="q-clue-text">—</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- COLLAPSIBLE MENU & SKILL TREE DRAWER (TITLE + ALL BUTTONS LIVE HERE) -->
+<div class="menu-backdrop" id="menu-backdrop" onclick="if(event.target===this)toggleMenuDrawer()">
+  <div id="top-menu-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+    <div class="menu-top-header">
+      <div class="menu-title-stack">
+        <span class="brand-kicker" id="drawer-kicker">MSK-II // Pediatric Growth, Development &amp; OMT Raid</span>
+        <h1 class="brand-title" id="drawer-title">Lecture 14: Pediatric Growth, Development &amp; Osteopathic Approach — XR 3-Lane Diagnostic Runner (v3.8)</h1>
+      </div>
+      <button type="button" class="btn-neon" onclick="toggleMenuDrawer()">✕ Close</button>
+    </div>
+
+    <div>
+      <div class="menu-section-label">Quick Actions &amp; Session Controls</div>
+      <div class="menu-actions-grid">
+        <button type="button" class="btn-neon is-yellow" id="menu-hints-btn" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+        <button type="button" class="btn-neon is-cyan" onclick="openCodexFromMenu()">📖 Loot Codex [C]</button>
+        <button type="button" class="btn-neon is-yellow" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+        <button type="button" class="btn-neon is-cyan" id="menu-timer-btn" onclick="toggleTimerActive()">⏱ 50s Timer: OFF [T]</button>
+        <button type="button" class="btn-neon" onclick="startTimedSession()">⚡ Start 50s Timed Run</button>
+        <button type="button" class="btn-neon is-yellow" id="master-sound-btn" onclick="toggleMasterSound()">🔊 Sound: ON</button>
+        <button type="button" class="btn-neon is-cyan" id="audio-toggle-btn" onclick="toggleSfx()">🔊 SFX: ON</button>
+        <button type="button" class="btn-neon is-purple" id="menu-bgm-btn" onclick="toggleBgm()">🎵 Zombies BGM: OFF</button>
+        <button type="button" class="btn-neon is-cyan" onclick="document.getElementById('bgm-file-input').click()">📂 Custom MP3/WAV</button>
+        <button type="button" class="btn-neon" onclick="restartOrdered()">↺ Restart Ordered</button>
+        <button type="button" class="btn-neon is-cyan" onclick="restartRandomized()">🔀 Shuffle Deck</button>
+        <button type="button" class="btn-neon is-yellow" id="reset-run-btn" onclick="handleResetMastery(this)">⚠ Reset Mastery</button>
+      </div>
+      <input type="file" id="bgm-file-input" accept="audio/*" style="display:none" onchange="handleCustomBgmUpload(event)">
+    </div>
+
+    <hr class="menu-divider">
+
+    <div class="controls-strip">
+      <div class="control-field">
+        <label for="sector-filter">Dungeon Sector (LO / Review Queue)</label>
+        <select id="sector-filter" class="neon-select" onchange="applyFilters()">
+          <option value="all">All Sectors</option>
+          <option value="missed" id="missed-sector-option">🎯 Missed Gates Only (0)</option>
+        </select>
+      </div>
+      <div class="control-field">
+        <label for="angle-filter">Question Angle</label>
+        <select id="angle-filter" class="neon-select" onchange="applyFilters()">
+          <option value="all">All 3 Angles</option>
+          <option value="Presentation -> Diagnosis">Angle 1: Presentation → Diagnosis</option>
+          <option value="Mechanism -> Pathophysiology">Angle 2: Mechanism → Pathophysiology</option>
+          <option value="Hallmarks -> Management">Angle 3: Hallmarks → Management</option>
+        </select>
+      </div>
+      <div class="control-field">
+        <label for="times-up-select">Time's Up Mode (50s Timer)</label>
+        <select id="times-up-select" class="neon-select" onchange="applyTimerSettings()">
+          <option value="fail">Time's Up = Wrong → Review Screen</option>
+          <option value="hold">Hold at 0s (No Penalty)</option>
+        </select>
+      </div>
+      <div class="control-field">
+        <label for="bgm-volume-slider">BGM Volume</label>
+        <div class="volume-row">
+          <input type="range" id="bgm-volume-slider" class="volume-slider" min="0" max="100" value="35" oninput="updateBgmVolume(this.value)">
+          <span style="font-family:var(--font-label);font-size:0.74rem;color:var(--secondary)" id="bgm-vol-label">35%</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="menu-section-label">Phase Distribution Filter (30% / 35% / 35%)</div>
+      <div class="phase-mix-strip">
+        <button type="button" class="phase-mix-pill is-selected" data-phase="all" onclick="setPhaseFilter('all')">All Phases (30/35/35%)</button>
+        <button type="button" class="phase-mix-pill" data-phase="Phase 1: Pathogenesis" onclick="setPhaseFilter('Phase 1: Pathogenesis')">Phase 1: Pathogenesis (30%)</button>
+        <button type="button" class="phase-mix-pill" data-phase="Phase 2: Histology / Structure" onclick="setPhaseFilter('Phase 2: Histology / Structure')">Phase 2: Histology / Structure (35%)</button>
+        <button type="button" class="phase-mix-pill" data-phase="Phase 3: Clinical & Management" onclick="setPhaseFilter('Phase 3: Clinical & Management')">Phase 3: Clinical &amp; Management (35%)</button>
+      </div>
+    </div>
+
+    <div class="inline-toast" id="menu-status-msg" role="status" aria-live="polite"></div>
+    <hr class="menu-divider">
+
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;flex-wrap:wrap;gap:0.4rem;">
+        <span class="menu-section-label" style="margin:0;">Objective Skill Tree (Tap to Deploy)</span>
+        <span style="font-family:var(--font-label);font-size:0.7rem;color:var(--on-surface-variant);" id="mastery-summary">Mastered: 0 / 5 LOs • Accuracy: --%</span>
+      </div>
+      <div class="skill-tree-grid" id="skill-tree-grid"></div>
+    </div>
+
+    <div class="hotkey-guide">
+      <strong>Keyboard Shortcuts:</strong> [1 / 2 / 3] or [A / W / D] or [← / ↑ / →] Select Portal • [H] Toggle Bottom Hints • [M] Menu • [C] Loot Codex • [S] Skip • [T] Toggle 50s Timer • [Space / Enter] Continue Review
+    </div>
+  </div>
+</div>
+
+<!-- 7-PART OUTCOME DOSSIER MODAL (BULLETED & CENTERED SECTIONS 2-7, NO "HEALING STATION" TEXT) -->
+<div class="modal-backdrop" id="outcome-backdrop" role="dialog" aria-modal="true" aria-labelledby="outcome-verdict">
+  <div id="outcome-popup-modal">
+    <div class="popup-header popup-header-centered">
+      <h2 class="popup-verdict" id="outcome-verdict">✔ CORRECT — ANSWER</h2>
+      <span class="meta-badge" id="outcome-xp-delta">+100 XP</span>
+      <span class="meta-badge is-phase" id="outcome-hp-delta">+5 HP</span>
+    </div>
+    <div class="popup-question-pin">
+      <span class="popup-question-pin-label" id="outcome-lo-ref">Original Board Vignette</span>
+      <p class="popup-question-pin-text amboss-scan-target" id="outcome-question-text"></p>
+    </div>
+    <div class="popup-scroll-body" id="outcome-scroll-body">
+      <div class="dossier-block is-highlight">
+        <h3 class="dossier-block-title">1. Your Choice vs. Correct Answer</h3>
+        <div class="choice-compare-grid">
+          <div class="choice-box" id="your-choice-box">
+            <span class="choice-box-tag">Your Selected Lane</span>
+            <p id="your-choice-text" class="amboss-scan-target"></p>
+          </div>
+          <div class="choice-box is-right">
+            <span class="choice-box-tag">Correct Answer</span>
+            <p id="correct-choice-text" class="amboss-scan-target"></p>
+          </div>
+        </div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">2. Concise Explanation &amp; Distractor Exclusion</h3>
+        <div id="dossier-explanation" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">3. Second-Order Vignette Clue</h3>
+        <div id="dossier-board-clue" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">4. Core Mechanism &amp; Pathogenesis Pearls (Phase 1)</h3>
+        <div id="dossier-pathogenesis" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">5. High-Yield Morphology &amp; Structural Hallmarks (Phase 2)</h3>
+        <div id="dossier-morphology" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">6. Guild Master's Secret &amp; Clinical Management (Phase 3)</h3>
+        <div id="dossier-epi-tx" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block is-highlight">
+        <h3 class="dossier-block-title">7. Complete 3-Phase Topic Dossier</h3>
+        <div class="angle-dossier-grid">
+          <div class="angle-mini-card">
+            <strong>Phase 1: Pathogenesis</strong>
+            <div id="dossier-angle-1" class="amboss-scan-target"></div>
+          </div>
+          <div class="angle-mini-card">
+            <strong>Phase 2: Histology / Structure</strong>
+            <div id="dossier-angle-2" class="amboss-scan-target"></div>
+          </div>
+          <div class="angle-mini-card">
+            <strong>Phase 3: Clinical / Tx</strong>
+            <div id="dossier-angle-3" class="amboss-scan-target"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="popup-footer">
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(-180)">▲ Up</button>
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(180)">▼ Down</button>
+      <button type="button" class="btn-neon" id="continue-runner-btn" onclick="continueToNextGate()">▶ Continue Runner [Space / Enter]</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6-COLUMN MASTER RAID LOOT CODEX MODAL -->
+<div class="modal-backdrop" id="codex-backdrop" role="dialog" aria-modal="true" aria-labelledby="codex-title">
+  <div id="codex-modal">
+    <div class="popup-header">
+      <h2 class="popup-verdict is-cyan" id="codex-title">Master Raid Loot Codex</h2>
+      <button type="button" class="btn-neon" onclick="closeCodex()">✕ Close [Esc]</button>
+    </div>
+    <div class="codex-controls">
+      <div class="control-field" style="flex:1 1 240px;">
+        <label for="codex-search">Search Entity, Mechanism, Sign, or Countermeasure</label>
+        <input type="text" id="codex-search" class="codex-search-input" placeholder="Search keyword…" oninput="renderCodexTable()">
+      </div>
+      <div class="phase-mix-strip">
+        <button type="button" class="phase-mix-pill is-selected" data-codex-tag="all" onclick="setCodexTag('all')">All Objectives</button>
+        <button type="button" class="phase-mix-pill" data-codex-tag="cat_1" onclick="setCodexTag('cat_1')">Milestones &amp; Growth</button>
+        <button type="button" class="phase-mix-pill" data-codex-tag="cat_2" onclick="setCodexTag('cat_2')">Hormonal Red Flags</button>
+        <button type="button" class="phase-mix-pill" data-codex-tag="cat_3" onclick="setCodexTag('cat_3')">Pediatric OMM &amp; Cranial</button>
+      </div>
+    </div>
+    <div class="codex-table-wrap">
+      <table class="codex-table">
+        <thead>
+          <tr>
+            <th>LO &amp; Entity / Boss</th>
+            <th>Etiology / Trigger</th>
+            <th>Pathogenesis Cascade</th>
+            <th>Gross &amp; Histology Hallmarks</th>
+            <th>Clinical Presentation</th>
+            <th>Management &amp; Guild Secret</th>
+          </tr>
+        </thead>
+        <tbody id="codex-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- END-OF-RUN PERFORMANCE SUMMARY MODAL -->
+<div class="modal-backdrop" id="summary-backdrop" role="dialog" aria-modal="true" aria-labelledby="summary-title">
+  <div id="run-summary-modal">
+    <h2 class="popup-verdict is-cyan" id="summary-title">DIAGNOSTIC RUN COMPLETE</h2>
+    <p class="summary-subtitle" id="summary-subtitle">Lecture 14: Growth, Development, and the Osteopathic Approach to the Pediatric Patient</p>
+    <div class="summary-metrics">
+      <div class="summary-tile"><span class="summary-tile-val" id="sum-xp">0</span><span class="summary-tile-label">Total XP</span></div>
+      <div class="summary-tile"><span class="summary-tile-val" id="sum-acc">0%</span><span class="summary-tile-label">Accuracy</span></div>
+      <div class="summary-tile"><span class="summary-tile-val" id="sum-streak">0</span><span class="summary-tile-label">Best Streak</span></div>
+      <div class="summary-tile"><span class="summary-tile-val" id="sum-hp">100</span><span class="summary-tile-label">Final HP</span></div>
+    </div>
+    <div class="missed-review-list" id="missed-review-list"></div>
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:0.5rem;">
+      <button type="button" class="btn-neon is-yellow" id="retry-missed-btn" onclick="retryMissedOnly()">🎯 Retry Missed Gates</button>
+      <button type="button" class="btn-neon" onclick="restartOrdered()">↺ Restart In Order</button>
+      <button type="button" class="btn-neon is-cyan" onclick="restartRandomized()">🔀 Shuffle All</button>
+    </div>
+  </div>
+</div>
+
+<audio id="custom-bgm-audio" loop></audio>
+<api-shim></api-shim>
+<script>
+// =========================================================================
+// 0. LECTURE CONFIGURATION & VISUAL CORRIDOR THEMES (LECTURE 14)
+// =========================================================================
+const GAME_CONFIG = {
+  title: `Lecture 14: Pediatric Growth, Development & Osteopathic Approach — XR 3-Lane Diagnostic Runner (v3.8)`,
+  kicker: `MSK-II // Pediatric Growth, Development & OMT Raid`,
+  maxHp: 100,
+  hpPenalty: 15,
+  hpReward: 5,
+  healAmount: 25,
+  healStreakStep: 4,
+  stopDistanceMeters: 5,
+  gateStartDistance: 95,
+  gateApproachSpeed: 24,
+  timerSeconds: 50,
+  metaFadeMs: 3000
+};
+
+const LANE_COLORS = ['#ff2d78', '#00ffcc', '#ffe04a'];
+
+const DEFAULT_THEME_CYCLE = [
+  { tag: `DIAGNOSTIC VOID • GOLDEN PIXEL DUST`, particleColor: `#e8cf58`, gridRgb: `108, 92, 172`, railColor: `#34a88f` },
+  { tag: `DIAGNOSTIC VOID • AMBER SPARK DUST`, particleColor: `#f2a86b`, gridRgb: `122, 82, 160`, railColor: `#34a88f` },
+  { tag: `DIAGNOSTIC VOID • COOL CYAN PIXELS`, particleColor: `#66e6d6`, gridRgb: `92, 108, 174`, railColor: `#34a88f` },
+  { tag: `DIAGNOSTIC VOID • CRIMSON-GOLD DUST`, particleColor: `#ff6b8b`, gridRgb: `132, 78, 148`, railColor: `#34a88f` },
+  { tag: `DIAGNOSTIC VOID • VIOLET-GOLD PIXELS`, particleColor: `#c8a8ff`, gridRgb: `118, 92, 184`, railColor: `#34a88f` },
+  { tag: `DIAGNOSTIC VOID • MINT-TEAL PIXELS`, particleColor: `#5ef2d6`, gridRgb: `86, 114, 168`, railColor: `#34a88f` }
+];
+
+const LO_VISUAL_THEMES = {
+  1: {
+    tag: `NEONATAL REFLEX GRID • GOLDEN PIXELS`,
+    particleColor: `#f5dc62`,
+    gridRgb: `112, 96, 168`,
+    railColor: `#34a88f`
+  },
+  2: {
+    tag: `PERCENTILE VELOCITY • CYAN PIXELS`,
+    particleColor: `#66e6d6`,
+    gridRgb: `92, 108, 174`,
+    railColor: `#34a88f`
+  },
+  3: {
+    tag: `ENDOCRINE SENTINEL • CRIMSON-GOLD`,
+    particleColor: `#ff6b8b`,
+    gridRgb: `132, 78, 148`,
+    railColor: `#34a88f`
+  },
+  4: {
+    tag: `CRANIAL & BLT NEXUS • VIOLET-GOLD`,
+    particleColor: `#c8a8ff`,
+    gridRgb: `118, 92, 184`,
+    railColor: `#34a88f`
+  },
+  5: {
+    tag: `SUTURE & SCM MATRIX • MINT-TEAL`,
+    particleColor: `#5ef2d6`,
+    gridRgb: `86, 114, 168`,
+    railColor: `#34a88f`
+  }
+};
+
+// =========================================================================
+// 1. MASTER RAID LOOT CODEX (STRICTLY GROUNDED IN LECTURE 14)
+// =========================================================================
+const CODEX_DATA = [
+  {
+    lo: 1,
+    tag: 'cat_1',
+    entity: `Developmental Stages, Reflexes & Early Milestones`,
+    badgeMeta: `Neurodevelopment`,
+    etiology: `Stages: Neonate (0–28d), Preterm (<37w), Full Term (37–41w), Post Term (>41w), Infant (28d–1y), Child 1–12y (Toddler 1–3y, Preschool 4–6y, Middle Childhood 7–12y), Adolescent (13–18y).`,
+    pathogenesis: `Primitive reflexes (0–2 mo) are involuntary responses driven by the brainstem and spinal cord that lay down neural tracks between brain lobes; ATNR must integrate before midline hand use and STNR emerge.`,
+    hallmarks: `Birth–2 mo: Moro (startle), Rooting, Suck/Swallow, Stepping, Palmar/Plantar grasp, Babinski, ATNR (Fencer's). 2 mo: social smile, cooing/gurgling, midline hands. 4 mo: steady head, positive support, cry quality shift, tricep relaxation on elbows (STNR transition).`,
+    clinical: `Must progress across all 4 domains (Motor, Cognitive, Social/Emotional, Language/Communication); 4–7 mo red flags include no head turn to sound by 4 mo, no laugh/squeal or leg weight-bearing by 5 mo, and no rolling/assisted sitting/reaching by 6 mo.`,
+    management: `Screen with CDC milestone checklists and apps at key ages (2, 4, 6, 9, 12, 18, 24 mo, 4 y, 5 y). Guild Secret: Plantar grasp must integrate into CNS for walking; anterior propping appears by 6 mo and lateral propping by 7 mo.`
+  },
+  {
+    lo: 2,
+    tag: 'cat_1',
+    entity: `Physical Growth Charts & Anthropometric Guidelines`,
+    badgeMeta: `Growth Curves`,
+    etiology: `Serial wellness-check measurements from neonate through adolescence (up to 18–19 y) tracked on binary pink (female) and blue (male) standardized charts.`,
+    pathogenesis: `Predictable somatic velocity mirrors adequate nutrition and endocrine drive: neonates lose up to 10% birth weight initially before recovering, then follow rapid infantile weight and linear length accretion.`,
+    hallmarks: `Charts plot head circumference (top curve), weight, and length/height with curve percentiles; CDC BMI percentile curves apply to ages 2–19 y. Infant length is marked at head and foot on paper and measured by tape.`,
+    clinical: `Weight: regains 10% loss by 2 wk; gains 1–2 oz (30–60 g)/day at 2–4 mo; doubles by 4–6 mo; triples by 12 mo. Length: +1–1.5 in (2.54–3.81 cm)/mo; doubles by 10–12 mo; reaches ~50% adult height by age 3 y.`,
+    management: `Plot every well-child measurement serially to confirm consistent tracking along a percentile curve. Guild Secret: Multiplying a 3-year-old's height by two gives an approximate adult height prediction.`
+  },
+  {
+    lo: 3,
+    tag: 'cat_2',
+    entity: `Growth Velocity & Hormonal Red Flags`,
+    badgeMeta: `Endocrine Screening`,
+    etiology: `Hormonal disturbances involving Growth Hormone deficiency (GHD), excess cortisol (Cushing syndrome), adrenal/insulin shifts, or Thyroid dysfunction (hypo- vs hyperthyroidism).`,
+    pathogenesis: `Growth hormone, cortisol, and thyroid hormone regulate linear skeletal velocity, cranial/fontanelle maturation, and metabolic rate; endocrine imbalance disrupts normal height velocity before overt systemic collapse.`,
+    hallmarks: `GHD: youthful appearance, chubby abdomen, underdeveloped nasal bridge. Cushing: weight gain with slowed height, interscapular fatty hump, purple/pink striae. Hypothyroid: open anterior fontanelle >18 mo, macroglossia, umbilical hernia, hoarse cry/voice. Hyperthyroid: macrocephaly, goiter.`,
+    clinical: `Change in growth velocity is the most significant red flag: height <3rd–5th %ile, dropping ≥2 major percentile lines, no growth for months, or <2 in (5 cm)/yr (age 4 to puberty). Thyroid also causes extreme fatigue vs hyperactivity, school drop, and language delay.`,
+    management: `Obtain screening lab work whenever unexplained growth pattern changes, persistent energy/weight shifts, or concentration/school performance decline occur to rule out reversible endocrine causes. Guild Secret: Unexplained growth pattern change is often the earliest sign of pediatric thyroid disease.`
+  },
+  {
+    lo: 4,
+    tag: 'cat_3',
+    entity: `Pediatric Osteopathic Conditions & OMT Principles`,
+    badgeMeta: `OMM Modalities`,
+    etiology: `Age-stratified presentations: Neonate/Infant (birth trauma, plagiocephaly, torticollis, ankyloglossia, feeding difficulties, colic); Child (constipation, chronic otitis media, headaches, autism spectrum); Adolescent (neck/back pain, migraines, scoliosis, sprains/strains, ADHD).`,
+    pathogenesis: `Birth trauma and somatic restrictions alter cranial, membranous, and ligamentous balance in infants, whereas premature suture fusion (craniosynostosis) represents fixed bony pathology rather than pliable somatic dysfunction.`,
+    hallmarks: `Primary infant OMT modalities: Osteopathy in the Cranial Field (OCF), Balanced Ligamentous Technique (BLT), and Balanced Membranous Technique (BMT). Assess anterior and posterior fontanelles (anterior closes by 18 mo).`,
+    clinical: `Unilateral cranial shortening raises concern for synostosis (premature suture fusion) rather than benign positional plagiocephaly; microcephaly or persistent fontanelle opening after 18 mo warrants evaluation for brain growth or thyroid abnormalities.`,
+    management: `OMT follows no hard-and-fast rules and adapts gently by age. Guild Secret: If a cranial/plagiocephaly infant makes no improvement after 2–3 OMT visits, stop assuming simple positional dysfunction and order a CT scan to evaluate suture patency.`
+  },
+  {
+    lo: 5,
+    tag: 'cat_3',
+    entity: `Plagiocephaly & Torticollis Care & Complications`,
+    badgeMeta: `Cranial & SCM Care`,
+    etiology: `Positional plagiocephaly (external molding / flat spot) and congenital/infantile torticollis (sternocleidomastoid [SCM] shortening), contrasted with premature suture fusion (craniosynostosis).`,
+    pathogenesis: `Persistent asymmetric positioning and tight SCM fibers deform pliable infant cranial bones and perpetuate cervical/cranial imbalance, which if unaddressed cascades into secondary craniofacial, TMJ, spinal, and functional deficits.`,
+    hallmarks: `Un/undertreated severe complications divide into Musculoskeletal (craniofacial and spinal asymmetry/scoliosis, TMJ dysfunction, SCM shortening) and Functional (speech and language delays).`,
+    clinical: `Presents with misshapen head (flat spot) and/or preferential head tilt/SCM tightness in infancy; must exclude synostosis before attributing asymmetry solely to positioning.`,
+    management: `Plagiocephaly Standard of Care: screen for synostosis, helmet therapy, physical therapy, and positioning (more tummy time, avoid flat spot). Torticollis Standard of Care: physical therapy, positioning, parental education, home stretching, and surgical SCM release if refractory.`
+  }
+];
+
+// =========================================================================
+// 2. GROUNDED BOARD QUESTIONS (30 QUESTIONS: 6 PER LO; 9 P1 / 10 P2 / 11 P3)
+// =========================================================================
+const ALL_QUESTIONS = [
+  // -------------------- LO 1 (6 QUESTIONS: 2 P1, 2 P2, 2 P3) --------------------
+  {
+    id: `LO01-Q1`,
+    lo: 1,
+    loTitle: `LO 1: Developmental Stages, Reflexes & Milestones`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Asymmetric Tonic Neck Reflex`,
+    stem: `During a 1-month well-child exam, turning an infant's head to the right causes immediate extension of the right upper extremity and flexion of the left upper extremity, preventing the infant from bringing both hands to the midline. Which primitive reflex is being demonstrated?`,
+    clue: `Think of the classic "Fencer's reflex" seen from birth to 2 months where the face-side arm extends.`,
+    choices: [
+      `Asymmetric tonic neck reflex (ATNR)`,
+      `Symmetric tonic neck reflex (STNR)`,
+      `Positive support reflex`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: ATNR (Fencer's reflex) causes face-arm extension and skull-arm flexion when the head turns, transiently preventing midline hand meeting. Distractor exclusion: STNR emerges after ATNR integrates (extending arms and flexing legs when the head extends), and positive support extends the legs when the soles contact a hard surface at 4 months.`,
+    secondOrderClue: `Head turned -> face arm extends + skull arm flexes + cannot meet midline = ATNR (0–2 mo).`,
+    phase1Pearl: `Primitive reflexes from 0–2 months are driven by the brainstem and spinal cord to lay down tracks and messages between brain lobes.`,
+    phase2Hallmark: `ATNR keeps the infant out of midline posture until it integrates into the CNS, enabling midline visual cortex and hand-to-hand skills at 2 months.`,
+    phase3Secret: `Expect midline hand meeting and social smiling around 2 months once ATNR begins integrating.`,
+    dossierBullets: {
+      p1: [
+        `Driven by brainstem and spinal cord pathways`,
+        `Lays down neural tracks between lobes of the brain`
+      ],
+      p2: [
+        `Face-side arm extends while skull-side arm flexes`,
+        `Blocks midline hand meeting until integration`
+      ],
+      p3: [
+        `Normal from birth to 2 months of age`,
+        `Integration allows 2-month midline hand convergence`
+      ]
+    }
+  },
+  {
+    id: `LO01-Q2`,
+    lo: 1,
+    loTitle: `LO 1: Developmental Stages, Reflexes & Milestones`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `6-Month Motor Red Flag`,
+    stem: `A parent brings a 6-month-old infant for a routine checkup. The infant smiles, turns toward sounds, and laughs when played with, but cannot roll from stomach to back, cannot sit even with help, and does not actively reach for objects. How should these findings be classified?`,
+    clue: `Compare the infant's abilities against the 4-to-7-month developmental red flag checklist.`,
+    choices: [
+      `Developmental motor red flags`,
+      `Normal 6-month motor variation`,
+      `Expected persistence of palmar grasp`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Not rolling stomach-to-back, not sitting with help, and not actively reaching for objects by 6 months are explicit developmental red flags. Distractor exclusion: Healthy 6-month-olds should roll over, sit with support/prop anteriorly, and reach; palmar grasp persistence does not excuse absent rolling or sitting.`,
+    secondOrderClue: `6 mo milestones missed (no roll, no assisted sit, no active reach) = 4–7 mo developmental red flag.`,
+    phase1Pearl: `All four neurodevelopmental domains (motor, cognitive, social/emotional, language) are interdependent; deficits in one domain disrupt development in the others.`,
+    phase2Hallmark: `By 6 months, infants should sit with help (propping anteriorly at 6 mo and laterally at 7 mo), roll stomach to back, and reach actively.`,
+    phase3Secret: `Track all four categories using CDC milestone checklists at 2, 4, 6, 9, 12, 18, 24 months, 4 years, and 5 years.`,
+    dossierBullets: {
+      p1: [
+        `Cutting out one neurodevelopmental domain impairs other domains`,
+        `Requires progressive integration of primitive reflexes into CNS`
+      ],
+      p2: [
+        `Anterior propping appears by 6 months`,
+        `Lateral propping matures by 7 months`
+      ],
+      p3: [
+        `4–7 mo red flags: no sound turn (4m), no laugh/leg weight (5m), no roll/sit/reach (6m)`,
+        `Use CDC milestone checklists for structured screening`
+      ]
+    }
+  },
+  {
+    id: `LO01-Q3`,
+    lo: 1,
+    loTitle: `LO 1: Developmental Stages, Reflexes & Milestones`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `CNS Plantar Reflex Integration`,
+    stem: `A 2-month-old infant curls the toes downward when pressure is applied to the sole of the foot. Why must this involuntary brainstem-and-spinal-cord reflex eventually integrate into the central nervous system?`,
+    clue: `Consider how involuntary curling of the toes would affect upright weight-bearing and gait later in infancy.`,
+    choices: [
+      `To enable future standing and walking`,
+      `To allow rooting toward the breast`,
+      `To trigger the Moro startle response`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: The plantar grasp reflex must integrate into the CNS so the eventual toddler can place a flat foot and walk. Distractor exclusion: Rooting and Moro are separate 0–2 month primitive reflexes (mouth-corner turning and startle) rather than downstream goals of plantar integration.`,
+    secondOrderClue: `Plantar grasp (0–2 mo brainstem/spinal cord) -> CNS integration required -> toddler walking.`,
+    phase1Pearl: `Primitive reflexes lay down neural connections between lobes of the brain, then integrate into higher CNS control as voluntary motor skills mature.`,
+    phase2Hallmark: `Plantar grasp (sole pressure -> toe flexion) contrasts with positive support (4 mo: sole on hard ground -> leg extension).`,
+    phase3Secret: `Failure to bear some weight on legs by 5 months is a developmental red flag requiring evaluation.`,
+    dossierBullets: {
+      p1: [
+        `Primitive reflexes originate in the brainstem and spinal cord`,
+        `Integration hands control over to maturing higher CNS centers`
+      ],
+      p2: [
+        `Plantar grasp curls toes with sole pressure (0–2 mo)`,
+        `Positive support extends legs on hard surface (4 mo)`
+      ],
+      p3: [
+        `Plantar integration is required before toddler walking`,
+        `No leg weight-bearing by 5 months is a red flag`
+      ]
+    }
+  },
+  {
+    id: `LO01-Q4`,
+    lo: 1,
+    loTitle: `LO 1: Developmental Stages, Reflexes & Milestones`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Midline Visual & Triceps Maturation`,
+    stem: `At 4 months of age, an infant rests propped on the elbows in prone position, keeps a steady head, and brings both hands together easily. Which neurodevelopmental transition explains the ability to prop on the elbows after ATNR integration?`,
+    clue: `Recall the lecturer's point about which reflex follows ATNR and which arm muscle must relax to rest on elbows.`,
+    choices: [
+      `STNR emergence with triceps relaxation`,
+      `Persistence of stepping and rooting reflexes`,
+      `Loss of positive support leg extension`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: After ATNR integrates, the Symmetric Tonic Neck Reflex (STNR) emerges (head extension extends arms and flexes legs), and the infant advances further by relaxing the triceps to rest on the elbows. Distractor exclusion: Stepping/rooting belong to the 0–2 month primitive phase, and positive support is gained—not lost—at 4 months.`,
+    secondOrderClue: `ATNR integrates -> STNR (head extension extends arms) -> triceps relaxation to prop on elbows.`,
+    phase1Pearl: `Motor progression moves sequentially from asymmetric brainstem patterns (ATNR) to symmetric patterns (STNR) and voluntary triceps relaxation.`,
+    phase2Hallmark: `4-month infants show steadier head control, positive support on hard surfaces, and distinct cry qualities for hunger versus pain.`,
+    phase3Secret: `4-month infants copy facial expressions (smiling/frowning), enjoy play, and may cry when play stops.`,
+    dossierBullets: {
+      p1: [
+        `ATNR integrates first to unlock midline posture and visual cortex tracks`,
+        `STNR follows, linking head extension with arm extension and leg flexion`
+      ],
+      p2: [
+        `Relaxing the triceps allows advanced propping on the elbows`,
+        `Positive support appears when soles touch a firm surface`
+      ],
+      p3: [
+        `4-month vocal cords vary cry quality for pain vs. hunger`,
+        `Social play and facial expression copying emerge at 4 months`
+      ]
+    }
+  },
+  {
+    id: `LO01-Q5`,
+    lo: 1,
+    loTitle: `LO 1: Developmental Stages, Reflexes & Milestones`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Neonate vs. Toddler Classification`,
+    stem: `A pediatric clinic schedules three patients: a 19-day-old newborn born at 38 weeks' gestation, a 2-year-old boy, and a 5-year-old girl. Using standard developmental stage definitions from Lecture 14, how are these three patients accurately categorized?`,
+    clue: `Check the exact day/year cutoffs for Neonate, Full Term, Toddler, and Preschool.`,
+    choices: [
+      `Full-term neonate, toddler, and preschooler`,
+      `Preterm infant, middle child, and toddler`,
+      `Full-term infant, preschooler, and middle child`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: 0–28 days is a neonate (37–41 weeks is full term), 1–3 years is toddler (within child 1–12 y), and 4–6 years is preschool. Distractor exclusion: 38 weeks is full term (not preterm <37 w), 19 days is neonate (not infant >28 d), and middle childhood spans 7–12 years.`,
+    secondOrderClue: `0–28d = Neonate | 37–41w = Full Term | 1–3y = Toddler | 4–6y = Preschool.`,
+    phase1Pearl: `Gestational age at birth is stratified into Preterm (<37 weeks), Full Term (37–41 weeks), and Post Term (>41 weeks).`,
+    phase2Hallmark: `Postnatal stages span Neonate (0–28 days), Infant (28 days–1 year), Child (1–12 years: Toddler 1–3, Preschool 4–6, Middle Childhood 7–12), and Adolescent (13–18 years).`,
+    phase3Secret: `Accurate stage classification guides which milestone checklists, primitive reflex expectations, and growth chart axes apply.`,
+    dossierBullets: {
+      p1: [
+        `Gestational cutoffs: Preterm <37 w, Full Term 37–41 w, Post Term >41 w`,
+        `Neonate covers strictly 0–28 days of life`
+      ],
+      p2: [
+        `Infant = 28 days to 1 year; Child = 1 to 12 years`,
+        `Childhood subdivides into Toddler (1–3 y), Preschool (4–6 y), Middle (7–12 y)`
+      ],
+      p3: [
+        `Adolescence spans 13 to 18 years of age`,
+        `Age bracket determines milestone and OMT screening expectations`
+      ]
+    }
+  },
+  {
+    id: `LO01-Q6`,
+    lo: 1,
+    loTitle: `LO 1: Developmental Stages, Reflexes & Milestones`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Expected 2-Month Milestones`,
+    stem: `Parents bring their 2-month-old infant for a wellness visit and ask what developmental behaviors indicate healthy progress at this age. Which combination of findings across domains confirms normal 2-month development?`,
+    clue: `Recall the 2-month breakthroughs in caretaker smiling, vocalizing, sound orientation, and fussiness when bored.`,
+    choices: [
+      `Social smile, cooing, and turning toward sounds`,
+      `Lateral sitting prop and rolling stomach to back`,
+      `Distinct pain cries and copying facial frowns`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: At 2 months, infants look at caretakers and smile socially, coo/gurgle, turn purposely toward sounds, calm briefly, meet hands at midline, and get fussy when bored. Distractor exclusion: Rolling stomach-to-back (6 mo) and lateral sitting prop (7 mo) are later milestones; distinct cry quality and copying frowns appear at 4 months.`,
+    secondOrderClue: `2 mo = social smile (caretaker reward) + cooing/gurgling + turns to sounds + midline hands + fussy if bored.`,
+    phase1Pearl: `Social smiling at 2 months serves as a crucial neurobehavioral reward reinforcing caretaker bonding and interactive cognitive stimulation.`,
+    phase2Hallmark: `2-month cognitive/motor integration shows visual tracking, midline hand convergence, and purposeful orientation toward auditory stimuli.`,
+    phase3Secret: `Instruct parents that fussiness at 2 months can reflect boredom and need for entertainment, alongside normal cooing and brief self-calming.`,
+    dossierBullets: {
+      p1: [
+        `Integration of early primitive reflexes unlocks midline hand convergence`,
+        `Social smile reinforces caretaker-infant interaction loops`
+      ],
+      p2: [
+        `2 mo social/language: smiles at caretaker, coos, gurgles, calms briefly`,
+        `2 mo cognitive/motor: tracks visually, turns to sounds, fussiness when bored`
+      ],
+      p3: [
+        `Distinguish 2 mo milestones from 4 mo (expression copying, positive support)`,
+        `Monitor all 4 domains simultaneously at every wellness visit`
+      ]
+    }
+  },
+
+  // -------------------- LO 2 (6 QUESTIONS: 2 P1, 2 P2, 2 P3) --------------------
+  {
+    id: `LO02-Q1`,
+    lo: 2,
+    loTitle: `LO 2: Physical Growth & Anthropometrics`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Normal Postnatal Weight Recovery`,
+    stem: `A full-term neonate weighed 3.5 kg at birth. At day 4 of life, the infant weighs 3.22 kg (an 8% weight loss), and by 14 days of age, the infant weighs 3.52 kg. How should the clinician counsel the parents regarding this weight trajectory?`,
+    clue: `Compare the 8% loss and 2-week recovery against Lecture 14 neonatal weight guidelines.`,
+    choices: [
+      `Reassure parents as normal postnatal physiology`,
+      `Initiate workup for pediatric hyperthyroidism`,
+      `Diagnose abnormal growth velocity immediately`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: A neonate may lose up to 10% of birth weight after delivery, provided birth weight is regained by 2 weeks of age. Distractor exclusion: An 8% loss regained by day 14 is completely normal and does not indicate hyperthyroidism or abnormal growth velocity.`,
+    secondOrderClue: `Neonate weight loss ≤10% + regained by 2 weeks = normal postnatal adaptation.`,
+    phase1Pearl: `Early neonatal fluid shifts account for up to 10% physiological birth-weight loss before steady nutritional accretion begins.`,
+    phase2Hallmark: `Following the 2-week regain, infants aged 2–4 months gain an average of 1–2 ounces (30–60 grams) per day.`,
+    phase3Secret: `Reassure parents with a baby scale that up to 10% early loss is normal only if regained by 2 weeks of age.`,
+    dossierBullets: {
+      p1: [
+        `Physiological neonatal loss may reach up to 10% of birth weight`,
+        `Anabolic recovery restores birth weight within 2 weeks`
+      ],
+      p2: [
+        `2–4 month daily weight gain averages 1–2 oz (30–60 g)/day`,
+        `Standardized baby scales track serial neonatal weight`
+      ],
+      p3: [
+        `Failure to regain birth weight by 2 weeks warrants evaluation`,
+        `8% loss fully recovered by day 14 requires reassurance only`
+      ]
+    }
+  },
+  {
+    id: `LO02-Q2`,
+    lo: 2,
+    loTitle: `LO 2: Physical Growth & Anthropometrics`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Expected 12-Month Weight & Length`,
+    stem: `An infant born at 3.4 kg and 50 cm (20 in) presents for a 1-year well-child visit after normal feeding and development. Which anthropometric values are most consistent with expected 12-month somatic growth?`,
+    clue: `Recall the exact multipliers for birth weight and birth length by 10–12 months of age.`,
+    choices: [
+      `Weight ~10.2 kg; length ~100 cm`,
+      `Weight ~6.8 kg; length ~60 cm`,
+      `Weight ~13.6 kg; length ~75 cm`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Birth weight triples by 12 months (3.4 × 3 = 10.2 kg), and birth length doubles by 10–12 months (50 × 2 = 100 cm). Distractor exclusion: Doubling birth weight (6.8 kg) occurs by 4–6 months, and quadrupling weight (13.6 kg) or only 50% length gain (75 cm) does not match the 12-month milestones.`,
+    secondOrderClue: `4–6 mo = 2× birth weight | 12 mo = 3× birth weight AND 2× birth length.`,
+    phase1Pearl: `Infantile linear growth proceeds at 1 to 1.5 inches (2.54–3.81 cm) per month during the first year.`,
+    phase2Hallmark: `By 12 months, normal infants triple their birth weight and double their birth length.`,
+    phase3Secret: `Always compare current weight and length against the child's own birth baseline and serial percentile curve.`,
+    dossierBullets: {
+      p1: [
+        `Monthly infant length growth = 1 to 1.5 inches (2.54–3.81 cm)`,
+        `Rapid first-year somatic accretion doubles birth length`
+      ],
+      p2: [
+        `Birth weight doubles by 4–6 months and triples by 12 months`,
+        `Birth length doubles by 10–12 months`
+      ],
+      p3: [
+        `Verify both weight (3×) and length (2×) at the 1-year wellness check`,
+        `Disproportionate failure of either signals growth disturbance`
+      ]
+    }
+  },
+  {
+    id: `LO02-Q3`,
+    lo: 2,
+    loTitle: `LO 2: Physical Growth & Anthropometrics`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Age-3 Half Adult Height Rule`,
+    stem: `During a 3-year well-child visit, parents ask how tall their daughter is likely to become as a fully mature adult. Based on predictable pediatric linear growth patterns taught in Lecture 14, which guideline provides a rough adult height estimate?`,
+    clue: `Think of the fun clinical rule parents use at age 3 years based on the child's current stature.`,
+    choices: [
+      `Doubling her height at age 3 years`,
+      `Tripling her height at age 3 years`,
+      `Doubling her birth length at 12 months`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: At 3 years of age, children are approximately half their adult height, so doubling their 3-year-old height estimates final adult stature. Distractor exclusion: Tripling age-3 height vastly overestimates adult height, and doubling birth length reflects 1-year length rather than adult stature.`,
+    secondOrderClue: `Age 3 years = ~50% of adult height -> 2 × height at age 3 ≈ adult height.`,
+    phase1Pearl: `Linear skeletal growth follows a predictable deceleration from rapid infancy (doubling length in year 1) to reaching half of adult height by age 3.`,
+    phase2Hallmark: `Between age 4 and puberty, expected linear growth rate must remain at least 2 inches (5 cm) per year.`,
+    phase3Secret: `Share the age-3 half-adult-height rule with families while emphasizing ongoing serial growth-chart tracking through adolescence.`,
+    dossierBullets: {
+      p1: [
+        `Infancy achieves maximal linear growth velocity (1–1.5 in/month)`,
+        `By age 3 years, approximately half of mature adult height is reached`
+      ],
+      p2: [
+        `Age 3 height × 2 approximates final mature adult height`,
+        `Post-age-4 growth velocity must stay ≥2 inches (5 cm)/year`
+      ],
+      p3: [
+        `Monitor linear curves continuously up through teenage years`,
+        `Growth below 2 in/yr from age 4 to puberty is a hormonal red flag`
+      ]
+    }
+  },
+  {
+    id: `LO02-Q4`,
+    lo: 2,
+    loTitle: `LO 2: Physical Growth & Anthropometrics`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Binary Charts & BMI Curves`,
+    stem: `A 14-year-old male presents for an annual physical. In addition to plotting standard height and weight curves on the blue pediatric chart, why does the CDC recommend using BMI percentile curves specifically for patients aged 2 to 19 years?`,
+    clue: `Consider the adolescent nutritional trend highlighted by the lecturer regarding CDC BMI percentile curves.`,
+    choices: [
+      `To screen for progressive adolescent obesity`,
+      `To replace head circumference in neonates`,
+      `To diagnose cranial suture synostosis early`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: CDC BMI percentile curves for 2 to 19 year olds monitor weight-for-height proportionality, especially given progressive obesity in the adolescent age group. Distractor exclusion: Head circumference is plotted on infant charts (not replaced by BMI), and CT—not BMI curves—evaluates cranial suture patency.`,
+    secondOrderClue: `CDC BMI percentile curves (2–19 y) = track weight-height balance amid progressive adolescent obesity.`,
+    phase1Pearl: `Adolescence (13–18 years) brings continued somatic growth alongside rising risk for progressive obesity, requiring proportionality tracking beyond raw weight.`,
+    phase2Hallmark: `Standard charts use blue for individuals born male and pink for individuals born female, displaying head circumference (top), weight, length/height, and curve percentiles.`,
+    phase3Secret: `Use CDC BMI percentile charts from ages 2 to 19 years alongside standard height and weight curves.`,
+    dossierBullets: {
+      p1: [
+        `Rising adolescent obesity requires tracking BMI percentiles (2–19 y)`,
+        `Growth charts remain vital from infancy through teenage years`
+      ],
+      p2: [
+        `Binary charts: blue (born male) and pink (born female)`,
+        `Plots head circumference (top), weight, height/length, and percentiles`
+      ],
+      p3: [
+        `Interpret percentiles at the end of each growth curve`,
+        `Combine BMI with linear velocity to distinguish obesity from Cushing`
+      ]
+    }
+  },
+  {
+    id: `LO02-Q5`,
+    lo: 2,
+    loTitle: `LO 2: Physical Growth & Anthropometrics`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Mark-and-Tape Infant Length`,
+    stem: `A nurse prepares to measure the length of an active, squirming 3-month-old infant during a wellness check. According to Lecture 14 clinical technique, what is the standard practical method for accurately recording infant length?`,
+    clue: `Think about how nurses overcome constant kicking and movement on the exam table paper.`,
+    choices: [
+      `Mark head and foot positions, then tape-measure`,
+      `Stand the infant upright against a wall stadiometer`,
+      `Estimate length by doubling head circumference`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Because infants move constantly, nurses draw a mark at the head and a mark at the foot on the exam table and measure the distance between marks with a tape measure. Distractor exclusion: 3-month-olds cannot stand against a wall stadiometer, and head circumference is plotted separately rather than doubled for length.`,
+    secondOrderClue: `Squirming infant length = mark at head + mark at foot -> measure between marks with tape measure.`,
+    phase1Pearl: `Accurate serial length measurement prevents false apparent drops across percentile lines on standardized infant growth charts.`,
+    phase2Hallmark: `Infant charts plot recumbent length alongside weight and the top head circumference curve.`,
+    phase3Secret: `Use baby scales for infant weight and the head-and-foot mark-and-tape method for reliable infant length.`,
+    dossierBullets: {
+      p1: [
+        `Measurement error mimics false growth-velocity deceleration`,
+        `Consistent supine technique is essential in moving infants`
+      ],
+      p2: [
+        `Mark exam paper at crown of head and heel of foot`,
+        `Measure exact span between the two marks with a tape measure`
+      ],
+      p3: [
+        `Pair tape-measured length with baby-scale weight and head circumference`,
+        `Plot all three metrics serially on sex-appropriate growth charts`
+      ]
+    }
+  },
+  {
+    id: `LO02-Q6`,
+    lo: 2,
+    loTitle: `LO 2: Physical Growth & Anthropometrics`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `2-to-4-Month Daily Weight Gain`,
+    stem: `A healthy 3-month-old infant who regained birth weight at 2 weeks returns for a weight check. What average daily weight gain confirms appropriate nutritional growth during the 2-to-4-month window?`,
+    clue: `Recall the exact ounce and gram range per day specified for months 2 to 4.`,
+    choices: [
+      `1 to 2 ounces (30 to 60 grams) per day`,
+      `8 to 10 ounces (240 to 300 grams) per day`,
+      `10% of birth weight gained every week`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: During the first 2 to 4 months, infants normally gain an average of 1 to 2 ounces (30 to 60 grams) per day. Distractor exclusion: 8–10 oz/day or 10% weekly gain vastly exceeds physiological infant accretion.`,
+    secondOrderClue: `Months 2–4 average daily weight gain = 1–2 oz (30–60 g)/day -> doubles birth weight by 4–6 mo.`,
+    phase1Pearl: `Sustained daily accretion of 30–60 g/day drives the expected doubling of birth weight between 4 and 6 months.`,
+    phase2Hallmark: `Infant growth velocity combines daily 1–2 oz weight gain with 1–1.5 inches (2.54–3.81 cm) of monthly length growth.`,
+    phase3Secret: `Verify daily 1–2 oz weight gain before 4–6 months and 2× birth weight by 4–6 months to catch early growth faltering.`,
+    dossierBullets: {
+      p1: [
+        `Sustained 30–60 g/day gain bridges neonatal recovery to 6-month doubling`,
+        `Reflects adequate caloric intake and intact endocrine drive`
+      ],
+      p2: [
+        `Weight gain (2–4 mo): 1–2 ounces (30–60 grams) per day`,
+        `Length gain (infant): 1–1.5 inches (2.54–3.81 cm) per month`
+      ],
+      p3: [
+        `Plot serial weights on baby scales to verify curve adherence`,
+        `Expect doubled birth weight by 4–6 months and tripled by 12 months`
+      ]
+    }
+  },
+
+  // -------------------- LO 3 (6 QUESTIONS: 2 P1, 2 P2, 2 P3) --------------------
+  {
+    id: `LO03-Q1`,
+    lo: 3,
+    loTitle: `LO 3: Growth Velocity & Hormonal Red Flags`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Growth Hormone Deficiency`,
+    stem: `A 7-year-old boy has dropped two major percentile lines in height and grows less than 2 inches per year. On physical exam, he appears much younger than his peers, has a chubby abdominal build, and demonstrates an underdeveloped nasal bridge. Which endocrine condition best fits this presentation?`,
+    clue: `Match the combination of slowed linear velocity, youthful facies, chubby belly, and underdeveloped nasal bridge.`,
+    choices: [
+      `Growth hormone deficiency (GHD)`,
+      `Pediatric hyperthyroidism`,
+      `Excess cortisol (Cushing syndrome)`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Children with GHD appear much younger than their peers, exhibit a chubby build (especially around the abdomen), and have an underdeveloped nasal bridge alongside poor linear growth velocity. Distractor exclusion: Hyperthyroidism causes macrocephaly, hyperactivity, and weight loss; Cushing syndrome features an interscapular fatty hump and purple/pink stretch marks.`,
+    secondOrderClue: `Younger appearance + chubby belly + underdeveloped nasal bridge + height drop = GHD.`,
+    phase1Pearl: `Deficient growth hormone impairs linear bone elongation and somatic maturation while altering truncal adipose distribution.`,
+    phase2Hallmark: `Classic GHD morphology includes youthful facial proportions, underdeveloped nasal bridge, and chubby abdomen.`,
+    phase3Secret: `Look for height <3rd–5th %ile, dropping ≥2 major percentile lines, no growth for months, or <2 in (5 cm)/yr (age 4 to puberty).`,
+    dossierBullets: {
+      p1: [
+        `GHD blunts linear skeletal velocity without necessarily reducing abdominal fat`,
+        `Creates characteristic discrepancy between chronologic age and appearance`
+      ],
+      p2: [
+        `Appears much younger than peers with underdeveloped nasal bridge`,
+        `Chubby abdominal build with height <3rd–5th %ile or ≥2-line drop`
+      ],
+      p3: [
+        `Distinguish GHD from Cushing (striae, fatty hump) and hypothyroid (macroglossia)`,
+        `Growth rate <2 in (5 cm)/yr after age 4 mandates endocrine workup`
+      ]
+    }
+  },
+  {
+    id: `LO03-Q2`,
+    lo: 3,
+    loTitle: `LO 3: Growth Velocity & Hormonal Red Flags`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Excess Cortisol (Cushing)`,
+    stem: `A 9-year-old child presents with a sharp inappropriate increase in weight over 6 months while linear height gain has stalled. Physical exam reveals a fatty hump between the shoulders and purple-pink stretch marks on the abdomen. Which hormonal abnormality explains this pattern?`,
+    clue: `Focus on the classic paradox of rising weight + slowing height plus interscapular fat and purple/pink striae.`,
+    choices: [
+      `Excess cortisol (Cushing syndrome)`,
+      `Growth hormone deficiency`,
+      `Pediatric hypothyroidism`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: An inappropriate increase in weight while height gain slows, accompanied by a fatty hump between the shoulders or purple/pink stretch marks, indicates excess cortisol (Cushing syndrome). Distractor exclusion: GHD causes an underdeveloped nasal bridge without striae/fatty hump; hypothyroidism presents with fatigue, macroglossia, hoarse voice, and open fontanelle in younger children.`,
+    secondOrderClue: `Weight UP + height velocity DOWN + fatty interscapular hump + purple/pink striae = Excess Cortisol.`,
+    phase1Pearl: `Excess cortisol promotes central/interscapular adiposity and dermal collagen thinning (purple/pink striae) while suppressing linear skeletal growth.`,
+    phase2Hallmark: `Key Cushing hallmarks: inappropriate weight gain with slowed height gain, fatty hump between shoulders, and purple/pink stretch marks.`,
+    phase3Secret: `Contrast simple exogenous obesity (tall/normal height velocity) against Cushing syndrome (weight up while height slows).`,
+    dossierBullets: {
+      p1: [
+        `Excess cortisol suppresses linear growth velocity while driving fat deposition`,
+        `Produces divergent weight (rising) vs. height (stalling) curves`
+      ],
+      p2: [
+        `Fatty hump between the shoulders`,
+        `Purple or pink stretch marks on skin`
+      ],
+      p3: [
+        `Always check height velocity when evaluating rapid unexplained pediatric weight gain`,
+        `Screen adrenal axis when weight rises as linear growth slows`
+      ]
+    }
+  },
+  {
+    id: `LO03-Q3`,
+    lo: 3,
+    loTitle: `LO 3: Growth Velocity & Hormonal Red Flags`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Pediatric Thyroid Dysfunction`,
+    stem: `A 22-month-old toddler is evaluated for stalled linear growth. Exam shows an anterior fontanelle that remains wide open, a notably large tongue, an umbilical hernia, and a hoarse cry. What is the underlying pathophysiologic driver?`,
+    clue: `Remember the fontanelle closure deadline (18 months) and the triad of macroglossia, umbilical hernia, and hoarse cry.`,
+    choices: [
+      `Hypothyroidism delaying cranial and somatic maturation`,
+      `Hyperthyroidism accelerating skull expansion`,
+      `Premature cranial suture synostosis`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Pediatric hypothyroidism causes unexplained growth pattern changes, persistent open anterior fontanelle after 18 months, macroglossia, umbilical hernia, and hoarse voice/cry. Distractor exclusion: Hyperthyroidism causes macrocephaly, hyperactivity, and weight loss; craniosynostosis causes premature suture closure rather than a persistently open fontanelle.`,
+    secondOrderClue: `Open anterior fontanelle >18 mo + macroglossia + umbilical hernia + hoarse cry = Hypothyroidism.`,
+    phase1Pearl: `Thyroid hormone deficiency impairs skeletal maturation (delaying anterior fontanelle closure past 18 months), tissue metabolism, and neurodevelopment.`,
+    phase2Hallmark: `Hypothyroid hallmarks: open anterior fontanelle >18 months, large tongue (macroglossia), umbilical hernia, hoarse voice/cry, and developmental/language delay.`,
+    phase3Secret: `The anterior fontanelle should normally close by 18 months; persistent patency demands thyroid and brain-growth evaluation.`,
+    dossierBullets: {
+      p1: [
+        `Thyroid hormone drives normal bone maturation and cranial vault closure`,
+        `Deficiency also risks intellectual disability and language delay`
+      ],
+      p2: [
+        `Open anterior fontanelle after 18 months (normal closure by 18 mo)`,
+        `Macroglossia, umbilical hernia, and hoarse voice or cry`
+      ],
+      p3: [
+        `Unexplained growth change is the most common earliest pediatric thyroid sign`,
+        `Perform lab work promptly to catch reversible hypothyroidism`
+      ]
+    }
+  },
+  {
+    id: `LO03-Q4`,
+    lo: 3,
+    loTitle: `LO 3: Growth Velocity & Hormonal Red Flags`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Change in Growth Velocity`,
+    stem: `When reviewing serial standardized growth charts for an 8-year-old child, which single parameter does Lecture 14 identify as the most significant hormonal red flag?`,
+    clue: `Think of the dynamic rate of change over time rather than one isolated measurement.`,
+    choices: [
+      `Change in growth velocity across checks`,
+      `Tracking steadily along the 15th percentile`,
+      `Being in the 90th percentile for head size`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: A change in growth velocity—such as dropping ≥2 major percentile lines, no growth for months, height <3rd–5th %ile, or <2 in (5 cm)/yr after age 4—is the most significant red flag. Distractor exclusion: Steadily tracking along the 15th percentile or 90th percentile without velocity shifts reflects stable constitutional growth.`,
+    secondOrderClue: `Most significant hormonal red flag = change in growth velocity (<2 in/yr, ≥2 line drop, flat curve).`,
+    phase1Pearl: `Hormonal axes (GH, thyroid, adrenal) directly govern linear growth velocity; abrupt curve flattening or crossing percentile lines exposes endocrine failure early.`,
+    phase2Hallmark: `Specific velocity thresholds: height <3rd/5th %ile, drop of ≥2 major percentile lines, zero growth for months, or <2 in (5 cm)/yr from age 4 to puberty.`,
+    phase3Secret: `Plot every well-child check sequentially so a subtle plateau or 2-line percentile drop is never missed.`,
+    dossierBullets: {
+      p1: [
+        `Endocrine pathology alters the slope of the growth curve before overt symptoms`,
+        `Applies to growth hormone, thyroid, insulin, and adrenal disorders`
+      ],
+      p2: [
+        `Height <3rd–5th percentile or dropping ≥2 major percentile lines`,
+        `No growth for several months, or <2 inches (5 cm)/yr from age 4 to puberty`
+      ],
+      p3: [
+        `Stable tracking on a lower percentile is less concerning than crossing lines downward`,
+        `Use standardized sex-specific charts at every visit`
+      ]
+    }
+  },
+  {
+    id: `LO03-Q5`,
+    lo: 3,
+    loTitle: `LO 3: Growth Velocity & Hormonal Red Flags`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Thyroid Lab Screening Workup`,
+    stem: `A 10-year-old student presents with an unexplained change in growth pattern, recent weight loss despite normal eating habits, hyperactivity, declining school concentration, and a neck swelling (goiter). What is the most appropriate next diagnostic step?`,
+    clue: `Recall the lecturer's guidance when a child shows school decline, energy shifts, weight changes, and goiter.`,
+    choices: [
+      `Order screening labs for thyroid dysfunction`,
+      `Wait 12 months to recheck school grades`,
+      `Treat solely with cranial OMT for ADHD`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Unexplained growth changes, extreme shifts in energy (hyperactivity or fatigue), weight changes despite normal diet, school performance decline, and goiter warrant lab work to rule out reversible thyroid issues. Distractor exclusion: Delaying 12 months risks developmental/academic harm, and assuming primary ADHD without labs misses reversible hyperthyroidism.`,
+    secondOrderClue: `Growth shift + hyperactivity + weight loss + school decline + goiter -> screening labs for reversible thyroid disease.`,
+    phase1Pearl: `Unexplained changes in growth patterns are often the most common and earliest pediatric sign of thyroid disease (hyperthyroidism can also show macrocephaly).`,
+    phase2Hallmark: `Thyroid red flags span growth velocity shifts, energy extremes (fatigue vs. hyperactivity), unexplained weight gain/loss, concentration drop, language delay, and goiter.`,
+    phase3Secret: `Always obtain a targeted smattering of lab work to rule out reversible endocrine causes in children with sudden school or energy changes.`,
+    dossierBullets: {
+      p1: [
+        `Hyperthyroidism drives hyperactivity, weight loss, goiter, and macrocephaly`,
+        `Growth pattern alteration is frequently the earliest clinical clue`
+      ],
+      p2: [
+        `Persistent shifts in energy (extreme fatigue or hyperactivity)`,
+        `Unexplained weight change despite normal intake + school concentration drop`
+      ],
+      p3: [
+        `Order thyroid screening labs before labeling behavioral or academic decline`,
+        `Early detection prevents persistent developmental and cognitive deficits`
+      ]
+    }
+  },
+  {
+    id: `LO03-Q6`,
+    lo: 3,
+    loTitle: `LO 3: Growth Velocity & Hormonal Red Flags`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Prepubertal Linear Velocity Threshold`,
+    stem: `A 6-year-old girl grew 3.5 cm (1.4 inches) over the past 12 months while eating normally. According to Lecture 14 criteria for children between age 4 and puberty, how should this linear growth velocity be managed?`,
+    clue: `Compare 1.4 inches (3.5 cm)/year against the exact 2-inch (5 cm)/year cutoff.`,
+    choices: [
+      `Evaluate for hormonal growth-rate deficiency`,
+      `Reassure as expected prepubertal growth rate`,
+      `Measure BMI once and discharge from follow-up`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: A growth rate of less than 2 inches (5 cm) per year between age 4 and puberty is an abnormal growth-velocity red flag requiring endocrine evaluation. Distractor exclusion: 1.4 in/yr is below the 2 in/yr minimum threshold, and a single BMI check does not evaluate slowed linear height velocity.`,
+    secondOrderClue: `Age 4 to puberty: growth <2 inches (5 cm)/year = abnormal growth rate red flag -> endocrine workup.`,
+    phase1Pearl: `Prepubertal children require steady GH and thyroid signaling to maintain at least 2 inches (5 cm) of linear bone growth annually.`,
+    phase2Hallmark: `Subnormal velocity (<2 in/yr) may precede a drop across two major percentile lines if caught early.`,
+    phase3Secret: `Memorize the age-4-to-puberty floor: <2 inches (5 cm) per year triggers hormonal red-flag evaluation.`,
+    dossierBullets: {
+      p1: [
+        `Steady prepubertal linear growth depends on intact GH and thyroid axes`,
+        `Velocity deceleration precedes severe short stature`
+      ],
+      p2: [
+        `Normal floor (age 4 to puberty): ≥2 inches (5 cm) per year`,
+        `3.5 cm/yr (<5 cm/yr) confirms abnormal growth velocity`
+      ],
+      p3: [
+        `Screen for GHD, thyroid dysfunction, and cortisol excess`,
+        `Verify serial height measurements on standardized charts`
+      ]
+    }
+  },
+
+  // -------------------- LO 4 (6 QUESTIONS: 2 P1, 2 P2, 2 P3) --------------------
+  {
+    id: `LO04-Q1`,
+    lo: 4,
+    loTitle: `LO 4: Pediatric OMM Conditions & Principles`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `CT Scan for Suture Patency`,
+    stem: `A 4-month-old infant presents with unilateral cranial shortening and flattened occiput. After 3 visits using gentle Osteopathy in the Cranial Field (OCF), the infant's cranial shape shows zero improvement. What is the mandatory next step taught in Lecture 14?`,
+    clue: `Remember the lecturer's caution about unilateral shortening that fails 2–3 OMT treatments.`,
+    choices: [
+      `Order a CT scan to check suture patency`,
+      `Continue weekly OCF for six more months`,
+      `Reassure parents and omit tummy time`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Unilateral cranial shortening that shows no change after 2–3 OMT treatments raises concern for craniosynostosis (premature suture fusion), requiring a CT scan to diagnose suture patency. Distractor exclusion: Continuing OCF alone delays neurosurgical/standard diagnosis, and omitting tummy time worsens positional molding.`,
+    secondOrderClue: `Unilateral cranial shortening + no change after 2–3 OMT visits -> CT scan to diagnose suture patency.`,
+    phase1Pearl: `Premature fusion of a cranial suture (synostosis) creates fixed osseous restriction that cannot remodel through membranous OMT alone.`,
+    phase2Hallmark: `Look for shortening of the cranium on one side and assess anterior and posterior fontanelle status.`,
+    phase3Secret: `Guild Secret: Never treat suspected plagiocephaly beyond 2–3 OMT sessions without progress—get a CT scan to verify patent sutures.`,
+    dossierBullets: {
+      p1: [
+        `Craniosynostosis is premature bony fusion of cranial sutures`,
+        `Distinct from pliable positional plagiocephaly`
+      ],
+      p2: [
+        `Cranial shortening on one side suggests possible synostosis`,
+        `Assess anterior and posterior fontanelles alongside cranial shape`
+      ],
+      p3: [
+        `No improvement after 2–3 OMT visits -> obtain CT for suture patency`,
+        `Screen for synostosis early in every misshapen-head evaluation`
+      ]
+    }
+  },
+  {
+    id: `LO04-Q2`,
+    lo: 4,
+    loTitle: `LO 4: Pediatric OMM Conditions & Principles`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Neonate/Infant OMT Presentation`,
+    stem: `Which group of conditions specifically represents the classic neonate and infant presentations commonly brought to an osteopathic physician's office for OMM care?`,
+    clue: `Differentiate neonatal/infant complaints from older child and adolescent OMM complaints.`,
+    choices: [
+      `Birth trauma, ankyloglossia, and colic`,
+      `Scoliosis, migraines, and sprains/strains`,
+      `Autism spectrum, headaches, and constipation`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Common neonate/infant OMM conditions include birth trauma, plagiocephaly, torticollis, ankyloglossia (tongue tie), feeding difficulties, and colic. Distractor exclusion: Scoliosis, migraines, and sprains/strains (plus ADHD) are listed under adolescents; constipation, chronic otitis media, headaches, and autism spectrum are listed under children.`,
+    secondOrderClue: `Neonate/Infant = birth trauma, plagiocephaly, torticollis, ankyloglossia, feeding difficulties, colic.`,
+    phase1Pearl: `Mechanical forces of birth trauma and cranial/cervical strain underlie feeding difficulty, tongue-tie tension, colic, torticollis, and plagiocephaly in newborns.`,
+    phase2Hallmark: `Age-stratified OMM conditions: Neonate/Infant (birth trauma, plagiocephaly, torticollis, ankyloglossia, feeding, colic), Child (constipation, chronic otitis media, headaches, autism), Adolescent (neck/back pain, migraines, scoliosis, sprains/strains, ADHD).`,
+    phase3Secret: `Recognize which conditions bring families intentionally to an OMM office across infancy, childhood, and adolescence.`,
+    dossierBullets: {
+      p1: [
+        `Birth trauma strains infant cranial membranes and cervical tissues`,
+        `Age group shifts musculoskeletal and visceral presentations`
+      ],
+      p2: [
+        `Neonate/Infant: birth trauma, plagiocephaly, torticollis, ankyloglossia, feeding, colic`,
+        `Child: constipation, chronic otitis media, headaches, autism spectrum`
+      ],
+      p3: [
+        `Adolescent: neck/back pain, migraines, scoliosis, sprains/strains, ADHD`,
+        `Tailor gentle osteopathic techniques to the patient's developmental stage`
+      ]
+    }
+  },
+  {
+    id: `LO04-Q3`,
+    lo: 4,
+    loTitle: `LO 4: Pediatric OMM Conditions & Principles`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Gentle Pediatric OMT Modalities`,
+    stem: `A 6-week-old infant with feeding difficulty and mild positional head preference after a difficult delivery is scheduled for osteopathic manipulative treatment. Which three core OMT modalities are specifically highlighted for neonates and infants in Lecture 14?`,
+    clue: `Focus on the gentle indirect cranial, ligamentous, and membranous triad.`,
+    choices: [
+      `OCF, BLT, and BMT`,
+      `Surgical SCM release, helmet, and casting`,
+      `High-velocity thrust and heavy traction`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: For neonates and infants, Lecture 14 highlights Osteopathy in the Cranial Field (OCF), Balanced Ligamentous Technique (BLT), and Balanced Membranous Technique (BMT), noting OMT has "no hard and fast rules." Distractor exclusion: Surgery/helmets are standard-of-care adjuncts rather than OMT modalities, and forceful high-velocity maneuvers are not the neonate triad taught.`,
+    secondOrderClue: `Neonate/Infant OMT triad = OCF (Cranial) + BLT (Ligamentous) + BMT (Membranous).`,
+    phase1Pearl: `Infants possess pliable cranial sutures, dural membranes, and immature ligaments that respond to subtle, indirect balancing forces rather than rigid protocols.`,
+    phase2Hallmark: `OCF addresses cranial rhythmic/osseous-membranous relationships; BLT balances ligamentous tension; BMT balances dural/membranous tension.`,
+    phase3Secret: `Guild Secret: In pediatric OMT, there are "no hard and fast rules"—adapt gently using OCF, BLT, and BMT while monitoring clinical response.`,
+    dossierBullets: {
+      p1: [
+        `Pliable neonatal anatomy responds to subtle indirect balancing forces`,
+        `OMT in pediatrics emphasizes individualized care with no rigid rules`
+      ],
+      p2: [
+        `OCF: Osteopathy in the Cranial Field`,
+        `BLT & BMT: Balanced Ligamentous and Balanced Membranous Techniques`
+      ],
+      p3: [
+        `Reassess after 2–3 treatments to confirm functional/structural progress`,
+        `Screen out synostosis if cranial asymmetry fails to respond`
+      ]
+    }
+  },
+  {
+    id: `LO04-Q4`,
+    lo: 4,
+    loTitle: `LO 4: Pediatric OMM Conditions & Principles`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Fontanelle Closure & Brain Growth`,
+    stem: `During a pediatric cranial exam, the osteopathic physician palpates both the anterior and posterior fontanelles. Beyond hypothyroidism, what broader physiological concern must be considered if the anterior fontanelle stays open abnormally late or closes too early?`,
+    clue: `Think of what drives normal cranial expansion during the first several years of life.`,
+    choices: [
+      `Brain size or cranial growth abnormalities`,
+      `Normal 2-to-4-month weight doubling`,
+      `Expected persistence of the Moro reflex`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: The cranium must advance in size over the first several years of life; abnormal fontanelle persistence or premature closure can reflect brain size/growth abnormalities (such as microcephaly) or thyroid disease. Distractor exclusion: Weight gain occurs normally without keeping fontanelles open past 18 months, and Moro disappears by 2 months.`,
+    secondOrderClue: `Abnormal fontanelle timing (>18 mo open or early closure) -> check brain size/growth (microcephaly) & thyroid.`,
+    phase1Pearl: `Expanding brain volume drives normal cranial growth across infancy; the anterior fontanelle closes by 18 months as cranial vault expansion stabilizes.`,
+    phase2Hallmark: `Both anterior and posterior fontanelles are palpated on neonatal/infant cranial exam, alongside serial head circumference plotting on the top growth curve.`,
+    phase3Secret: `Always correlate fontanelle palpation with serial head circumference percentiles and thyroid/neurodevelopmental screening.`,
+    dossierBullets: {
+      p1: [
+        `Cranial growth accommodates rapid brain expansion in early life`,
+        `Abnormal brain growth (e.g., microcephaly) or hypothyroidism alters fontanelle timing`
+      ],
+      p2: [
+        `Anterior fontanelle normally closes by 18 months of age`,
+        `Palpate both anterior and posterior fontanelles during infant OMM exams`
+      ],
+      p3: [
+        `Plot head circumference on the top curve of pink/blue growth charts`,
+        `Investigate delayed closure (>18 mo) or unilateral suture shortening`
+      ]
+    }
+  },
+  {
+    id: `LO04-Q5`,
+    lo: 4,
+    loTitle: `LO 4: Pediatric OMM Conditions & Principles`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Adolescent OMM Presentations`,
+    stem: `A 15-year-old athlete presents to an osteopathic clinic with chronic headaches, thoracic spinal curvature, and a recent ankle injury. Which set of conditions corresponds to the adolescent OMM category highlighted in Lecture 14?`,
+    clue: `Match the 13-to-18-year-old patient bracket with its four listed OMM conditions.`,
+    choices: [
+      `Neck/back pain, migraines, scoliosis, sprains`,
+      `Ankyloglossia, colic, and birth trauma`,
+      `Chronic otitis media and constipation`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Lecture 14 groups Neck/Back Pain/Migraines, Scoliosis, Sprains/Strains, and ADHD under common adolescent osteopathic presentations. Distractor exclusion: Ankyloglossia, colic, and birth trauma belong to neonates/infants, whereas chronic otitis media and constipation belong to childhood.`,
+    secondOrderClue: `Adolescent (13–18 y) OMM list = neck/back pain/migraines, scoliosis, sprains/strains, ADHD.`,
+    phase1Pearl: `Rapid pubertal growth and athletic demands shift adolescent osteopathic presentations toward spinal curvature, axial pain, migraines, and sports sprains/strains.`,
+    phase2Hallmark: `Adolescence spans ages 13 to 18 years; spinal asymmetry (scoliosis) can also arise as a long-term complication of untreated infantile torticollis/plagiocephaly.`,
+    phase3Secret: `Screen adolescents for scoliosis and sports sprains/strains while remembering pediatric OMT adapts flexibly with no hard-and-fast rules.`,
+    dossierBullets: {
+      p1: [
+        `Adolescence (13–18 y) shifts presentations from feeding/colic to axial/sports strain`,
+        `Early untreated cranial/cervical asymmetry can predispose to later scoliosis`
+      ],
+      p2: [
+        `Adolescent OMM list: neck/back pain/migraines, scoliosis, sprains/strains, ADHD`,
+        `Contrast with Child list (constipation, chronic otitis media, headaches, autism)`
+      ],
+      p3: [
+        `Combine musculoskeletal OMT with BMI and growth-curve monitoring through age 18–19`,
+        `Apply individualized OMT with no rigid rule constraints`
+      ]
+    }
+  },
+  {
+    id: `LO04-Q6`,
+    lo: 4,
+    loTitle: `LO 4: Pediatric OMM Conditions & Principles`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Childhood OMM Presentations`,
+    stem: `A 6-year-old child is brought to an osteopathic family medicine clinic by parents seeking adjunctive care for recurring ear infections and bowel irregularity. Which age-group cluster from Lecture 14 includes both chronic otitis media and constipation?`,
+    clue: `Check the middle category between Neonate/Infant and Adolescent.`,
+    choices: [
+      `Child group (constipation, otitis media, headaches)`,
+      `Neonate group (birth trauma, colic, tongue tie)`,
+      `Adolescent group (scoliosis, sprains, ADHD)`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: The Child category of common pediatric OMM conditions lists Constipation, Chronic Otitis Media (ear infection), Headaches, and Autism Spectrum. Distractor exclusion: Birth trauma/colic/ankyloglossia belong to neonates/infants, and scoliosis/sprains/strains/ADHD belong to adolescents.`,
+    secondOrderClue: `Child OMM cluster = constipation, chronic otitis media, headaches, autism spectrum.`,
+    phase1Pearl: `Childhood (1–12 years) frequently involves visceral-somatic and cranial-ear complaints such as chronic otitis media and constipation.`,
+    phase2Hallmark: `Childhood encompasses Toddler (1–3 y), Preschool (4–6 y), and Middle Childhood (7–12 y), bridging infant cranial issues and adolescent axial issues.`,
+    phase3Secret: `Recognize chronic otitis media, constipation, headaches, and autism spectrum as common childhood OMM office presentations.`,
+    dossierBullets: {
+      p1: [
+        `Childhood spans 1 to 12 years across toddler, preschool, and middle childhood`,
+        `Commonly presents with recurrent ear, GI, headache, and neurodevelopmental concerns`
+      ],
+      p2: [
+        `Child OMM conditions: constipation, chronic otitis media, headaches, autism spectrum`,
+        `Distinct from neonatal feeding/colic and adolescent scoliosis/sprains`
+      ],
+      p3: [
+        `Adapt OMT gently to the child's comfort and developmental stage`,
+        `Monitor linear growth (≥2 in/yr) and school performance concurrently`
+      ]
+    }
+  },
+
+  // -------------------- LO 5 (6 QUESTIONS: 1 P1, 2 P2, 3 P3) --------------------
+  {
+    id: `LO05-Q1`,
+    lo: 5,
+    loTitle: `LO 5: Plagiocephaly & Torticollis Care`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Musculoskeletal & Functional Sequelae`,
+    stem: `A child whose severe congenital torticollis and positional plagiocephaly went untreated in infancy later develops jaw discomfort, progressive spinal curvature, and difficulty articulating words. Which pair of complications from Lecture 14 explains these findings?`,
+    clue: `Group the structural asymmetry/jaw/muscle deficits separately from the communication deficit.`,
+    choices: [
+      `TMJ/scoliosis/SCM shortening and speech delays`,
+      `Hyperthyroidism and open fontanelle persistence`,
+      `Macroglossia and umbilical hernia formation`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Severe or undertreated plagiocephaly and torticollis cause musculoskeletal complications (craniofacial and spinal asymmetry/scoliosis, TMJ dysfunction, SCM shortening) and functional complications (speech and language delays). Distractor exclusion: Open fontanelle, macroglossia, and umbilical hernia are thyroid/hypothyroid red flags, not torticollis sequelae.`,
+    secondOrderClue: `Untreated torticollis/plagiocephaly -> MSK (craniofacial/spinal asymmetry/scoliosis, TMJ, SCM shortening) + Functional (speech/language delay).`,
+    phase1Pearl: `Persistent asymmetric cranial and sternocleidomastoid tension distorts craniofacial mechanics, alters TMJ alignment, and transmits compensatory asymmetry down the spine.`,
+    phase2Hallmark: `Musculoskeletal sequelae: craniofacial asymmetry, spinal asymmetry (scoliosis), TMJ dysfunction, and SCM shortening; Functional sequela: speech and language delays.`,
+    phase3Secret: `Intervene early in infancy with positioning, stretching, and PT so cranial molding and SCM shortening never progress to TMJ dysfunction, scoliosis, or speech delay.`,
+    dossierBullets: {
+      p1: [
+        `Asymmetric cranial base and tight SCM distort jaw (TMJ) and spinal alignment`,
+        `Structural restriction can secondarily impair oral-motor speech development`
+      ],
+      p2: [
+        `MSK complications: craniofacial & spinal asymmetry (scoliosis), TMJ dysfunction, SCM shortening`,
+        `Functional complications: speech and language delays`
+      ],
+      p3: [
+        `Early standard care prevents irreversible structural and speech sequelae`,
+        `Monitor craniofacial symmetry, cervical ROM, and language milestones`
+      ]
+    }
+  },
+  {
+    id: `LO05-Q2`,
+    lo: 5,
+    loTitle: `LO 5: Plagiocephaly & Torticollis Care`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Plagiocephaly Standard of Care`,
+    stem: `A 3-month-old infant presents with right posterior occipital flattening without suture fusion. Beyond gentle OCF, what constitutes the standard-of-care management bundle for positional plagiocephaly taught in Lecture 14?`,
+    clue: `Include synostosis screening, supervised prone positioning, PT, and orthotic molding when indicated.`,
+    choices: [
+      `Synostosis screen, tummy time, PT, helmet`,
+      `Immediate surgical SCM release and CT`,
+      `Thyroid hormone labs and supine-only rest`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Standard of care for plagiocephaly consists of screening for synostosis (premature suture fusion), positioning (more tummy time; avoid the flat spot), physical therapy, and helmet therapy. Distractor exclusion: Surgical SCM release is reserved for refractory torticollis (not initial positional plagiocephaly), and supine-only rest worsens the flat spot.`,
+    secondOrderClue: `Plagiocephaly Standard of Care = Screen synostosis + More Tummy Time/avoid flat spot + PT + Helmet therapy.`,
+    phase1Pearl: `Reducing prolonged focal pressure on the flattened occiput during awake hours permits natural brain-driven cranial expansion to round out the skull.`,
+    phase2Hallmark: `Positional plagiocephaly shows a flat spot with patent sutures, contrasting with craniosynostosis where premature suture fusion shortens one side of the cranium.`,
+    phase3Secret: `Counsel parents relentlessly on MORE TUMMY TIME and avoiding pressure on the flat spot alongside PT, synostosis screening, and helmet therapy when needed.`,
+    dossierBullets: {
+      p1: [
+        `Removing focal occipital pressure allows expanding brain to remodel skull`,
+        `Requires patent cranial sutures (non-synostotic)`
+      ],
+      p2: [
+        `Screen for synostosis (premature suture fusion) first`,
+        `Assess flat spot symmetry and neck rotation for coexisting torticollis`
+      ],
+      p3: [
+        `Standard care: positioning (more tummy time, avoid flat spot), PT, helmet therapy`,
+        `CT scan for suture patency if no change after 2–3 OMT visits`
+      ]
+    }
+  },
+  {
+    id: `LO05-Q3`,
+    lo: 5,
+    loTitle: `LO 5: Plagiocephaly & Torticollis Care`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `SCM Shortening & TMJ Cascade`,
+    stem: `How does persistent, untreated congenital torticollis produce downstream jaw pain and thoracic spinal curvature as a child matures?`,
+    clue: `Trace the mechanical chain from a shortened neck muscle upward to the jaw/cranium and downward to the spine.`,
+    choices: [
+      `SCM shortening drives craniofacial and spinal asymmetry`,
+      `Delayed plantar grasp blocks normal mandibular growth`,
+      `Excess cortisol weakens the sternocleidomastoid muscle`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Persistent SCM shortening pulls the head and cranial base asymmetrically, driving craniofacial asymmetry, TMJ dysfunction, and compensatory spinal asymmetry (scoliosis). Distractor exclusion: Plantar grasp relates to walking rather than TMJ/scoliosis, and cortisol excess causes striae/fatty hump rather than congenital SCM shortening.`,
+    secondOrderClue: `SCM shortening -> asymmetric cranial/cervical pull -> TMJ dysfunction + craniofacial asymmetry + scoliosis.`,
+    phase1Pearl: `Unilateral sternocleidomastoid contracture alters head posture and transmits sustained asymmetric forces both cephalad (cranium/TMJ) and caudad (spine).`,
+    phase2Hallmark: `Key structural link: SCM shortening co-occurs with craniofacial asymmetry, TMJ dysfunction, and spinal scoliosis.`,
+    phase3Secret: `Treat torticollis aggressively in infancy with PT, home stretching, and positioning to break the SCM-to-scoliosis cascade.`,
+    dossierBullets: {
+      p1: [
+        `Shortened SCM applies asymmetric mechanical load to cranial base and neck`,
+        `Compensatory curves propagate into TMJ and thoracolumbar spine`
+      ],
+      p2: [
+        `Produces SCM shortening, craniofacial asymmetry, TMJ dysfunction, and scoliosis`,
+        `Often coexists with positional plagiocephaly from preferred head turn`
+      ],
+      p3: [
+        `Target SCM flexibility early with home stretching and PT`,
+        `Escalate to surgical SCM release if conservative care fails`
+      ]
+    }
+  },
+  {
+    id: `LO05-Q4`,
+    lo: 5,
+    loTitle: `LO 5: Plagiocephaly & Torticollis Care`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Torticollis Standard of Care`,
+    stem: `A 2-month-old infant consistently tilts the head to the left and rotates the chin to the right due to tight neck musculature. Which comprehensive standard-of-care pathway is indicated for pediatric torticollis?`,
+    clue: `Recall the five standard interventions listed for torticollis, ending with surgical release if refractory.`,
+    choices: [
+      `PT, positioning, parental education, stretching, SCM release`,
+      `Helmet therapy only without any neck stretching`,
+      `Endocrine lab panel and open-fontanelle observation`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Standard of care for torticollis includes Physical Therapy, Positioning, Parental education, Home stretching, and Surgical SCM release when refractory. Distractor exclusion: Helmet therapy alone targets cranial shape (plagiocephaly) without stretching the shortened SCM; thyroid labs do not treat mechanical SCM tightness.`,
+    secondOrderClue: `Torticollis Standard of Care = PT + Positioning + Parental education + Home stretching + Surgical SCM release.`,
+    phase1Pearl: `Early mechanical stretching and active positioning lengthen tight SCM fibers before permanent muscular shortening and craniofacial asymmetry lock in.`,
+    phase2Hallmark: `Torticollis centers on unilateral sternocleidomastoid (SCM) shortening limiting symmetric cervical rotation and sidebending.`,
+    phase3Secret: `Empower caregivers with parental education and daily home stretching alongside PT; reserve surgical SCM release for refractory cases.`,
+    dossierBullets: {
+      p1: [
+        `Tight SCM restricts symmetric head turning and reinforces a cranial flat spot`,
+        `Daily caregiver stretching is key to reversing soft-tissue shortening`
+      ],
+      p2: [
+        `Unilateral SCM tightness limits cervical ROM`,
+        `Increases risk for secondary plagiocephaly if head rests on one side`
+      ],
+      p3: [
+        `Care pathway: PT, positioning, parental education, home stretching`,
+        `Surgical SCM release reserved for severe or refractory cases`
+      ]
+    }
+  },
+  {
+    id: `LO05-Q5`,
+    lo: 5,
+    loTitle: `LO 5: Plagiocephaly & Torticollis Care`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `More Tummy Time Positioning`,
+    stem: `Parents of a 6-week-old infant notice a mild flat spot developing on the back right side of the baby's head because the baby prefers looking right during sleep. What is the most direct, high-yield home positioning advice emphasized in Lecture 14?`,
+    clue: `Remember the capitalized positioning instruction on the plagiocephaly standard-of-care slide.`,
+    choices: [
+      `Increase supervised tummy time; avoid flat spot`,
+      `Keep the infant supine continuously all day`,
+      `Delay all intervention until age 3 years`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Lecture 14 explicitly emphasizes "Positioning – MORE TUMMY TIME; Avoid the flat spot" as foundational plagiocephaly management. Distractor exclusion: Continuous daytime supine positioning worsens occipital flattening, and waiting until age 3 misses the pliable cranial remodeling window.`,
+    secondOrderClue: `Early flat spot -> Positioning: MORE TUMMY TIME + avoid the flat spot.`,
+    phase1Pearl: `Supervised awake tummy time relieves gravitational compression on the malleable occiput while strengthening cervical extensors and upper-body motor control.`,
+    phase2Hallmark: `Preferential supine head turning produces unilateral occipital flattening (plagiocephaly) and often pairs with contralateral SCM tightness.`,
+    phase3Secret: `Combine MORE TUMMY TIME and flat-spot avoidance with synostosis screening, PT, and helmet therapy if asymmetry persists.`,
+    dossierBullets: {
+      p1: [
+        `Awake prone positioning removes external molding force from the occiput`,
+        `Supports progressive head-control and elbow-prop motor milestones`
+      ],
+      p2: [
+        `Flat spot develops where the infant's skull contacts the mattress repeatedly`,
+        `Check cervical ROM to rule out coexisting torticollis`
+      ],
+      p3: [
+        `Instruct parents: MORE TUMMY TIME and avoid resting on the flat spot`,
+        `Add PT, helmet therapy, or CT synostosis screen if refractory`
+      ]
+    }
+  },
+  {
+    id: `LO05-Q6`,
+    lo: 5,
+    loTitle: `LO 5: Plagiocephaly & Torticollis Care`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Speech & Language Complications`,
+    stem: `During counseling with parents who are hesitant to start physical therapy and home stretching for their infant's moderate torticollis and plagiocephaly, which functional developmental complication from Lecture 14 should the clinician explain can result from undertreated severe cases?`,
+    clue: `Look beyond bone and muscle complications to the specific functional communication delay listed on the complications slide.`,
+    choices: [
+      `Speech and language delays`,
+      `Premature dental eruption`,
+      `Hypothyroid goiter development`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Lecture 14 divides complications of un/undertreated or severe plagiocephaly/torticollis into Musculoskeletal (craniofacial/spinal asymmetry, TMJ dysfunction, SCM shortening) and Functional (speech and language delays). Distractor exclusion: Premature tooth eruption and thyroid goiter are not listed sequelae of torticollis/plagiocephaly.`,
+    secondOrderClue: `Undertreated plagiocephaly/torticollis -> Functional complication = speech and language delays.`,
+    phase1Pearl: `Craniofacial and TMJ asymmetry caused by severe untreated torticollis and plagiocephaly can secondarily disrupt oral-motor and functional speech development.`,
+    phase2Hallmark: `Complications split cleanly into MSK (craniofacial/spinal asymmetry, scoliosis, TMJ dysfunction, SCM shortening) and Functional (speech and language delays).`,
+    phase3Secret: `Use the risk of speech/language delays, TMJ dysfunction, and scoliosis to motivate early parental adherence to home stretching, tummy time, and PT.`,
+    dossierBullets: {
+      p1: [
+        `Craniofacial and jaw asymmetry affects functional oral-motor mechanics`,
+        `Early treatment prevents compounding developmental delays`
+      ],
+      p2: [
+        `Functional complication: speech and language delays`,
+        `MSK complications: craniofacial/spinal asymmetry (scoliosis), TMJ, SCM shortening`
+      ],
+      p3: [
+        `Educate parents early on both structural and speech-delay risks`,
+        `Track language milestones (2 mo cooing, 4 mo cry variation) alongside PT`
+      ]
+    }
+  }
+];
+
+// =========================================================================
+// RUNTIME STATE
+// =========================================================================
+let activeDeck = [];
+let missedQuestions = [];
+let masteredIds = [];
+let currentIndex = 0;
+let currentLane = 1;
+let hasChosenLane = false;
+let craftVisualLane = 1;
+let playerHp = GAME_CONFIG.maxHp;
+let playerXp = 0;
+let bestXp = 0;
+let streak = 0;
+let bestStreak = 0;
+let correctCount = 0;
+let answeredCount = 0;
+let healCheckpointCounter = 0;
+let gateDistance = GAME_CONFIG.gateStartDistance;
+let isStoppedAtGate = false;
+let isModalOpen = false;
+let isMenuOpen = false;
+let isRunFinished = false;
+let isHintsVisible = false;
+let isSoundEnabled = true;
+let isSfxEnabled = true;
+let isTimerEnabled = false;
+let isTimesUpFailEnabled = true;
+let timeRemaining = GAME_CONFIG.timerSeconds;
+let timerIntervalId = null;
+let metaFadeTimeoutId = null;
+let phaseFilter = 'all';
+let codexTag = 'all';
+let lastFrameTime = 0;
+let animFrameId = null;
+let trackScrollOffset = 0;
+let particleTime = 0;
+let warpSurgeTimer = 0;
+let portalFlareLane = -1;
+let portalFlareTimer = 0;
+let lastSteerSfxTime = 0;
+let audioCtx = null;
+let portalHitboxes = [];
+let isBgmPlaying = false;
+let bgmVolume = 0.35;
+let customBgmUrl = null;
+let customBgmName = '';
+
+const bgmNodes = {
+  masterGain: null,
+  droneOsc1: null,
+  droneOsc2: null,
+  lfoOsc: null,
+  noiseSource: null,
+  noteIntervalId: null,
+  stepIndex: 0
+};
+
+const PARALLAX_PARTICLES = Array.from({ length: 150 }, (_, idx) => {
+  const theta = idx * 2.399963229728653;
+  const radiusBias = 0.08 + Math.sqrt(((idx * 0.754877666) % 1)) * 1.15;
+  return {
+    dx: Math.cos(theta) * radiusBias,
+    dy: Math.sin(theta) * radiusBias * 0.72 - 0.16,
+    z: 0.04 + ((idx + 0.5) / 150) * 0.96,
+    speed: 0.085 + (idx % 7) * 0.018,
+    baseSize: 1.4 + (idx % 4) * 1.25
+  };
+});
+
+function getThemeForLo(loNum) {
+  if (LO_VISUAL_THEMES[loNum]) return LO_VISUAL_THEMES[loNum];
+  const idx = Math.abs((Number(loNum) || 1) - 1) % DEFAULT_THEME_CYCLE.length;
+  return DEFAULT_THEME_CYCLE[idx];
+}
+
+// =========================================================================
+// AUDIO ENGINE (SFX + KINO DER TOTEN ZOMBIES PROCEDURAL BGM + CUSTOM MP3)
+// =========================================================================
+function ensureAudioContext() {
+  if (!isSoundEnabled) return null;
+  if (!audioCtx && (window.AudioContext || window.webkitAudioContext)) {
+    const Ctor = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new Ctor();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
+  return audioCtx;
+}
+
+function playSfx(type) {
+  if (!isSoundEnabled || !isSfxEnabled) return;
+  try {
+    const ctx = ensureAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    if (type === 'steer') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(340, now);
+      osc.frequency.exponentialRampToValueAtTime(520, now + 0.07);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc.start(now);
+      osc.stop(now + 0.08);
+    } else if (type === 'correct') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, now);
+      osc.frequency.setValueAtTime(659.25, now + 0.07);
+      osc.frequency.setValueAtTime(783.99, now + 0.14);
+      gain.gain.setValueAtTime(0.13, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+      osc.start(now);
+      osc.stop(now + 0.28);
+    } else if (type === 'heal') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(440, now);
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.22);
+      gain.gain.setValueAtTime(0.13, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      osc.start(now);
+      osc.stop(now + 0.25);
+    } else if (type === 'wrong') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(175, now);
+      osc.frequency.exponentialRampToValueAtTime(75, now + 0.26);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.27);
+      osc.start(now);
+      osc.stop(now + 0.27);
+    } else if (type === 'warp') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(260, now);
+      osc.frequency.exponentialRampToValueAtTime(680, now + 0.15);
+      gain.gain.setValueAtTime(0.06, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+      osc.start(now);
+      osc.stop(now + 0.16);
+    }
+  } catch (e) {}
+}
+
+function triggerHauntedPianoNote(ctx, dest, freq) {
+  const now = ctx.currentTime;
+  const osc1 = ctx.createOscillator();
+  const osc2 = ctx.createOscillator();
+  const env = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  osc1.type = 'triangle';
+  osc2.type = 'sine';
+  osc1.frequency.setValueAtTime(freq, now);
+  osc2.frequency.setValueAtTime(freq * 2.003, now);
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(1200, now);
+  filter.frequency.exponentialRampToValueAtTime(340, now + 1.4);
+  env.gain.setValueAtTime(0.0001, now);
+  env.gain.linearRampToValueAtTime(0.14, now + 0.025);
+  env.gain.exponentialRampToValueAtTime(0.0001, now + 1.65);
+  osc1.connect(filter);
+  osc2.connect(filter);
+  filter.connect(env);
+  env.connect(dest);
+  osc1.start(now);
+  osc2.start(now);
+  osc1.stop(now + 1.7);
+  osc2.stop(now + 1.7);
+}
+
+function startProceduralZombiesBgm() {
+  stopProceduralZombiesBgm();
+  if (!isSoundEnabled) return;
+  const ctx = ensureAudioContext();
+  if (!ctx) return;
+  const master = ctx.createGain();
+  master.gain.setValueAtTime(bgmVolume * 0.45, ctx.currentTime);
+  master.connect(ctx.destination);
+  bgmNodes.masterGain = master;
+
+  const droneFilter = ctx.createBiquadFilter();
+  droneFilter.type = 'lowpass';
+  droneFilter.frequency.setValueAtTime(165, ctx.currentTime);
+  droneFilter.Q.setValueAtTime(2.5, ctx.currentTime);
+  const droneGain = ctx.createGain();
+  droneGain.gain.setValueAtTime(0.18, ctx.currentTime);
+  const d1 = ctx.createOscillator();
+  const d2 = ctx.createOscillator();
+  d1.type = 'sawtooth';
+  d2.type = 'sawtooth';
+  d1.frequency.setValueAtTime(55.0, ctx.currentTime);
+  d2.frequency.setValueAtTime(55.45, ctx.currentTime);
+  const lfo = ctx.createOscillator();
+  const lfoGain = ctx.createGain();
+  lfo.type = 'sine';
+  lfo.frequency.setValueAtTime(0.14, ctx.currentTime);
+  lfoGain.gain.setValueAtTime(48, ctx.currentTime);
+  lfo.connect(lfoGain);
+  lfoGain.connect(droneFilter.frequency);
+  d1.connect(droneFilter);
+  d2.connect(droneFilter);
+  droneFilter.connect(droneGain);
+  droneGain.connect(master);
+  d1.start();
+  d2.start();
+  lfo.start();
+  bgmNodes.droneOsc1 = d1;
+  bgmNodes.droneOsc2 = d2;
+  bgmNodes.lfoOsc = lfo;
+
+  const bufSize = ctx.sampleRate * 2;
+  const noiseBuf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+  const data = noiseBuf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * 0.35;
+  const noise = ctx.createBufferSource();
+  noise.buffer = noiseBuf;
+  noise.loop = true;
+  const noiseFilter = ctx.createBiquadFilter();
+  noiseFilter.type = 'bandpass';
+  noiseFilter.frequency.setValueAtTime(950, ctx.currentTime);
+  noiseFilter.Q.setValueAtTime(1.4, ctx.currentTime);
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.025, ctx.currentTime);
+  noise.connect(noiseFilter);
+  noiseFilter.connect(noiseGain);
+  noiseGain.connect(master);
+  noise.start();
+  bgmNodes.noiseSource = noise;
+
+  const hauntedPattern = [
+    440.00, 523.25, 493.88, 392.00,
+    440.00, 329.63, 349.23, 329.63,
+    440.00, 523.25, 587.33, 523.25,
+    493.88, 392.00, 329.63, 0
+  ];
+  bgmNodes.stepIndex = 0;
+  const stepNote = () => {
+    if (!isSoundEnabled || !isBgmPlaying || !bgmNodes.masterGain) return;
+    const freq = hauntedPattern[bgmNodes.stepIndex % hauntedPattern.length];
+    bgmNodes.stepIndex++;
+    if (freq > 0) triggerHauntedPianoNote(ctx, bgmNodes.masterGain, freq);
+  };
+  stepNote();
+  bgmNodes.noteIntervalId = setInterval(stepNote, 620);
+}
+
+function stopProceduralZombiesBgm() {
+  if (bgmNodes.noteIntervalId) {
+    clearInterval(bgmNodes.noteIntervalId);
+    bgmNodes.noteIntervalId = null;
+  }
+  ['droneOsc1', 'droneOsc2', 'lfoOsc', 'noiseSource'].forEach((k) => {
+    if (bgmNodes[k]) {
+      try { bgmNodes[k].stop(); } catch (e) {}
+      try { bgmNodes[k].disconnect(); } catch (e) {}
+      bgmNodes[k] = null;
+    }
+  });
+  if (bgmNodes.masterGain) {
+    try { bgmNodes.masterGain.disconnect(); } catch (e) {}
+    bgmNodes.masterGain = null;
+  }
+}
+
+function syncSoundControlsUI() {
+  const masterBtn = document.getElementById('master-sound-btn');
+  const sfxBtn = document.getElementById('audio-toggle-btn');
+  const menuBgmBtn = document.getElementById('menu-bgm-btn');
+  const volLabel = document.getElementById('bgm-vol-label');
+  if (masterBtn) masterBtn.textContent = isSoundEnabled ? `🔊 Sound: ON` : `🔇 Sound: OFF`;
+  if (sfxBtn) sfxBtn.textContent = (isSoundEnabled && isSfxEnabled) ? `🔊 SFX: ON` : `🔇 SFX: OFF`;
+  const bgmActive = isSoundEnabled && isBgmPlaying;
+  if (menuBgmBtn) {
+    menuBgmBtn.textContent = bgmActive
+      ? (customBgmUrl ? `🎵 Custom BGM: ON (${customBgmName})` : `🎵 Zombies BGM: ON`)
+      : (customBgmUrl ? `🎵 Custom BGM: OFF` : `🎵 Zombies BGM: OFF`);
+  }
+  if (volLabel) volLabel.textContent = `${Math.round(bgmVolume * 100)}%`;
+}
+
+function toggleMasterSound() {
+  isSoundEnabled = !isSoundEnabled;
+  const customAudio = document.getElementById('custom-bgm-audio');
+  if (!isSoundEnabled) {
+    stopProceduralZombiesBgm();
+    if (customAudio) customAudio.pause();
+  } else if (isBgmPlaying) {
+    if (customBgmUrl && customAudio) {
+      stopProceduralZombiesBgm();
+      customAudio.volume = bgmVolume;
+      customAudio.play().catch(() => {});
+    } else {
+      startProceduralZombiesBgm();
+    }
+  }
+  syncSoundControlsUI();
+  persistAppState();
+}
+
+function toggleSfx() {
+  isSfxEnabled = !isSfxEnabled;
+  if (isSfxEnabled && !isSoundEnabled) isSoundEnabled = true;
+  syncSoundControlsUI();
+  persistAppState();
+}
+
+function toggleBgm() {
+  const customAudio = document.getElementById('custom-bgm-audio');
+  isBgmPlaying = !isBgmPlaying;
+  if (isBgmPlaying) {
+    if (!isSoundEnabled) isSoundEnabled = true;
+    if (customBgmUrl && customAudio) {
+      stopProceduralZombiesBgm();
+      customAudio.volume = bgmVolume;
+      customAudio.play().catch(() => {});
+    } else {
+      startProceduralZombiesBgm();
+    }
+  } else {
+    stopProceduralZombiesBgm();
+    if (customAudio) customAudio.pause();
+  }
+  syncSoundControlsUI();
+  persistAppState();
+}
+
+function updateBgmVolume(val) {
+  bgmVolume = Math.max(0, Math.min(1, Number(val) / 100));
+  const customAudio = document.getElementById('custom-bgm-audio');
+  if (customAudio) customAudio.volume = bgmVolume;
+  if (bgmNodes.masterGain && audioCtx) {
+    bgmNodes.masterGain.gain.setTargetAtTime(bgmVolume * 0.45, audioCtx.currentTime, 0.05);
+  }
+  syncSoundControlsUI();
+  persistAppState();
+}
+
+function handleCustomBgmUpload(evt) {
+  const file = evt.target && evt.target.files ? evt.target.files[0] : null;
+  if (!file) return;
+  if (customBgmUrl) URL.revokeObjectURL(customBgmUrl);
+  customBgmUrl = URL.createObjectURL(file);
+  customBgmName = file.name.length > 16 ? file.name.slice(0, 13) + '…' : file.name;
+  isSoundEnabled = true;
+  isBgmPlaying = true;
+  const customAudio = document.getElementById('custom-bgm-audio');
+  stopProceduralZombiesBgm();
+  if (customAudio) {
+    customAudio.src = customBgmUrl;
+    customAudio.volume = bgmVolume;
+    customAudio.play().catch(() => {});
+  }
+  syncSoundControlsUI();
+  persistAppState();
+}
+
+// =========================================================================
+// DECK, FILTERS, HINTS [H], 3-SECOND METADATA AUTO-HIDE & TELEMETRY
+// =========================================================================
+function fisherYatesShuffle(arr) {
+  const copy = arr.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = copy[i];
+    copy[i] = copy[j];
+    copy[j] = tmp;
+  }
+  return copy;
+}
+
+function shuffleQuestionOptions(q) {
+  const indexed = q.choices.map((text, idx) => ({ text, isCorrect: idx === q.correctIndex }));
+  const shuffled = fisherYatesShuffle(indexed);
+  return {
+    ...q,
+    choices: shuffled.map((item) => item.text),
+    correctIndex: shuffled.findIndex((item) => item.isCorrect)
+  };
+}
+
+function getComboMultiplier() {
+  return Math.min(3.0, 1.0 + streak * 0.25);
+}
+
+function initDynamicSelectors() {
+  document.title = GAME_CONFIG.title;
+  const titleEl = document.getElementById('drawer-title');
+  const kickerEl = document.getElementById('drawer-kicker');
+  const codexTitle = document.getElementById('codex-title');
+  if (titleEl) titleEl.textContent = GAME_CONFIG.title;
+  if (kickerEl) kickerEl.textContent = GAME_CONFIG.kicker;
+  if (codexTitle) codexTitle.textContent = `Master Raid Loot Codex (${CODEX_DATA.length} Objectives)`;
+
+  const sectorSelect = document.getElementById('sector-filter');
+  if (sectorSelect) {
+    sectorSelect.innerHTML =
+      `<option value="all">All Sectors (${ALL_QUESTIONS.length} Gates)</option>` +
+      CODEX_DATA.map((c) => {
+        const meta = c.badgeMeta ? ` (${c.badgeMeta})` : '';
+        return `<option value="${c.lo}">LO ${c.lo}: ${c.entity}${meta}</option>`;
+      }).join('') +
+      `<option value="missed" id="missed-sector-option">🎯 Missed Gates Only (${missedQuestions.length})</option>`;
+  }
+  buildSkillTree();
+}
+
+function syncMissedOptionLabel() {
+  const opt = document.getElementById('missed-sector-option');
+  if (opt) opt.textContent = `🎯 Missed Gates Only (${missedQuestions.length})`;
+}
+
+function buildSkillTree() {
+  const grid = document.getElementById('skill-tree-grid');
+  if (!grid) return;
+  const secVal = document.getElementById('sector-filter')?.value || 'all';
+  let masteredLos = 0;
+  grid.innerHTML = CODEX_DATA.map((c) => {
+    const loQs = ALL_QUESTIONS.filter((q) => q.lo === c.lo);
+    const done = loQs.filter((q) => masteredIds.includes(q.id)).length;
+    const isMastered = done === loQs.length && loQs.length > 0;
+    if (isMastered) masteredLos++;
+    const isActive = String(secVal) === String(c.lo);
+    const metaTag = c.badgeMeta ? ` • ${c.badgeMeta}` : '';
+    return `<button type="button" class="skill-node ${isMastered ? 'is-mastered' : ''} ${isActive ? 'is-active-filter' : ''}" onclick="selectSectorFromTree(${c.lo})">
+      <div class="skill-node-top"><span>LO ${c.lo}${metaTag}</span><span>${done}/${loQs.length}</span></div>
+      <div class="skill-node-title">${c.entity}</div>
+      <div class="skill-node-meta">${isMastered ? '✔ MASTERED' : 'TAP TO DEPLOY'}</div>
+    </button>`;
+  }).join('');
+  const sumEl = document.getElementById('mastery-summary');
+  const acc = answeredCount > 0 ? `${Math.round((correctCount / answeredCount) * 100)}%` : '--%';
+  if (sumEl) sumEl.textContent = `Mastered: ${masteredLos} / ${CODEX_DATA.length} LOs • Accuracy: ${acc}`;
+}
+
+function selectSectorFromTree(loNum) {
+  const sel = document.getElementById('sector-filter');
+  if (sel) sel.value = String(loNum);
+  applyFilters();
+  if (isMenuOpen) toggleMenuDrawer();
+}
+
+function setPhaseFilter(val) {
+  phaseFilter = val;
+  document.querySelectorAll('.phase-mix-pill[data-phase]').forEach((p) => {
+    p.classList.toggle('is-selected', p.dataset.phase === val);
+  });
+  applyFilters();
+}
+
+function buildDeck(randomize, customSource) {
+  const secVal = document.getElementById('sector-filter')?.value || 'all';
+  const angVal = document.getElementById('angle-filter')?.value || 'all';
+  const msgEl = document.getElementById('menu-status-msg');
+  let pool;
+
+  if (Array.isArray(customSource) && customSource.length > 0) {
+    pool = customSource.slice();
+  } else if (secVal === 'missed') {
+    pool = missedQuestions.filter((q) => {
+      const matchAng = angVal === 'all' || q.angle === angVal;
+      const matchPha = phaseFilter === 'all' || q.phaseFocus === phaseFilter;
+      return matchAng && matchPha;
+    });
+  } else {
+    pool = ALL_QUESTIONS.filter((q) => {
+      const matchLo = secVal === 'all' || String(q.lo) === String(secVal);
+      const matchAng = angVal === 'all' || q.angle === angVal;
+      const matchPha = phaseFilter === 'all' || q.phaseFocus === phaseFilter;
+      return matchLo && matchAng && matchPha;
+    });
+  }
+
+  if (!pool.length) {
+    pool = ALL_QUESTIONS.slice();
+    if (msgEl) {
+      msgEl.textContent = secVal === 'missed'
+        ? `No missed gates yet — loaded all ${ALL_QUESTIONS.length} gates.`
+        : `No gates matched that filter combo — restored all ${ALL_QUESTIONS.length} gates.`;
+    }
+  } else if (msgEl) {
+    msgEl.textContent = `Active Queue: ${pool.length} gates ready.`;
+  }
+
+  const ordered = randomize ? fisherYatesShuffle(pool) : pool.slice();
+  activeDeck = ordered.map(shuffleQuestionOptions);
+}
+
+function getCurrentQuestion() {
+  if (!activeDeck.length) buildDeck(false);
+  return activeDeck[currentIndex] || activeDeck[0];
+}
+
+function toggleMenuDrawer() {
+  isMenuOpen = !isMenuOpen;
+  const backdrop = document.getElementById('menu-backdrop');
+  const btn = document.getElementById('menu-toggle-btn');
+  if (backdrop) backdrop.classList.toggle('is-open', isMenuOpen);
+  if (btn) {
+    btn.classList.toggle('is-active', isMenuOpen);
+    btn.setAttribute('aria-expanded', String(isMenuOpen));
+  }
+  if (isMenuOpen) {
+    syncMissedOptionLabel();
+    buildSkillTree();
+  }
+}
+
+function syncHintsUI() {
+  const app = document.getElementById('xr-app');
+  const menuBtn = document.getElementById('menu-hints-btn');
+  if (app) {
+    app.classList.toggle('hints-visible', isHintsVisible);
+    app.classList.toggle('hints-hidden', !isHintsVisible);
+  }
+  if (menuBtn) {
+    menuBtn.textContent = isHintsVisible ? `💡 Hints: ON [H]` : `💡 Hints: OFF [H]`;
+    menuBtn.classList.toggle('is-active', isHintsVisible);
+  }
+}
+
+function toggleHintsBar() {
+  isHintsVisible = !isHintsVisible;
+  syncHintsUI();
+  playSfx('steer');
+  persistAppState();
+}
+
+function openCodexFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  openCodex();
+}
+
+function skipFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  skipCurrentQuestion();
+}
+
+function syncTimerControlsUI() {
+  const modeSel = document.getElementById('times-up-select');
+  const menuTimerBtn = document.getElementById('menu-timer-btn');
+  const chip = document.getElementById('timer-chip');
+  if (modeSel) modeSel.value = isTimesUpFailEnabled ? 'fail' : 'hold';
+  if (menuTimerBtn) {
+    menuTimerBtn.textContent = isTimerEnabled ? `⏱ 50s Timer: ON [T]` : `⏱ 50s Timer: OFF [T]`;
+    menuTimerBtn.classList.toggle('is-active', isTimerEnabled);
+  }
+  if (!chip) return;
+  chip.classList.remove('is-off', 'is-hold', 'is-urgent');
+  if (!isTimerEnabled) {
+    chip.textContent = `⏱ OFF`;
+    chip.classList.add('is-off');
+  } else if (timeRemaining === 0 && !isTimesUpFailEnabled) {
+    chip.textContent = `⏱ HOLD`;
+    chip.classList.add('is-hold');
+  } else {
+    chip.textContent = `⏱ ${timeRemaining}s`;
+    if (timeRemaining <= 10) chip.classList.add('is-urgent');
+  }
+}
+
+function applyTimerSettings() {
+  const modeSel = document.getElementById('times-up-select');
+  if (modeSel) isTimesUpFailEnabled = modeSel.value === 'fail';
+  syncTimerControlsUI();
+  persistAppState();
+}
+
+function toggleTimerActive() {
+  if (isRunFinished) return;
+  isTimerEnabled = !isTimerEnabled;
+  if (isTimerEnabled) {
+    startQuestionTimer();
+    playSfx('steer');
+  } else {
+    if (timerIntervalId) clearInterval(timerIntervalId);
+    syncTimerControlsUI();
+  }
+  persistAppState();
+}
+
+function startTimedSession() {
+  isTimerEnabled = true;
+  isTimesUpFailEnabled = true;
+  if (isMenuOpen) toggleMenuDrawer();
+  syncTimerControlsUI();
+  startQuestionTimer();
+  playSfx('warp');
+  persistAppState();
+}
+
+function startQuestionTimer() {
+  if (timerIntervalId) clearInterval(timerIntervalId);
+  timeRemaining = GAME_CONFIG.timerSeconds;
+  syncTimerControlsUI();
+  if (!isTimerEnabled) return;
+  timerIntervalId = setInterval(() => {
+    if (isModalOpen || isMenuOpen || isRunFinished || !isTimerEnabled) return;
+    if (timeRemaining > 0) {
+      timeRemaining--;
+      syncTimerControlsUI();
+      if (timeRemaining === 0) {
+        if (isTimesUpFailEnabled) {
+          clearInterval(timerIntervalId);
+          resolveGateChoice(-1);
+        } else {
+          syncTimerControlsUI();
+        }
+      }
+    }
+  }, 1000);
+}
+
+function updateTelemetryUI() {
+  const hpText = document.getElementById('hp-text');
+  const hpChip = document.getElementById('hp-chip');
+  const xpText = document.getElementById('xp-text');
+  const streakText = document.getElementById('streak-text');
+  const progText = document.getElementById('progress-text');
+  const clampedHp = Math.max(0, playerHp);
+  if (hpText) hpText.textContent = `${clampedHp}`;
+  if (hpChip) hpChip.classList.toggle('is-low', clampedHp <= 30);
+  if (xpText) xpText.textContent = `${playerXp}`;
+  if (streakText) streakText.textContent = `${streak}`;
+  if (progText) progText.textContent = `${Math.min(currentIndex + 1, activeDeck.length)}/${activeDeck.length}`;
+  syncTimerControlsUI();
+  syncSoundControlsUI();
+  syncHintsUI();
+}
+
+function triggerAmbossRescan() {
+  const stage = document.querySelector('.question-stage');
+  if (stage) stage.setAttribute('data-amboss-timestamp', String(Date.now()));
+}
+
+function scheduleMetadataAutoHide() {
+  const metaRow = document.getElementById('question-meta-row');
+  if (!metaRow) return;
+  if (metaFadeTimeoutId) {
+    clearTimeout(metaFadeTimeoutId);
+    metaFadeTimeoutId = null;
+  }
+  metaRow.classList.remove('is-faded');
+  metaFadeTimeoutId = setTimeout(() => {
+    metaRow.classList.add('is-faded');
+  }, GAME_CONFIG.metaFadeMs);
+}
+
+function updateLaneHighlight() {
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`lane-${i}-card`);
+    if (card) {
+      card.classList.toggle('is-targeted', i === currentLane);
+      card.classList.toggle('is-selected', hasChosenLane && i === currentLane);
+    }
+  }
+}
+
+function previewLaneTarget(laneIndex) {
+  if (isModalOpen || isMenuOpen || isRunFinished) return;
+  if (laneIndex < 0 || laneIndex > 2) return;
+  if (currentLane !== laneIndex) {
+    currentLane = laneIndex;
+    updateLaneHighlight();
+    const now = performance.now();
+    if (now - lastSteerSfxTime > 95) {
+      lastSteerSfxTime = now;
+      playSfx('steer');
+    }
+  }
+}
+
+function updateQuestionStageUI() {
+  const q = getCurrentQuestion();
+  const theme = getThemeForLo(q.lo);
+  const loBadge = document.getElementById('lo-badge');
+  const angleBadge = document.getElementById('angle-badge');
+  const phaseBadge = document.getElementById('phase-badge');
+  const corridorBadge = document.getElementById('corridor-badge');
+  const stemEl = document.getElementById('q-stem-text');
+  const clueEl = document.getElementById('q-clue-text');
+  const hintRefEl = document.getElementById('hints-meta-ref');
+
+  if (loBadge) loBadge.textContent = q.loTitle;
+  if (angleBadge) angleBadge.textContent = q.angle.replace('->', '→');
+  if (phaseBadge) phaseBadge.textContent = q.phaseFocus;
+  if (corridorBadge) corridorBadge.textContent = `CORRIDOR: ${theme.tag}`;
+  if (stemEl) stemEl.textContent = q.stem;
+  if (clueEl) clueEl.textContent = q.clue;
+  if (hintRefEl) hintRefEl.textContent = `${q.loTitle} • ${q.phaseFocus}`;
+
+  for (let i = 0; i < 3; i++) {
+    const txt = document.getElementById(`lane-${i}-text`);
+    if (txt) txt.textContent = q.choices[i] || '';
+  }
+
+  updateLaneHighlight();
+  scheduleMetadataAutoHide();
+  triggerAmbossRescan();
+}
+
+function applyFilters() {
+  buildDeck(false);
+  resetRunState();
+  buildSkillTree();
+  persistAppState();
+}
+
+function restartOrdered() {
+  closeAllModals();
+  if (isMenuOpen) toggleMenuDrawer();
+  buildDeck(false);
+  resetRunState();
+}
+
+function restartRandomized() {
+  closeAllModals();
+  if (isMenuOpen) toggleMenuDrawer();
+  buildDeck(true);
+  resetRunState();
+}
+
+function retryMissedOnly() {
+  if (!missedQuestions.length) return;
+  const copy = missedQuestions.slice();
+  closeAllModals();
+  buildDeck(true, copy);
+  resetRunState();
+}
+
+function handleResetMastery(btn) {
+  if (!btn) return;
+  if (btn.dataset.armed !== 'true') {
+    btn.dataset.armed = 'true';
+    btn.textContent = `⚠ Confirm Reset?`;
+    setTimeout(() => {
+      if (btn.dataset.armed === 'true') {
+        btn.dataset.armed = 'false';
+        btn.textContent = `⚠ Reset Mastery`;
+      }
+    }, 3200);
+    return;
+  }
+  btn.dataset.armed = 'false';
+  btn.textContent = `⚠ Reset Mastery`;
+  masteredIds = [];
+  missedQuestions = [];
+  bestXp = 0;
+  bestStreak = 0;
+  phaseFilter = 'all';
+  const sf = document.getElementById('sector-filter');
+  const af = document.getElementById('angle-filter');
+  if (sf) sf.value = 'all';
+  if (af) af.value = 'all';
+  document.querySelectorAll('.phase-mix-pill[data-phase]').forEach((p) => {
+    p.classList.toggle('is-selected', p.dataset.phase === 'all');
+  });
+  syncMissedOptionLabel();
+  buildDeck(false);
+  resetRunState();
+  buildSkillTree();
+  persistAppState();
+}
+
+function resetRunState() {
+  currentIndex = 0;
+  playerHp = GAME_CONFIG.maxHp;
+  playerXp = 0;
+  streak = 0;
+  correctCount = 0;
+  answeredCount = 0;
+  healCheckpointCounter = 0;
+  if (document.getElementById('sector-filter')?.value !== 'missed') {
+    missedQuestions = [];
+  }
+  isRunFinished = false;
+  isModalOpen = false;
+  syncMissedOptionLabel();
+  prepareNextGate();
+  updateTelemetryUI();
+}
+
+function prepareNextGate() {
+  currentLane = 1;
+  hasChosenLane = false;
+  craftVisualLane = 1;
+  gateDistance = GAME_CONFIG.gateStartDistance;
+  isStoppedAtGate = false;
+  warpSurgeTimer = 0.45;
+  portalFlareLane = -1;
+  portalFlareTimer = 0;
+  for (let i = 0; i < 3; i++) {
+    document.getElementById(`lane-${i}-card`)?.classList.remove('is-fused', 'is-selected');
+  }
+  updateQuestionStageUI();
+  updateTelemetryUI();
+  startQuestionTimer();
+  playSfx('warp');
+}
+
+function triggerVignette(type) {
+  const vig = document.getElementById('vignette-overlay');
+  const shell = document.getElementById('viewport-shell');
+  if (vig) {
+    vig.classList.remove('is-damage', 'is-heal');
+    void vig.offsetWidth;
+    vig.classList.add(type === 'damage' ? 'is-damage' : 'is-heal');
+    setTimeout(() => vig.classList.remove('is-damage', 'is-heal'), 420);
+  }
+  if (type === 'damage' && shell) {
+    shell.classList.remove('shake-anim');
+    void shell.offsetWidth;
+    shell.classList.add('shake-anim');
+  }
+}
+
+function showHealToast(amount) {
+  const toast = document.getElementById('heal-toast');
+  if (!toast) return;
+  toast.textContent = `✚ STREAK BONUS +${amount} HP`;
+  toast.classList.add('is-visible');
+  setTimeout(() => toast.classList.remove('is-visible'), 2000);
+}
+
+function selectLaneAndResolve(laneIndex) {
+  if (isModalOpen || isMenuOpen || isRunFinished) return;
+  if (laneIndex < 0 || laneIndex > 2) return;
+  currentLane = laneIndex;
+  hasChosenLane = true;
+  portalFlareLane = laneIndex;
+  portalFlareTimer = 0.35;
+  updateLaneHighlight();
+  playSfx('steer');
+  resolveGateChoice(laneIndex);
+}
+
+function resolveGateChoice(chosenLane) {
+  if (timerIntervalId) clearInterval(timerIntervalId);
+  isModalOpen = true;
+  const q = getCurrentQuestion();
+  const isTimesUp = chosenLane === -1;
+  const isCorrect = !isTimesUp && chosenLane === q.correctIndex;
+  answeredCount++;
+
+  let xpDelta = 0;
+  let hpDeltaLabel = '';
+
+  if (isCorrect) {
+    correctCount++;
+    streak++;
+    if (streak > bestStreak) bestStreak = streak;
+    if (!masteredIds.includes(q.id)) masteredIds.push(q.id);
+    const prevHp = playerHp;
+    playerHp = Math.min(GAME_CONFIG.maxHp, playerHp + GAME_CONFIG.hpReward);
+    const smallGain = playerHp - prevHp;
+    hpDeltaLabel = smallGain > 0 ? `+${smallGain} HP` : `MAX HP`;
+    xpDelta = Math.round(100 * getComboMultiplier());
+    playerXp += xpDelta;
+    if (playerXp > bestXp) bestXp = playerXp;
+    healCheckpointCounter++;
+    playSfx('correct');
+    if (healCheckpointCounter >= GAME_CONFIG.healStreakStep) {
+      healCheckpointCounter = 0;
+      const beforeHeal = playerHp;
+      playerHp = Math.min(GAME_CONFIG.maxHp, playerHp + GAME_CONFIG.healAmount);
+      const gained = playerHp - beforeHeal;
+      hpDeltaLabel = gained > 0 ? `+${gained} HP` : `MAX HP`;
+      triggerVignette('heal');
+      showHealToast(gained > 0 ? gained : GAME_CONFIG.healAmount);
+      playSfx('heal');
+    }
+  } else {
+    streak = 0;
+    healCheckpointCounter = 0;
+    playerHp = Math.max(0, playerHp - GAME_CONFIG.hpPenalty);
+    hpDeltaLabel = `-${GAME_CONFIG.hpPenalty} HP`;
+    if (!missedQuestions.some((item) => item.id === q.id)) missedQuestions.push(q);
+    syncMissedOptionLabel();
+    triggerVignette('damage');
+    playSfx('wrong');
+  }
+
+  updateTelemetryUI();
+  populateOutcomeModal(q, chosenLane, isCorrect, xpDelta, hpDeltaLabel, isTimesUp);
+  persistAppState();
+}
+
+function renderDossierBullets(el, lines) {
+  if (!el) return;
+  const items = (Array.isArray(lines) ? lines : [lines])
+    .flatMap((line) => String(line || '').split(/\n|<br\s*\/?>/i))
+    .map((line) => line.replace(/^\s*[•\-\*]\s*/, '').trim())
+    .filter(Boolean);
+  el.innerHTML = items.map((line) => `<p class="dossier-line">• ${line}</p>`).join('');
+}
+
+function populateOutcomeModal(q, chosenLane, isCorrect, xpDelta, hpDeltaLabel, isTimesUp) {
+  const verdict = document.getElementById('outcome-verdict');
+  const xpBadge = document.getElementById('outcome-xp-delta');
+  const hpBadge = document.getElementById('outcome-hp-delta');
+  const loRef = document.getElementById('outcome-lo-ref');
+  const qText = document.getElementById('outcome-question-text');
+  const yourBox = document.getElementById('your-choice-box');
+  const yourText = document.getElementById('your-choice-text');
+  const rightText = document.getElementById('correct-choice-text');
+  const expEl = document.getElementById('dossier-explanation');
+  const clueEl = document.getElementById('dossier-board-clue');
+  const pathEl = document.getElementById('dossier-pathogenesis');
+  const morphEl = document.getElementById('dossier-morphology');
+  const txEl = document.getElementById('dossier-epi-tx');
+  const ang1El = document.getElementById('dossier-angle-1');
+  const ang2El = document.getElementById('dossier-angle-2');
+  const ang3El = document.getElementById('dossier-angle-3');
+  const contBtn = document.getElementById('continue-runner-btn');
+  const backdrop = document.getElementById('outcome-backdrop');
+  const scrollBody = document.getElementById('outcome-scroll-body');
+
+  const correctAnswerLabel = (q.shortAnswer && q.shortAnswer.trim())
+    ? q.shortAnswer.trim()
+    : (q.choices[q.correctIndex] || q.loTitle || 'Correct Answer');
+
+  if (verdict) {
+    verdict.textContent = isTimesUp
+      ? `⏱ TIME'S UP — ${correctAnswerLabel}`
+      : (isCorrect ? `✔ CORRECT — ${correctAnswerLabel}` : `✖ INCORRECT — ${correctAnswerLabel}`);
+    verdict.className = `popup-verdict ${isCorrect ? 'is-correct' : 'is-wrong'}`;
+  }
+  if (xpBadge) {
+    xpBadge.textContent = isCorrect
+      ? `+${xpDelta} XP (${getComboMultiplier().toFixed(2)}x)`
+      : (isTimesUp ? `+0 XP (Time Expired)` : `+0 XP (Streak Reset)`);
+  }
+  if (hpBadge) hpBadge.textContent = hpDeltaLabel;
+  if (loRef) loRef.textContent = `${q.loTitle} • ${q.angle.replace('->', '→')} • ${q.phaseFocus}`;
+  if (qText) qText.textContent = q.stem;
+
+  if (yourBox) {
+    yourBox.classList.remove('is-right', 'is-wrong');
+    yourBox.classList.add(isCorrect ? 'is-right' : 'is-wrong');
+  }
+  if (yourText) yourText.textContent = isTimesUp ? `⏱ Time's Up (No Selection)` : (q.choices[chosenLane] || '');
+  if (rightText) rightText.textContent = q.choices[q.correctIndex] || '';
+
+  const expParts = String(q.explanation || '').split(/\s+Distractor exclusion:\s*/i);
+  if (expParts.length > 1) {
+    renderDossierBullets(expEl, [expParts[0], `Distractor exclusion: ${expParts[1]}`]);
+  } else {
+    const expSentences = String(q.explanation || '').split(/(?<=\.)\s+/).filter(Boolean);
+    renderDossierBullets(expEl, expSentences.length ? expSentences : [q.explanation]);
+  }
+  renderDossierBullets(clueEl, [q.secondOrderClue, `Quick Hint: ${q.clue}`]);
+  renderDossierBullets(pathEl, [q.phase1Pearl]);
+  renderDossierBullets(morphEl, [q.phase2Hallmark]);
+  renderDossierBullets(txEl, [q.phase3Secret]);
+  renderDossierBullets(ang1El, q.dossierBullets?.p1 || [q.phase1Pearl]);
+  renderDossierBullets(ang2El, q.dossierBullets?.p2 || [q.phase2Hallmark]);
+  renderDossierBullets(ang3El, q.dossierBullets?.p3 || [q.phase3Secret]);
+
+  if (contBtn) {
+    if (playerHp <= 0) contBtn.textContent = `⚠ HP DEPLETED — VIEW SUMMARY`;
+    else if (currentIndex + 1 >= activeDeck.length) contBtn.textContent = `🏁 FINISH RUN — VIEW SUMMARY`;
+    else contBtn.textContent = `▶ Continue Runner [Space / Enter]`;
+  }
+  if (scrollBody) scrollBody.scrollTop = 0;
+  if (backdrop) backdrop.classList.add('is-open');
+  setTimeout(triggerAmbossRescan, 50);
+}
+
+function scrollOutcomeBody(deltaY) {
+  const body = document.getElementById('outcome-scroll-body');
+  if (!body) return;
+  if (typeof body.scrollBy === 'function') {
+    body.scrollBy({ top: deltaY, behavior: 'smooth' });
+  } else {
+    body.scrollTop += deltaY;
+  }
+}
+
+function continueToNextGate() {
+  document.getElementById('outcome-backdrop')?.classList.remove('is-open');
+  isModalOpen = false;
+  if (playerHp <= 0 || currentIndex + 1 >= activeDeck.length) {
+    openSummaryModal();
+    return;
+  }
+  currentIndex++;
+  prepareNextGate();
+}
+
+function skipCurrentQuestion() {
+  if (isModalOpen || isRunFinished) return;
+  if (timerIntervalId) clearInterval(timerIntervalId);
+  playSfx('steer');
+  if (currentIndex + 1 >= activeDeck.length) {
+    openSummaryModal();
+    return;
+  }
+  currentIndex++;
+  prepareNextGate();
+}
+
+function openSummaryModal() {
+  isRunFinished = true;
+  if (timerIntervalId) clearInterval(timerIntervalId);
+  const sumTitle = document.getElementById('summary-title');
+  const sumSub = document.getElementById('summary-subtitle');
+  const sumXp = document.getElementById('sum-xp');
+  const sumAcc = document.getElementById('sum-acc');
+  const sumStreak = document.getElementById('sum-streak');
+  const sumHp = document.getElementById('sum-hp');
+  const missedList = document.getElementById('missed-review-list');
+  const retryBtn = document.getElementById('retry-missed-btn');
+  const backdrop = document.getElementById('summary-backdrop');
+  const acc = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
+
+  if (sumTitle) {
+    sumTitle.textContent = playerHp <= 0 ? `BIO-SUIT BREACHED (0 HP)` : `DIAGNOSTIC RUN COMPLETE`;
+    sumTitle.className = `popup-verdict ${playerHp <= 0 ? 'is-wrong' : 'is-correct'}`;
+  }
+  if (sumSub) sumSub.textContent = `Completed ${answeredCount} of ${activeDeck.length} gates (${correctCount} correct) • Best XP: ${bestXp}`;
+  if (sumXp) sumXp.textContent = `${playerXp}`;
+  if (sumAcc) sumAcc.textContent = `${acc}%`;
+  if (sumStreak) sumStreak.textContent = `${bestStreak}`;
+  if (sumHp) sumHp.textContent = `${Math.max(0, playerHp)}`;
+
+  if (missedList) {
+    if (!missedQuestions.length) {
+      missedList.innerHTML = `<div class="missed-empty">✔ FLAWLESS RUN — ZERO MISSED DIAGNOSTIC GATES!</div>`;
+      if (retryBtn) retryBtn.style.display = 'none';
+    } else {
+      missedList.innerHTML = missedQuestions.map((mq) => {
+        const correctOpt = mq.choices[mq.correctIndex] || '';
+        return `<div class="missed-item"><strong style="color:var(--secondary)">${mq.loTitle}</strong><br>${mq.stem}<br><strong>Correct:</strong> ${correctOpt}<br><span style="color:var(--on-surface-variant)"><strong>Clue:</strong> ${mq.clue}</span></div>`;
+      }).join('');
+      if (retryBtn) {
+        retryBtn.style.display = 'inline-flex';
+        retryBtn.textContent = `🎯 Retry Missed Gates (${missedQuestions.length})`;
+      }
+    }
+  }
+  if (backdrop) backdrop.classList.add('is-open');
+  persistAppState();
+}
+
+function closeAllModals() {
+  ['outcome-backdrop', 'codex-backdrop', 'summary-backdrop'].forEach((id) => {
+    document.getElementById(id)?.classList.remove('is-open');
+  });
+  isModalOpen = false;
+}
+
+// =========================================================================
+// CODEX MODAL
+// =========================================================================
+function openCodex() {
+  isModalOpen = true;
+  renderCodexTable();
+  document.getElementById('codex-backdrop')?.classList.add('is-open');
+}
+
+function closeCodex() {
+  document.getElementById('codex-backdrop')?.classList.remove('is-open');
+  if (!document.getElementById('outcome-backdrop')?.classList.contains('is-open') &&
+      !document.getElementById('summary-backdrop')?.classList.contains('is-open')) {
+    isModalOpen = false;
+  }
+}
+
+function setCodexTag(tag) {
+  codexTag = tag;
+  document.querySelectorAll('.phase-mix-pill[data-codex-tag]').forEach((p) => {
+    p.classList.toggle('is-selected', p.dataset.codexTag === tag);
+  });
+  renderCodexTable();
+}
+
+function renderCodexTable() {
+  const tbody = document.getElementById('codex-tbody');
+  if (!tbody) return;
+  const query = (document.getElementById('codex-search')?.value || '').trim().toLowerCase();
+  const rows = CODEX_DATA.filter((item) => {
+    if (codexTag !== 'all' && item.tag !== codexTag) return false;
+    if (!query) return true;
+    const blob = `${item.lo} ${item.entity} ${item.etiology} ${item.pathogenesis} ${item.hallmarks} ${item.clinical} ${item.management}`.toLowerCase();
+    return blob.includes(query);
+  });
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="6">No matching entities found.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map((r) => {
+    const metaTag = r.badgeMeta ? ` • ${r.badgeMeta}` : '';
+    return `<tr>
+      <td class="amboss-scan-target"><small style="color:var(--primary);font-family:var(--font-label);">LO ${r.lo}${metaTag}</small><br><strong>${r.entity}</strong></td>
+      <td class="amboss-scan-target">${r.etiology}</td>
+      <td class="amboss-scan-target">${r.pathogenesis}</td>
+      <td class="amboss-scan-target">${r.hallmarks}</td>
+      <td class="amboss-scan-target">${r.clinical}</td>
+      <td class="amboss-scan-target">${r.management}</td>
+    </tr>`;
+  }).join('');
+}
+
+// =========================================================================
+// POINTER, HOVER & KEYBOARD CONTROLS (INCLUDING [H] FOR HINTS)
+// =========================================================================
+function handleCanvasPointer(evt) {
+  if (isModalOpen || isMenuOpen || isRunFinished) return;
+  const canvas = document.getElementById('xr-canvas');
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const cx = evt.clientX - rect.left;
+  const cy = evt.clientY - rect.top;
+  for (let i = 0; i < portalHitboxes.length; i++) {
+    const b = portalHitboxes[i];
+    if (cx >= b.x && cx <= b.x + b.w && cy >= b.y && cy <= b.y + b.h) {
+      selectLaneAndResolve(b.lane);
+      return;
+    }
+  }
+}
+
+function handleCanvasHover(evt) {
+  if (isModalOpen || isMenuOpen || isRunFinished) return;
+  const canvas = document.getElementById('xr-canvas');
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const cx = evt.clientX - rect.left;
+  const cy = evt.clientY - rect.top;
+  for (let i = 0; i < portalHitboxes.length; i++) {
+    const b = portalHitboxes[i];
+    if (cx >= b.x && cx <= b.x + b.w && cy >= b.y && cy <= b.y + b.h) {
+      previewLaneTarget(b.lane);
+      return;
+    }
+  }
+}
+
+function handleKeyControls(e) {
+  const activeTag = document.activeElement ? document.activeElement.tagName : '';
+  if (activeTag === 'INPUT' || activeTag === 'SELECT' || activeTag === 'TEXTAREA') {
+    if (e.key === 'Escape') {
+      closeCodex();
+      if (isMenuOpen) toggleMenuDrawer();
+    }
+    return;
+  }
+
+  const key = e.key.toLowerCase();
+  const outcomeOpen = document.getElementById('outcome-backdrop')?.classList.contains('is-open');
+  const codexOpen = document.getElementById('codex-backdrop')?.classList.contains('is-open');
+
+  if (e.key === 'Escape') {
+    if (codexOpen) { closeCodex(); return; }
+    if (isMenuOpen) { toggleMenuDrawer(); return; }
+  }
+
+  if (codexOpen) {
+    if (key === 'c') { e.preventDefault(); closeCodex(); }
+    return;
+  }
+
+  if (outcomeOpen) {
+    if (key === ' ' || key === 'enter') {
+      e.preventDefault();
+      continueToNextGate();
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      scrollOutcomeBody(140);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      scrollOutcomeBody(-140);
+    }
+    return;
+  }
+
+  if (key === 'm') { e.preventDefault(); toggleMenuDrawer(); return; }
+  if (isMenuOpen || isRunFinished) return;
+
+  if (key === 'h') {
+    e.preventDefault();
+    toggleHintsBar();
+  } else if (key === 'c') {
+    e.preventDefault();
+    openCodex();
+  } else if (key === 's') {
+    e.preventDefault();
+    skipCurrentQuestion();
+  } else if (key === 't') {
+    e.preventDefault();
+    toggleTimerActive();
+  } else if (key === '1' || key === 'a' || e.key === 'ArrowLeft') {
+    e.preventDefault();
+    selectLaneAndResolve(0);
+  } else if (key === '2' || key === 'w' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    selectLaneAndResolve(1);
+  } else if (key === '3' || key === 'd' || e.key === 'ArrowRight') {
+    e.preventDefault();
+    selectLaneAndResolve(2);
+  }
+}
+
+// =========================================================================
+// 3D XR RUNNER CANVAS RENDERER (SYNTHWAVE WIREFRAME VOID + 1:1 PORTAL FUSION)
+// =========================================================================
+function drawPixelStarfield(ctx, cssW, cssH, vpX, horizonY, theme, dt, warpMult) {
+  const spreadX = cssW * 0.58;
+  const spreadY = cssH * 0.64;
+
+  ctx.save();
+  ctx.fillStyle = theme.particleColor || '#e8cf58';
+
+  for (let i = 0; i < PARALLAX_PARTICLES.length; i++) {
+    const p = PARALLAX_PARTICLES[i];
+    if (!isModalOpen && !isMenuOpen && !isRunFinished) {
+      p.z -= p.speed * dt * warpMult;
+      if (p.z <= 0.03) p.z = 1.0;
+    }
+
+    const invZ = 1 / (p.z + 0.14);
+    const normDepth = 1 - p.z;
+    const px = vpX + p.dx * spreadX * (invZ * 0.22);
+    const py = horizonY + p.dy * spreadY * (invZ * 0.24);
+
+    if (px < -16 || px > cssW + 16 || py < -16 || py > cssH + 16) continue;
+
+    const sz = Math.min(10.5, Math.max(1.2, p.baseSize * (0.28 + Math.pow(normDepth, 2.2) * 1.9)));
+    const alpha = Math.min(0.88, Math.pow(normDepth, 0.7) * 0.85 + 0.08);
+
+    ctx.globalAlpha = alpha;
+    ctx.fillRect(Math.round(px - sz * 0.5), Math.round(py - sz * 0.5), sz, sz);
+  }
+  ctx.restore();
+}
+
+function renderRunnerFrame(timestamp) {
+  const canvas = document.getElementById('xr-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const dpr = Math.min(window.devicePixelRatio || 1, 2.25);
+  const cssW = canvas.clientWidth || 390;
+  const cssH = canvas.clientHeight || 360;
+  if (canvas.width !== Math.round(cssW * dpr) || canvas.height !== Math.round(cssH * dpr)) {
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+  }
+
+  const dt = lastFrameTime ? Math.min(0.05, (timestamp - lastFrameTime) / 1000) : 0.016;
+  lastFrameTime = timestamp;
+  particleTime += dt;
+
+  if (warpSurgeTimer > 0) warpSurgeTimer = Math.max(0, warpSurgeTimer - dt);
+  if (portalFlareTimer > 0) portalFlareTimer = Math.max(0, portalFlareTimer - dt);
+
+  const warpFrac = warpSurgeTimer / 0.45;
+  const warpSpeedMult = 1 + warpFrac * 4.2;
+
+  if (!isModalOpen && !isMenuOpen && !isRunFinished) {
+    if (gateDistance > GAME_CONFIG.stopDistanceMeters) {
+      gateDistance = Math.max(GAME_CONFIG.stopDistanceMeters, gateDistance - GAME_CONFIG.gateApproachSpeed * dt);
+      trackScrollOffset = (trackScrollOffset + dt * 2.1 * warpSpeedMult) % 1;
+    } else {
+      trackScrollOffset = (trackScrollOffset + dt * 0.35) % 1;
+      if (!isStoppedAtGate) {
+        isStoppedAtGate = true;
+        for (let i = 0; i < 3; i++) {
+          document.getElementById(`lane-${i}-card`)?.classList.add('is-fused');
+        }
+      }
+    }
+  }
+
+  craftVisualLane += (currentLane - craftVisualLane) * Math.min(1, dt * 14);
+
+  const q = getCurrentQuestion();
+  const theme = getThemeForLo(q.lo);
+  const isPortraitCompact = cssW <= 600;
+  const horizonY = cssH * (isPortraitCompact ? 0.50 : 0.57);
+  const vpX = cssW * 0.5;
+  const floorH = cssH - horizonY;
+
+  ctx.save();
+  ctx.scale(dpr, dpr);
+
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, cssH);
+  bgGrad.addColorStop(0, '#070710');
+  bgGrad.addColorStop(Math.max(0.1, horizonY / cssH), '#090915');
+  bgGrad.addColorStop(1, '#0d0d1c');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, cssW, cssH);
+
+  const gridRgb = theme.gridRgb || '108, 92, 172';
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, horizonY, cssW, floorH);
+  ctx.clip();
+
+  const rowCount = 16;
+  ctx.lineWidth = 1;
+  for (let i = 0; i < rowCount; i++) {
+    const t = (i + trackScrollOffset) / rowCount;
+    const persp = Math.pow(t, 2.35);
+    const y = horizonY + persp * floorH;
+    ctx.strokeStyle = `rgba(${gridRgb}, ${(0.04 + persp * 0.34).toFixed(3)})`;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(cssW, y);
+    ctx.stroke();
+  }
+
+  const colSpan = 22;
+  const bottomSpacing = cssW * 0.11;
+  for (let c = -colSpan; c <= colSpan; c++) {
+    const xBot = vpX + c * bottomSpacing;
+    const xTop = vpX + c * (bottomSpacing * 0.045);
+    const distFade = Math.max(0.08, 1 - Math.abs(c) / (colSpan + 2));
+    const lineGrad = ctx.createLinearGradient(xTop, horizonY, xBot, cssH);
+    lineGrad.addColorStop(0, `rgba(${gridRgb}, 0.02)`);
+    lineGrad.addColorStop(0.35, `rgba(${gridRgb}, ${(0.18 * distFade).toFixed(3)})`);
+    lineGrad.addColorStop(1, `rgba(${gridRgb}, ${(0.34 * distFade).toFixed(3)})`);
+    ctx.strokeStyle = lineGrad;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(xTop, horizonY);
+    ctx.lineTo(xBot, cssH);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  const fogGrad = ctx.createLinearGradient(0, horizonY - 24, 0, horizonY + 46);
+  fogGrad.addColorStop(0, 'rgba(8, 8, 18, 0)');
+  fogGrad.addColorStop(0.5, 'rgba(8, 8, 18, 0.85)');
+  fogGrad.addColorStop(1, 'rgba(8, 8, 18, 0)');
+  ctx.fillStyle = fogGrad;
+  ctx.fillRect(0, horizonY - 24, cssW, 70);
+
+  drawPixelStarfield(ctx, cssW, cssH, vpX, horizonY, theme, dt, warpSpeedMult);
+
+  const laneTrackBottomX = isPortraitCompact
+    ? [vpX - cssW * 0.44, vpX, vpX + cssW * 0.44]
+    : [vpX - cssW * 0.27, vpX, vpX + cssW * 0.27];
+  const laneTrackTopX = [vpX - 28, vpX, vpX + 28];
+
+  for (let l = 0; l < 3; l++) {
+    const isTargetedLane = l === currentLane;
+    const railGrad = ctx.createLinearGradient(laneTrackTopX[l], horizonY, laneTrackBottomX[l], cssH);
+    railGrad.addColorStop(0, 'rgba(52, 168, 143, 0.05)');
+    railGrad.addColorStop(0.28, isTargetedLane ? '#00ffcc' : 'rgba(52, 168, 143, 0.65)');
+    railGrad.addColorStop(1, isTargetedLane ? '#00ffcc' : 'rgba(52, 168, 143, 0.85)');
+
+    ctx.save();
+    ctx.fillStyle = railGrad;
+    if (isTargetedLane) {
+      ctx.shadowColor = '#00ffcc';
+      ctx.shadowBlur = 12;
+    }
+    const topHalf = isTargetedLane ? 1.4 : 0.9;
+    const botHalf = isTargetedLane ? 5.5 : 3.6;
+    ctx.beginPath();
+    ctx.moveTo(laneTrackTopX[l] - topHalf, horizonY);
+    ctx.lineTo(laneTrackTopX[l] + topHalf, horizonY);
+    ctx.lineTo(laneTrackBottomX[l] + botHalf, cssH);
+    ctx.lineTo(laneTrackBottomX[l] - botHalf, cssH);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  const depthProgress = 1 - Math.min(1, Math.max(0, (gateDistance - GAME_CONFIG.stopDistanceMeters) / (GAME_CONFIG.gateStartDistance - GAME_CONFIG.stopDistanceMeters)));
+  const easeProgress = Math.pow(depthProgress, 1.35);
+  const canvasRect = canvas.getBoundingClientRect();
+  portalHitboxes = [];
+
+  for (let laneIdx = 0; laneIdx < 3; laneIdx++) {
+    const cardEl = document.getElementById(`lane-${laneIdx}-card`);
+    const spreadFrac = laneIdx - 1;
+    let targetCx = vpX + spreadFrac * (cssW * 0.31);
+    let targetCy = cssH * 0.52;
+    let targetW = isPortraitCompact ? (cssW - 16) : Math.min(cssW * 0.29, 350);
+    let targetH = isPortraitCompact ? 92 : 148;
+
+    if (cardEl && canvasRect.width > 0) {
+      const r = cardEl.getBoundingClientRect();
+      if (r.width > 10 && r.height > 10) {
+        targetCx = (r.left - canvasRect.left) + r.width * 0.5;
+        targetCy = (r.top - canvasRect.top) + r.height * 0.5;
+        targetW = r.width;
+        targetH = r.height;
+      }
+    }
+
+    const startCx = vpX + spreadFrac * 26;
+    const startCy = horizonY - 4;
+    const startW = 24;
+    const startH = 20;
+
+    const gx = startCx + (targetCx - startCx) * easeProgress;
+    const gy = startCy + (targetCy - startCy) * easeProgress;
+    const gw = startW + (targetW - startW) * easeProgress;
+    const gh = startH + (targetH - startH) * easeProgress;
+    const fusePad = easeProgress * 3;
+    const boxX = gx - gw * 0.5 - fusePad;
+    const boxY = gy - gh * 0.5 - fusePad;
+    const boxW = gw + fusePad * 2;
+    const boxH = gh + fusePad * 2;
+
+    portalHitboxes.push({ lane: laneIdx, x: boxX, y: boxY, w: boxW, h: boxH });
+
+    const pColor = LANE_COLORS[laneIdx];
+    const isTargeted = laneIdx === currentLane;
+    const isFlaring = portalFlareLane === laneIdx && portalFlareTimer > 0;
+    const isFusedNow = depthProgress >= 0.98;
+
+    ctx.save();
+    ctx.strokeStyle = pColor;
+    ctx.fillStyle = pColor;
+    ctx.lineWidth = isFlaring ? 6.5 : (isFusedNow ? (isTargeted ? 4.5 : 3.2) : (isTargeted ? 4 : 2.8));
+    ctx.shadowColor = pColor;
+    ctx.shadowBlur = isFlaring ? 26 : (isFusedNow ? (isTargeted ? 20 : 12) : (isTargeted ? 14 : 7));
+
+    ctx.globalAlpha = isFlaring ? 0.28 : (isTargeted ? 0.14 : 0.06);
+    if (typeof ctx.roundRect === 'function') {
+      ctx.beginPath();
+      ctx.roundRect(boxX, boxY, boxW, boxH, 8);
+      ctx.fill();
+      ctx.globalAlpha = isTargeted ? 0.98 : (isFusedNow ? 0.82 : 0.72);
+      ctx.stroke();
+    } else {
+      ctx.fillRect(boxX, boxY, boxW, boxH);
+      ctx.globalAlpha = isTargeted ? 0.98 : (isFusedNow ? 0.82 : 0.72);
+      ctx.strokeRect(boxX, boxY, boxW, boxH);
+    }
+    ctx.restore();
+  }
+
+  const craftY = cssH * (isPortraitCompact ? 0.91 : 0.93);
+  const craftT = Math.max(0, Math.min(1, (craftY - horizonY) / Math.max(1, floorH)));
+  const interpRailTop = vpX + (craftVisualLane - 1) * 28;
+  const interpRailBot = vpX + (craftVisualLane - 1) * (isPortraitCompact ? cssW * 0.44 : cssW * 0.27);
+  const craftX = interpRailTop + (interpRailBot - interpRailTop) * craftT;
+  const hoverBob = Math.sin(particleTime * 4.5) * 2;
+  const bankTilt = (currentLane - craftVisualLane) * 0.12;
+  const craftHalfW = isPortraitCompact ? 34 : 52;
+  const craftHalfH = isPortraitCompact ? 38 : 54;
+
+  ctx.save();
+  ctx.translate(craftX, craftY + hoverBob);
+  ctx.rotate(bankTilt);
+  ctx.shadowColor = '#00e6b8';
+  ctx.shadowBlur = 16;
+
+  const craftGrad = ctx.createLinearGradient(0, -craftHalfH, 0, craftHalfH * 0.6);
+  craftGrad.addColorStop(0, '#50caa8');
+  craftGrad.addColorStop(1, '#268b72');
+  ctx.fillStyle = craftGrad;
+  ctx.beginPath();
+  ctx.moveTo(0, -craftHalfH);
+  ctx.lineTo(craftHalfW, 0);
+  ctx.lineTo(0, craftHalfH);
+  ctx.lineTo(-craftHalfW, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(0, 255, 204, 0.55)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.restore();
+  animFrameId = requestAnimationFrame(renderRunnerFrame);
+}
+
+// =========================================================================
+// PERSISTENCE & INITIALIZATION
+// =========================================================================
+async function persistAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.setAppState !== 'function') return;
+  try {
+    await window.notebookAppApi.setAppState({
+      bestXp,
+      bestStreak,
+      masteredIds,
+      isHintsVisible,
+      isSoundEnabled,
+      isSfxEnabled,
+      isTimerEnabled,
+      isTimesUpFailEnabled,
+      bgmVolume,
+      phaseFilter,
+      sectorFilter: document.getElementById('sector-filter')?.value || 'all',
+      angleFilter: document.getElementById('angle-filter')?.value || 'all'
+    });
+  } catch (e) {}
+}
+
+async function restoreAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.getAppState !== 'function') return;
+  try {
+    const s = await window.notebookAppApi.getAppState();
+    if (!s) return;
+    if (typeof s.bestXp === 'number') bestXp = s.bestXp;
+    if (typeof s.bestStreak === 'number') bestStreak = s.bestStreak;
+    if (Array.isArray(s.masteredIds)) masteredIds = s.masteredIds;
+    if (typeof s.isHintsVisible === 'boolean') isHintsVisible = s.isHintsVisible;
+    if (typeof s.isSoundEnabled === 'boolean') isSoundEnabled = s.isSoundEnabled;
+    if (typeof s.isSfxEnabled === 'boolean') isSfxEnabled = s.isSfxEnabled;
+    if (typeof s.isTimerEnabled === 'boolean') isTimerEnabled = s.isTimerEnabled;
+    if (typeof s.isTimesUpFailEnabled === 'boolean') isTimesUpFailEnabled = s.isTimesUpFailEnabled;
+    if (typeof s.bgmVolume === 'number') {
+      bgmVolume = s.bgmVolume;
+      const slider = document.getElementById('bgm-volume-slider');
+      if (slider) slider.value = String(Math.round(bgmVolume * 100));
+    }
+    if (s.phaseFilter) {
+      phaseFilter = s.phaseFilter;
+      document.querySelectorAll('.phase-mix-pill[data-phase]').forEach((p) => {
+        p.classList.toggle('is-selected', p.dataset.phase === phaseFilter);
+      });
+    }
+    const sf = document.getElementById('sector-filter');
+    const af = document.getElementById('angle-filter');
+    if (sf && s.sectorFilter) sf.value = s.sectorFilter;
+    if (af && s.angleFilter) af.value = s.angleFilter;
+  } catch (e) {}
+}
+
+async function initRunnerGame() {
+  initDynamicSelectors();
+  await restoreAppState();
+  syncHintsUI();
+  syncMissedOptionLabel();
+  buildDeck(false);
+  updateTelemetryUI();
+  prepareNextGate();
+
+  const canvas = document.getElementById('xr-canvas');
+  if (canvas) {
+    canvas.addEventListener('click', handleCanvasPointer);
+    canvas.addEventListener('mousemove', handleCanvasHover);
+    canvas.addEventListener('pointermove', handleCanvasHover);
+  }
+  window.addEventListener('keydown', handleKeyControls);
+
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  animFrameId = requestAnimationFrame(renderRunnerFrame);
+
+  if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === 'function') {
+    window.notebookAppApi.notifyAppReady();
+  }
+}
+
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', initRunnerGame);
+} else {
+  initRunnerGame();
+}
+</script>
+</body>
+</html>

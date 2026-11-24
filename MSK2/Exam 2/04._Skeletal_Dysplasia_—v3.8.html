@@ -1,0 +1,4294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="artifact-type" content="tool">
+<meta name="design-style" content="neon_noir">
+<title>Lecture 04: Pathology of Skeletal Dysplasia — XR 3-Lane Diagnostic Runner</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --background: #0a0a12;
+  --surface-container-low: #111118;
+  --surface-container: #141422;
+  --surface-container-high: #1e1e30;
+  --surface-overlay: rgba(10, 10, 18, 0.92);
+  --surface-glass: rgba(16, 16, 28, 0.96);
+  --surface-stem: rgba(24, 12, 26, 0.86);
+  --surface-lane-card: rgba(16, 16, 30, 0.88);
+  --surface-lane-card-hover: rgba(24, 20, 42, 0.94);
+
+  --on-surface: #e8e0f0;
+  --on-surface-bright: #ffffff;
+  --on-surface-variant: #a098b0;
+  --outline: #5a5068;
+  --outline-variant: #302840;
+
+  --primary: #ff2d78;
+  --on-primary: #1a0010;
+  --secondary: #00ffcc;
+  --on-secondary: #001a14;
+  --tertiary: #ffe04a;
+  --on-tertiary: #1a1500;
+  --data-4: #b388ff;
+  --positive: #00e6a8;
+  --warning: #ffe04a;
+  --error: #ff4444;
+  --focus: #00ffcc;
+
+  --font-headline: 'Sora', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-label: 'Space Mono', monospace;
+
+  --game-headline-size: clamp(1.15rem, 1rem + 0.45vw, 1.48rem);
+  --game-stem-size: clamp(1.04rem, 0.98rem + 0.28vw, 1.24rem);
+  --game-body-size: clamp(0.98rem, 0.94rem + 0.16vw, 1.08rem);
+  --game-label-size: 0.78rem;
+  --game-micro-size: 0.68rem;
+
+  --card-min-h: 158px;
+  --card-pad-y: 1.25rem;
+  --card-pad-x: 1.2rem;
+  --card-font: clamp(1.06rem, 1.0rem + 0.24vw, 1.24rem);
+  --card-gap: 1rem;
+  --stem-pad-y: 0.62rem;
+  --stem-pad-x: 1.1rem;
+
+  --modal-display-size: clamp(1.25rem, 1.1rem + 0.7vw, 1.75rem);
+  --modal-headline-size: clamp(1rem, 0.94rem + 0.3vw, 1.22rem);
+  --modal-body-size: clamp(0.875rem, 0.85rem + 0.12vw, 0.96rem);
+  --modal-label-size: 0.72rem;
+
+  --space-xs: 0.25rem;
+  --space-sm: 0.45rem;
+  --space-md: 0.85rem;
+  --space-lg: 1.25rem;
+  --rounded: 0.18rem;
+  --rounded-lg: 0.38rem;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+
+  --glow-text: 0 0 8px currentColor;
+  --glow-primary: 0 0 18px color-mix(in srgb, var(--primary) 48%, transparent);
+  --glow-secondary: 0 0 18px color-mix(in srgb, var(--secondary) 44%, transparent);
+  --glow-tertiary: 0 0 18px color-mix(in srgb, var(--tertiary) 46%, transparent);
+  --neon-border: 1px solid color-mix(in srgb, var(--primary) 32%, transparent);
+  --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 58%, transparent);
+  --neon-border-cyan: 1px solid color-mix(in srgb, var(--secondary) 42%, transparent);
+  --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+  --neon-inset-cyan: inset 0 0 12px color-mix(in srgb, var(--secondary) 10%, transparent);
+  --scanlines: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in srgb, var(--on-surface) 2.5%, transparent) 3px 4px);
+  --vignette-damage: radial-gradient(circle at center, transparent 45%, color-mix(in srgb, var(--error) 65%, transparent) 100%);
+  --vignette-heal: radial-gradient(circle at center, transparent 45%, color-mix(in srgb, var(--positive) 55%, transparent) 100%);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--background);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: var(--game-body-size);
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+}
+
+button, input, select {
+  font-family: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+#xr-app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background);
+  background-image: var(--scanlines);
+  overflow: hidden;
+}
+
+#xr-app.hints-visible {
+  --card-min-h: 90px;
+  --card-pad-y: 0.6rem;
+  --card-pad-x: 0.9rem;
+  --card-font: clamp(0.94rem, 0.9rem + 0.16vw, 1.06rem);
+  --card-gap: 0.7rem;
+  --stem-pad-y: 0.4rem;
+  --stem-pad-x: 0.95rem;
+  --game-stem-size: clamp(0.95rem, 0.91rem + 0.2vw, 1.1rem);
+}
+
+.top-mini-bar {
+  flex-shrink: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.28rem 0.65rem;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.menu-mini-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 32px;
+  padding: 0.22rem 0.65rem;
+  background: var(--surface-container);
+  color: var(--secondary);
+  border: var(--neon-border-cyan);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+}
+.menu-mini-btn:hover,
+.menu-mini-btn.is-active {
+  border-color: var(--secondary);
+  background: var(--surface-container-high);
+  box-shadow: var(--glow-secondary);
+  text-shadow: var(--glow-text);
+}
+
+.mini-telemetry {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.45rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--on-surface-variant);
+}
+.mini-telemetry::-webkit-scrollbar { display: none; }
+
+.tele-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.24rem;
+  white-space: nowrap;
+  padding: 0.14rem 0.42rem;
+  border-radius: var(--rounded);
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+}
+.tele-chip.is-hp { color: var(--positive); border-color: color-mix(in srgb, var(--positive) 40%, transparent); }
+.tele-chip.is-hp.is-low { color: var(--error); border-color: var(--error); }
+.tele-chip.is-xp { color: var(--secondary); }
+.tele-chip.is-streak { color: var(--tertiary); }
+.tele-chip.is-timer { color: var(--secondary); border-color: color-mix(in srgb, var(--secondary) 40%, transparent); }
+.tele-chip.is-timer.is-off { color: var(--on-surface-variant); border-color: var(--outline-variant); }
+.tele-chip.is-timer.is-hold { color: var(--tertiary); border-color: var(--tertiary); }
+.tele-chip.is-timer.is-urgent { color: var(--error); border-color: var(--error); }
+
+.question-stage {
+  flex-shrink: 0;
+  z-index: 12;
+  background: linear-gradient(180deg, rgba(17, 17, 24, 0.96) 0%, rgba(10, 10, 18, 0.84) 100%);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 0.4rem 0.85rem 0.48rem;
+  text-align: center;
+  transition: padding var(--dur-short) var(--ease-out);
+}
+
+#xr-app.hints-visible .question-stage {
+  padding: 0.28rem 0.75rem 0.34rem;
+}
+
+.question-container {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.question-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  max-height: 92px;
+  opacity: 1;
+  margin-bottom: 0.34rem;
+  overflow: hidden;
+  transition: opacity 400ms var(--ease-out), max-height 400ms var(--ease-out), margin-bottom 400ms var(--ease-out);
+}
+
+.question-meta-row.is-faded {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+}
+
+.meta-badge {
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  padding: 0.14rem 0.46rem;
+  border-radius: var(--rounded);
+  border: 1px solid var(--outline);
+  background: var(--surface-container);
+  color: var(--secondary);
+}
+.meta-badge.is-angle {
+  border-color: color-mix(in srgb, var(--primary) 54%, transparent);
+  color: var(--primary);
+}
+.meta-badge.is-phase {
+  border-color: color-mix(in srgb, var(--tertiary) 54%, transparent);
+  color: var(--tertiary);
+}
+.meta-badge.is-corridor {
+  border-color: color-mix(in srgb, var(--data-4) 55%, transparent);
+  color: var(--data-4);
+}
+
+.question-stem-box {
+  width: 100%;
+  max-width: 1020px;
+  margin: 0 auto;
+  background: var(--surface-stem);
+  border: var(--neon-border-lit);
+  box-shadow: var(--neon-inset);
+  border-radius: var(--rounded-lg);
+  padding: var(--stem-pad-y) var(--stem-pad-x);
+  max-height: 30dvh;
+  overflow-y: auto;
+  text-align: center;
+  transition: padding var(--dur-short) var(--ease-out);
+}
+
+#xr-app.hints-visible .question-stem-box {
+  max-height: 23dvh;
+}
+
+.question-stem {
+  margin: 0 auto;
+  font-family: var(--font-body);
+  font-size: var(--game-stem-size);
+  font-weight: 600;
+  color: var(--on-surface-bright);
+  text-align: center;
+  line-height: 1.4;
+  transition: font-size var(--dur-short) var(--ease-out);
+}
+
+.viewport-shell {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  background: var(--background);
+  overflow: hidden;
+}
+
+#xr-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.lane-overlay-container {
+  position: absolute;
+  top: 52%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(1120px, calc(100% - 1.5rem));
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--card-gap);
+  z-index: 10;
+  pointer-events: none;
+  transition: gap var(--dur-short) var(--ease-out);
+}
+
+.lane-dom-card {
+  --lane-color: var(--secondary);
+  pointer-events: auto;
+  position: relative;
+  background: rgba(14, 17, 27, 0.76);
+  backdrop-filter: blur(8px);
+  border: 1px solid color-mix(in srgb, var(--secondary) 38%, transparent);
+  border-radius: 0.45rem;
+  padding: var(--card-pad-y) var(--card-pad-x);
+  min-height: var(--card-min-h);
+  text-align: center;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--card-font);
+  font-weight: 700;
+  color: var(--on-surface-bright);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55),
+              inset 0 0 12px rgba(0, 255, 204, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+  line-height: 1.35;
+  touch-action: manipulation;
+  transition: min-height var(--dur-short) var(--ease-out),
+              padding var(--dur-short) var(--ease-out),
+              font-size var(--dur-short) var(--ease-out),
+              transform var(--dur-micro) var(--ease-out),
+              border-color var(--dur-short) var(--ease-out),
+              box-shadow var(--dur-short) var(--ease-out),
+              background-color var(--dur-short) var(--ease-out);
+}
+
+.lane-dom-card.lane-0 { --lane-color: var(--primary); }
+.lane-dom-card.lane-1 { --lane-color: var(--secondary); }
+.lane-dom-card.lane-2 { --lane-color: var(--tertiary); }
+
+.lane-dom-card:hover,
+.lane-dom-card.is-targeted {
+  border-color: color-mix(in srgb, var(--lane-color) 85%, transparent);
+  background: rgba(18, 22, 36, 0.92);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--lane-color) 32%, transparent),
+              inset 0 0 14px color-mix(in srgb, var(--lane-color) 10%, transparent);
+  transform: translateY(-2px);
+}
+
+.lane-dom-card.is-fused {
+  border-color: color-mix(in srgb, var(--lane-color) 78%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--lane-color) 28%, transparent),
+              inset 0 0 12px color-mix(in srgb, var(--lane-color) 10%, transparent);
+}
+
+.lane-dom-card.is-fused.is-targeted {
+  border-color: var(--lane-color);
+  box-shadow: 0 0 26px color-mix(in srgb, var(--lane-color) 42%, transparent),
+              inset 0 0 16px color-mix(in srgb, var(--lane-color) 14%, transparent);
+}
+
+.lane-dom-card.is-selected {
+  background: color-mix(in srgb, var(--lane-color) 20%, rgba(14, 17, 27, 0.96));
+  border-color: var(--lane-color);
+  box-shadow: 0 0 30px color-mix(in srgb, var(--lane-color) 65%, transparent);
+  transform: scale(1.015);
+}
+
+.lane-card-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.lane-portal-name {
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  opacity: 0.88;
+}
+
+.lane-key-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 0.06em;
+  padding: 0.12rem 0.45rem;
+  border-radius: 0.22rem;
+  border: 1px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  background: rgba(255, 45, 120, 0.08);
+}
+
+.lane-choice-body {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  text-align: center;
+}
+
+.fusion-lock-tag {
+  font-family: var(--font-label);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+  text-align: center;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity 220ms var(--ease-out), max-height 220ms var(--ease-out);
+}
+
+.lane-dom-card.is-fused .fusion-lock-tag {
+  opacity: 0.72;
+  max-height: 20px;
+}
+
+.vignette-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 12;
+  transition: opacity var(--dur-short) var(--ease-out);
+}
+.vignette-overlay.is-damage { background: var(--vignette-damage); opacity: 1; }
+.vignette-overlay.is-heal { background: var(--vignette-heal); opacity: 1; }
+
+.heal-toast {
+  position: absolute;
+  top: 0.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface-glass);
+  border: 1px solid var(--positive);
+  color: var(--positive);
+  font-family: var(--font-label);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.25rem 0.7rem;
+  border-radius: var(--rounded);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-short) var(--ease-out);
+  z-index: 15;
+}
+.heal-toast.is-visible { opacity: 1; }
+
+#hints-bar {
+  flex-shrink: 0;
+  z-index: 15;
+  background: var(--surface-container);
+  border-top: 2px solid color-mix(in srgb, var(--tertiary) 55%, transparent);
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.45);
+  padding: 0.48rem 0.85rem;
+  max-height: 22dvh;
+  overflow-y: auto;
+  text-align: center;
+}
+
+#xr-app.hints-hidden #hints-bar {
+  display: none;
+}
+
+.hints-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  text-align: center;
+}
+
+.hints-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.hints-tag {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tertiary);
+}
+
+.hints-subtag {
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  color: var(--secondary);
+  opacity: 0.9;
+}
+
+.hints-text {
+  margin: 0 auto;
+  font-size: clamp(0.88rem, 0.84rem + 0.16vw, 0.98rem);
+  color: var(--on-surface);
+  text-align: center;
+  line-height: 1.4;
+}
+
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: var(--surface-overlay);
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0.75rem;
+  overflow-y: auto;
+}
+.menu-backdrop.is-open { display: flex; }
+
+#top-menu-drawer {
+  width: min(1040px, 100%);
+  max-height: calc(100dvh - 1.5rem);
+  overflow-y: auto;
+  background: var(--surface-glass);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--secondary);
+  box-shadow: var(--glow-secondary);
+  border-radius: var(--rounded-lg);
+  padding: 1rem 1.15rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  text-align: center;
+}
+
+.menu-top-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  text-align: left;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.menu-title-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.brand-kicker {
+  display: inline-block;
+  align-self: flex-start;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  text-shadow: var(--glow-text);
+}
+
+.brand-title {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: var(--game-headline-size);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--on-surface-bright);
+}
+
+.menu-section-label {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--secondary);
+  text-align: left;
+  margin-bottom: 0.35rem;
+}
+
+.btn-neon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  background: var(--surface-container);
+  color: var(--primary);
+  border: var(--neon-border-lit);
+  border-radius: var(--rounded);
+  padding: 0.42rem 0.8rem;
+  min-height: 40px;
+  font-family: var(--font-label);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: box-shadow var(--dur-short) var(--ease-out),
+              border-color var(--dur-short) var(--ease-out),
+              background-color var(--dur-short) var(--ease-out);
+}
+.btn-neon:hover:not(:disabled) {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+  background: var(--surface-container-high);
+  text-shadow: var(--glow-text);
+}
+.btn-neon:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-neon.is-cyan { color: var(--secondary); border-color: color-mix(in srgb, var(--secondary) 48%, transparent); }
+.btn-neon.is-cyan:hover:not(:disabled) { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.btn-neon.is-yellow { color: var(--tertiary); border-color: color-mix(in srgb, var(--tertiary) 48%, transparent); }
+.btn-neon.is-yellow:hover:not(:disabled) { border-color: var(--tertiary); box-shadow: var(--glow-tertiary); }
+.btn-neon.is-purple { color: var(--data-4); border-color: color-mix(in srgb, var(--data-4) 52%, transparent); }
+.btn-neon.is-purple:hover:not(:disabled) { border-color: var(--data-4); box-shadow: 0 0 14px color-mix(in srgb, var(--data-4) 40%, transparent); }
+.btn-neon.is-active { background: var(--surface-container-high); box-shadow: var(--glow-secondary); }
+
+.menu-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+  gap: 0.45rem;
+}
+
+.controls-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: flex-start;
+  gap: 0.65rem;
+}
+
+.control-field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  flex: 1 1 200px;
+}
+
+.control-field label {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--on-surface-variant);
+}
+
+.neon-select {
+  width: 100%;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-bottom: 2px solid var(--secondary);
+  border-radius: var(--rounded);
+  padding: 0.35rem 0.6rem;
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  min-height: 40px;
+  cursor: pointer;
+}
+
+.volume-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 40px;
+}
+.volume-slider {
+  flex: 1 1 auto;
+  accent-color: var(--secondary);
+  cursor: pointer;
+}
+
+.phase-mix-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.phase-mix-pill {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  padding: 0.35rem 0.65rem;
+  min-height: 36px;
+  border-radius: var(--rounded);
+  border: 1px solid var(--outline);
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.phase-mix-pill.is-selected {
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: var(--glow-primary);
+}
+
+.menu-divider {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--outline-variant);
+  margin: 0.1rem 0;
+}
+
+.skill-tree-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: 0.45rem;
+}
+
+.skill-node {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.55rem 0.65rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.skill-node:hover { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.skill-node.is-mastered { border-color: var(--positive); }
+.skill-node.is-active-filter { border-color: var(--primary); background: var(--surface-container-high); }
+
+.skill-node-top {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  color: var(--secondary);
+}
+.skill-node-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--on-surface);
+  line-height: 1.3;
+}
+.skill-node-meta {
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  color: var(--on-surface-variant);
+}
+
+.hotkey-guide {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  color: var(--on-surface-variant);
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.45rem 0.65rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.inline-toast {
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  color: var(--tertiary);
+  text-align: left;
+  min-height: 1.1em;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--surface-overlay);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+}
+.modal-backdrop.is-open { display: flex; }
+
+#outcome-popup-modal {
+  width: 80vw;
+  height: 80vh;
+  max-width: 1120px;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-align: center;
+  font-size: var(--modal-body-size);
+}
+
+.popup-header {
+  flex-shrink: 0;
+  background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 0.55rem 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.popup-header-centered {
+  justify-content: center;
+  flex-wrap: wrap;
+  text-align: center;
+}
+.popup-verdict {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: var(--modal-headline-size);
+  font-weight: 800;
+  text-align: center;
+}
+.popup-verdict.is-correct { color: var(--positive); }
+.popup-verdict.is-wrong { color: var(--error); }
+.popup-verdict.is-cyan { color: var(--secondary); }
+
+.popup-question-pin {
+  flex-shrink: 0;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 0.45rem 0.85rem;
+  max-height: 18vh;
+  overflow-y: auto;
+  text-align: center;
+}
+.popup-question-pin-label {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  color: var(--secondary);
+  margin-bottom: 2px;
+  text-align: center;
+}
+.popup-question-pin-text {
+  margin: 0 auto;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--on-surface);
+  text-align: center;
+  line-height: 1.45;
+}
+
+.popup-scroll-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  text-align: center;
+}
+
+.dossier-block {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  padding: 0.65rem 0.85rem;
+  text-align: center;
+}
+.dossier-block.is-highlight {
+  border-color: color-mix(in srgb, var(--secondary) 45%, transparent);
+  box-shadow: var(--neon-inset-cyan);
+}
+.dossier-block-title {
+  margin: 0 0 0.25rem 0;
+  font-family: var(--font-label);
+  font-size: var(--modal-label-size);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--secondary);
+  text-align: center;
+}
+.dossier-block p,
+.dossier-line {
+  margin: 0 auto;
+  font-size: 0.88rem;
+  color: var(--on-surface);
+  text-align: center;
+  line-height: 1.5;
+}
+.dossier-line + .dossier-line { margin-top: 0.25rem; }
+
+.choice-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.choice-box {
+  background: var(--surface-container);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  padding: 0.5rem;
+  text-align: center;
+}
+.choice-box p {
+  margin: 0 auto;
+  text-align: center;
+}
+.choice-box.is-right { border-color: var(--positive); }
+.choice-box.is-wrong { border-color: var(--error); }
+.choice-box-tag {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+  margin-bottom: 2px;
+  text-align: center;
+}
+
+.angle-dossier-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.angle-mini-card {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.65rem 0.55rem;
+  text-align: center;
+}
+.angle-mini-card strong {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--primary);
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.popup-footer {
+  flex-shrink: 0;
+  background: var(--surface-container-high);
+  border-top: 1px solid var(--outline-variant);
+  padding: 0.5rem 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+#codex-modal {
+  width: min(94vw, 1340px);
+  height: 85vh;
+  background: var(--surface-container);
+  border: var(--neon-border-cyan);
+  box-shadow: var(--glow-secondary);
+  border-radius: var(--rounded-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-align: center;
+  font-size: var(--modal-body-size);
+}
+.codex-controls {
+  flex-shrink: 0;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 0.6rem 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: center;
+  gap: 0.55rem;
+}
+.codex-search-input {
+  width: 100%;
+  background: var(--surface-container);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-bottom: 2px solid var(--secondary);
+  border-radius: var(--rounded);
+  padding: 0.35rem 0.7rem;
+  min-width: 220px;
+  min-height: 38px;
+  font-size: var(--modal-body-size);
+}
+.codex-table-wrap {
+  flex: 1 1 auto;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.55rem 0.85rem;
+}
+.codex-table {
+  width: 100%;
+  min-width: 820px;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+  text-align: left;
+}
+.codex-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-container-high);
+  color: var(--secondary);
+  font-family: var(--font-label);
+  font-size: var(--modal-label-size);
+  text-transform: uppercase;
+  padding: 0.55rem;
+  border-bottom: 2px solid var(--outline);
+}
+.codex-table td {
+  padding: 0.55rem;
+  border-bottom: 1px solid var(--outline-variant);
+  vertical-align: top;
+  line-height: 1.45;
+}
+.codex-table tbody tr:nth-child(even) { background: var(--surface-container-low); }
+
+#run-summary-modal {
+  width: min(92vw, 840px);
+  max-height: 86vh;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  padding: 1.15rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  overflow: hidden;
+  font-size: var(--modal-body-size);
+}
+.summary-subtitle { margin: 0; color: var(--on-surface-variant); text-align: center; }
+.summary-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.summary-tile {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  padding: 0.55rem;
+  text-align: center;
+}
+.summary-tile-val {
+  display: block;
+  font-family: var(--font-headline);
+  font-size: var(--modal-display-size);
+  font-weight: 800;
+  color: var(--secondary);
+}
+.summary-tile-label {
+  font-family: var(--font-label);
+  font-size: var(--modal-label-size);
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+.missed-review-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.55rem;
+  text-align: left;
+  min-height: 110px;
+}
+.missed-item {
+  background: var(--surface-container);
+  border-left: 3px solid var(--error);
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--rounded);
+  font-size: 0.86rem;
+  margin-bottom: 0.4rem;
+  line-height: 1.45;
+}
+.missed-empty {
+  color: var(--positive);
+  font-family: var(--font-label);
+  font-size: var(--modal-label-size);
+  text-align: center;
+  padding: 1rem;
+}
+
+.shake-anim { animation: viewport-shake 300ms var(--ease-out); }
+@keyframes viewport-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); }
+  40% { transform: translateX(7px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+@media (max-width: 600px) {
+  :root {
+    --game-stem-size: 0.96rem;
+    --card-min-h: 96px;
+    --card-pad-y: 0.78rem;
+    --card-pad-x: 0.9rem;
+    --card-font: 0.97rem;
+    --card-gap: 0.65rem;
+    --stem-pad-y: 0.48rem;
+    --stem-pad-x: 0.75rem;
+  }
+
+  #xr-app.hints-visible {
+    --game-stem-size: 0.88rem;
+    --card-min-h: 60px;
+    --card-pad-y: 0.44rem;
+    --card-pad-x: 0.75rem;
+    --card-font: 0.88rem;
+    --card-gap: 0.42rem;
+    --stem-pad-y: 0.34rem;
+    --stem-pad-x: 0.65rem;
+  }
+
+  .top-mini-bar { padding: 0.24rem 0.45rem; }
+  .menu-mini-btn { min-height: 34px; padding: 0.2rem 0.55rem; font-size: 0.72rem; }
+  .mini-telemetry { gap: 0.3rem; font-size: 0.68rem; }
+  .tele-chip.is-xp { display: none; }
+
+  .question-stage { padding: 0.34rem 0.5rem 0.4rem; }
+  .question-stem-box { max-height: 30dvh; }
+  #xr-app.hints-visible .question-stem-box { max-height: 22dvh; }
+
+  .lane-overlay-container {
+    top: 44%;
+    width: calc(100% - 1rem);
+    grid-template-columns: 1fr;
+  }
+  .lane-card-head, .lane-key-label { display: none; }
+
+  #hints-bar { padding: 0.4rem 0.65rem; max-height: 22dvh; }
+  .hints-text { font-size: 0.84rem; line-height: 1.35; }
+
+  .menu-backdrop { padding: 0.35rem; }
+  #top-menu-drawer { max-height: calc(100dvh - 0.7rem); padding: 0.8rem; }
+  .menu-actions-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .choice-compare-grid,
+  .angle-dossier-grid { grid-template-columns: 1fr; }
+  .summary-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .modal-backdrop { padding: 0.35rem; }
+  #outcome-popup-modal,
+  #codex-modal,
+  #run-summary-modal {
+    width: 96vw;
+    height: 92dvh;
+    max-height: 92dvh;
+  }
+  .popup-question-pin { max-height: 20dvh; }
+  .codex-table { min-width: 680px; font-size: 0.8rem; }
+}
+
+@media (max-height: 500px) and (pointer: coarse) {
+  :root {
+    --game-stem-size: 0.88rem;
+    --card-min-h: 82px;
+    --card-pad-y: 0.5rem;
+    --card-pad-x: 0.68rem;
+    --card-font: 0.86rem;
+    --card-gap: 0.55rem;
+    --stem-pad-y: 0.3rem;
+    --stem-pad-x: 0.7rem;
+  }
+
+  #xr-app.hints-visible {
+    --game-stem-size: 0.82rem;
+    --card-min-h: 54px;
+    --card-pad-y: 0.32rem;
+    --card-pad-x: 0.55rem;
+    --card-font: 0.8rem;
+    --card-gap: 0.45rem;
+    --stem-pad-y: 0.24rem;
+    --stem-pad-x: 0.6rem;
+  }
+
+  .top-mini-bar { padding: 0.16rem 0.5rem; }
+  .menu-mini-btn { min-height: 28px; padding: 0.14rem 0.5rem; font-size: 0.68rem; }
+  .question-stage { padding: 0.2rem 0.55rem; }
+  .question-stem-box { max-height: 25dvh; }
+  #xr-app.hints-visible .question-stem-box { max-height: 20dvh; }
+  .lane-overlay-container {
+    top: 46%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: calc(100% - 1rem);
+  }
+  .lane-card-head, .lane-key-label { display: none; }
+  #hints-bar { padding: 0.26rem 0.6rem; max-height: 20dvh; }
+  .hints-text { font-size: 0.78rem; line-height: 1.3; }
+  #outcome-popup-modal,
+  #codex-modal,
+  #run-summary-modal {
+    width: 96vw;
+    height: 94dvh;
+    max-height: 94dvh;
+  }
+}
+
+@media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+  html { font-size: 200%; }
+  .lane-overlay-container {
+    top: 44%;
+    width: calc(100% - 1rem);
+    grid-template-columns: 1fr;
+  }
+  .lane-card-head, .lane-key-label { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+<div id="xr-app" class="hints-hidden">
+
+  <div class="top-mini-bar">
+    <button type="button" class="menu-mini-btn" id="menu-toggle-btn" onclick="toggleMenuDrawer()" aria-expanded="false" aria-controls="top-menu-drawer">☰ MENU</button>
+    <div class="mini-telemetry" aria-label="Game Status">
+      <span class="tele-chip is-hp" id="hp-chip">HP <span id="hp-text">100</span></span>
+      <span class="tele-chip is-xp">XP <span id="xp-text">0</span></span>
+      <span class="tele-chip is-streak">⚡<span id="streak-text">0</span></span>
+      <span class="tele-chip"><span id="progress-text">1/30</span></span>
+      <span class="tele-chip is-timer is-off" id="timer-chip">⏱ OFF</span>
+    </div>
+  </div>
+
+  <div class="question-stage">
+    <div class="question-container">
+      <div class="question-meta-row" id="question-meta-row">
+        <span class="meta-badge" id="lo-badge">LO 1</span>
+        <span class="meta-badge is-angle" id="angle-badge">PRESENTATION → DIAGNOSIS</span>
+        <span class="meta-badge is-phase" id="phase-badge">PHASE 1: PATHOGENESIS</span>
+        <span class="meta-badge is-corridor" id="corridor-badge">CORRIDOR</span>
+      </div>
+      <div class="question-stem-box">
+        <p class="question-stem amboss-scan-target" id="q-stem-text">Loading diagnostic corridor…</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="viewport-shell" id="viewport-shell">
+    <canvas id="xr-canvas" aria-label="3D Perspective Diagnostic Corridor"></canvas>
+    <div class="lane-overlay-container" id="lane-overlay-container">
+      <div id="lane-0-card" class="lane-dom-card lane-0" role="button" tabindex="0"
+           onmouseenter="previewLaneTarget(0)" onpointerenter="previewLaneTarget(0)" onfocus="previewLaneTarget(0)"
+           onclick="selectLaneAndResolve(0)"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(0);}">
+        <div class="lane-card-head">
+          <span class="lane-portal-name">LEFT PORTAL</span>
+          <span class="lane-key-label">1 / A / ←</span>
+        </div>
+        <div class="lane-choice-body">
+          <span id="lane-0-text" class="amboss-scan-target">Option A</span>
+        </div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+      <div id="lane-1-card" class="lane-dom-card lane-1 is-targeted" role="button" tabindex="0"
+           onmouseenter="previewLaneTarget(1)" onpointerenter="previewLaneTarget(1)" onfocus="previewLaneTarget(1)"
+           onclick="selectLaneAndResolve(1)"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(1);}">
+        <div class="lane-card-head">
+          <span class="lane-portal-name">CENTER PORTAL</span>
+          <span class="lane-key-label">2 / W / ↑</span>
+        </div>
+        <div class="lane-choice-body">
+          <span id="lane-1-text" class="amboss-scan-target">Option B</span>
+        </div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+      <div id="lane-2-card" class="lane-dom-card lane-2" role="button" tabindex="0"
+           onmouseenter="previewLaneTarget(2)" onpointerenter="previewLaneTarget(2)" onfocus="previewLaneTarget(2)"
+           onclick="selectLaneAndResolve(2)"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(2);}">
+        <div class="lane-card-head">
+          <span class="lane-portal-name">RIGHT PORTAL</span>
+          <span class="lane-key-label">3 / D / →</span>
+        </div>
+        <div class="lane-choice-body">
+          <span id="lane-2-text" class="amboss-scan-target">Option C</span>
+        </div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+    </div>
+    <div class="vignette-overlay" id="vignette-overlay"></div>
+    <div class="heal-toast" id="heal-toast">✚ STREAK BONUS +25 HP</div>
+  </div>
+
+  <div id="hints-bar" aria-live="polite">
+    <div class="hints-inner">
+      <div class="hints-header-row">
+        <span class="hints-tag">💡 HINT [H]</span>
+        <span class="hints-subtag" id="hints-meta-ref">LO 1 • Phase 1</span>
+      </div>
+      <p class="hints-text amboss-scan-target" id="q-clue-text">—</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="menu-backdrop" id="menu-backdrop" onclick="if(event.target===this)toggleMenuDrawer()">
+  <div id="top-menu-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+    <div class="menu-top-header">
+      <div class="menu-title-stack">
+        <span class="brand-kicker" id="drawer-kicker">MSK Pathology // Dr. Angelica Oviedo, MD // Interactive XR Raid</span>
+        <h1 class="brand-title" id="drawer-title">Lecture 04: Pathology of Skeletal Dysplasia — XR 3-Lane Diagnostic Runner</h1>
+      </div>
+      <button type="button" class="btn-neon" onclick="toggleMenuDrawer()">✕ Close</button>
+    </div>
+
+    <div>
+      <div class="menu-section-label">Quick Actions &amp; Session Controls</div>
+      <div class="menu-actions-grid">
+        <button type="button" class="btn-neon is-yellow" id="menu-hints-btn" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+        <button type="button" class="btn-neon is-cyan" onclick="openCodexFromMenu()">📖 Loot Codex [C]</button>
+        <button type="button" class="btn-neon is-yellow" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+        <button type="button" class="btn-neon is-cyan" id="menu-timer-btn" onclick="toggleTimerActive()">⏱ 50s Timer: OFF [T]</button>
+        <button type="button" class="btn-neon" onclick="startTimedSession()">⚡ Start 50s Timed Run</button>
+        <button type="button" class="btn-neon is-yellow" id="master-sound-btn" onclick="toggleMasterSound()">🔊 Sound: ON</button>
+        <button type="button" class="btn-neon is-cyan" id="audio-toggle-btn" onclick="toggleSfx()">🔊 SFX: ON</button>
+        <button type="button" class="btn-neon is-purple" id="menu-bgm-btn" onclick="toggleBgm()">🎵 Zombies BGM: OFF</button>
+        <button type="button" class="btn-neon is-cyan" onclick="document.getElementById('bgm-file-input').click()">📂 Custom MP3/WAV</button>
+        <button type="button" class="btn-neon" onclick="restartOrdered()">↺ Restart Ordered</button>
+        <button type="button" class="btn-neon is-cyan" onclick="restartRandomized()">🔀 Shuffle Deck</button>
+        <button type="button" class="btn-neon is-yellow" id="reset-run-btn" onclick="handleResetMastery(this)">⚠ Reset Mastery</button>
+      </div>
+      <input type="file" id="bgm-file-input" accept="audio/*" style="display:none" onchange="handleCustomBgmUpload(event)">
+    </div>
+
+    <hr class="menu-divider">
+
+    <div class="controls-strip">
+      <div class="control-field">
+        <label for="sector-filter">Dungeon Sector (LO / Review Queue)</label>
+        <select id="sector-filter" class="neon-select" onchange="applyFilters()">
+          <option value="all">All Sectors</option>
+          <option value="missed" id="missed-sector-option">🎯 Missed Gates Only (0)</option>
+        </select>
+      </div>
+      <div class="control-field">
+        <label for="angle-filter">Question Angle</label>
+        <select id="angle-filter" class="neon-select" onchange="applyFilters()">
+          <option value="all">All 3 Angles</option>
+          <option value="Presentation -> Diagnosis">Angle 1: Presentation → Diagnosis</option>
+          <option value="Mechanism -> Pathophysiology">Angle 2: Mechanism → Pathophysiology</option>
+          <option value="Hallmarks -> Management">Angle 3: Hallmarks → Management</option>
+        </select>
+      </div>
+      <div class="control-field">
+        <label for="times-up-select">Time's Up Mode (50s Timer)</label>
+        <select id="times-up-select" class="neon-select" onchange="applyTimerSettings()">
+          <option value="fail">Time's Up = Wrong → Review Screen</option>
+          <option value="hold">Hold at 0s (No Penalty)</option>
+        </select>
+      </div>
+      <div class="control-field">
+        <label for="bgm-volume-slider">BGM Volume</label>
+        <div class="volume-row">
+          <input type="range" id="bgm-volume-slider" class="volume-slider" min="0" max="100" value="35" oninput="updateBgmVolume(this.value)">
+          <span style="font-family:var(--font-label);font-size:0.74rem;color:var(--secondary)" id="bgm-vol-label">35%</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="menu-section-label">Phase Distribution Filter (30% / 35% / 35%)</div>
+      <div class="phase-mix-strip">
+        <button type="button" class="phase-mix-pill is-selected" data-phase="all" onclick="setPhaseFilter('all')">All Phases (30/35/35%)</button>
+        <button type="button" class="phase-mix-pill" data-phase="Phase 1: Pathogenesis" onclick="setPhaseFilter('Phase 1: Pathogenesis')">Phase 1: Pathogenesis (30%)</button>
+        <button type="button" class="phase-mix-pill" data-phase="Phase 2: Histology / Structure" onclick="setPhaseFilter('Phase 2: Histology / Structure')">Phase 2: Histology / Structure (35%)</button>
+        <button type="button" class="phase-mix-pill" data-phase="Phase 3: Clinical & Management" onclick="setPhaseFilter('Phase 3: Clinical & Management')">Phase 3: Clinical &amp; Management (35%)</button>
+      </div>
+    </div>
+
+    <div class="inline-toast" id="menu-status-msg" role="status" aria-live="polite"></div>
+    <hr class="menu-divider">
+
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;flex-wrap:wrap;gap:0.4rem;">
+        <span class="menu-section-label" style="margin:0;">Objective Skill Tree (Tap to Deploy)</span>
+        <span style="font-family:var(--font-label);font-size:0.7rem;color:var(--on-surface-variant);" id="mastery-summary">Mastered: 0 / 5 LOs • Accuracy: --%</span>
+      </div>
+      <div class="skill-tree-grid" id="skill-tree-grid"></div>
+    </div>
+
+    <div class="hotkey-guide">
+      <strong>Keyboard Shortcuts:</strong> [1 / 2 / 3] or [A / W / D] or [← / ↑ / →] Select Portal • [H] Toggle Bottom Hints • [M] Menu • [C] Loot Codex • [S] Skip • [T] Toggle 50s Timer • [Space / Enter] Continue Review
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="outcome-backdrop" role="dialog" aria-modal="true" aria-labelledby="outcome-verdict">
+  <div id="outcome-popup-modal">
+    <div class="popup-header popup-header-centered">
+      <h2 class="popup-verdict" id="outcome-verdict">✔ CORRECT — Answer</h2>
+      <span class="meta-badge" id="outcome-xp-delta">+100 XP</span>
+      <span class="meta-badge is-phase" id="outcome-hp-delta">+5 HP</span>
+    </div>
+    <div class="popup-question-pin">
+      <span class="popup-question-pin-label" id="outcome-lo-ref">Original Board Vignette</span>
+      <p class="popup-question-pin-text amboss-scan-target" id="outcome-question-text"></p>
+    </div>
+    <div class="popup-scroll-body" id="outcome-scroll-body">
+      <div class="dossier-block is-highlight">
+        <h3 class="dossier-block-title">1. Your Choice vs. Correct Answer</h3>
+        <div class="choice-compare-grid">
+          <div class="choice-box" id="your-choice-box">
+            <span class="choice-box-tag">Your Selected Lane</span>
+            <p id="your-choice-text" class="amboss-scan-target"></p>
+          </div>
+          <div class="choice-box is-right">
+            <span class="choice-box-tag">Correct Answer</span>
+            <p id="correct-choice-text" class="amboss-scan-target"></p>
+          </div>
+        </div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">2. Concise Explanation &amp; Distractor Exclusion</h3>
+        <div id="dossier-explanation" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">3. Second-Order Vignette Clue</h3>
+        <div id="dossier-board-clue" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">4. Core Mechanism &amp; Pathogenesis Pearls (Phase 1)</h3>
+        <div id="dossier-pathogenesis" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">5. High-Yield Morphology &amp; Structural Hallmarks (Phase 2)</h3>
+        <div id="dossier-morphology" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">6. Guild Master's Secret &amp; Clinical Management (Phase 3)</h3>
+        <div id="dossier-epi-tx" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block is-highlight">
+        <h3 class="dossier-block-title">7. Complete 3-Phase Topic Dossier</h3>
+        <div class="angle-dossier-grid">
+          <div class="angle-mini-card">
+            <strong>Phase 1: Pathogenesis</strong>
+            <div id="dossier-angle-1" class="amboss-scan-target"></div>
+          </div>
+          <div class="angle-mini-card">
+            <strong>Phase 2: Histology / Structure</strong>
+            <div id="dossier-angle-2" class="amboss-scan-target"></div>
+          </div>
+          <div class="angle-mini-card">
+            <strong>Phase 3: Clinical / Tx</strong>
+            <div id="dossier-angle-3" class="amboss-scan-target"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="popup-footer">
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(-180)">▲ Up</button>
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(180)">▼ Down</button>
+      <button type="button" class="btn-neon" id="continue-runner-btn" onclick="continueToNextGate()">▶ Continue Runner [Space / Enter]</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="codex-backdrop" role="dialog" aria-modal="true" aria-labelledby="codex-title">
+  <div id="codex-modal">
+    <div class="popup-header">
+      <h2 class="popup-verdict is-cyan" id="codex-title">Master Raid Loot Codex</h2>
+      <button type="button" class="btn-neon" onclick="closeCodex()">✕ Close [Esc]</button>
+    </div>
+    <div class="codex-controls">
+      <div class="control-field" style="flex:1 1 240px;">
+        <label for="codex-search">Search Entity, Mechanism, Sign, or Countermeasure</label>
+        <input type="text" id="codex-search" class="codex-search-input" placeholder="Search keyword…" oninput="renderCodexTable()">
+      </div>
+      <div class="phase-mix-strip">
+        <button type="button" class="phase-mix-pill is-selected" data-codex-tag="all" onclick="setCodexTag('all')">All Objectives</button>
+        <button type="button" class="phase-mix-pill" data-codex-tag="cat_1" onclick="setCodexTag('cat_1')">FGFR3 Cartilage</button>
+        <button type="button" class="phase-mix-pill" data-codex-tag="cat_2" onclick="setCodexTag('cat_2')">Collagen Type I (OI)</button>
+        <button type="button" class="phase-mix-pill" data-codex-tag="cat_3" onclick="setCodexTag('cat_3')">Resorption &amp; Limb Defects</button>
+      </div>
+    </div>
+    <div class="codex-table-wrap">
+      <table class="codex-table">
+        <thead>
+          <tr>
+            <th>LO &amp; Entity / Boss</th>
+            <th>Etiology / Trigger</th>
+            <th>Pathogenesis Cascade</th>
+            <th>Gross &amp; Histology Hallmarks</th>
+            <th>Clinical Presentation</th>
+            <th>Management &amp; Guild Secret</th>
+          </tr>
+        </thead>
+        <tbody id="codex-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="summary-backdrop" role="dialog" aria-modal="true" aria-labelledby="summary-title">
+  <div id="run-summary-modal">
+    <h2 class="popup-verdict is-cyan" id="summary-title">DIAGNOSTIC RUN COMPLETE</h2>
+    <p class="summary-subtitle" id="summary-subtitle">Lecture 04: Pathology of Skeletal Dysplasia</p>
+    <div class="summary-metrics">
+      <div class="summary-tile"><span class="summary-tile-val" id="sum-xp">0</span><span class="summary-tile-label">Total XP</span></div>
+      <div class="summary-tile"><span class="summary-tile-val" id="sum-acc">0%</span><span class="summary-tile-label">Accuracy</span></div>
+      <div class="summary-tile"><span class="summary-tile-val" id="sum-streak">0</span><span class="summary-tile-label">Best Streak</span></div>
+      <div class="summary-tile"><span class="summary-tile-val" id="sum-hp">100</span><span class="summary-tile-label">Final HP</span></div>
+    </div>
+    <div class="missed-review-list" id="missed-review-list"></div>
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:0.5rem;">
+      <button type="button" class="btn-neon is-yellow" id="retry-missed-btn" onclick="retryMissedOnly()">🎯 Retry Missed Gates</button>
+      <button type="button" class="btn-neon" onclick="restartOrdered()">↺ Restart In Order</button>
+      <button type="button" class="btn-neon is-cyan" onclick="restartRandomized()">🔀 Shuffle All</button>
+    </div>
+  </div>
+</div>
+
+<audio id="custom-bgm-audio" loop></audio>
+<api-shim></api-shim>
+<script>
+const GAME_CONFIG = {
+  title: `Lecture 04: Pathology of Skeletal Dysplasia — XR 3-Lane Diagnostic Runner`,
+  kicker: `MSK Pathology // Dr. Angelica Oviedo, MD // Interactive XR Raid`,
+  maxHp: 100,
+  hpPenalty: 15,
+  hpReward: 5,
+  healAmount: 25,
+  healStreakStep: 4,
+  stopDistanceMeters: 5,
+  gateStartDistance: 95,
+  gateApproachSpeed: 24,
+  timerSeconds: 50,
+  metaFadeMs: 3000
+};
+
+const LANE_COLORS = ['#ff2d78', '#00ffcc', '#ffe04a'];
+
+const DEFAULT_THEME_CYCLE = [
+  { tag: `DIAGNOSTIC VOID • GOLDEN PIXEL DUST`, particleColor: `#e8cf58`, gridRgb: `108, 92, 172`, railColor: `#34a88f` },
+  { tag: `DIAGNOSTIC VOID • AMBER SPARK DUST`, particleColor: `#f2a86b`, gridRgb: `122, 82, 160`, railColor: `#34a88f` },
+  { tag: `DIAGNOSTIC VOID • COOL CYAN PIXELS`, particleColor: `#66e6d6`, gridRgb: `92, 108, 174`, railColor: `#34a88f` },
+  { tag: `DIAGNOSTIC VOID • CRIMSON-GOLD DUST`, particleColor: `#ff6b8b`, gridRgb: `132, 78, 148`, railColor: `#34a88f` },
+  { tag: `DIAGNOSTIC VOID • VIOLET-GOLD PIXELS`, particleColor: `#c8a8ff`, gridRgb: `118, 92, 184`, railColor: `#34a88f` }
+];
+
+const LO_VISUAL_THEMES = {
+  1: {
+    tag: `FGFR3 GROWTH PLATE CORRIDOR • GOLDEN DUST`,
+    particleColor: `#f5dc62`,
+    gridRgb: `112, 96, 168`,
+    railColor: `#34a88f`
+  },
+  2: {
+    tag: `LETHAL THORAX VOID • CRIMSON-GOLD DUST`,
+    particleColor: `#ff6b8b`,
+    gridRgb: `132, 78, 148`,
+    railColor: `#34a88f`
+  },
+  3: {
+    tag: `COLLAGEN TRIPLE-HELIX RIFT • AMBER DUST`,
+    particleColor: `#f2a86b`,
+    gridRgb: `122, 82, 160`,
+    railColor: `#34a88f`
+  },
+  4: {
+    tag: `BLUE SCLERA MATRIX • COOL CYAN PIXELS`,
+    particleColor: `#66e6d6`,
+    gridRgb: `92, 108, 174`,
+    railColor: `#34a88f`
+  },
+  5: {
+    tag: `MARBLE BONE & LIMB SECTOR • VIOLET DUST`,
+    particleColor: `#c8a8ff`,
+    gridRgb: `118, 92, 184`,
+    railColor: `#34a88f`
+  }
+};
+
+const CODEX_DATA = [
+  {
+    lo: 1,
+    tag: `cat_1`,
+    entity: `Achondroplasia`,
+    badgeMeta: `Most Common • AD / De Novo`,
+    etiology: `Autosomal dominant FGFR3 gain-of-function mutation (Gly380Arg); majority are de novo in paternal germline (older fathers, sperm survival advantage).`,
+    pathogenesis: `Constitutive FGFR3 activation signals growth-plate chondroblasts to terminally differentiate prematurely into non-dividing chondrocytes, halting proliferation and impairing endochondral ossification.`,
+    hallmarks: `Short, thick long bones with rhizomelic (proximal) shortening (humerus/femur); macrocephaly with bulging forehead, depressed nasal root, narrow foramen magnum, lumbar lordosis, trident hands.`,
+    clinical: `Disproportionate short stature (<3rd percentile) with normal trunk length; survival into adulthood; brainstem compression causing central sleep apnea or hydrocephalus; lumbar spinal stenosis.`,
+    management: `Confirm with genetic sequencing; monitor foramen magnum for brainstem compression/sleep apnea and spine for stenosis. Guild Secret: Brain/skull are large via non-cartilage FGFR3 signaling.`
+  },
+  {
+    lo: 2,
+    tag: `cat_1`,
+    entity: `Thanatophoric Dysplasia`,
+    badgeMeta: `Perinatal Lethal • FGFR3`,
+    etiology: `Severe FGFR3 gain-of-function mutation (distinct from achondroplasia; e.g., Arg248Cys in Type I), typically sporadic de novo.`,
+    pathogenesis: `Extreme constitutive FGFR3 activation severely arrests chondroblast proliferation and disorganizes the epiphyseal growth plate, devastating both limb and rib cage endochondral growth.`,
+    hallmarks: `Disorganized growth plate; very short ribs with tiny thorax; bell-shaped abdomen; relatively large head. Type I: curved "telephone-receiver" femurs. Type II: straight femurs with cloverleaf skull (kleeblattschädel).`,
+    clinical: `Abnormal 20-week anatomy ultrasound (severe micromelia, small thoracic circumference) or delivery-room respiratory distress with perinatal lethality.`,
+    management: `Lethal pulmonary hypoplasia from tiny thorax; prenatal US + X-ray + genetic sequencing confirmation. Guild Secret: Same gene (FGFR3) as achondroplasia, different mutation, lethal phenotype.`
+  },
+  {
+    lo: 3,
+    tag: `cat_2`,
+    entity: `Osteogenesis Imperfecta Type 2`,
+    badgeMeta: `Perinatal Lethal • COL1A1/2`,
+    etiology: `Type I collagen (COL1A1/COL1A2) mutations; most are autosomal recessive or autosomal dominant via parental gonadal mosaicism.`,
+    pathogenesis: `Dominant-negative mutant pro-alpha chains interfere with assembly of normal collagen triple-helix chains, yielding severe deficiency of Type I collagen and extreme skeletal fragility.`,
+    hallmarks: `Multiple intrauterine fractures; crumpled ("concertina") long bones/femurs; crumpled/beaded ribs; tiny thorax; wormian skull bones on radiograph.`,
+    clinical: `Fetal demise or perinatal death shortly after birth from severe respiratory insufficiency due to rib fractures and tiny thorax (same cause of death as thanatophoric dysplasia).`,
+    management: `Prenatal/postmortem skeletal survey X-ray + DNA sequencing; counsel on parental gonadal mosaicism recurrence risk. Guild Secret: Crumpled bones/ribs distinguish OI Type 2 from smooth curved femurs of thanatophoric dysplasia.`
+  },
+  {
+    lo: 4,
+    tag: `cat_2`,
+    entity: `Osteogenesis Imperfecta Type 1`,
+    badgeMeta: `Non-Lethal • AD Collagen`,
+    etiology: `Autosomal dominant Type I collagen (COL1A1/COL1A2) mutation causing quantitative deficiency of normal Type I collagen synthesis.`,
+    pathogenesis: `Insufficient Type I collagen impairs organic bone matrix and mineralization, producing brittle bones without the perinatal-lethal triple-helix collapse of Type 2.`,
+    hallmarks: `Severe osteopenia (translucent bone cortex on X-ray) with fractures; blue sclerae (thin scleral collagen revealing choroid); dentinogenesis imperfecta (gray-brown teeth).`,
+    clinical: `Childhood fractures from minor playground trauma that decrease after puberty; conductive/sensorineural hearing loss; normal or mildly short stature.`,
+    management: `DNA confirmation, orthopedic fracture stabilization, audiology/dental care; distinguish carefully from non-accidental trauma (child abuse). Guild Secret: Blue sclerae + hearing loss + gray-brown teeth rule in OI Type 1 over abuse.`
+  },
+  {
+    lo: 5,
+    tag: `cat_3`,
+    entity: `Osteopetrosis, Radial Aplasia & Thalidomide`,
+    badgeMeta: `Resorption & Limb Defects`,
+    etiology: `Osteopetrosis: osteoclast acidification defects (AR Carbonic Anhydrase II loss-of-function, TCIRG1, CLCN7). Radial Aplasia: sporadic congenital bone aplasia. Thalidomide: historical maternal drug exposure.`,
+    pathogenesis: `Osteopetrosis: failed resorption pit acidification leaves persistent primary spongiosa (calcified cartilage) unremodeled—too much bone that is brittle and obliterates marrow.`,
+    hallmarks: `Osteopetrosis: diffuse skeletal sclerosis, Erlenmeyer flask femur deformity, bone-in-bone (endobone) sign, indistinct corticomedullary junction. Radial aplasia: absent radius and thumb (uni/bilateral). Thalidomide: severe limb phocomelia/malformation.`,
+    clinical: `Osteopetrosis: childhood fractures despite dense bones, leukopenia/infections, pancytopenia, extramedullary hematopoiesis (hepatosplenomegaly), cranial nerve palsies from foraminal impingement.`,
+    management: `Osteopetrosis: hematopoietic stem cell transplantation (HSCT) provides functional donor osteoclasts (curative). Guild Secret: Sclerotic bones on X-ray are paradoxical—they fracture easily because unremodeled calcified cartilage is brittle.`
+  }
+];
+
+const ALL_QUESTIONS = [
+  {
+    id: `LO01-Q1`,
+    lo: 1,
+    loTitle: `LO 1: Achondroplasia`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Achondroplasia`,
+    stem: `A 6-year-old boy with short stature well below the 3rd percentile has a relatively normal trunk length, prominent lumbar lordosis, a bulging forehead with a depressed nasal root, and splayed fingers of equal length. Which diagnosis best explains this phenotype?`,
+    clue: `Look for disproportionate rhizomelic short stature, macrocephaly with depressed nasal bridge, and trident hands in a surviving child.`,
+    choices: [
+      `Achondroplasia`,
+      `Thanatophoric dysplasia`,
+      `Osteogenesis imperfecta type 1`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Achondroplasia presents with disproportionate short stature (<3rd percentile), normal trunk, lumbar lordosis, macrocephaly, depressed nasal root, and trident hands with survival. Distractor exclusion: Thanatophoric dysplasia is perinatal lethal with a tiny thorax; OI type 1 presents with fractures, osteopenia, and blue sclerae rather than trident hands.`,
+    secondOrderClue: `Rhizomelic shortening + frontal bossing + depressed nasal root + trident hands + survival = Achondroplasia.`,
+    phase1Pearl: `Autosomal dominant FGFR3 gain-of-function mutation slows cartilage growth at the epiphyseal plate.`,
+    phase2Hallmark: `Short, thick long bones (worse proximally in humerus/femur), trident hand posture, and enlarged calvarium.`,
+    phase3Secret: `Guild Secret: Central sleep apnea and hydrocephalus stem from a narrow foramen magnum compressing the brainstem.`,
+    dossierBullets: {
+      p1: [
+        `FGFR3 gain-of-function mutation causes constitutive signaling`,
+        `Often arises de novo in paternal germline (older fathers)`
+      ],
+      p2: [
+        `Short long bones more severe proximally (humerus, femur)`,
+        `Macrocephaly, bulging forehead, depressed nasal root, trident hands`
+      ],
+      p3: [
+        `Normal trunk with exaggerated lumbar lordosis`,
+        `Screen for narrow foramen magnum causing central sleep apnea`
+      ]
+    }
+  },
+  {
+    id: `LO01-Q2`,
+    lo: 1,
+    loTitle: `LO 1: Achondroplasia`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Central Sleep Apnea`,
+    stem: `A 34-year-old man with achondroplasia develops nocturnal breathing pauses without snoring or abdominal airway obstruction, along with early hydrocephalus. Which complication explains his nocturnal respiratory pauses?`,
+    clue: `Contrast obstructive airway collapse with medullary compression at the skull base in achondroplasia.`,
+    choices: [
+      `Central sleep apnea from narrow foramen magnum`,
+      `Obstructive sleep apnea from micrognathia`,
+      `Pulmonary hypoplasia from crumpled ribs`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: A narrow foramen magnum in achondroplasia compresses the medulla/brainstem, impairing respiratory drive during sleep (central sleep apnea) and CSF outflow (hydrocephalus). Distractor exclusion: Obstructive sleep apnea involves upper airway obstruction rather than medullary compression; crumpled ribs with pulmonary hypoplasia occur in lethal OI type 2.`,
+    secondOrderClue: `Achondroplasia + narrow foramen magnum -> medullary compression -> central (not obstructive) sleep apnea.`,
+    phase1Pearl: `Abnormal skull-base endochondral ossification narrows the foramen magnum while brain volume enlarges.`,
+    phase2Hallmark: `Radiographic and MRI narrowing of the foramen magnum with brainstem impingement and ventricular dilation.`,
+    phase3Secret: `Guild Secret: Adults with achondroplasia also develop lumbar spinal stenosis alongside foramen magnum complications.`,
+    dossierBullets: {
+      p1: [
+        `Endochondral skull-base growth restriction narrows foramen magnum`,
+        `Brain growth itself is enlarged (true megalencephaly)`
+      ],
+      p2: [
+        `Compressed cervicomedullary junction at foramen magnum`,
+        `Associated lumbar spinal stenosis in adult patients`
+      ],
+      p3: [
+        `Medulla fails to send respiratory drive signals during sleep`,
+        `Distinguish central sleep apnea from obesity-related OSA`
+      ]
+    }
+  },
+  {
+    id: `LO01-Q3`,
+    lo: 1,
+    loTitle: `LO 1: Achondroplasia`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Constitutive FGFR3 Activation`,
+    stem: `A neonate born to average-height parents is diagnosed with achondroplasia. Genetic testing identifies a Gly380Arg substitution in FGFR3. How does this mutation produce shortened long bones?`,
+    clue: `Recall whether FGFR3 normally turns cartilage proliferation on or acts as a brake driving terminal differentiation.`,
+    choices: [
+      `Premature chondroblast differentiation halting proliferation`,
+      `Failed osteoclast acidification of calcified cartilage`,
+      `Defective Type I collagen triple-helix assembly`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Gain-of-function FGFR3 mutation (Gly380Arg) constitutively signals growth-plate chondroblasts to differentiate prematurely into non-dividing chondrocytes, starving endochondral ossification of cartilage matrix. Distractor exclusion: Osteoclast acidification failure causes osteopetrosis; defective Type I collagen causes osteogenesis imperfecta.`,
+    secondOrderClue: `FGFR3 gain-of-function -> chondroblasts become terminal chondrocytes too early -> impaired endochondral ossification.`,
+    phase1Pearl: `Normally FGFR3 ligand binding turns off after signaling; the mutated receptor stays constitutively active.`,
+    phase2Hallmark: `Reduced proliferative zone chondroblasts at the growth plate yielding short, stubby femurs and humeri.`,
+    phase3Secret: `Guild Secret: Paternal de novo germline mutations confer a survival advantage to mutant spermatogonia in older fathers.`,
+    dossierBullets: {
+      p1: [
+        `Gain-of-function Gly380Arg mutation activates FGFR3 constitutively`,
+        `Chondroblasts differentiate prematurely into non-dividing chondrocytes`
+      ],
+      p2: [
+        `Insufficient cartilage template at the epiphyseal growth plate`,
+        `Long bones remain short and relatively thick on X-ray`
+      ],
+      p3: [
+        `Autosomal dominant inheritance; ~80% de novo paternal germline`,
+        `Membranous bone (cranial vault) is spared relative to skull base`
+      ]
+    }
+  },
+  {
+    id: `LO01-Q4`,
+    lo: 1,
+    loTitle: `LO 1: Achondroplasia`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Paternal Germline Advantage`,
+    stem: `Two phenotypically normal parents (father aged 48, mother aged 29) have a newborn with achondroplasia. Which genetic mechanism accounts for the high frequency of sporadic cases associated with advanced paternal age?`,
+    clue: `Think about why mutant sperm outnumber wild-type sperm in the paternal testis.`,
+    choices: [
+      `De novo paternal germline mutation with sperm survival advantage`,
+      `Autosomal recessive inheritance of carbonic anhydrase II deficiency`,
+      `Maternal exposure to teratogenic sedatives during organogenesis`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Most sporadic achondroplasia arises from a de novo FGFR3 mutation in the paternal germline that confers a proliferative/survival advantage to mutant spermatogonial stem cells, increasing transmission with paternal age. Distractor exclusion: CA2 deficiency is autosomal recessive osteopetrosis; maternal teratogen exposure describes thalidomide embryopathy.`,
+    secondOrderClue: `Unaffected older father + achondroplasia child -> de novo paternal germline FGFR3 mutation (germline selection).`,
+    phase1Pearl: `FGFR3 hotspot mutations selectively expand clonal spermatogonia in the father even though he is phenotypically normal.`,
+    phase2Hallmark: `Child displays full achondroplasia skeletal phenotype despite normal parental radiographs.`,
+    phase3Secret: `Guild Secret: Once present in the child, achondroplasia is transmitted in an autosomal dominant pattern (50% recurrence to their offspring).`,
+    dossierBullets: {
+      p1: [
+        `De novo mutation occurs in paternal germline allele`,
+        `Mutant spermatogonia gain a survival/clonal advantage over normal sperm`
+      ],
+      p2: [
+        `Macrocephaly includes both an enlarged brain and enlarged skull`,
+        `Depressed nasal root can be spotted on prenatal ultrasound`
+      ],
+      p3: [
+        `Phenotypically normal parents have very low recurrence risk`,
+        `Affected individual transmits trait in autosomal dominant fashion`
+      ]
+    }
+  },
+  {
+    id: `LO01-Q5`,
+    lo: 1,
+    loTitle: `LO 1: Achondroplasia`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Rhizomelic Femur & Trident Hand`,
+    stem: `Radiographs of a 4-year-old child with macrocephaly show short, thick femurs and humeri that are disproportionately shorter than the radii and tibiae, alongside splayed fingers with widened spacing between digits 3 and 4. Which radiographic pair is described?`,
+    clue: `Identify the proximal-predominant limb shortening pattern and the classic 3-pronged hand shape.`,
+    choices: [
+      `Rhizomelic shortening and trident hands`,
+      `Telephone-receiver femurs and cloverleaf skull`,
+      `Erlenmeyer flask femurs and endobone sign`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Achondroplasia characteristically shows rhizomelic shortening (humerus and femur more shortened than radius/ulna and tibia/fibula) and trident hands (short, equal-length splayed fingers). Distractor exclusion: Telephone-receiver femurs and cloverleaf skull characterize thanatophoric dysplasia; Erlenmeyer flask femurs and endobone sign occur in osteopetrosis.`,
+    secondOrderClue: `Proximal > distal shortening (rhizomelic) + 3-pronged splayed digits = Achondroplasia.`,
+    phase1Pearl: `Endochondral ossification is impaired globally, affecting proximal long-bone physes most noticeably.`,
+    phase2Hallmark: `Short, broad femur compared with age-matched normal bone; flat acetabular roofs and trident hand geometry.`,
+    phase3Secret: `Guild Secret: Remember that in neonates and children, epiphyseal cartilage is radiolucent on routine X-rays.`,
+    dossierBullets: {
+      p1: [
+        `Impaired endochondral ossification slows longitudinal bone growth`,
+        `Cartilage at epiphyses and anterior ribs is transparent on X-ray`
+      ],
+      p2: [
+        `Humerus and femur show severe proximal (rhizomelic) shortening`,
+        `Trident hands: short, equal-length digits splayed outward`
+      ],
+      p3: [
+        `Compare radiographs against age-matched normal pediatric charts`,
+        `Confirm diagnosis with targeted FGFR3 genetic sequencing`
+      ]
+    }
+  },
+  {
+    id: `LO01-Q6`,
+    lo: 1,
+    loTitle: `LO 1: Achondroplasia`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Genetic Sequencing & Stenosis Watch`,
+    stem: `A 20-week prenatal anatomy ultrasound reveals shortened proximal fetal femurs, macrocephaly, and a depressed nasal root. After live birth, an X-ray shows short thick long bones with open growth plates. What is the next best step to confirm the diagnosis and guide surveillance?`,
+    clue: `Consider how skeletal dysplasias are definitively confirmed after rapid X-ray screening and what adult/pediatric neural sites require monitoring.`,
+    choices: [
+      `FGFR3 sequencing and foramen magnum/spine monitoring`,
+      `Immediate hematopoietic stem cell transplantation`,
+      `Skeletal survey for child protective abuse reporting`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: While X-rays give rapid bedside clues, skeletal dysplasias are confirmed with genetic sequencing (FGFR3), and achondroplasia requires monitoring the foramen magnum (sleep apnea/hydrocephalus) and lumbar spine (stenosis). Distractor exclusion: HSCT treats osteopetrosis; abuse reporting applies when distinguishing unexplained fractures from OI type 1.`,
+    secondOrderClue: `20-week US depressed nasal root + short femurs -> X-ray first, confirm via genetic sequencing, monitor foramen magnum.`,
+    phase1Pearl: `Open growth plates in children allow ongoing longitudinal comparison while genetic sequencing takes several days.`,
+    phase2Hallmark: `Short, thick femur with preserved smooth growth plate contour (unlike severe disorganization of thanatophoric dysplasia).`,
+    phase3Secret: `Guild Secret: X-rays are fast for acute evaluation, whereas genetic sequencing takes at least a few days even at specialized centers.`,
+    dossierBullets: {
+      p1: [
+        `Routine prenatal anatomy scan at 20 weeks detects rhizomelia & nasal root`,
+        `Genetic sequencing confirms specific FGFR3 gain-of-function variant`
+      ],
+      p2: [
+        `Cartilage is radiolucent; pediatric growth plates remain open`,
+        `Femur is short and thick without intrauterine crumpling`
+      ],
+      p3: [
+        `Monitor for central sleep apnea, hydrocephalus, and spinal stenosis`,
+        `Distinguish true dysplasia from placental IUGR using dating tables`
+      ]
+    }
+  },
+  {
+    id: `LO02-Q1`,
+    lo: 2,
+    loTitle: `LO 2: Thanatophoric Dysplasia`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Thanatophoric Dysplasia`,
+    stem: `A 29-year-old woman delivers at 34 weeks after prenatal ultrasound showed extreme micromelia, a relatively large head, a bell-shaped abdomen, and a tiny thoracic circumference. The infant dies shortly after birth from severe respiratory distress. What is the diagnosis?`,
+    clue: `Think of the lethal FGFR3 skeletal dysplasia with a tiny thorax and bell-shaped abdomen.`,
+    choices: [
+      `Thanatophoric dysplasia`,
+      `Achondroplasia`,
+      `Osteogenesis imperfecta type 1`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Thanatophoric dysplasia is a perinatal lethal skeletal dysplasia featuring a relatively large head, extreme short long bones, tiny thorax, and bell-shaped abdomen leading to lethal respiratory insufficiency. Distractor exclusion: Achondroplasia has a normal-sized trunk/chest and survives; OI type 1 is non-lethal with childhood fractures.`,
+    secondOrderClue: `Large head + tiny thorax + bell-shaped abdomen + perinatal death = Thanatophoric dysplasia.`,
+    phase1Pearl: `Caused by a severe FGFR3 gain-of-function mutation distinct from the achondroplasia allele.`,
+    phase2Hallmark: `Very short ribs that fail to wrap anteriorly, tiny thoracic cage, and severely shortened femurs.`,
+    phase3Secret: `Guild Secret: Clinically, thoracic circumference is measured and compared against normal fetal tables to predict lethality.`,
+    dossierBullets: {
+      p1: [
+        `FGFR3 gain-of-function mutation more severe than achondroplasia`,
+        `Severe arrest of endochondral ossification across limbs and ribs`
+      ],
+      p2: [
+        `Tiny thoracic cavity with very short ribs`,
+        `Bell-shaped abdomen and relatively large head`
+      ],
+      p3: [
+        `Perinatal lethal due to severe pulmonary hypoplasia`,
+        `Diagnosed on 20-week ultrasound or delivery-room X-ray`
+      ]
+    }
+  },
+  {
+    id: `LO02-Q2`,
+    lo: 2,
+    loTitle: `LO 2: Thanatophoric Dysplasia`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Type II Cloverleaf Skull`,
+    stem: `Postmortem radiographs of a stillborn fetus with a tiny thorax and severe micromelia reveal straight femurs paired with a trilobed, cloverleaf-shaped cranium (kleeblattschädel). How is this subtype classified?`,
+    clue: `Differentiate Type I (curved femurs) from Type II (straight femurs + kleeblattschädel) within thanatophoric dysplasia.`,
+    choices: [
+      `Thanatophoric dysplasia type II`,
+      `Thanatophoric dysplasia type I`,
+      `Osteogenesis imperfecta type 2`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Thanatophoric dysplasia type II is defined by straight short femurs and a cloverleaf skull (kleeblattschädel). Distractor exclusion: Type I displays curved "telephone-receiver" femurs without typical kleeblattschädel; OI type 2 displays crumpled/fractured long bones and beaded ribs.`,
+    secondOrderClue: `Straight femurs + kleeblattschädel (cloverleaf skull) = Thanatophoric dysplasia Type II.`,
+    phase1Pearl: `Both Type I and Type II result from distinct severe activating mutations in FGFR3.`,
+    phase2Hallmark: `Straight shortened femurs with marked trilobed cranial vault contour on skull radiography.`,
+    phase3Secret: `Guild Secret: Type I has curved telephone-receiver femurs; Type II has straight femurs plus cloverleaf skull.`,
+    dossierBullets: {
+      p1: [
+        `Distinct FGFR3 gain-of-function variants separate Type I vs Type II`,
+        `Severe premature chondrocyte differentiation across skeleton`
+      ],
+      p2: [
+        `Type II: straight short femurs + cloverleaf skull (kleeblattschädel)`,
+        `Type I: curved telephone-receiver femurs`
+      ],
+      p3: [
+        `Both subtypes share tiny thorax and lethal pulmonary hypoplasia`,
+        `Confirm subtype radiographically and with FGFR3 sequencing`
+      ]
+    }
+  },
+  {
+    id: `LO02-Q3`,
+    lo: 2,
+    loTitle: `LO 2: Thanatophoric Dysplasia`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `FGFR3 Arg248Cys Mutation`,
+    stem: `Autopsy cartilage sections from a fetus with curved "telephone-receiver" femurs and a tiny thorax demonstrate a severely disorganized epiphyseal growth plate. Which molecular defect drives this severe phenotype?`,
+    clue: `Identify the receptor gene shared with achondroplasia that carries a more strongly activating mutation such as Arg248Cys.`,
+    choices: [
+      `Severe FGFR3 gain-of-function mutation (e.g., Arg248Cys)`,
+      `Loss-of-function mutation in carbonic anhydrase II`,
+      `Quantitative deficiency of normal COL1A1 chains`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Thanatophoric dysplasia (Type I with Arg248Cys) arises from a more strongly activating FGFR3 gain-of-function mutation than achondroplasia, severely disrupting growth-plate organization. Distractor exclusion: CA2 loss-of-function causes osteopetrosis; quantitative COL1A1 deficiency causes mild OI type 1.`,
+    secondOrderClue: `Telephone-receiver femurs + disorganized growth plate -> severe FGFR3 gain-of-function (Arg248Cys).`,
+    phase1Pearl: `Same gene as achondroplasia (FGFR3), but a different mutation produces ligand-independent constitutive signaling.`,
+    phase2Hallmark: `Irregular, disorganized growth plate histology correlating with curved, thick, stubby femurs on X-ray.`,
+    phase3Secret: `Guild Secret: Histology sections clarify mechanism of poor bone formation, while X-rays and genetics establish diagnosis.`,
+    dossierBullets: {
+      p1: [
+        `FGFR3 gain-of-function mutation (Type I often Arg248Cys)`,
+        `Same gene as achondroplasia, much stronger constitutive activation`
+      ],
+      p2: [
+        `Histology: irregular, severely disorganized epiphyseal growth plate`,
+        `Radiology: short, thick, curved telephone-receiver femur`
+      ],
+      p3: [
+        `Sporadic de novo event; parents are unaffected`,
+        `Correlate disorganized physis with severe limb & rib stunting`
+      ]
+    }
+  },
+  {
+    id: `LO02-Q4`,
+    lo: 2,
+    loTitle: `LO 2: Thanatophoric Dysplasia`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Pulmonary Hypoplasia`,
+    stem: `A neonate with thanatophoric dysplasia develops immediate refractory hypoxia after delivery. On chest X-ray, the ribs are stubby and fail to extend anteriorly, making the thorax appear dramatically smaller than the abdomen. What is the direct physiologic cause of death?`,
+    clue: `Connect the severely constricted thoracic cage volume to fetal lung development.`,
+    choices: [
+      `Pulmonary hypoplasia from tiny thoracic cage`,
+      `Marrow obliteration causing fatal sepsis`,
+      `Brainstem compression at the foramen magnum`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Short ribs and an extremely small thoracic cavity mechanically restrict fetal lung growth, causing lethal pulmonary hypoplasia and respiratory insufficiency. Distractor exclusion: Marrow obliteration causes leukopenia in osteopetrosis; foramen magnum compression causes sleep apnea/hydrocephalus in surviving achondroplasia.`,
+    secondOrderClue: `Short ribs -> tiny thorax (measured by circumference) -> inadequate lung space -> lethal pulmonary hypoplasia.`,
+    phase1Pearl: `Defective rib endochondral ossification prevents normal thoracic cage expansion during fetal gestation.`,
+    phase2Hallmark: `Chest X-ray shows short horizontal ribs that fail to wrap anteriorly and a protruding bell-shaped abdomen.`,
+    phase3Secret: `Guild Secret: Both thanatophoric dysplasia and OI type 2 share respiratory insufficiency from a tiny thorax as cause of death.`,
+    dossierBullets: {
+      p1: [
+        `Severely stunted rib endochondral ossification shrinks rib cage`,
+        `Small thoracic volume arrests fetal alveolar/lung maturation`
+      ],
+      p2: [
+        `Normal neonate thorax approximates abdomen volume; here thorax is tiny`,
+        `Bell-shaped abdomen contrasts sharply below constricted chest`
+      ],
+      p3: [
+        `Respiratory insufficiency from pulmonary hypoplasia is fatal`,
+        `Shared fatal mechanism with OI Type 2 despite distinct bone shapes`
+      ]
+    }
+  },
+  {
+    id: `LO02-Q5`,
+    lo: 2,
+    loTitle: `LO 2: Thanatophoric Dysplasia`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Telephone-Receiver Femurs`,
+    stem: `An X-ray of a 22-week fetus with a tiny thorax shows markedly shortened, thickened, smoothly bowed femurs without multiple healing calluses or jagged fractures. What classic radiographic sign is depicted?`,
+    clue: `Recall the curved vintage communication device invoked by radiologists for Type I thanatophoric dysplasia.`,
+    choices: [
+      `Telephone-receiver shaped femurs`,
+      `Crumpled concertina femurs`,
+      `Erlenmeyer flask femoral metaphyses`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Type I thanatophoric dysplasia is classically recognized by curved, short, thick "telephone-receiver" femurs with intact smooth cortices. Distractor exclusion: Crumpled concertina femurs with fractures belong to OI type 2; Erlenmeyer flask metaphyses occur in osteopetrosis.`,
+    secondOrderClue: `Smoothly curved short thick femurs (no fractures) + tiny thorax = Telephone-receiver femurs (TD Type I).`,
+    phase1Pearl: `Driven by FGFR3 constitutive arrest of chondroblasts rather than collagen fragility.`,
+    phase2Hallmark: `Bowed "telephone-receiver" femur configuration paired with short ribs and bell-shaped abdomen.`,
+    phase3Secret: `Guild Secret: Absence of jagged intrauterine fractures separates TD Type I from OI Type 2 on fetal X-ray.`,
+    dossierBullets: {
+      p1: [
+        `Cartilage growth failure bows and thickens femoral diaphysis`,
+        `Bone mineralization is intact—no intrinsic collagen fragility`
+      ],
+      p2: [
+        `Curved "telephone-receiver" femurs characterize TD Type I`,
+        `Smooth cortical outlines differentiate it from crumpled OI Type 2`
+      ],
+      p3: [
+        `Measure thoracic circumference to assess lethality prenatally`,
+        `Confirm FGFR3 mutation on molecular testing`
+      ]
+    }
+  },
+  {
+    id: `LO02-Q6`,
+    lo: 2,
+    loTitle: `LO 2: Thanatophoric Dysplasia`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Disorganized Growth Plate`,
+    stem: `During a perinatal autopsy for a fetus with thanatophoric dysplasia, a longitudinal section of the distal femur is examined microscopically alongside the fetal X-ray. Compared with achondroplasia, what histologic hallmark explains the extreme limb stunting?`,
+    clue: `Compare the orderly horizontal physis of achondroplasia against the growth plate architecture in thanatophoric dysplasia.`,
+    choices: [
+      `Severely irregular and disorganized growth plate`,
+      `Persistent calcified cartilage filling marrow space`,
+      `Absent osteoid seams with excess osteoclasts`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Histologic femur sections in thanatophoric dysplasia show a severely irregular, disorganized epiphyseal growth plate that fails to form orderly chondrocyte columns. Distractor exclusion: Persistent primary spongiosa filling the marrow characterizes osteopetrosis; absent osteoid with excess osteoclasts does not describe TD.`,
+    secondOrderClue: `TD femur histology = irregular, disorganized growth plate (vs fairly smooth growth plate in achondroplasia).`,
+    phase1Pearl: `Constitutive FGFR3 signaling collapses proliferative chondrocyte column formation at the physis.`,
+    phase2Hallmark: `Disorganized growth plate on femur section paired with short curved femur and tiny thorax on X-ray.`,
+    phase3Secret: `Guild Secret: Skeletal dysplasias are diagnosed clinically by X-ray and genetics, while histology illustrates the mechanism.`,
+    dossierBullets: {
+      p1: [
+        `Premature chondroblast-to-chondrocyte arrest disrupts physeal columns`,
+        `Explains why limbs are far shorter than in achondroplasia`
+      ],
+      p2: [
+        `Femur section reveals markedly irregular, disorganized growth plate`,
+        `Correlates directly with short, curved telephone-receiver femur`
+      ],
+      p3: [
+        `Use X-ray + genetic sequencing for clinical diagnosis`,
+        `Histology reinforces pathogenesis during autopsy correlation`
+      ]
+    }
+  },
+  {
+    id: `LO03-Q1`,
+    lo: 3,
+    loTitle: `LO 3: OI Type 2 (Lethal)`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Osteogenesis Imperfecta Type 2`,
+    stem: `A 26-year-old G1P0 woman delivers prematurely at 21 weeks gestation; the infant dies immediately of respiratory failure. Radiographs demonstrate a tiny thorax, irregular jagged "crumpled" femurs, and crumpled ribs. What is the diagnosis?`,
+    clue: `Match perinatal lethality + crumpled long bones + crumpled ribs to the lethal collagen disorder.`,
+    choices: [
+      `Osteogenesis imperfecta type 2`,
+      `Thanatophoric dysplasia type I`,
+      `Osteopetrosis`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Osteogenesis imperfecta type 2 is perinatal lethal and produces extreme bone fragility with immediate intrauterine fractures, yielding crumpled femurs, crumpled/beaded ribs, and a tiny thorax. Distractor exclusion: Thanatophoric dysplasia has smoothly curved telephone-receiver femurs without fractures; osteopetrosis causes dense sclerotic Erlenmeyer flask bones.`,
+    secondOrderClue: `Perinatal death + crumpled/fractured femurs & ribs + tiny thorax = OI Type 2.`,
+    phase1Pearl: `Type I collagen mutation causes severe insufficiency of normal triple-helix bone matrix.`,
+    phase2Hallmark: `Irregular, jagged, crumpled long bones and ribs with multiple intrauterine fractures.`,
+    phase3Secret: `Guild Secret: Death results from respiratory insufficiency due to rib fractures and a tiny thorax—similar to thanatophoric dysplasia.`,
+    dossierBullets: {
+      p1: [
+        `COL1A1/COL1A2 mutation causes extreme Type I collagen deficiency`,
+        `Bones fracture immediately in utero as they form`
+      ],
+      p2: [
+        `Crumpled ("concertina") femurs and jagged/beaded ribs`,
+        `Tiny thoracic cage and wormian bones in the skull`
+      ],
+      p3: [
+        `Perinatal lethal from severe respiratory insufficiency`,
+        `Distinguish crumpled fractures from smooth curved TD femurs`
+      ]
+    }
+  },
+  {
+    id: `LO03-Q2`,
+    lo: 3,
+    loTitle: `LO 3: OI Type 2 (Lethal)`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Parental Gonadal Mosaicism`,
+    stem: `A healthy couple with normal skeletal radiographs loses a second consecutive pregnancy at 25 weeks gestation to osteogenesis imperfecta type 2. Molecular testing shows a heterozygous COL1A1 mutation in the fetus that is absent in parental blood leukocytes. What explains the recurrence?`,
+    clue: `Consider how an autosomal dominant lethal mutation can recur from unaffected parents.`,
+    choices: [
+      `Autosomal dominant parental gonadal mosaicism`,
+      `De novo paternal FGFR3 sperm advantage`,
+      `Maternal third-trimester thalidomide exposure`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: While many OI type 2 cases are autosomal recessive, autosomal dominant cases can recur in phenotypically normal parents when one parent carries a COL1A1/COL1A2 mutation confined to gonadal (germline) mosaicism. Distractor exclusion: FGFR3 causes achondroplasia/thanatophoric dysplasia; thalidomide causes limb reduction defects rather than crumpled bones.`,
+    secondOrderClue: `Recurrent lethal OI Type 2 in unaffected parents + heterozygous COL1A1 -> parental gonadal mosaicism.`,
+    phase1Pearl: `Mutant collagen chain confined to parental germ cells is transmitted repeatedly despite negative parental blood DNA.`,
+    phase2Hallmark: `Fetus displays full OI type 2 phenotype: crumpled femurs, beaded ribs, and tiny thorax.`,
+    phase3Secret: `Guild Secret: Always counsel families about gonadal mosaicism recurrence risk even when a severe COL1A1 mutation appears de novo.`,
+    dossierBullets: {
+      p1: [
+        `OI Type 2 can be autosomal recessive OR autosomal dominant`,
+        `AD cases may stem from parental gonadal mosaicism`
+      ],
+      p2: [
+        `Fetal X-ray shows severe intrauterine fractures and crumpled bones`,
+        `Parental blood sequencing may miss germline-confined mutation`
+      ],
+      p3: [
+        `Genetic counseling must address recurrence risk in future pregnancies`,
+        `Prenatal ultrasound and molecular testing aid early detection`
+      ]
+    }
+  },
+  {
+    id: `LO03-Q3`,
+    lo: 3,
+    loTitle: `LO 3: OI Type 2 (Lethal)`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Dominant-Negative Triple Helix`,
+    stem: `A lethal COL1A1 glycine substitution produces structurally abnormal pro-alpha1 chains alongside normal chains from the wild-type allele. How does this qualitative defect devastate skeletal strength?`,
+    clue: `Recall the classic molecular mechanism where a mutant protein poisons assembly of a multimeric protein.`,
+    choices: [
+      `Dominant-negative interference with collagen triple-helix assembly`,
+      `Constitutive activation of chondroblast growth-plate receptors`,
+      `Impaired osteoclast proton secretion into resorption pits`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Mutant Type I collagen chains exert a dominant-negative effect, incorporating into and disrupting assembly of the normal collagen triple helix, causing extreme matrix deficiency and fragility. Distractor exclusion: Chondroblast receptor activation is FGFR3 (achondroplasia/TD); osteoclast proton failure is osteopetrosis.`,
+    secondOrderClue: `Qualitative COL1A1/2 defect -> mutant chain poisons normal triple helix = Dominant-negative effect.`,
+    phase1Pearl: `One bad alpha chain spoils the entire heterotrimeric Type I collagen molecule, causing severe Type 2 disease.`,
+    phase2Hallmark: `Insufficient mineralized bone tissue -> crumpled concertina long bones and beaded ribs.`,
+    phase3Secret: `Guild Secret: Quantitative decrease in normal Type I collagen causes mild OI Type 1, whereas dominant-negative triple-helix disruption causes severe/lethal OI.`,
+    dossierBullets: {
+      p1: [
+        `Mutant collagen chains interfere with normal triple-helix assembly`,
+        `Classic dominant-negative mechanism produces severe Type I collagen deficit`
+      ],
+      p2: [
+        `Abnormal bone mineralization and extreme cortical fragility`,
+        `Intrauterine fractures crumple long bones and ribs`
+      ],
+      p3: [
+        `Over 800 Type I collagen mutations span OI Types 1–4`,
+        `Type 2 represents the lethal perinatal end of the spectrum`
+      ]
+    }
+  },
+  {
+    id: `LO03-Q4`,
+    lo: 3,
+    loTitle: `LO 3: OI Type 2 (Lethal)`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Intrauterine Bone Crumpling`,
+    stem: `Why do the femurs and ribs of a fetus with osteogenesis imperfecta type 2 appear shortened, jagged, and "concertina"-folded on prenatal ultrasound and postmortem X-ray?`,
+    clue: `Consider what happens mechanically to bones that lack Type I collagen scaffolding as soon as they mineralize in utero.`,
+    choices: [
+      `Immediate repeated intrauterine fractures of fragile bone`,
+      `Premature terminal differentiation of epiphyseal chondroblasts`,
+      `Excess unremodeled calcified cartilage obliterating marrow`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Extreme skeletal fragility from severe Type I collagen deficiency causes bones to fracture immediately as they develop in utero, collapsing into jagged, crumpled "concertina" shapes. Distractor exclusion: Premature chondroblast differentiation produces smooth short bones in FGFR3 dysplasias; unremodeled calcified cartilage causes sclerotic osteopetrosis.`,
+    secondOrderClue: `Severe Type I collagen deficit -> immediate in utero fractures -> crumpled concertina femurs & beaded ribs.`,
+    phase1Pearl: `Not enough normal Type I collagen matrix exists to support fetal muscular forces or bone elongation.`,
+    phase2Hallmark: `Accordion-like crumpled long bones, beaded ribs from callus formation, and poorly ossified skull with wormian bones.`,
+    phase3Secret: `Guild Secret: Rib fractures collapse the chest cage, causing fatal respiratory insufficiency.`,
+    dossierBullets: {
+      p1: [
+        `Severe Type I collagen loss prevents normal bone matrix scaffolding`,
+        `Bones undergo immediate intrauterine fractures as they form`
+      ],
+      p2: [
+        `Crumpled ("concertina") femurs and crumpled/beaded ribs`,
+        `Multiple healing calluses give ribs a characteristic beaded look`
+      ],
+      p3: [
+        `Tiny fractured thorax prevents adequate fetal lung expansion`,
+        `Respiratory failure occurs immediately upon delivery`
+      ]
+    }
+  },
+  {
+    id: `LO03-Q5`,
+    lo: 3,
+    loTitle: `LO 3: OI Type 2 (Lethal)`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Beaded Ribs & Wormian Bones`,
+    stem: `A skeletal survey of a stillborn neonate at 25 weeks reveals hypomineralized cranial vault bones with multiple intrasutural wormian bones, beaded ribs, and accordion-folded long bones. Which diagnosis matches all three radiographic hallmarks?`,
+    clue: `Combine intrasutural wormian bones, beaded fracture-callus ribs, and concertina limbs.`,
+    choices: [
+      `Osteogenesis imperfecta type 2`,
+      `Thanatophoric dysplasia type II`,
+      `Achondroplasia`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Intrasutural wormian bones, beaded ribs (sequential rib fractures with calluses), and crumpled concertina long bones are hallmark radiographic features of lethal OI type 2. Distractor exclusion: TD type II shows a cloverleaf skull and straight non-fractured femurs; achondroplasia shows macrocephaly and rhizomelic non-fractured bones.`,
+    secondOrderClue: `Wormian bones + beaded ribs + concertina femurs = OI Type 2.`,
+    phase1Pearl: `Defective Type I collagen impairs both intramembranous cranial ossification (wormian bones) and endochondral long bones.`,
+    phase2Hallmark: `Multiple intrasutural skull ossicles (wormian bones), beaded rib calluses, and crumpled femurs.`,
+    phase3Secret: `Guild Secret: Compare case X-rays side-by-side—crumpled ribs/femurs immediately distinguish OI Type 2 from TD.`,
+    dossierBullets: {
+      p1: [
+        `Type I collagen defect affects both endochondral and intramembranous bone`,
+        `Poor cranial mineralization creates intrasutural wormian bones`
+      ],
+      p2: [
+        `Beaded ribs reflect multiple healing intrauterine rib fractures`,
+        `Accordion/concertina femurs appear jagged and collapsed`
+      ],
+      p3: [
+        `X-ray skeletal survey establishes rapid diagnostic distinction`,
+        `Confirm with COL1A1/COL1A2 molecular analysis`
+      ]
+    }
+  },
+  {
+    id: `LO03-Q6`,
+    lo: 3,
+    loTitle: `LO 3: OI Type 2 (Lethal)`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `OI Type 2 vs TD Differentiation`,
+    stem: `You are comparing two perinatal lethal fetal X-rays side by side in the pathology lab: Case A has a tiny thorax with smoothly curved femurs, whereas Case B has a tiny thorax with jagged, crumpled femurs and crumpled ribs. How should you report Case B?`,
+    clue: `Use cortical contour (smoothly curved vs jagged/crumpled) to separate the two lethal tiny-thorax dysplasias.`,
+    choices: [
+      `OI Type 2 due to crumpled fracture deformities`,
+      `Thanatophoric dysplasia due to FGFR3 excess`,
+      `Osteopetrosis due to marrow obliteration`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Both OI type 2 and thanatophoric dysplasia cause a tiny thorax and lethal respiratory insufficiency, but Case B's jagged, crumpled femurs and crumpled ribs identify OI type 2 (versus smooth curved femurs in TD). Distractor exclusion: TD has unfractured telephone-receiver or straight femurs; osteopetrosis shows dense sclerotic Erlenmeyer flask femurs.`,
+    secondOrderClue: `Tiny thorax + jagged crumpled femurs/ribs = OI Type 2; tiny thorax + smooth curved femurs = TD Type I.`,
+    phase1Pearl: `Case A reflects FGFR3 cartilage growth arrest; Case B reflects Type I collagen structural failure.`,
+    phase2Hallmark: `Jagged, irregular femoral outlines and crumpled ribs in OI type 2 vs smooth curved femurs in TD.`,
+    phase3Secret: `Guild Secret: Dr. Oviedo specifically emphasizes comparing these two lethal tiny-thorax X-rays side-by-side.`,
+    dossierBullets: {
+      p1: [
+        `Both disorders cause lethal thoracic insufficiency`,
+        `Underlying genetics differ: FGFR3 (TD) vs COL1A1/COL1A2 (OI2)`
+      ],
+      p2: [
+        `OI Type 2: crumpled ribs and jagged, crumpled femurs`,
+        `TD Type I: smooth, curved telephone-receiver femurs`
+      ],
+      p3: [
+        `Side-by-side radiographic comparison is key for exam vignettes`,
+        `Follow with genetic testing to inform recurrence counseling`
+      ]
+    }
+  },
+  {
+    id: `LO04-Q1`,
+    lo: 4,
+    loTitle: `LO 4: OI Type 1 (Non-Lethal)`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Osteogenesis Imperfecta Type 1`,
+    stem: `A 5-year-old boy presents to the emergency department with a right femur fracture sustained while playing on a school playground. He has a history of progressive hearing loss, blue sclerae, and gray-brown discolored teeth. What is the diagnosis?`,
+    clue: `Pair childhood fractures from minor trauma with the classic extraskeletal triad of blue sclerae, hearing loss, and dentinogenesis imperfecta.`,
+    choices: [
+      `Osteogenesis imperfecta type 1`,
+      `Osteogenesis imperfecta type 2`,
+      `Osteopetrosis`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Osteogenesis imperfecta type 1 is the mild, non-lethal autosomal dominant form presenting with childhood fractures, blue sclerae, hearing loss, and abnormal gray-brown teeth (dentinogenesis imperfecta). Distractor exclusion: OI type 2 is perinatal lethal; osteopetrosis causes dense sclerotic bones, leukopenia, and cranial nerve palsies without blue sclerae.`,
+    secondOrderClue: `Playground fracture + blue sclerae + hearing loss + gray-brown teeth = OI Type 1.`,
+    phase1Pearl: `Autosomal dominant quantitative decrease in Type I collagen synthesis.`,
+    phase2Hallmark: `Severe osteopenia (translucent cortex on X-ray), fracture line, blue sclerae, and opalescent gray-brown primary teeth.`,
+    phase3Secret: `Guild Secret: Childhood fractures in OI Type 1 characteristically decrease in frequency after puberty.`,
+    dossierBullets: {
+      p1: [
+        `Autosomal dominant decreased synthesis of Type I collagen`,
+        `Normal or near-normal collagen structure in reduced quantity`
+      ],
+      p2: [
+        `Severe osteopenia on X-ray with acute long-bone fracture`,
+        `Blue sclerae and gray-brown abnormal dentition`
+      ],
+      p3: [
+        `Hearing impairment and childhood fractures that decrease after puberty`,
+        `Survival to adulthood with orthopedic stabilization as needed`
+      ]
+    }
+  },
+  {
+    id: `LO04-Q2`,
+    lo: 4,
+    loTitle: `LO 4: OI Type 1 (Non-Lethal)`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `OI Type 1 vs Non-Accidental Trauma`,
+    stem: `A 6-year-old girl presents with an unexplained tibial fracture and multiple prior fractures. Child protective services is consulted for suspected non-accidental trauma, but exam shows blue sclerae and gray-brown teeth, and X-ray shows diffuse bone translucency. Which diagnosis must be ruled in?`,
+    clue: `Recall the key congenital mimic of child abuse that is distinguished by extraskeletal collagen signs and osteopenia.`,
+    choices: [
+      `Osteogenesis imperfecta type 1`,
+      `Radial aplasia`,
+      `Achondroplasia`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Osteogenesis imperfecta type 1 can mimic non-accidental trauma due to recurrent childhood fractures, so finding blue sclerae, dentinogenesis imperfecta, and severe osteopenia prompts DNA testing to confirm OI type 1. Distractor exclusion: Radial aplasia presents with absent radius and thumb; achondroplasia presents with rhizomelic dwarfism rather than osteopenic fractures.`,
+    secondOrderClue: `Suspected child abuse fractures + blue sclerae + osteopenia -> evaluate for OI Type 1 with DNA studies.`,
+    phase1Pearl: `Type I collagen deficiency weakens bone, sclera, teeth, and middle/inner ear structures simultaneously.`,
+    phase2Hallmark: `Translucent osteopenic tibial cortex with fracture on X-ray; blue sclerae and opalescent teeth on exam.`,
+    phase3Secret: `Guild Secret: Always inspect sclerae and teeth in children with multiple low-energy fractures before diagnosing non-accidental trauma.`,
+    dossierBullets: {
+      p1: [
+        `Type I collagen is present in bone, sclera, dentin, and ear ossicles`,
+        `Quantitative deficit weakens bone without causing lethal deformity`
+      ],
+      p2: [
+        `X-ray reveals severe osteopenia (translucent-appearing bone)`,
+        `Physical exam shows blue sclerae and gray-brown primary teeth`
+      ],
+      p3: [
+        `Crucial differential diagnosis for non-accidental trauma (child abuse)`,
+        `Further evaluate clinically with targeted COL1A1/COL1A2 DNA studies`
+      ]
+    }
+  },
+  {
+    id: `LO04-Q3`,
+    lo: 4,
+    loTitle: `LO 4: OI Type 1 (Non-Lethal)`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Quantitative Collagen Deficit`,
+    stem: `Unlike the catastrophic triple-helix collapse seen in OI type 2, why do patients with osteogenesis imperfecta type 1 survive childhood with normal or near-normal stature and fewer fractures after puberty?`,
+    clue: `Contrast a quantitative reduction (half-normal amount of good collagen) against a qualitative dominant-negative poison.`,
+    choices: [
+      `Decreased quantity of structurally normal Type I collagen`,
+      `Gain-of-function FGFR3 signaling restricted to postnatally`,
+      `Incomplete osteoclast proton-pump inhibition`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: OI type 1 typically stems from a null/haploinsufficient COL1A1 mutation producing a decreased amount of structurally normal Type I collagen, yielding milder fragility than dominant-negative qualitative mutations. Distractor exclusion: FGFR3 signaling causes achondroplasia; osteoclast proton-pump defects cause osteopetrosis.`,
+    secondOrderClue: `OI Type 1 = decreased amount of normal Type I collagen -> milder, surviving phenotype.`,
+    phase1Pearl: `Reduced collagen quantity diminishes bone mineral deposition, creating fragile osteopenic bones without crumpled lethality.`,
+    phase2Hallmark: `Normal-shaped long bones that appear osteopenic/translucent rather than crumpled.`,
+    phase3Secret: `Guild Secret: OI Type 4 has moderate fragility with normal sclerae, whereas OI Type 1 features prominent blue sclerae.`,
+    dossierBullets: {
+      p1: [
+        `Autosomal dominant quantitative decrease in Type I collagen`,
+        `Structurally normal triple helices, just ~50% reduced quantity`
+      ],
+      p2: [
+        `Thinning of scleral collagen exposes underlying blue choroidal pigment`,
+        `Generalized osteopenia with preserved bone architecture`
+      ],
+      p3: [
+        `Childhood fractures decrease significantly after puberty`,
+        `Contrast with OI Type 4 (normal sclerae, moderate fragility)`
+      ]
+    }
+  },
+  {
+    id: `LO04-Q4`,
+    lo: 4,
+    loTitle: `LO 4: OI Type 1 (Non-Lethal)`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Thin Translucent Scleral Collagen`,
+    stem: `A 7-year-old with recurrent low-impact fractures has striking sky-blue sclerae on ocular examination. What pathophysiologic mechanism directly accounts for this eye finding?`,
+    clue: `Recall what normal Type I collagen does in the sclera and what shows through when it is thinned.`,
+    choices: [
+      `Thin scleral collagen revealing underlying choroidal pigment`,
+      `Deposition of unremodeled calcified cartilage in the orbit`,
+      `Hydrocephalus compressing the optic chiasm`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Deficiency of Type I collagen thins the normally opaque white sclera, making it partially translucent so the dark blue-violet pigment of the underlying choroid shows through. Distractor exclusion: Calcified cartilage deposition and foraminal compression occur in osteopetrosis; hydrocephalus from foramen magnum narrowing occurs in achondroplasia.`,
+    secondOrderClue: `Deficient Type I collagen -> thin translucent sclera -> visible dark choroid = Blue sclerae.`,
+    phase1Pearl: `Type I collagen is the primary structural protein of both bone matrix and ocular sclera.`,
+    phase2Hallmark: `Distinctive blue coloration of the sclerae alongside gray-brown opalescent teeth.`,
+    phase3Secret: `Guild Secret: Hearing loss in OI Type 1 similarly stems from abnormal collagen in middle-ear ossicles and otic capsule.`,
+    dossierBullets: {
+      p1: [
+        `Type I collagen deficiency thins the fibrous scleral coat`,
+        `Underlying pigmented choroid becomes visible as blue sclerae`
+      ],
+      p2: [
+        `Blue sclerae seen in OI Types 1 and 3 (usually normal in Type 4)`,
+        `Concurrent dentin defect yields gray-brown primary teeth`
+      ],
+      p3: [
+        `Screen pediatric fracture patients for blue sclerae and hearing loss`,
+        `Avoid misdiagnosing fragile collagen disorders as abuse`
+      ]
+    }
+  },
+  {
+    id: `LO04-Q5`,
+    lo: 4,
+    loTitle: `LO 4: OI Type 1 (Non-Lethal)`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Severe Osteopenia & Gray-Brown Teeth`,
+    stem: `A radiograph of an adult with osteogenesis imperfecta type 1 shows internal orthopedic stabilization hardware and bones that appear abnormally radiolucent compared with normal bone. Oral exam reveals grayish-brown teeth. What pair of hallmarks is present?`,
+    clue: `Name the radiographic density abnormality (opposite of osteopetrosis) and the dental hallmark.`,
+    choices: [
+      `Severe osteopenia and dentinogenesis imperfecta`,
+      `Diffuse osteosclerosis and Erlenmeyer flask deformity`,
+      `Irregular growth plate and trident hands`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: OI type 1 demonstrates severe osteopenia (bones appear overly translucent/radiolucent on X-ray) requiring surgical stabilization for fractures, plus dentinogenesis imperfecta (gray-brown discolored teeth). Distractor exclusion: Diffuse sclerosis and Erlenmeyer flask deformity belong to osteopetrosis; irregular growth plates and trident hands belong to FGFR3 dysplasias.`,
+    secondOrderClue: `Translucent bone on X-ray = severe osteopenia; gray-brown teeth = dentinogenesis imperfecta.`,
+    phase1Pearl: `Insufficient Type I collagen matrix leads to decreased bone mineral content and defective tooth dentin.`,
+    phase2Hallmark: `Severe radiographic osteopenia/translucency with surgical rods/plates and gray-brown opalescent dentition.`,
+    phase3Secret: `Guild Secret: Notice the stark X-ray contrast—OI is bone-translucent (osteopenia), while osteopetrosis is chalk-white (osteosclerosis).`,
+    dossierBullets: {
+      p1: [
+        `Decreased Type I collagen impairs both bone mineralization and dentin`,
+        `Weak dentin wears quickly and looks gray-brown`
+      ],
+      p2: [
+        `X-ray: severe osteopenia (bone appears transparent) + stabilization rods`,
+        `Teeth: grayish-brown opalescent primary/permanent dentition`
+      ],
+      p3: [
+        `Orthopedic stabilization stabilizes recurrent long-bone fractures`,
+        `Dental protection and audiology follow-up improve adult quality of life`
+      ]
+    }
+  },
+  {
+    id: `LO04-Q6`,
+    lo: 4,
+    loTitle: `LO 4: OI Type 1 (Non-Lethal)`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `DNA Studies & Supportive Care`,
+    stem: `A 6-year-old girl with blue sclerae, gray-brown teeth, and a fractured osteopenic tibia is evaluated in clinic. After immobilizing the fracture, what is the most appropriate diagnostic step to confirm the clinical diagnosis?`,
+    clue: `Recall Dr. Oviedo's clinical note on how suspected OI Type 1 is definitively evaluated after X-ray and exam.`,
+    choices: [
+      `Targeted COL1A1/COL1A2 DNA sequencing studies`,
+      `Allogeneic hematopoietic stem cell transplantation`,
+      `Brain MRI for foramen magnum decompression`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Clinically, osteogenesis imperfecta type 1 identified by fractures, severe osteopenia, blue sclerae, and abnormal teeth is confirmed with DNA sequencing studies (COL1A1/COL1A2). Distractor exclusion: HSCT is curative for osteoclast-defective osteopetrosis; foramen magnum decompression targets achondroplasia brainstem compression.`,
+    secondOrderClue: `Osteopenic fracture + blue sclerae + abnormal teeth -> confirm with DNA sequencing studies.`,
+    phase1Pearl: `Over 800 mutations in Type I collagen genes account for OI Types 1–4.`,
+    phase2Hallmark: `Tibial fracture across markedly radiolucent, osteopenic cortex without medullary sclerosis.`,
+    phase3Secret: `Guild Secret: DNA confirmation also distinguishes OI from non-accidental trauma legally and guides family counseling.`,
+    dossierBullets: {
+      p1: [
+        `Confirm suspected Type I collagen haploinsufficiency genetically`,
+        `Over 800 known mutations across COL1A1 and COL1A2`
+      ],
+      p2: [
+        `Baseline X-ray documents severe osteopenia and fracture healing`,
+        `Document blue sclerae and dentinogenesis imperfecta clinically`
+      ],
+      p3: [
+        `DNA studies provide definitive diagnosis and exclude abuse`,
+        `Coordinate orthopedic stabilization, dental care, and hearing checks`
+      ]
+    }
+  },
+  {
+    id: `LO05-Q1`,
+    lo: 5,
+    loTitle: `LO 5: Osteopetrosis & Limb Defects`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Osteopetrosis`,
+    stem: `A 2-year-old boy presents for evaluation of multiple fractures after minor falls, recurrent bacterial infections with leukopenia, hepatosplenomegaly, and new cranial nerve palsies. An X-ray of his unfractured femur is diffusely chalk-white with an Erlenmeyer flask shape. What is the diagnosis?`,
+    clue: `Combine dense, fracture-prone "marble bones" with marrow failure and cranial nerve impingement.`,
+    choices: [
+      `Osteopetrosis (marble bone disease)`,
+      `Osteogenesis imperfecta type 1`,
+      `Achondroplasia`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Osteopetrosis ("marble bone disease") features osteoclast dysfunction producing dense, sclerotic yet paradoxically brittle bones, marrow obliteration (leukopenia/pancytopenia, hepatosplenomegaly), cranial nerve foramina impingement, and Erlenmeyer flask femurs. Distractor exclusion: OI type 1 causes radiolucent osteopenic bones; achondroplasia causes short rhizomelic limbs without marrow failure.`,
+    secondOrderClue: `Multiple fractures + leukopenia + hepatosplenomegaly + CN palsies + chalk-white Erlenmeyer flask femur = Osteopetrosis.`,
+    phase1Pearl: `Osteoclast defect impairs bone resorption and remodeling, leaving excessive yet weak mineralized tissue.`,
+    phase2Hallmark: `Diffuse skeletal sclerosis, Erlenmeyer flask deformity, and loss of corticomedullary demarcation.`,
+    phase3Secret: `Guild Secret: Too much bone on X-ray does NOT mean strong bone—osteopetrotic bones are brittle and fracture easily.`,
+    dossierBullets: {
+      p1: [
+        `Osteoclast resorption defect causes diffuse skeletal sclerosis`,
+        `Unremodeled primary spongiosa makes bones dense yet fragile`
+      ],
+      p2: [
+        `Erlenmeyer flask femoral metaphysis and obscured medullary cavity`,
+        `Bone-in-bone (endobone) radiographic appearance`
+      ],
+      p3: [
+        `Marrow obliteration -> pancytopenia, infections, hepatosplenomegaly`,
+        `Bony overgrowth narrows foramina -> cranial nerve palsies`
+      ]
+    }
+  },
+  {
+    id: `LO05-Q2`,
+    lo: 5,
+    loTitle: `LO 5: Osteopetrosis & Limb Defects`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Radial Aplasia vs Thalidomide`,
+    stem: `A newborn presents with a unilateral absent radius and absent thumb, with no history of maternal medication intake during pregnancy. Another historical case from the 1960s shows severe bilateral limb malformations after maternal intake of an anti-nausea sedative. How should the first newborn's finding be classified?`,
+    clue: `Distinguish isolated sporadic absence of the radius/thumb from maternal thalidomide limb embryopathy.`,
+    choices: [
+      `Radial aplasia (sporadic bone aplasia)`,
+      `Thalidomide-induced phocomelia`,
+      `Thanatophoric dysplasia`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Absent radius and absent thumb—unilateral or bilateral and typically sporadic—defines radial aplasia, an example of congenital aplasia of a bone. Distractor exclusion: Thalidomide exposure is a historical medication-induced skeletal malformation; thanatophoric dysplasia is a lethal FGFR3 chondrodysplasia.`,
+    secondOrderClue: `Absent radius + absent thumb (uni/bilateral, sporadic) = Radial aplasia; maternal drug history = Thalidomide.`,
+    phase1Pearl: `Skeletal malformations can arise from isolated failure of bone formation (aplasia) or maternal teratogen exposure.`,
+    phase2Hallmark: `Complete absence of the radius and thumb on forearm/hand examination and radiograph.`,
+    phase3Secret: `Guild Secret: Thalidomide is mostly historic today, taught alongside radial aplasia to contrast drug-induced vs sporadic limb defects.`,
+    dossierBullets: {
+      p1: [
+        `Radial aplasia represents failure of a single bone/ray to form`,
+        `Thalidomide represents maternal medication teratogenicity`
+      ],
+      p2: [
+        `Radial aplasia: absent radius and absent thumb (uni- or bilateral)`,
+        `Thalidomide: severe limb reduction / phocomelia phenotype`
+      ],
+      p3: [
+        `Radial aplasia is often sporadic; elicit maternal drug history`,
+        `Remember both fall outside genetic cartilage/collagen dysplasias`
+      ]
+    }
+  },
+  {
+    id: `LO05-Q3`,
+    lo: 5,
+    loTitle: `LO 5: Osteopetrosis & Limb Defects`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Osteoclast Acidification Defect`,
+    stem: `A child with autosomal recessive osteopetrosis carries a loss-of-function mutation in the Carbonic Anhydrase II (CA2) gene (similar in pathway to TCIRG1 or CLCN7 defects). How does loss of CA2 impair bone remodeling?`,
+    clue: `Recall what osteoclasts must secrete into the resorption pit to dissolve hydroxyapatite bone mineral.`,
+    choices: [
+      `Fails to acidify the osteoclast resorption pit`,
+      `Fails to synthesize Type I collagen triple helices`,
+      `Constitutively activates chondroblast differentiation`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: CA2 generates protons (H+) needed by osteoclasts (alongside TCIRG1 V-ATPase and CLCN7 chloride channel) to acidify the resorption pit; loss of function blocks mineral dissolution and bone remodeling. Distractor exclusion: Type I collagen synthesis defects cause OI; constitutive chondroblast activation causes FGFR3 dysplasias.`,
+    secondOrderClue: `CA2 / TCIRG1 / CLCN7 loss -> impaired osteoclast pit acidification -> no bone resorption = Osteopetrosis.`,
+    phase1Pearl: `Most osteopetrosis mutations interfere with acidification of the osteoclast Howship lacuna (resorption pit).`,
+    phase2Hallmark: `Persistent primary spongiosa (unresorbed calcified cartilage) filling trabecular spaces on histology and X-ray.`,
+    phase3Secret: `Guild Secret: CA2 mutation is specifically highlighted in the Lecture 04 case answers as a classic autosomal recessive cause.`,
+    dossierBullets: {
+      p1: [
+        `AR Carbonic Anhydrase II (CA2), TCIRG1, or CLCN7 mutations`,
+        `Osteoclasts cannot acidify the resorption pit to dissolve mineral`
+      ],
+      p2: [
+        `Persistent primary spongiosa of calcified cartilage remains`,
+        `Abnormal unremodeled bone is dense on X-ray yet structurally weak`
+      ],
+      p3: [
+        `Loss of remodeling predisposes to pathologic fractures`,
+        `Because osteoclasts derive from marrow precursors, HSCT can cure it`
+      ]
+    }
+  },
+  {
+    id: `LO05-Q4`,
+    lo: 5,
+    loTitle: `LO 5: Osteopetrosis & Limb Defects`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Marrow Obliteration & EMH`,
+    stem: `A 3-year-old with severe osteopetrosis develops pancytopenia, recurrent severe infections, and massive hepatosplenomegaly. What mechanism links defective osteoclasts to these hematologic findings?`,
+    clue: `Think about what happens to the bone marrow cavity when unresorbed bone fills the diaphysis.`,
+    choices: [
+      `Marrow space obliteration driving extramedullary hematopoiesis`,
+      `Direct autoimmune destruction of circulating leukocytes`,
+      `Rib fractures causing chronic hypoxia and polycythemia`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Unremodeled dense bone obliterates the medullary marrow space, preventing normal hematopoiesis (causing leukopenia, anemia, thrombocytopenia/pancytopenia) and forcing compensatory extramedullary hematopoiesis in the liver and spleen. Distractor exclusion: Osteopetrosis is not autoimmune leukocyte destruction and causes pancytopenia rather than polycythemia.`,
+    secondOrderClue: `Unresorbed bone obliterates marrow -> pancytopenia/infections -> liver & spleen takeover (EMH).`,
+    phase1Pearl: `Without osteoclastic carving of the medullary canal, hematopoietic stem cells lose their marrow niche.`,
+    phase2Hallmark: `Diaphysis is homogeneously sclerotic on X-ray with no distinct medullary cavity.`,
+    phase3Secret: `Guild Secret: Severe infantile osteopetrosis can be fatal from infections/cytopenias unless rescued by donor osteoclasts.`,
+    dossierBullets: {
+      p1: [
+        `Failed bone resorption fills the medullary canal with sclerotic bone`,
+        `Decreased marrow space blocks normal hematopoiesis`
+      ],
+      p2: [
+        `X-ray shows poor demarcation between cortex and medulla`,
+        `Liver and spleen enlarge from extramedullary hematopoiesis`
+      ],
+      p3: [
+        `Patients suffer recurrent infections from leukopenia and pancytopenia`,
+        `Cranial nerve palsies occur concurrently via foraminal narrowing`
+      ]
+    }
+  },
+  {
+    id: `LO05-Q5`,
+    lo: 5,
+    loTitle: `LO 5: Osteopetrosis & Limb Defects`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Erlenmeyer Flask & Endobone`,
+    stem: `A femur radiograph in a child with marble bone disease shows wide, flared metaphyses resembling a conical chemistry vessel, poor corticomedullary demarcation, and a miniature dense bone shadow nested inside the vertebral/long-bone contour. What radiographic signs are present?`,
+    clue: `Name the chemistry-glassware metaphyseal shape and the nested "bone-in-bone" finding.`,
+    choices: [
+      `Erlenmeyer flask deformity and bone-in-bone appearance`,
+      `Telephone-receiver bowing and cloverleaf skull`,
+      `Severe osteopenia and intrasutural wormian bones`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Osteopetrosis classically shows flared metaphyses called an Erlenmeyer flask deformity, loss of corticomedullary demarcation, and a "bone-in-bone" (endobone) appearance from fluctuating unremodeled growth layers. Distractor exclusion: Telephone-receiver bowing and cloverleaf skull occur in thanatophoric dysplasia; osteopenia and wormian bones occur in OI.`,
+    secondOrderClue: `Flared metaphysis + chalk-white diaphysis + nested inner bone = Erlenmeyer flask + endobone (Osteopetrosis).`,
+    phase1Pearl: `Persistent primary spongiosa of calcified cartilage accumulates during metaphyseal modeling failure.`,
+    phase2Hallmark: `Erlenmeyer flask distal femur deformity, absent medullary canal, and bone-in-bone (endobone) shadow.`,
+    phase3Secret: `Guild Secret: Always inspect the femur diaphysis on X-ray—normal bone has a dark central marrow cavity, whereas osteopetrosis is solid white.`,
+    dossierBullets: {
+      p1: [
+        `Osteoclast failure prevents normal metaphyseal funneling/remodeling`,
+        `Persistent calcified cartilage (primary spongiosa) remains trapped`
+      ],
+      p2: [
+        `Erlenmeyer flask deformity: broad, flared femoral metaphysis`,
+        `Bone-in-bone (endobone) sign and indistinct cortex-medulla border`
+      ],
+      p3: [
+        `Compare directly against a normal pediatric femur X-ray`,
+        `Recognize that sclerotic density hides marked structural brittleness`
+      ]
+    }
+  },
+  {
+    id: `LO05-Q6`,
+    lo: 5,
+    loTitle: `LO 5: Osteopetrosis & Limb Defects`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `HSCT Curative Therapy`,
+    stem: `An infant diagnosed with severe autosomal recessive osteopetrosis has progressive pancytopenia, hepatosplenomegaly, and early optic nerve foraminal narrowing. Which definitive treatment restores normal bone resorption and marrow space?`,
+    clue: `Think about the hematopoietic lineage of osteoclasts and how replacing marrow stem cells corrects the enzyme/proton-pump defect.`,
+    choices: [
+      `Hematopoietic stem cell transplantation (HSCT)`,
+      `High-dose bisphosphonate osteoclast inhibition`,
+      `Foramen magnum surgical decompression`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Because osteoclasts are derived from hematopoietic monocyte/macrophage precursors, allogeneic hematopoietic stem cell transplantation (HSCT) supplies functional donor osteoclasts, restoring bone remodeling and marrow space. Distractor exclusion: Bisphosphonates further inhibit osteoclasts and worsen osteopetrosis; foramen magnum decompression treats achondroplasia.`,
+    secondOrderClue: `Osteoclasts come from monocyte/marrow lineage -> HSCT provides healthy osteoclasts (curative for severe osteopetrosis).`,
+    phase1Pearl: `Donor-derived monocyte precursors fuse into functional osteoclasts capable of acidifying resorption pits.`,
+    phase2Hallmark: `Successful HSCT gradually restores corticomedullary differentiation and reduces skeletal sclerosis on follow-up X-rays.`,
+    phase3Secret: `Guild Secret: Early HSCT prevents irreversible blindness/deafness from cranial nerve foraminal impingement.`,
+    dossierBullets: {
+      p1: [
+        `Osteoclasts originate from hematopoietic monocyte/macrophage lineage`,
+        `Donor stem cells generate functional acidification-competent osteoclasts`
+      ],
+      p2: [
+        `Post-HSCT remodeling reopens the obliterated medullary cavity`,
+        `Halts progressive bony impingement of cranial nerve foramina`
+      ],
+      p3: [
+        `HSCT is the curative therapy for severe infantile osteopetrosis`,
+        `Relieves pancytopenia, infection risk, and hepatosplenomegaly`
+      ]
+    }
+  }
+];
+
+// =========================================================================
+// RUNTIME STATE
+// =========================================================================
+let activeDeck = [];
+let missedQuestions = [];
+let masteredIds = [];
+let currentIndex = 0;
+let currentLane = 1;
+let hasChosenLane = false;
+let craftVisualLane = 1;
+let playerHp = GAME_CONFIG.maxHp;
+let playerXp = 0;
+let bestXp = 0;
+let streak = 0;
+let bestStreak = 0;
+let correctCount = 0;
+let answeredCount = 0;
+let healCheckpointCounter = 0;
+let gateDistance = GAME_CONFIG.gateStartDistance;
+let isStoppedAtGate = false;
+let isModalOpen = false;
+let isMenuOpen = false;
+let isRunFinished = false;
+let isHintsVisible = false;
+let isSoundEnabled = true;
+let isSfxEnabled = true;
+let isTimerEnabled = false;
+let isTimesUpFailEnabled = true;
+let timeRemaining = GAME_CONFIG.timerSeconds;
+let timerIntervalId = null;
+let metaFadeTimeoutId = null;
+let phaseFilter = 'all';
+let codexTag = 'all';
+let lastFrameTime = 0;
+let animFrameId = null;
+let trackScrollOffset = 0;
+let particleTime = 0;
+let warpSurgeTimer = 0;
+let portalFlareLane = -1;
+let portalFlareTimer = 0;
+let lastSteerSfxTime = 0;
+let audioCtx = null;
+let portalHitboxes = [];
+let isBgmPlaying = false;
+let bgmVolume = 0.35;
+let customBgmUrl = null;
+let customBgmName = '';
+
+const bgmNodes = {
+  masterGain: null,
+  droneOsc1: null,
+  droneOsc2: null,
+  lfoOsc: null,
+  noiseSource: null,
+  noteIntervalId: null,
+  stepIndex: 0
+};
+
+const PARALLAX_PARTICLES = Array.from({ length: 150 }, (_, idx) => {
+  const theta = idx * 2.399963229728653;
+  const radiusBias = 0.08 + Math.sqrt(((idx * 0.754877666) % 1)) * 1.15;
+  return {
+    dx: Math.cos(theta) * radiusBias,
+    dy: Math.sin(theta) * radiusBias * 0.72 - 0.16,
+    z: 0.04 + ((idx + 0.5) / 150) * 0.96,
+    speed: 0.085 + (idx % 7) * 0.018,
+    baseSize: 1.4 + (idx % 4) * 1.25
+  };
+});
+
+function getThemeForLo(loNum) {
+  if (LO_VISUAL_THEMES[loNum]) return LO_VISUAL_THEMES[loNum];
+  const idx = Math.abs((Number(loNum) || 1) - 1) % DEFAULT_THEME_CYCLE.length;
+  return DEFAULT_THEME_CYCLE[idx];
+}
+
+function ensureAudioContext() {
+  if (!isSoundEnabled) return null;
+  if (!audioCtx && (window.AudioContext || window.webkitAudioContext)) {
+    const Ctor = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new Ctor();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
+  return audioCtx;
+}
+
+function playSfx(type) {
+  if (!isSoundEnabled || !isSfxEnabled) return;
+  try {
+    const ctx = ensureAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    if (type === 'steer') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(340, now);
+      osc.frequency.exponentialRampToValueAtTime(520, now + 0.07);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc.start(now);
+      osc.stop(now + 0.08);
+    } else if (type === 'correct') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, now);
+      osc.frequency.setValueAtTime(659.25, now + 0.07);
+      osc.frequency.setValueAtTime(783.99, now + 0.14);
+      gain.gain.setValueAtTime(0.13, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+      osc.start(now);
+      osc.stop(now + 0.28);
+    } else if (type === 'heal') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(440, now);
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.22);
+      gain.gain.setValueAtTime(0.13, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      osc.start(now);
+      osc.stop(now + 0.25);
+    } else if (type === 'wrong') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(175, now);
+      osc.frequency.exponentialRampToValueAtTime(75, now + 0.26);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.27);
+      osc.start(now);
+      osc.stop(now + 0.27);
+    } else if (type === 'warp') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(260, now);
+      osc.frequency.exponentialRampToValueAtTime(680, now + 0.15);
+      gain.gain.setValueAtTime(0.06, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+      osc.start(now);
+      osc.stop(now + 0.16);
+    }
+  } catch (e) {}
+}
+
+function triggerHauntedPianoNote(ctx, dest, freq) {
+  const now = ctx.currentTime;
+  const osc1 = ctx.createOscillator();
+  const osc2 = ctx.createOscillator();
+  const env = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  osc1.type = 'triangle';
+  osc2.type = 'sine';
+  osc1.frequency.setValueAtTime(freq, now);
+  osc2.frequency.setValueAtTime(freq * 2.003, now);
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(1200, now);
+  filter.frequency.exponentialRampToValueAtTime(340, now + 1.4);
+  env.gain.setValueAtTime(0.0001, now);
+  env.gain.linearRampToValueAtTime(0.14, now + 0.025);
+  env.gain.exponentialRampToValueAtTime(0.0001, now + 1.65);
+  osc1.connect(filter);
+  osc2.connect(filter);
+  filter.connect(env);
+  env.connect(dest);
+  osc1.start(now);
+  osc2.start(now);
+  osc1.stop(now + 1.7);
+  osc2.stop(now + 1.7);
+}
+
+function startProceduralZombiesBgm() {
+  stopProceduralZombiesBgm();
+  if (!isSoundEnabled) return;
+  const ctx = ensureAudioContext();
+  if (!ctx) return;
+  const master = ctx.createGain();
+  master.gain.setValueAtTime(bgmVolume * 0.45, ctx.currentTime);
+  master.connect(ctx.destination);
+  bgmNodes.masterGain = master;
+
+  const droneFilter = ctx.createBiquadFilter();
+  droneFilter.type = 'lowpass';
+  droneFilter.frequency.setValueAtTime(165, ctx.currentTime);
+  droneFilter.Q.setValueAtTime(2.5, ctx.currentTime);
+  const droneGain = ctx.createGain();
+  droneGain.gain.setValueAtTime(0.18, ctx.currentTime);
+  const d1 = ctx.createOscillator();
+  const d2 = ctx.createOscillator();
+  d1.type = 'sawtooth';
+  d2.type = 'sawtooth';
+  d1.frequency.setValueAtTime(55.0, ctx.currentTime);
+  d2.frequency.setValueAtTime(55.45, ctx.currentTime);
+  const lfo = ctx.createOscillator();
+  const lfoGain = ctx.createGain();
+  lfo.type = 'sine';
+  lfo.frequency.setValueAtTime(0.14, ctx.currentTime);
+  lfoGain.gain.setValueAtTime(48, ctx.currentTime);
+  lfo.connect(lfoGain);
+  lfoGain.connect(droneFilter.frequency);
+  d1.connect(droneFilter);
+  d2.connect(droneFilter);
+  droneFilter.connect(droneGain);
+  droneGain.connect(master);
+  d1.start();
+  d2.start();
+  lfo.start();
+  bgmNodes.droneOsc1 = d1;
+  bgmNodes.droneOsc2 = d2;
+  bgmNodes.lfoOsc = lfo;
+
+  const bufSize = ctx.sampleRate * 2;
+  const noiseBuf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+  const data = noiseBuf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * 0.35;
+  const noise = ctx.createBufferSource();
+  noise.buffer = noiseBuf;
+  noise.loop = true;
+  const noiseFilter = ctx.createBiquadFilter();
+  noiseFilter.type = 'bandpass';
+  noiseFilter.frequency.setValueAtTime(950, ctx.currentTime);
+  noiseFilter.Q.setValueAtTime(1.4, ctx.currentTime);
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.025, ctx.currentTime);
+  noise.connect(noiseFilter);
+  noiseFilter.connect(noiseGain);
+  noiseGain.connect(master);
+  noise.start();
+  bgmNodes.noiseSource = noise;
+
+  const hauntedPattern = [
+    440.00, 523.25, 493.88, 392.00,
+    440.00, 329.63, 349.23, 329.63,
+    440.00, 523.25, 587.33, 523.25,
+    493.88, 392.00, 329.63, 0
+  ];
+  bgmNodes.stepIndex = 0;
+  const stepNote = () => {
+    if (!isSoundEnabled || !isBgmPlaying || !bgmNodes.masterGain) return;
+    const freq = hauntedPattern[bgmNodes.stepIndex % hauntedPattern.length];
+    bgmNodes.stepIndex++;
+    if (freq > 0) triggerHauntedPianoNote(ctx, bgmNodes.masterGain, freq);
+  };
+  stepNote();
+  bgmNodes.noteIntervalId = setInterval(stepNote, 620);
+}
+
+function stopProceduralZombiesBgm() {
+  if (bgmNodes.noteIntervalId) {
+    clearInterval(bgmNodes.noteIntervalId);
+    bgmNodes.noteIntervalId = null;
+  }
+  ['droneOsc1', 'droneOsc2', 'lfoOsc', 'noiseSource'].forEach((k) => {
+    if (bgmNodes[k]) {
+      try { bgmNodes[k].stop(); } catch (e) {}
+      try { bgmNodes[k].disconnect(); } catch (e) {}
+      bgmNodes[k] = null;
+    }
+  });
+  if (bgmNodes.masterGain) {
+    try { bgmNodes.masterGain.disconnect(); } catch (e) {}
+    bgmNodes.masterGain = null;
+  }
+}
+
+function syncSoundControlsUI() {
+  const masterBtn = document.getElementById('master-sound-btn');
+  const sfxBtn = document.getElementById('audio-toggle-btn');
+  const menuBgmBtn = document.getElementById('menu-bgm-btn');
+  const volLabel = document.getElementById('bgm-vol-label');
+  if (masterBtn) masterBtn.textContent = isSoundEnabled ? `🔊 Sound: ON` : `🔇 Sound: OFF`;
+  if (sfxBtn) sfxBtn.textContent = (isSoundEnabled && isSfxEnabled) ? `🔊 SFX: ON` : `🔇 SFX: OFF`;
+  const bgmActive = isSoundEnabled && isBgmPlaying;
+  if (menuBgmBtn) {
+    menuBgmBtn.textContent = bgmActive
+      ? (customBgmUrl ? `🎵 Custom BGM: ON (${customBgmName})` : `🎵 Zombies BGM: ON`)
+      : (customBgmUrl ? `🎵 Custom BGM: OFF` : `🎵 Zombies BGM: OFF`);
+  }
+  if (volLabel) volLabel.textContent = `${Math.round(bgmVolume * 100)}%`;
+}
+
+function toggleMasterSound() {
+  isSoundEnabled = !isSoundEnabled;
+  const customAudio = document.getElementById('custom-bgm-audio');
+  if (!isSoundEnabled) {
+    stopProceduralZombiesBgm();
+    if (customAudio) customAudio.pause();
+  } else if (isBgmPlaying) {
+    if (customBgmUrl && customAudio) {
+      stopProceduralZombiesBgm();
+      customAudio.volume = bgmVolume;
+      customAudio.play().catch(() => {});
+    } else {
+      startProceduralZombiesBgm();
+    }
+  }
+  syncSoundControlsUI();
+  persistAppState();
+}
+
+function toggleSfx() {
+  isSfxEnabled = !isSfxEnabled;
+  if (isSfxEnabled && !isSoundEnabled) isSoundEnabled = true;
+  syncSoundControlsUI();
+  persistAppState();
+}
+
+function toggleBgm() {
+  const customAudio = document.getElementById('custom-bgm-audio');
+  isBgmPlaying = !isBgmPlaying;
+  if (isBgmPlaying) {
+    if (!isSoundEnabled) isSoundEnabled = true;
+    if (customBgmUrl && customAudio) {
+      stopProceduralZombiesBgm();
+      customAudio.volume = bgmVolume;
+      customAudio.play().catch(() => {});
+    } else {
+      startProceduralZombiesBgm();
+    }
+  } else {
+    stopProceduralZombiesBgm();
+    if (customAudio) customAudio.pause();
+  }
+  syncSoundControlsUI();
+  persistAppState();
+}
+
+function updateBgmVolume(val) {
+  bgmVolume = Math.max(0, Math.min(1, Number(val) / 100));
+  const customAudio = document.getElementById('custom-bgm-audio');
+  if (customAudio) customAudio.volume = bgmVolume;
+  if (bgmNodes.masterGain && audioCtx) {
+    bgmNodes.masterGain.gain.setTargetAtTime(bgmVolume * 0.45, audioCtx.currentTime, 0.05);
+  }
+  syncSoundControlsUI();
+  persistAppState();
+}
+
+function handleCustomBgmUpload(evt) {
+  const file = evt.target && evt.target.files ? evt.target.files[0] : null;
+  if (!file) return;
+  if (customBgmUrl) URL.revokeObjectURL(customBgmUrl);
+  customBgmUrl = URL.createObjectURL(file);
+  customBgmName = file.name.length > 16 ? file.name.slice(0, 13) + '…' : file.name;
+  isSoundEnabled = true;
+  isBgmPlaying = true;
+  const customAudio = document.getElementById('custom-bgm-audio');
+  stopProceduralZombiesBgm();
+  if (customAudio) {
+    customAudio.src = customBgmUrl;
+    customAudio.volume = bgmVolume;
+    customAudio.play().catch(() => {});
+  }
+  syncSoundControlsUI();
+  persistAppState();
+}
+
+function fisherYatesShuffle(arr) {
+  const copy = arr.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = copy[i];
+    copy[i] = copy[j];
+    copy[j] = tmp;
+  }
+  return copy;
+}
+
+function shuffleQuestionOptions(q) {
+  const indexed = q.choices.map((text, idx) => ({ text, isCorrect: idx === q.correctIndex }));
+  const shuffled = fisherYatesShuffle(indexed);
+  return {
+    ...q,
+    choices: shuffled.map((item) => item.text),
+    correctIndex: shuffled.findIndex((item) => item.isCorrect)
+  };
+}
+
+function getComboMultiplier() {
+  return Math.min(3.0, 1.0 + streak * 0.25);
+}
+
+function initDynamicSelectors() {
+  document.title = GAME_CONFIG.title;
+  const titleEl = document.getElementById('drawer-title');
+  const kickerEl = document.getElementById('drawer-kicker');
+  const codexTitle = document.getElementById('codex-title');
+  if (titleEl) titleEl.textContent = GAME_CONFIG.title;
+  if (kickerEl) kickerEl.textContent = GAME_CONFIG.kicker;
+  if (codexTitle) codexTitle.textContent = `Master Raid Loot Codex (${CODEX_DATA.length} Objectives)`;
+
+  const sectorSelect = document.getElementById('sector-filter');
+  if (sectorSelect) {
+    sectorSelect.innerHTML =
+      `<option value="all">All Sectors (${ALL_QUESTIONS.length} Gates)</option>` +
+      CODEX_DATA.map((c) => {
+        const meta = c.badgeMeta ? ` (${c.badgeMeta})` : '';
+        return `<option value="${c.lo}">LO ${c.lo}: ${c.entity}${meta}</option>`;
+      }).join('') +
+      `<option value="missed" id="missed-sector-option">🎯 Missed Gates Only (${missedQuestions.length})</option>`;
+  }
+  buildSkillTree();
+}
+
+function syncMissedOptionLabel() {
+  const opt = document.getElementById('missed-sector-option');
+  if (opt) opt.textContent = `🎯 Missed Gates Only (${missedQuestions.length})`;
+}
+
+function buildSkillTree() {
+  const grid = document.getElementById('skill-tree-grid');
+  if (!grid) return;
+  const secVal = document.getElementById('sector-filter')?.value || 'all';
+  let masteredLos = 0;
+  grid.innerHTML = CODEX_DATA.map((c) => {
+    const loQs = ALL_QUESTIONS.filter((q) => q.lo === c.lo);
+    const done = loQs.filter((q) => masteredIds.includes(q.id)).length;
+    const isMastered = done === loQs.length && loQs.length > 0;
+    if (isMastered) masteredLos++;
+    const isActive = String(secVal) === String(c.lo);
+    const metaTag = c.badgeMeta ? ` • ${c.badgeMeta}` : '';
+    return `<button type="button" class="skill-node ${isMastered ? 'is-mastered' : ''} ${isActive ? 'is-active-filter' : ''}" onclick="selectSectorFromTree(${c.lo})">
+      <div class="skill-node-top"><span>LO ${c.lo}${metaTag}</span><span>${done}/${loQs.length}</span></div>
+      <div class="skill-node-title">${c.entity}</div>
+      <div class="skill-node-meta">${isMastered ? '✔ MASTERED' : 'TAP TO DEPLOY'}</div>
+    </button>`;
+  }).join('');
+  const sumEl = document.getElementById('mastery-summary');
+  const acc = answeredCount > 0 ? `${Math.round((correctCount / answeredCount) * 100)}%` : '--%';
+  if (sumEl) sumEl.textContent = `Mastered: ${masteredLos} / ${CODEX_DATA.length} LOs • Accuracy: ${acc}`;
+}
+
+function selectSectorFromTree(loNum) {
+  const sel = document.getElementById('sector-filter');
+  if (sel) sel.value = String(loNum);
+  applyFilters();
+  if (isMenuOpen) toggleMenuDrawer();
+}
+
+function setPhaseFilter(val) {
+  phaseFilter = val;
+  document.querySelectorAll('.phase-mix-pill[data-phase]').forEach((p) => {
+    p.classList.toggle('is-selected', p.dataset.phase === val);
+  });
+  applyFilters();
+}
+
+function buildDeck(randomize, customSource) {
+  const secVal = document.getElementById('sector-filter')?.value || 'all';
+  const angVal = document.getElementById('angle-filter')?.value || 'all';
+  const msgEl = document.getElementById('menu-status-msg');
+  let pool;
+
+  if (Array.isArray(customSource) && customSource.length > 0) {
+    pool = customSource.slice();
+  } else if (secVal === 'missed') {
+    pool = missedQuestions.filter((q) => {
+      const matchAng = angVal === 'all' || q.angle === angVal;
+      const matchPha = phaseFilter === 'all' || q.phaseFocus === phaseFilter;
+      return matchAng && matchPha;
+    });
+  } else {
+    pool = ALL_QUESTIONS.filter((q) => {
+      const matchLo = secVal === 'all' || String(q.lo) === String(secVal);
+      const matchAng = angVal === 'all' || q.angle === angVal;
+      const matchPha = phaseFilter === 'all' || q.phaseFocus === phaseFilter;
+      return matchLo && matchAng && matchPha;
+    });
+  }
+
+  if (!pool.length) {
+    pool = ALL_QUESTIONS.slice();
+    if (msgEl) {
+      msgEl.textContent = secVal === 'missed'
+        ? `No missed gates yet — loaded all ${ALL_QUESTIONS.length} gates.`
+        : `No gates matched that filter combo — restored all ${ALL_QUESTIONS.length} gates.`;
+    }
+  } else if (msgEl) {
+    msgEl.textContent = `Active Queue: ${pool.length} gates ready.`;
+  }
+
+  const ordered = randomize ? fisherYatesShuffle(pool) : pool.slice();
+  activeDeck = ordered.map(shuffleQuestionOptions);
+}
+
+function getCurrentQuestion() {
+  if (!activeDeck.length) buildDeck(false);
+  return activeDeck[currentIndex] || activeDeck[0];
+}
+
+function toggleMenuDrawer() {
+  isMenuOpen = !isMenuOpen;
+  const backdrop = document.getElementById('menu-backdrop');
+  const btn = document.getElementById('menu-toggle-btn');
+  if (backdrop) backdrop.classList.toggle('is-open', isMenuOpen);
+  if (btn) {
+    btn.classList.toggle('is-active', isMenuOpen);
+    btn.setAttribute('aria-expanded', String(isMenuOpen));
+  }
+  if (isMenuOpen) {
+    syncMissedOptionLabel();
+    buildSkillTree();
+  }
+}
+
+function syncHintsUI() {
+  const app = document.getElementById('xr-app');
+  const menuBtn = document.getElementById('menu-hints-btn');
+  if (app) {
+    app.classList.toggle('hints-visible', isHintsVisible);
+    app.classList.toggle('hints-hidden', !isHintsVisible);
+  }
+  if (menuBtn) {
+    menuBtn.textContent = isHintsVisible ? `💡 Hints: ON [H]` : `💡 Hints: OFF [H]`;
+    menuBtn.classList.toggle('is-active', isHintsVisible);
+  }
+}
+
+function toggleHintsBar() {
+  isHintsVisible = !isHintsVisible;
+  syncHintsUI();
+  playSfx('steer');
+  persistAppState();
+}
+
+function openCodexFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  openCodex();
+}
+
+function skipFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  skipCurrentQuestion();
+}
+
+function syncTimerControlsUI() {
+  const modeSel = document.getElementById('times-up-select');
+  const menuTimerBtn = document.getElementById('menu-timer-btn');
+  const chip = document.getElementById('timer-chip');
+  if (modeSel) modeSel.value = isTimesUpFailEnabled ? 'fail' : 'hold';
+  if (menuTimerBtn) {
+    menuTimerBtn.textContent = isTimerEnabled ? `⏱ 50s Timer: ON [T]` : `⏱ 50s Timer: OFF [T]`;
+    menuTimerBtn.classList.toggle('is-active', isTimerEnabled);
+  }
+  if (!chip) return;
+  chip.classList.remove('is-off', 'is-hold', 'is-urgent');
+  if (!isTimerEnabled) {
+    chip.textContent = `⏱ OFF`;
+    chip.classList.add('is-off');
+  } else if (timeRemaining === 0 && !isTimesUpFailEnabled) {
+    chip.textContent = `⏱ HOLD`;
+    chip.classList.add('is-hold');
+  } else {
+    chip.textContent = `⏱ ${timeRemaining}s`;
+    if (timeRemaining <= 10) chip.classList.add('is-urgent');
+  }
+}
+
+function applyTimerSettings() {
+  const modeSel = document.getElementById('times-up-select');
+  if (modeSel) isTimesUpFailEnabled = modeSel.value === 'fail';
+  syncTimerControlsUI();
+  persistAppState();
+}
+
+function toggleTimerActive() {
+  if (isRunFinished) return;
+  isTimerEnabled = !isTimerEnabled;
+  if (isTimerEnabled) {
+    startQuestionTimer();
+    playSfx('steer');
+  } else {
+    if (timerIntervalId) clearInterval(timerIntervalId);
+    syncTimerControlsUI();
+  }
+  persistAppState();
+}
+
+function startTimedSession() {
+  isTimerEnabled = true;
+  isTimesUpFailEnabled = true;
+  if (isMenuOpen) toggleMenuDrawer();
+  syncTimerControlsUI();
+  startQuestionTimer();
+  playSfx('warp');
+  persistAppState();
+}
+
+function startQuestionTimer() {
+  if (timerIntervalId) clearInterval(timerIntervalId);
+  timeRemaining = GAME_CONFIG.timerSeconds;
+  syncTimerControlsUI();
+  if (!isTimerEnabled) return;
+  timerIntervalId = setInterval(() => {
+    if (isModalOpen || isMenuOpen || isRunFinished || !isTimerEnabled) return;
+    if (timeRemaining > 0) {
+      timeRemaining--;
+      syncTimerControlsUI();
+      if (timeRemaining === 0) {
+        if (isTimesUpFailEnabled) {
+          clearInterval(timerIntervalId);
+          resolveGateChoice(-1);
+        } else {
+          syncTimerControlsUI();
+        }
+      }
+    }
+  }, 1000);
+}
+
+function updateTelemetryUI() {
+  const hpText = document.getElementById('hp-text');
+  const hpChip = document.getElementById('hp-chip');
+  const xpText = document.getElementById('xp-text');
+  const streakText = document.getElementById('streak-text');
+  const progText = document.getElementById('progress-text');
+  const clampedHp = Math.max(0, playerHp);
+  if (hpText) hpText.textContent = `${clampedHp}`;
+  if (hpChip) hpChip.classList.toggle('is-low', clampedHp <= 30);
+  if (xpText) xpText.textContent = `${playerXp}`;
+  if (streakText) streakText.textContent = `${streak}`;
+  if (progText) progText.textContent = `${Math.min(currentIndex + 1, activeDeck.length)}/${activeDeck.length}`;
+  syncTimerControlsUI();
+  syncSoundControlsUI();
+  syncHintsUI();
+}
+
+function triggerAmbossRescan() {
+  const stage = document.querySelector('.question-stage');
+  if (stage) stage.setAttribute('data-amboss-timestamp', String(Date.now()));
+}
+
+function scheduleMetadataAutoHide() {
+  const metaRow = document.getElementById('question-meta-row');
+  if (!metaRow) return;
+  if (metaFadeTimeoutId) {
+    clearTimeout(metaFadeTimeoutId);
+    metaFadeTimeoutId = null;
+  }
+  metaRow.classList.remove('is-faded');
+  metaFadeTimeoutId = setTimeout(() => {
+    metaRow.classList.add('is-faded');
+  }, GAME_CONFIG.metaFadeMs);
+}
+
+function updateLaneHighlight() {
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`lane-${i}-card`);
+    if (card) {
+      card.classList.toggle('is-targeted', i === currentLane);
+      card.classList.toggle('is-selected', hasChosenLane && i === currentLane);
+    }
+  }
+}
+
+function previewLaneTarget(laneIndex) {
+  if (isModalOpen || isMenuOpen || isRunFinished) return;
+  if (laneIndex < 0 || laneIndex > 2) return;
+  if (currentLane !== laneIndex) {
+    currentLane = laneIndex;
+    updateLaneHighlight();
+    const now = performance.now();
+    if (now - lastSteerSfxTime > 95) {
+      lastSteerSfxTime = now;
+      playSfx('steer');
+    }
+  }
+}
+
+function updateQuestionStageUI() {
+  const q = getCurrentQuestion();
+  const theme = getThemeForLo(q.lo);
+  const loBadge = document.getElementById('lo-badge');
+  const angleBadge = document.getElementById('angle-badge');
+  const phaseBadge = document.getElementById('phase-badge');
+  const corridorBadge = document.getElementById('corridor-badge');
+  const stemEl = document.getElementById('q-stem-text');
+  const clueEl = document.getElementById('q-clue-text');
+  const hintRefEl = document.getElementById('hints-meta-ref');
+
+  if (loBadge) loBadge.textContent = q.loTitle;
+  if (angleBadge) angleBadge.textContent = q.angle.replace('->', '→');
+  if (phaseBadge) phaseBadge.textContent = q.phaseFocus;
+  if (corridorBadge) corridorBadge.textContent = `CORRIDOR: ${theme.tag}`;
+  if (stemEl) stemEl.textContent = q.stem;
+  if (clueEl) clueEl.textContent = q.clue;
+  if (hintRefEl) hintRefEl.textContent = `${q.loTitle} • ${q.phaseFocus}`;
+
+  for (let i = 0; i < 3; i++) {
+    const txt = document.getElementById(`lane-${i}-text`);
+    if (txt) txt.textContent = q.choices[i] || '';
+  }
+
+  updateLaneHighlight();
+  scheduleMetadataAutoHide();
+  triggerAmbossRescan();
+}
+
+function applyFilters() {
+  buildDeck(false);
+  resetRunState();
+  buildSkillTree();
+  persistAppState();
+}
+
+function restartOrdered() {
+  closeAllModals();
+  if (isMenuOpen) toggleMenuDrawer();
+  buildDeck(false);
+  resetRunState();
+}
+
+function restartRandomized() {
+  closeAllModals();
+  if (isMenuOpen) toggleMenuDrawer();
+  buildDeck(true);
+  resetRunState();
+}
+
+function retryMissedOnly() {
+  if (!missedQuestions.length) return;
+  const copy = missedQuestions.slice();
+  closeAllModals();
+  buildDeck(true, copy);
+  resetRunState();
+}
+
+function handleResetMastery(btn) {
+  if (!btn) return;
+  if (btn.dataset.armed !== 'true') {
+    btn.dataset.armed = 'true';
+    btn.textContent = `⚠ Confirm Reset?`;
+    setTimeout(() => {
+      if (btn.dataset.armed === 'true') {
+        btn.dataset.armed = 'false';
+        btn.textContent = `⚠ Reset Mastery`;
+      }
+    }, 3200);
+    return;
+  }
+  btn.dataset.armed = 'false';
+  btn.textContent = `⚠ Reset Mastery`;
+  masteredIds = [];
+  missedQuestions = [];
+  bestXp = 0;
+  bestStreak = 0;
+  phaseFilter = 'all';
+  const sf = document.getElementById('sector-filter');
+  const af = document.getElementById('angle-filter');
+  if (sf) sf.value = 'all';
+  if (af) af.value = 'all';
+  document.querySelectorAll('.phase-mix-pill[data-phase]').forEach((p) => {
+    p.classList.toggle('is-selected', p.dataset.phase === 'all');
+  });
+  syncMissedOptionLabel();
+  buildDeck(false);
+  resetRunState();
+  buildSkillTree();
+  persistAppState();
+}
+
+function resetRunState() {
+  currentIndex = 0;
+  playerHp = GAME_CONFIG.maxHp;
+  playerXp = 0;
+  streak = 0;
+  correctCount = 0;
+  answeredCount = 0;
+  healCheckpointCounter = 0;
+  if (document.getElementById('sector-filter')?.value !== 'missed') {
+    missedQuestions = [];
+  }
+  isRunFinished = false;
+  isModalOpen = false;
+  syncMissedOptionLabel();
+  prepareNextGate();
+  updateTelemetryUI();
+}
+
+function prepareNextGate() {
+  currentLane = 1;
+  hasChosenLane = false;
+  craftVisualLane = 1;
+  gateDistance = GAME_CONFIG.gateStartDistance;
+  isStoppedAtGate = false;
+  warpSurgeTimer = 0.45;
+  portalFlareLane = -1;
+  portalFlareTimer = 0;
+  for (let i = 0; i < 3; i++) {
+    document.getElementById(`lane-${i}-card`)?.classList.remove('is-fused', 'is-selected');
+  }
+  updateQuestionStageUI();
+  updateTelemetryUI();
+  startQuestionTimer();
+  playSfx('warp');
+}
+
+function triggerVignette(type) {
+  const vig = document.getElementById('vignette-overlay');
+  const shell = document.getElementById('viewport-shell');
+  if (vig) {
+    vig.classList.remove('is-damage', 'is-heal');
+    void vig.offsetWidth;
+    vig.classList.add(type === 'damage' ? 'is-damage' : 'is-heal');
+    setTimeout(() => vig.classList.remove('is-damage', 'is-heal'), 420);
+  }
+  if (type === 'damage' && shell) {
+    shell.classList.remove('shake-anim');
+    void shell.offsetWidth;
+    shell.classList.add('shake-anim');
+  }
+}
+
+function showHealToast(amount) {
+  const toast = document.getElementById('heal-toast');
+  if (!toast) return;
+  toast.textContent = `✚ STREAK BONUS +${amount} HP`;
+  toast.classList.add('is-visible');
+  setTimeout(() => toast.classList.remove('is-visible'), 2000);
+}
+
+function selectLaneAndResolve(laneIndex) {
+  if (isModalOpen || isMenuOpen || isRunFinished) return;
+  if (laneIndex < 0 || laneIndex > 2) return;
+  currentLane = laneIndex;
+  hasChosenLane = true;
+  portalFlareLane = laneIndex;
+  portalFlareTimer = 0.35;
+  updateLaneHighlight();
+  playSfx('steer');
+  resolveGateChoice(laneIndex);
+}
+
+function resolveGateChoice(chosenLane) {
+  if (timerIntervalId) clearInterval(timerIntervalId);
+  isModalOpen = true;
+  const q = getCurrentQuestion();
+  const isTimesUp = chosenLane === -1;
+  const isCorrect = !isTimesUp && chosenLane === q.correctIndex;
+  answeredCount++;
+
+  let xpDelta = 0;
+  let hpDeltaLabel = '';
+
+  if (isCorrect) {
+    correctCount++;
+    streak++;
+    if (streak > bestStreak) bestStreak = streak;
+    if (!masteredIds.includes(q.id)) masteredIds.push(q.id);
+    const prevHp = playerHp;
+    playerHp = Math.min(GAME_CONFIG.maxHp, playerHp + GAME_CONFIG.hpReward);
+    const smallGain = playerHp - prevHp;
+    hpDeltaLabel = smallGain > 0 ? `+${smallGain} HP` : `MAX HP`;
+    xpDelta = Math.round(100 * getComboMultiplier());
+    playerXp += xpDelta;
+    if (playerXp > bestXp) bestXp = playerXp;
+    healCheckpointCounter++;
+    playSfx('correct');
+    if (healCheckpointCounter >= GAME_CONFIG.healStreakStep) {
+      healCheckpointCounter = 0;
+      const beforeHeal = playerHp;
+      playerHp = Math.min(GAME_CONFIG.maxHp, playerHp + GAME_CONFIG.healAmount);
+      const gained = playerHp - beforeHeal;
+      hpDeltaLabel = gained > 0 ? `+${gained} HP` : `MAX HP`;
+      triggerVignette('heal');
+      showHealToast(gained > 0 ? gained : GAME_CONFIG.healAmount);
+      playSfx('heal');
+    }
+  } else {
+    streak = 0;
+    healCheckpointCounter = 0;
+    playerHp = Math.max(0, playerHp - GAME_CONFIG.hpPenalty);
+    hpDeltaLabel = `-${GAME_CONFIG.hpPenalty} HP`;
+    if (!missedQuestions.some((item) => item.id === q.id)) missedQuestions.push(q);
+    syncMissedOptionLabel();
+    triggerVignette('damage');
+    playSfx('wrong');
+  }
+
+  updateTelemetryUI();
+  populateOutcomeModal(q, chosenLane, isCorrect, xpDelta, hpDeltaLabel, isTimesUp);
+  persistAppState();
+}
+
+function renderDossierBullets(el, lines) {
+  if (!el) return;
+  const items = (Array.isArray(lines) ? lines : [lines])
+    .flatMap((line) => String(line || '').split(/\n|<br\s*\/?>/i))
+    .map((line) => line.replace(/^\s*[•\-\*]\s*/, '').trim())
+    .filter(Boolean);
+  el.innerHTML = items.map((line) => `<p class="dossier-line">• ${line}</p>`).join('');
+}
+
+function populateOutcomeModal(q, chosenLane, isCorrect, xpDelta, hpDeltaLabel, isTimesUp) {
+  const verdict = document.getElementById('outcome-verdict');
+  const xpBadge = document.getElementById('outcome-xp-delta');
+  const hpBadge = document.getElementById('outcome-hp-delta');
+  const loRef = document.getElementById('outcome-lo-ref');
+  const qText = document.getElementById('outcome-question-text');
+  const yourBox = document.getElementById('your-choice-box');
+  const yourText = document.getElementById('your-choice-text');
+  const rightText = document.getElementById('correct-choice-text');
+  const expEl = document.getElementById('dossier-explanation');
+  const clueEl = document.getElementById('dossier-board-clue');
+  const pathEl = document.getElementById('dossier-pathogenesis');
+  const morphEl = document.getElementById('dossier-morphology');
+  const txEl = document.getElementById('dossier-epi-tx');
+  const ang1El = document.getElementById('dossier-angle-1');
+  const ang2El = document.getElementById('dossier-angle-2');
+  const ang3El = document.getElementById('dossier-angle-3');
+  const contBtn = document.getElementById('continue-runner-btn');
+  const backdrop = document.getElementById('outcome-backdrop');
+  const scrollBody = document.getElementById('outcome-scroll-body');
+
+  const correctAnswerLabel = (q.shortAnswer && q.shortAnswer.trim())
+    ? q.shortAnswer.trim()
+    : (q.choices[q.correctIndex] || q.loTitle || 'Correct Answer');
+
+  if (verdict) {
+    verdict.textContent = isTimesUp
+      ? `⏱ TIME'S UP — ${correctAnswerLabel}`
+      : (isCorrect ? `✔ CORRECT — ${correctAnswerLabel}` : `✖ INCORRECT — ${correctAnswerLabel}`);
+    verdict.className = `popup-verdict ${isCorrect ? 'is-correct' : 'is-wrong'}`;
+  }
+  if (xpBadge) {
+    xpBadge.textContent = isCorrect
+      ? `+${xpDelta} XP (${getComboMultiplier().toFixed(2)}x)`
+      : (isTimesUp ? `+0 XP (Time Expired)` : `+0 XP (Streak Reset)`);
+  }
+  if (hpBadge) hpBadge.textContent = hpDeltaLabel;
+  if (loRef) loRef.textContent = `${q.loTitle} • ${q.angle.replace('->', '→')} • ${q.phaseFocus}`;
+  if (qText) qText.textContent = q.stem;
+
+  if (yourBox) {
+    yourBox.classList.remove('is-right', 'is-wrong');
+    yourBox.classList.add(isCorrect ? 'is-right' : 'is-wrong');
+  }
+  if (yourText) yourText.textContent = isTimesUp ? `⏱ Time's Up (No Selection)` : (q.choices[chosenLane] || '');
+  if (rightText) rightText.textContent = q.choices[q.correctIndex] || '';
+
+  const expParts = String(q.explanation || '').split(/\s+Distractor exclusion:\s*/i);
+  if (expParts.length > 1) {
+    renderDossierBullets(expEl, [expParts[0], `Distractor exclusion: ${expParts[1]}`]);
+  } else {
+    const expSentences = String(q.explanation || '').split(/(?<=\.)\s+/).filter(Boolean);
+    renderDossierBullets(expEl, expSentences.length ? expSentences : [q.explanation]);
+  }
+  renderDossierBullets(clueEl, [q.secondOrderClue, `Quick Hint: ${q.clue}`]);
+  renderDossierBullets(pathEl, [q.phase1Pearl]);
+  renderDossierBullets(morphEl, [q.phase2Hallmark]);
+  renderDossierBullets(txEl, [q.phase3Secret]);
+  renderDossierBullets(ang1El, q.dossierBullets?.p1 || [q.phase1Pearl]);
+  renderDossierBullets(ang2El, q.dossierBullets?.p2 || [q.phase2Hallmark]);
+  renderDossierBullets(ang3El, q.dossierBullets?.p3 || [q.phase3Secret]);
+
+  if (contBtn) {
+    if (playerHp <= 0) contBtn.textContent = `⚠ HP DEPLETED — VIEW SUMMARY`;
+    else if (currentIndex + 1 >= activeDeck.length) contBtn.textContent = `🏁 FINISH RUN — VIEW SUMMARY`;
+    else contBtn.textContent = `▶ Continue Runner [Space / Enter]`;
+  }
+  if (scrollBody) scrollBody.scrollTop = 0;
+  if (backdrop) backdrop.classList.add('is-open');
+  setTimeout(triggerAmbossRescan, 50);
+}
+
+function scrollOutcomeBody(deltaY) {
+  const body = document.getElementById('outcome-scroll-body');
+  if (!body) return;
+  if (typeof body.scrollBy === 'function') {
+    body.scrollBy({ top: deltaY, behavior: 'smooth' });
+  } else {
+    body.scrollTop += deltaY;
+  }
+}
+
+function continueToNextGate() {
+  document.getElementById('outcome-backdrop')?.classList.remove('is-open');
+  isModalOpen = false;
+  if (playerHp <= 0 || currentIndex + 1 >= activeDeck.length) {
+    openSummaryModal();
+    return;
+  }
+  currentIndex++;
+  prepareNextGate();
+}
+
+function skipCurrentQuestion() {
+  if (isModalOpen || isRunFinished) return;
+  if (timerIntervalId) clearInterval(timerIntervalId);
+  playSfx('steer');
+  if (currentIndex + 1 >= activeDeck.length) {
+    openSummaryModal();
+    return;
+  }
+  currentIndex++;
+  prepareNextGate();
+}
+
+function openSummaryModal() {
+  isRunFinished = true;
+  if (timerIntervalId) clearInterval(timerIntervalId);
+  const sumTitle = document.getElementById('summary-title');
+  const sumSub = document.getElementById('summary-subtitle');
+  const sumXp = document.getElementById('sum-xp');
+  const sumAcc = document.getElementById('sum-acc');
+  const sumStreak = document.getElementById('sum-streak');
+  const sumHp = document.getElementById('sum-hp');
+  const missedList = document.getElementById('missed-review-list');
+  const retryBtn = document.getElementById('retry-missed-btn');
+  const backdrop = document.getElementById('summary-backdrop');
+  const acc = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
+
+  if (sumTitle) {
+    sumTitle.textContent = playerHp <= 0 ? `BIO-SUIT BREACHED (0 HP)` : `DIAGNOSTIC RUN COMPLETE`;
+    sumTitle.className = `popup-verdict ${playerHp <= 0 ? 'is-wrong' : 'is-correct'}`;
+  }
+  if (sumSub) sumSub.textContent = `Completed ${answeredCount} of ${activeDeck.length} gates (${correctCount} correct) • Best XP: ${bestXp}`;
+  if (sumXp) sumXp.textContent = `${playerXp}`;
+  if (sumAcc) sumAcc.textContent = `${acc}%`;
+  if (sumStreak) sumStreak.textContent = `${bestStreak}`;
+  if (sumHp) sumHp.textContent = `${Math.max(0, playerHp)}`;
+
+  if (missedList) {
+    if (!missedQuestions.length) {
+      missedList.innerHTML = `<div class="missed-empty">✔ FLAWLESS RUN — ZERO MISSED DIAGNOSTIC GATES!</div>`;
+      if (retryBtn) retryBtn.style.display = 'none';
+    } else {
+      missedList.innerHTML = missedQuestions.map((mq) => {
+        const correctOpt = mq.choices[mq.correctIndex] || '';
+        return `<div class="missed-item"><strong style="color:var(--secondary)">${mq.loTitle}</strong><br>${mq.stem}<br><strong>Correct:</strong> ${correctOpt}<br><span style="color:var(--on-surface-variant)"><strong>Clue:</strong> ${mq.clue}</span></div>`;
+      }).join('');
+      if (retryBtn) {
+        retryBtn.style.display = 'inline-flex';
+        retryBtn.textContent = `🎯 Retry Missed Gates (${missedQuestions.length})`;
+      }
+    }
+  }
+  if (backdrop) backdrop.classList.add('is-open');
+  persistAppState();
+}
+
+function closeAllModals() {
+  ['outcome-backdrop', 'codex-backdrop', 'summary-backdrop'].forEach((id) => {
+    document.getElementById(id)?.classList.remove('is-open');
+  });
+  isModalOpen = false;
+}
+
+function openCodex() {
+  isModalOpen = true;
+  renderCodexTable();
+  document.getElementById('codex-backdrop')?.classList.add('is-open');
+}
+
+function closeCodex() {
+  document.getElementById('codex-backdrop')?.classList.remove('is-open');
+  if (!document.getElementById('outcome-backdrop')?.classList.contains('is-open') &&
+      !document.getElementById('summary-backdrop')?.classList.contains('is-open')) {
+    isModalOpen = false;
+  }
+}
+
+function setCodexTag(tag) {
+  codexTag = tag;
+  document.querySelectorAll('.phase-mix-pill[data-codex-tag]').forEach((p) => {
+    p.classList.toggle('is-selected', p.dataset.codexTag === tag);
+  });
+  renderCodexTable();
+}
+
+function renderCodexTable() {
+  const tbody = document.getElementById('codex-tbody');
+  if (!tbody) return;
+  const query = (document.getElementById('codex-search')?.value || '').trim().toLowerCase();
+  const rows = CODEX_DATA.filter((item) => {
+    if (codexTag !== 'all' && item.tag !== codexTag) return false;
+    if (!query) return true;
+    const blob = `${item.lo} ${item.entity} ${item.etiology} ${item.pathogenesis} ${item.hallmarks} ${item.clinical} ${item.management}`.toLowerCase();
+    return blob.includes(query);
+  });
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="6">No matching entities found.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map((r) => {
+    const metaTag = r.badgeMeta ? ` • ${r.badgeMeta}` : '';
+    return `<tr>
+      <td class="amboss-scan-target"><small style="color:var(--primary);font-family:var(--font-label);">LO ${r.lo}${metaTag}</small><br><strong>${r.entity}</strong></td>
+      <td class="amboss-scan-target">${r.etiology}</td>
+      <td class="amboss-scan-target">${r.pathogenesis}</td>
+      <td class="amboss-scan-target">${r.hallmarks}</td>
+      <td class="amboss-scan-target">${r.clinical}</td>
+      <td class="amboss-scan-target">${r.management}</td>
+    </tr>`;
+  }).join('');
+}
+
+function handleCanvasPointer(evt) {
+  if (isModalOpen || isMenuOpen || isRunFinished) return;
+  const canvas = document.getElementById('xr-canvas');
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const cx = evt.clientX - rect.left;
+  const cy = evt.clientY - rect.top;
+  for (let i = 0; i < portalHitboxes.length; i++) {
+    const b = portalHitboxes[i];
+    if (cx >= b.x && cx <= b.x + b.w && cy >= b.y && cy <= b.y + b.h) {
+      selectLaneAndResolve(b.lane);
+      return;
+    }
+  }
+}
+
+function handleCanvasHover(evt) {
+  if (isModalOpen || isMenuOpen || isRunFinished) return;
+  const canvas = document.getElementById('xr-canvas');
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const cx = evt.clientX - rect.left;
+  const cy = evt.clientY - rect.top;
+  for (let i = 0; i < portalHitboxes.length; i++) {
+    const b = portalHitboxes[i];
+    if (cx >= b.x && cx <= b.x + b.w && cy >= b.y && cy <= b.y + b.h) {
+      previewLaneTarget(b.lane);
+      return;
+    }
+  }
+}
+
+function handleKeyControls(e) {
+  const activeTag = document.activeElement ? document.activeElement.tagName : '';
+  if (activeTag === 'INPUT' || activeTag === 'SELECT' || activeTag === 'TEXTAREA') {
+    if (e.key === 'Escape') {
+      closeCodex();
+      if (isMenuOpen) toggleMenuDrawer();
+    }
+    return;
+  }
+
+  const key = e.key.toLowerCase();
+  const outcomeOpen = document.getElementById('outcome-backdrop')?.classList.contains('is-open');
+  const codexOpen = document.getElementById('codex-backdrop')?.classList.contains('is-open');
+
+  if (e.key === 'Escape') {
+    if (codexOpen) { closeCodex(); return; }
+    if (isMenuOpen) { toggleMenuDrawer(); return; }
+  }
+
+  if (codexOpen) {
+    if (key === 'c') { e.preventDefault(); closeCodex(); }
+    return;
+  }
+
+  if (outcomeOpen) {
+    if (key === ' ' || key === 'enter') {
+      e.preventDefault();
+      continueToNextGate();
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      scrollOutcomeBody(140);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      scrollOutcomeBody(-140);
+    }
+    return;
+  }
+
+  if (key === 'm') { e.preventDefault(); toggleMenuDrawer(); return; }
+  if (isMenuOpen || isRunFinished) return;
+
+  if (key === 'h') {
+    e.preventDefault();
+    toggleHintsBar();
+  } else if (key === 'c') {
+    e.preventDefault();
+    openCodex();
+  } else if (key === 's') {
+    e.preventDefault();
+    skipCurrentQuestion();
+  } else if (key === 't') {
+    e.preventDefault();
+    toggleTimerActive();
+  } else if (key === '1' || key === 'a' || e.key === 'ArrowLeft') {
+    e.preventDefault();
+    selectLaneAndResolve(0);
+  } else if (key === '2' || key === 'w' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    selectLaneAndResolve(1);
+  } else if (key === '3' || key === 'd' || e.key === 'ArrowRight') {
+    e.preventDefault();
+    selectLaneAndResolve(2);
+  }
+}
+
+function drawPixelStarfield(ctx, cssW, cssH, vpX, horizonY, theme, dt, warpMult) {
+  const spreadX = cssW * 0.58;
+  const spreadY = cssH * 0.64;
+
+  ctx.save();
+  ctx.fillStyle = theme.particleColor || '#e8cf58';
+
+  for (let i = 0; i < PARALLAX_PARTICLES.length; i++) {
+    const p = PARALLAX_PARTICLES[i];
+    if (!isModalOpen && !isMenuOpen && !isRunFinished) {
+      p.z -= p.speed * dt * warpMult;
+      if (p.z <= 0.03) p.z = 1.0;
+    }
+
+    const invZ = 1 / (p.z + 0.14);
+    const normDepth = 1 - p.z;
+    const px = vpX + p.dx * spreadX * (invZ * 0.22);
+    const py = horizonY + p.dy * spreadY * (invZ * 0.24);
+
+    if (px < -16 || px > cssW + 16 || py < -16 || py > cssH + 16) continue;
+
+    const sz = Math.min(10.5, Math.max(1.2, p.baseSize * (0.28 + Math.pow(normDepth, 2.2) * 1.9)));
+    const alpha = Math.min(0.88, Math.pow(normDepth, 0.7) * 0.85 + 0.08);
+
+    ctx.globalAlpha = alpha;
+    ctx.fillRect(Math.round(px - sz * 0.5), Math.round(py - sz * 0.5), sz, sz);
+  }
+  ctx.restore();
+}
+
+function renderRunnerFrame(timestamp) {
+  const canvas = document.getElementById('xr-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const dpr = Math.min(window.devicePixelRatio || 1, 2.25);
+  const cssW = canvas.clientWidth || 390;
+  const cssH = canvas.clientHeight || 360;
+  if (canvas.width !== Math.round(cssW * dpr) || canvas.height !== Math.round(cssH * dpr)) {
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+  }
+
+  const dt = lastFrameTime ? Math.min(0.05, (timestamp - lastFrameTime) / 1000) : 0.016;
+  lastFrameTime = timestamp;
+  particleTime += dt;
+
+  if (warpSurgeTimer > 0) warpSurgeTimer = Math.max(0, warpSurgeTimer - dt);
+  if (portalFlareTimer > 0) portalFlareTimer = Math.max(0, portalFlareTimer - dt);
+
+  const warpFrac = warpSurgeTimer / 0.45;
+  const warpSpeedMult = 1 + warpFrac * 4.2;
+
+  if (!isModalOpen && !isMenuOpen && !isRunFinished) {
+    if (gateDistance > GAME_CONFIG.stopDistanceMeters) {
+      gateDistance = Math.max(GAME_CONFIG.stopDistanceMeters, gateDistance - GAME_CONFIG.gateApproachSpeed * dt);
+      trackScrollOffset = (trackScrollOffset + dt * 2.1 * warpSpeedMult) % 1;
+    } else {
+      trackScrollOffset = (trackScrollOffset + dt * 0.35) % 1;
+      if (!isStoppedAtGate) {
+        isStoppedAtGate = true;
+        for (let i = 0; i < 3; i++) {
+          document.getElementById(`lane-${i}-card`)?.classList.add('is-fused');
+        }
+      }
+    }
+  }
+
+  craftVisualLane += (currentLane - craftVisualLane) * Math.min(1, dt * 14);
+
+  const q = getCurrentQuestion();
+  const theme = getThemeForLo(q.lo);
+  const isPortraitCompact = cssW <= 600;
+  const horizonY = cssH * (isPortraitCompact ? 0.50 : 0.57);
+  const vpX = cssW * 0.5;
+  const floorH = cssH - horizonY;
+
+  ctx.save();
+  ctx.scale(dpr, dpr);
+
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, cssH);
+  bgGrad.addColorStop(0, '#070710');
+  bgGrad.addColorStop(Math.max(0.1, horizonY / cssH), '#090915');
+  bgGrad.addColorStop(1, '#0d0d1c');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, cssW, cssH);
+
+  const gridRgb = theme.gridRgb || '108, 92, 172';
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, horizonY, cssW, floorH);
+  ctx.clip();
+
+  const rowCount = 16;
+  ctx.lineWidth = 1;
+  for (let i = 0; i < rowCount; i++) {
+    const t = (i + trackScrollOffset) / rowCount;
+    const persp = Math.pow(t, 2.35);
+    const y = horizonY + persp * floorH;
+    ctx.strokeStyle = `rgba(${gridRgb}, ${(0.04 + persp * 0.34).toFixed(3)})`;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(cssW, y);
+    ctx.stroke();
+  }
+
+  const colSpan = 22;
+  const bottomSpacing = cssW * 0.11;
+  for (let c = -colSpan; c <= colSpan; c++) {
+    const xBot = vpX + c * bottomSpacing;
+    const xTop = vpX + c * (bottomSpacing * 0.045);
+    const distFade = Math.max(0.08, 1 - Math.abs(c) / (colSpan + 2));
+    const lineGrad = ctx.createLinearGradient(xTop, horizonY, xBot, cssH);
+    lineGrad.addColorStop(0, `rgba(${gridRgb}, 0.02)`);
+    lineGrad.addColorStop(0.35, `rgba(${gridRgb}, ${(0.18 * distFade).toFixed(3)})`);
+    lineGrad.addColorStop(1, `rgba(${gridRgb}, ${(0.34 * distFade).toFixed(3)})`);
+    ctx.strokeStyle = lineGrad;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(xTop, horizonY);
+    ctx.lineTo(xBot, cssH);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  const fogGrad = ctx.createLinearGradient(0, horizonY - 24, 0, horizonY + 46);
+  fogGrad.addColorStop(0, 'rgba(8, 8, 18, 0)');
+  fogGrad.addColorStop(0.5, 'rgba(8, 8, 18, 0.85)');
+  fogGrad.addColorStop(1, 'rgba(8, 8, 18, 0)');
+  ctx.fillStyle = fogGrad;
+  ctx.fillRect(0, horizonY - 24, cssW, 70);
+
+  drawPixelStarfield(ctx, cssW, cssH, vpX, horizonY, theme, dt, warpSpeedMult);
+
+  const laneTrackBottomX = isPortraitCompact
+    ? [vpX - cssW * 0.44, vpX, vpX + cssW * 0.44]
+    : [vpX - cssW * 0.27, vpX, vpX + cssW * 0.27];
+  const laneTrackTopX = [vpX - 28, vpX, vpX + 28];
+
+  for (let l = 0; l < 3; l++) {
+    const isTargetedLane = l === currentLane;
+    const railGrad = ctx.createLinearGradient(laneTrackTopX[l], horizonY, laneTrackBottomX[l], cssH);
+    railGrad.addColorStop(0, 'rgba(52, 168, 143, 0.05)');
+    railGrad.addColorStop(0.28, isTargetedLane ? '#00ffcc' : 'rgba(52, 168, 143, 0.65)');
+    railGrad.addColorStop(1, isTargetedLane ? '#00ffcc' : 'rgba(52, 168, 143, 0.85)');
+
+    ctx.save();
+    ctx.fillStyle = railGrad;
+    if (isTargetedLane) {
+      ctx.shadowColor = '#00ffcc';
+      ctx.shadowBlur = 12;
+    }
+    const topHalf = isTargetedLane ? 1.4 : 0.9;
+    const botHalf = isTargetedLane ? 5.5 : 3.6;
+    ctx.beginPath();
+    ctx.moveTo(laneTrackTopX[l] - topHalf, horizonY);
+    ctx.lineTo(laneTrackTopX[l] + topHalf, horizonY);
+    ctx.lineTo(laneTrackBottomX[l] + botHalf, cssH);
+    ctx.lineTo(laneTrackBottomX[l] - botHalf, cssH);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  const depthProgress = 1 - Math.min(1, Math.max(0, (gateDistance - GAME_CONFIG.stopDistanceMeters) / (GAME_CONFIG.gateStartDistance - GAME_CONFIG.stopDistanceMeters)));
+  const easeProgress = Math.pow(depthProgress, 1.35);
+  const canvasRect = canvas.getBoundingClientRect();
+  portalHitboxes = [];
+
+  for (let laneIdx = 0; laneIdx < 3; laneIdx++) {
+    const cardEl = document.getElementById(`lane-${laneIdx}-card`);
+    const spreadFrac = laneIdx - 1;
+    let targetCx = vpX + spreadFrac * (cssW * 0.31);
+    let targetCy = cssH * 0.52;
+    let targetW = isPortraitCompact ? (cssW - 16) : Math.min(cssW * 0.29, 350);
+    let targetH = isPortraitCompact ? 92 : 148;
+
+    if (cardEl && canvasRect.width > 0) {
+      const r = cardEl.getBoundingClientRect();
+      if (r.width > 10 && r.height > 10) {
+        targetCx = (r.left - canvasRect.left) + r.width * 0.5;
+        targetCy = (r.top - canvasRect.top) + r.height * 0.5;
+        targetW = r.width;
+        targetH = r.height;
+      }
+    }
+
+    const startCx = vpX + spreadFrac * 26;
+    const startCy = horizonY - 4;
+    const startW = 24;
+    const startH = 20;
+
+    const gx = startCx + (targetCx - startCx) * easeProgress;
+    const gy = startCy + (targetCy - startCy) * easeProgress;
+    const gw = startW + (targetW - startW) * easeProgress;
+    const gh = startH + (targetH - startH) * easeProgress;
+    const fusePad = easeProgress * 3;
+    const boxX = gx - gw * 0.5 - fusePad;
+    const boxY = gy - gh * 0.5 - fusePad;
+    const boxW = gw + fusePad * 2;
+    const boxH = gh + fusePad * 2;
+
+    portalHitboxes.push({ lane: laneIdx, x: boxX, y: boxY, w: boxW, h: boxH });
+
+    const pColor = LANE_COLORS[laneIdx];
+    const isTargeted = laneIdx === currentLane;
+    const isFlaring = portalFlareLane === laneIdx && portalFlareTimer > 0;
+    const isFusedNow = depthProgress >= 0.98;
+
+    ctx.save();
+    ctx.strokeStyle = pColor;
+    ctx.fillStyle = pColor;
+    ctx.lineWidth = isFlaring ? 6.5 : (isFusedNow ? (isTargeted ? 4.5 : 3.2) : (isTargeted ? 4 : 2.8));
+    ctx.shadowColor = pColor;
+    ctx.shadowBlur = isFlaring ? 26 : (isFusedNow ? (isTargeted ? 20 : 12) : (isTargeted ? 14 : 7));
+
+    ctx.globalAlpha = isFlaring ? 0.28 : (isTargeted ? 0.14 : 0.06);
+    if (typeof ctx.roundRect === 'function') {
+      ctx.beginPath();
+      ctx.roundRect(boxX, boxY, boxW, boxH, 8);
+      ctx.fill();
+      ctx.globalAlpha = isTargeted ? 0.98 : (isFusedNow ? 0.82 : 0.72);
+      ctx.stroke();
+    } else {
+      ctx.fillRect(boxX, boxY, boxW, boxH);
+      ctx.globalAlpha = isTargeted ? 0.98 : (isFusedNow ? 0.82 : 0.72);
+      ctx.strokeRect(boxX, boxY, boxW, boxH);
+    }
+    ctx.restore();
+  }
+
+  const craftY = cssH * (isPortraitCompact ? 0.91 : 0.93);
+  const craftT = Math.max(0, Math.min(1, (craftY - horizonY) / Math.max(1, floorH)));
+  const interpRailTop = vpX + (craftVisualLane - 1) * 28;
+  const interpRailBot = vpX + (craftVisualLane - 1) * (isPortraitCompact ? cssW * 0.44 : cssW * 0.27);
+  const craftX = interpRailTop + (interpRailBot - interpRailTop) * craftT;
+  const hoverBob = Math.sin(particleTime * 4.5) * 2;
+  const bankTilt = (currentLane - craftVisualLane) * 0.12;
+  const craftHalfW = isPortraitCompact ? 34 : 52;
+  const craftHalfH = isPortraitCompact ? 38 : 54;
+
+  ctx.save();
+  ctx.translate(craftX, craftY + hoverBob);
+  ctx.rotate(bankTilt);
+  ctx.shadowColor = '#00e6b8';
+  ctx.shadowBlur = 16;
+
+  const craftGrad = ctx.createLinearGradient(0, -craftHalfH, 0, craftHalfH * 0.6);
+  craftGrad.addColorStop(0, '#50caa8');
+  craftGrad.addColorStop(1, '#268b72');
+  ctx.fillStyle = craftGrad;
+  ctx.beginPath();
+  ctx.moveTo(0, -craftHalfH);
+  ctx.lineTo(craftHalfW, 0);
+  ctx.lineTo(0, craftHalfH);
+  ctx.lineTo(-craftHalfW, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(0, 255, 204, 0.55)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.restore();
+  animFrameId = requestAnimationFrame(renderRunnerFrame);
+}
+
+async function persistAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.setAppState !== 'function') return;
+  try {
+    await window.notebookAppApi.setAppState({
+      bestXp,
+      bestStreak,
+      masteredIds,
+      isHintsVisible,
+      isSoundEnabled,
+      isSfxEnabled,
+      isTimerEnabled,
+      isTimesUpFailEnabled,
+      bgmVolume,
+      phaseFilter,
+      sectorFilter: document.getElementById('sector-filter')?.value || 'all',
+      angleFilter: document.getElementById('angle-filter')?.value || 'all'
+    });
+  } catch (e) {}
+}
+
+async function restoreAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.getAppState !== 'function') return;
+  try {
+    const s = await window.notebookAppApi.getAppState();
+    if (!s) return;
+    if (typeof s.bestXp === 'number') bestXp = s.bestXp;
+    if (typeof s.bestStreak === 'number') bestStreak = s.bestStreak;
+    if (Array.isArray(s.masteredIds)) masteredIds = s.masteredIds;
+    if (typeof s.isHintsVisible === 'boolean') isHintsVisible = s.isHintsVisible;
+    if (typeof s.isSoundEnabled === 'boolean') isSoundEnabled = s.isSoundEnabled;
+    if (typeof s.isSfxEnabled === 'boolean') isSfxEnabled = s.isSfxEnabled;
+    if (typeof s.isTimerEnabled === 'boolean') isTimerEnabled = s.isTimerEnabled;
+    if (typeof s.isTimesUpFailEnabled === 'boolean') isTimesUpFailEnabled = s.isTimesUpFailEnabled;
+    if (typeof s.bgmVolume === 'number') {
+      bgmVolume = s.bgmVolume;
+      const slider = document.getElementById('bgm-volume-slider');
+      if (slider) slider.value = String(Math.round(bgmVolume * 100));
+    }
+    if (s.phaseFilter) {
+      phaseFilter = s.phaseFilter;
+      document.querySelectorAll('.phase-mix-pill[data-phase]').forEach((p) => {
+        p.classList.toggle('is-selected', p.dataset.phase === phaseFilter);
+      });
+    }
+    const sf = document.getElementById('sector-filter');
+    const af = document.getElementById('angle-filter');
+    if (sf && s.sectorFilter) sf.value = s.sectorFilter;
+    if (af && s.angleFilter) af.value = s.angleFilter;
+  } catch (e) {}
+}
+
+async function initRunnerGame() {
+  initDynamicSelectors();
+  await restoreAppState();
+  syncHintsUI();
+  syncMissedOptionLabel();
+  buildDeck(false);
+  updateTelemetryUI();
+  prepareNextGate();
+
+  const canvas = document.getElementById('xr-canvas');
+  if (canvas) {
+    canvas.addEventListener('click', handleCanvasPointer);
+    canvas.addEventListener('mousemove', handleCanvasHover);
+    canvas.addEventListener('pointermove', handleCanvasHover);
+  }
+  window.addEventListener('keydown', handleKeyControls);
+
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  animFrameId = requestAnimationFrame(renderRunnerFrame);
+
+  if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === 'function') {
+    window.notebookAppApi.notifyAppReady();
+  }
+}
+
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', initRunnerGame);
+} else {
+  initRunnerGame();
+}
+</script>
+</body>
+</html>
