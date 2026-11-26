@@ -1,0 +1,3217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="artifact-type" content="tool">
+<meta name="design-style" content="neon_noir">
+<title>GI Pathology COMLEX-USA XR 3-Lane Diagnostic Runner</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  /* Neon Noir core tokens */
+  --background: #0a0a12;
+  --surface-container-low: #111118;
+  --surface-container: #141422;
+  --surface-container-high: #1e1e30;
+  --surface-glass: rgba(16, 16, 30, 0.84);
+  --surface-glass-strong: rgba(12, 12, 24, 0.94);
+  --backdrop-drawer: rgba(5, 5, 12, 0.72);
+  --backdrop-modal: rgba(6, 6, 14, 0.84);
+
+  --on-surface: #e8e0f0;
+  --on-surface-variant: #a098b0;
+
+  --outline: #5a5068;
+  --outline-variant: #302840;
+
+  --primary: #ff2d78;
+  --on-primary: #1a0010;
+  --primary-container: #b3004e;
+  --on-primary-container: #ffe0ec;
+  --secondary: #00ffcc;
+  --on-secondary: #001a14;
+  --tertiary: #ffe04a;
+  --on-tertiary: #1a1500;
+  --error: #ff4444;
+  --on-error: #1a0000;
+  --positive: #00ffcc;
+  --warning: #ffe04a;
+  --focus: #ff2d78;
+
+  --data-1: #ff2d78;
+  --data-2: #00ffcc;
+  --data-3: #ffe04a;
+  --data-4: #b388ff;
+  --data-context: #6e6680;
+
+  --font-headline: 'Sora', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-label: 'Space Mono', monospace;
+
+  --rounded: 0.125rem;
+  --rounded-lg: 0.25rem;
+  --rounded-full: 0.75rem;
+
+  --display-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+  --headline-size: clamp(1.125rem, 1rem + 0.45vw, 1.375rem);
+  --subhead-size: clamp(1rem, 0.94rem + 0.25vw, 1.125rem);
+  --body-size: clamp(0.9375rem, 0.9rem + 0.15vw, 1rem);
+  --label-size: 0.75rem;
+
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+
+  --glow-text: 0 0 8px currentColor;
+  --glow-primary: 0 0 16px color-mix(in srgb, var(--primary) 42%, transparent);
+  --glow-secondary: 0 0 16px color-mix(in srgb, var(--secondary) 38%, transparent);
+  --glow-tertiary: 0 0 16px color-mix(in srgb, var(--tertiary) 38%, transparent);
+  --neon-border: 1px solid color-mix(in srgb, var(--primary) 34%, transparent);
+  --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 58%, transparent);
+  --neon-border-cyan: 1px solid color-mix(in srgb, var(--secondary) 38%, transparent);
+  --neon-border-yellow: 1px solid color-mix(in srgb, var(--tertiary) 42%, transparent);
+  --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+  --scanlines: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in srgb, var(--on-surface) 3%, transparent) 3px 4px);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--background);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: var(--body-size);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+header { position: static !important; }
+
+button, input, select {
+  font-family: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+#xr-app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: var(--background);
+  background-image: var(--scanlines);
+  overflow: hidden;
+}
+
+#bg-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Band 1: Ultra-Slim Top Telemetry Bar */
+#top-bar {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-md);
+  background: var(--surface-glass-strong);
+  border-bottom: 1px solid var(--outline-variant);
+  min-height: 44px;
+  flex-shrink: 0;
+}
+
+.menu-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  min-height: 36px;
+  padding: 0.35rem 0.75rem;
+  background: var(--surface-container);
+  color: var(--secondary);
+  border: var(--neon-border-cyan);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+.menu-trigger-btn:hover {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+}
+
+.telemetry-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.tele-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.55rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  color: var(--on-surface);
+  white-space: nowrap;
+}
+.tele-chip.is-hp { border-color: color-mix(in srgb, var(--primary) 45%, transparent); color: var(--primary); }
+.tele-chip.is-xp { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+.tele-chip.is-streak { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+.tele-chip.is-timer { border-color: color-mix(in srgb, var(--data-4) 45%, transparent); color: var(--data-4); }
+.tele-chip.is-timer.is-urgent { border-color: var(--error); color: var(--error); box-shadow: var(--glow-primary); }
+
+/* Band 2: Top Question & Auto-Fading Metadata */
+#question-band {
+  position: relative;
+  z-index: 8;
+  width: 100%;
+  max-width: 980px;
+  margin: var(--space-xs) auto 0;
+  padding: 0 var(--space-md);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.question-box {
+  width: 100%;
+  background: var(--surface-glass);
+  backdrop-filter: blur(8px);
+  border: var(--neon-border);
+  box-shadow: var(--neon-inset);
+  border-radius: var(--rounded-lg);
+  padding: var(--space-sm) var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: padding var(--dur-short) var(--ease-out);
+}
+
+#meta-badges-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-xs);
+  max-height: 80px;
+  opacity: 1;
+  overflow: hidden;
+  transition: opacity var(--dur-long) var(--ease-out), max-height var(--dur-long) var(--ease-out), margin-bottom var(--dur-long) var(--ease-out);
+}
+#meta-badges-row.is-faded {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+}
+
+.meta-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--rounded);
+  border: 1px solid var(--outline);
+  background: var(--surface-container-low);
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+.meta-badge.is-sector { border-color: var(--primary); color: var(--primary); }
+.meta-badge.is-phase { border-color: var(--secondary); color: var(--secondary); }
+.meta-badge.is-corridor { border-color: var(--tertiary); color: var(--tertiary); }
+
+.question-stem {
+  width: 100%;
+  max-width: 78ch;
+  margin: 0 auto;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: clamp(0.95rem, 0.88rem + 0.35vw, 1.12rem);
+  font-weight: 500;
+  line-height: 1.48;
+  color: var(--on-surface);
+}
+
+/* Band 3: 3-Lane Interactive Portal Arena */
+#arena-band {
+  position: relative;
+  z-index: 6;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#lanes-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-md);
+  align-items: stretch;
+}
+
+.lane-dom-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  min-height: 168px;
+  padding: var(--space-md);
+  background: var(--surface-glass);
+  backdrop-filter: blur(8px);
+  border-radius: var(--rounded-lg);
+  cursor: pointer;
+  user-select: none;
+  transition: transform var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+.lane-dom-card[data-lane="0"] {
+  border: 1px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--primary) 12%, transparent);
+}
+.lane-dom-card[data-lane="1"] {
+  border: 1px solid color-mix(in srgb, var(--secondary) 55%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--secondary) 12%, transparent);
+}
+.lane-dom-card[data-lane="2"] {
+  border: 1px solid color-mix(in srgb, var(--tertiary) 55%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--tertiary) 12%, transparent);
+}
+.lane-dom-card.is-selected {
+  transform: translateY(-4px);
+}
+.lane-dom-card[data-lane="0"].is-selected,
+.lane-dom-card[data-lane="0"]:hover {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary), inset 0 0 18px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+.lane-dom-card[data-lane="1"].is-selected,
+.lane-dom-card[data-lane="1"]:hover {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary), inset 0 0 18px color-mix(in srgb, var(--secondary) 18%, transparent);
+}
+.lane-dom-card[data-lane="2"].is-selected,
+.lane-dom-card[data-lane="2"]:hover {
+  border-color: var(--tertiary);
+  box-shadow: var(--glow-tertiary), inset 0 0 18px color-mix(in srgb, var(--tertiary) 18%, transparent);
+}
+
+.lane-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+  width: 100%;
+}
+
+.lane-key-label {
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--rounded);
+  border: 1px solid currentColor;
+}
+.lane-dom-card[data-lane="0"] .lane-key-label { color: var(--primary); }
+.lane-dom-card[data-lane="1"] .lane-key-label { color: var(--secondary); }
+.lane-dom-card[data-lane="2"] .lane-key-label { color: var(--tertiary); }
+
+.lane-xp-chip {
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  color: var(--on-surface-variant);
+}
+
+.lane-choice-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  flex: 1 1 auto;
+}
+
+.lane-card-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  font-size: clamp(0.9rem, 0.85rem + 0.25vw, 1.02rem);
+  font-weight: 500;
+  line-height: 1.42;
+  color: var(--on-surface);
+}
+.lane-card-text span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+}
+
+/* Band 4: Bottom Hints Bar (Hidden by Default, Toggled via [H]) */
+#hints-bar {
+  position: relative;
+  z-index: 8;
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto var(--space-sm);
+  padding: 0 var(--space-md);
+  flex-shrink: 0;
+  display: none;
+}
+#xr-app.hints-visible #hints-bar {
+  display: block;
+}
+#xr-app.hints-visible .question-box {
+  padding: var(--space-xs) var(--space-md);
+}
+#xr-app.hints-visible .lane-dom-card {
+  min-height: 132px;
+  padding: var(--space-sm) var(--space-md);
+}
+
+.hints-inner {
+  width: 100%;
+  background: var(--surface-glass-strong);
+  border: var(--neon-border-yellow);
+  border-radius: var(--rounded-lg);
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.hints-label {
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tertiary);
+  margin-bottom: 0.2rem;
+}
+#q-clue-text {
+  margin: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--on-surface);
+}
+
+/* Menu Drawer (#top-menu-drawer) */
+#menu-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--backdrop-drawer);
+  z-index: 40;
+  display: none;
+}
+#menu-backdrop.is-open { display: block; }
+
+#top-menu-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(440px, 94vw);
+  background: var(--surface-container);
+  border-right: var(--neon-border-lit);
+  z-index: 50;
+  transform: translateX(-100%);
+  transition: transform var(--dur-short) var(--ease-out);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: var(--space-md);
+  gap: var(--space-md);
+}
+#top-menu-drawer.is-open { transform: translateX(0); }
+
+.drawer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  border-bottom: 1px solid var(--outline-variant);
+  padding-bottom: var(--space-sm);
+}
+.drawer-kicker {
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--secondary);
+  text-shadow: var(--glow-text);
+  margin: 0 0 0.25rem;
+}
+.drawer-title {
+  font-family: var(--font-headline);
+  font-size: var(--headline-size);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0;
+  color: var(--on-surface);
+}
+
+.drawer-section {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+.drawer-sec-title {
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--primary);
+  margin: 0;
+}
+
+.btn-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-xs);
+}
+
+.btn-neon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 40px;
+  padding: 0.45rem 0.75rem;
+  background: var(--surface-container);
+  color: var(--primary);
+  border: var(--neon-border-lit);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+}
+.btn-neon:hover { border-color: var(--primary); box-shadow: var(--glow-primary); }
+.btn-neon.is-cyan { color: var(--secondary); border-color: color-mix(in srgb, var(--secondary) 55%, transparent); }
+.btn-neon.is-cyan:hover { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.btn-neon.is-yellow { color: var(--tertiary); border-color: color-mix(in srgb, var(--tertiary) 55%, transparent); }
+.btn-neon.is-yellow:hover { border-color: var(--tertiary); box-shadow: var(--glow-tertiary); }
+.btn-neon.is-active {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  border-color: var(--primary);
+}
+.btn-neon.is-cyan.is-active {
+  background: color-mix(in srgb, var(--secondary) 22%, var(--surface-container));
+  color: var(--secondary);
+  border-color: var(--secondary);
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.field-label {
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  color: var(--on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.neon-select {
+  width: 100%;
+  min-height: 40px;
+  padding: 0.4rem 0.65rem;
+  background: var(--surface-container);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-size: 0.85rem;
+}
+.neon-range {
+  width: 100%;
+  accent-color: var(--secondary);
+}
+
+.phase-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+.phase-pill {
+  flex: 1 1 auto;
+  min-height: 36px;
+  padding: 0.3rem 0.5rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+}
+.phase-pill.is-active {
+  border-color: var(--secondary);
+  color: var(--secondary);
+  background: color-mix(in srgb, var(--secondary) 16%, var(--surface-container));
+}
+
+.skill-tree-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-xs);
+}
+.skill-node-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 0.15rem;
+  padding: 0.5rem 0.65rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  cursor: pointer;
+}
+.skill-node-btn:hover { border-color: var(--secondary); }
+.skill-node-btn.is-mastered { border-color: var(--secondary); box-shadow: inset 0 0 8px color-mix(in srgb, var(--secondary) 15%, transparent); }
+.skill-node-title { font-size: 0.82rem; font-weight: 600; color: var(--on-surface); line-height: 1.3; }
+.skill-node-meta { font-family: var(--font-label); font-size: 0.72rem; color: var(--on-surface-variant); }
+
+.hotkey-guide {
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  color: var(--on-surface-variant);
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.5rem 0.65rem;
+  line-height: 1.5;
+}
+
+.inline-toast {
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 80;
+  padding: 0.45rem 0.9rem;
+  background: var(--surface-container-high);
+  border: var(--neon-border-cyan);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  color: var(--secondary);
+  display: none;
+}
+.inline-toast.is-shown { display: block; }
+
+/* Outcome Dossier Modal (#outcome-popup-modal) — Strict Complete Centering Lock */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--backdrop-modal);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+}
+.modal-overlay.is-open { display: flex; }
+
+.modal-shell {
+  width: min(860px, 96vw);
+  height: min(88dvh, 840px);
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#outcome-popup-modal .modal-shell,
+#outcome-popup-modal .popup-header,
+#outcome-popup-modal .popup-question-pin,
+#outcome-popup-modal .popup-question-pin-text,
+#outcome-popup-modal .popup-scroll-body,
+#outcome-popup-modal .dossier-block,
+#outcome-popup-modal .dossier-block-title,
+#outcome-popup-modal .dossier-line,
+#outcome-popup-modal .choice-box,
+#outcome-popup-modal .choice-box p,
+#outcome-popup-modal .angle-mini-card,
+#outcome-popup-modal .angle-mini-title {
+  text-align: center !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+#outcome-popup-modal .modal-shell {
+  justify-content: space-between;
+  align-items: stretch;
+}
+#outcome-popup-modal .popup-scroll-body {
+  display: block;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  padding: var(--space-md) var(--space-lg);
+  text-align: center !important;
+}
+
+.popup-header {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline-variant);
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+.verdict-banner {
+  font-family: var(--font-headline);
+  font-size: var(--headline-size);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+.verdict-banner.is-correct { color: var(--secondary); text-shadow: var(--glow-text); }
+.verdict-banner.is-wrong { color: var(--primary); text-shadow: var(--glow-text); }
+.verdict-banner.is-timeout { color: var(--tertiary); text-shadow: var(--glow-text); }
+
+.verdict-sub {
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  color: var(--on-surface-variant);
+  margin: 0;
+}
+
+.popup-question-pin {
+  padding: var(--space-xs) var(--space-md);
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  flex-shrink: 0;
+}
+.popup-question-pin-text {
+  font-size: 0.88rem;
+  color: var(--on-surface);
+  margin: 0;
+  max-width: 74ch;
+}
+
+.dossier-block {
+  width: 100%;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-sm);
+}
+.dossier-block-title {
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  margin: 0 0 0.35rem;
+}
+.dossier-line {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--on-surface);
+  margin: 0.2rem auto;
+  max-width: 70ch;
+}
+
+.choices-compare-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+}
+.choice-box {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: var(--space-xs) var(--space-sm);
+}
+.choice-box.is-correct-choice { border-color: var(--secondary); }
+.choice-box.is-user-wrong { border-color: var(--primary); }
+.choice-box p {
+  margin: 0.2rem 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.angles-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-xs);
+}
+.angle-mini-card {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: var(--space-xs) var(--space-sm);
+}
+.angle-mini-title {
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  color: var(--tertiary);
+  margin: 0 0 0.2rem;
+}
+
+.popup-footer {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-container-high);
+  border-top: 1px solid var(--outline-variant);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+/* Loot Codex Modal */
+#codex-modal .modal-shell {
+  width: min(1040px, 96vw);
+  height: min(90dvh, 880px);
+}
+.codex-top {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+.codex-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-md);
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+}
+.codex-scroll {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: var(--space-sm) var(--space-md);
+}
+.codex-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.codex-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-container-high);
+  color: var(--secondary);
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: left;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--outline);
+}
+.codex-table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--outline-variant);
+  vertical-align: top;
+  line-height: 1.42;
+}
+.codex-table tr:nth-child(even) td {
+  background: var(--surface-container-low);
+}
+
+/* Phone & Responsive Media Queries (v3.8) */
+@media (max-width: 600px) {
+  #lanes-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-xs);
+  }
+  .lane-dom-card {
+    min-height: 68px;
+    padding: 0.45rem 0.65rem;
+  }
+  .lane-card-head, .lane-key-label, .lane-xp-chip {
+    display: none;
+  }
+  #xr-app.hints-visible .lane-dom-card {
+    min-height: 54px;
+    padding: 0.35rem 0.5rem;
+  }
+  .question-box {
+    padding: var(--space-xs) var(--space-sm);
+  }
+  .choices-compare-grid, .angles-grid {
+    grid-template-columns: 1fr;
+  }
+  .modal-shell {
+    width: 96vw;
+    height: 92dvh;
+  }
+}
+
+@media (max-height: 500px) and (pointer: coarse) {
+  #lanes-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-xs);
+  }
+  .lane-dom-card {
+    min-height: 92px;
+    padding: 0.35rem 0.5rem;
+  }
+  .question-stem {
+    font-size: 0.85rem;
+    line-height: 1.3;
+  }
+}
+
+@media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+  html { font-size: 200%; }
+  #lanes-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+<div id="xr-app" class="hints-hidden">
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <!-- Band 1: Ultra-Slim Top Telemetry Bar -->
+  <header id="top-bar">
+    <button type="button" class="menu-trigger-btn" id="menu-open-btn" onclick="toggleMenuDrawer()">☰ MENU</button>
+    <div class="telemetry-strip">
+      <span class="tele-chip is-hp" id="hud-hp">HP 100</span>
+      <span class="tele-chip is-xp" id="hud-xp">XP 0</span>
+      <span class="tele-chip is-streak" id="hud-streak">⚡ 0</span>
+      <span class="tele-chip" id="hud-gate">Gate 1/45</span>
+      <span class="tele-chip is-timer" id="hud-timer">⏱ OFF</span>
+    </div>
+  </header>
+
+  <!-- Band 2: Top Question + 3-Second Auto-Fading Metadata -->
+  <section id="question-band" aria-live="polite">
+    <div class="question-box">
+      <div id="meta-badges-row">
+        <span class="meta-badge is-sector" id="badge-sector">Sector I</span>
+        <span class="meta-badge" id="badge-entity">Entity 1</span>
+        <span class="meta-badge is-phase" id="badge-phase">Phase 1: Pathogenesis</span>
+        <span class="meta-badge" id="badge-angle">Angle: Mechanism</span>
+        <span class="meta-badge is-corridor" id="badge-corridor">CORRIDOR: REFLUX</span>
+      </div>
+      <p class="question-stem amboss-scan-target" id="q-stem-text">Initializing GI Pathology Diagnostic Corridor…</p>
+    </div>
+  </section>
+
+  <!-- Band 3: 3-Lane Interactive Portals -->
+  <main id="arena-band">
+    <div id="lanes-grid" role="group" aria-label="Diagnostic Choice Lanes">
+      <button type="button" class="lane-dom-card" id="lane-card-0" data-lane="0" onmouseenter="previewLaneSelection(0)" onpointerenter="previewLaneSelection(0)" onfocus="previewLaneSelection(0)" onclick="handleLaneCardClick(0)">
+        <div class="lane-card-head">
+          <span class="lane-key-label">[1 / ←] PINK LANE</span>
+          <span class="lane-xp-chip">+100 XP</span>
+        </div>
+        <div class="lane-choice-body">
+          <div class="lane-card-text amboss-scan-target" id="lane-0-text"><span>Option A</span></div>
+        </div>
+      </button>
+
+      <button type="button" class="lane-dom-card is-selected" id="lane-card-1" data-lane="1" onmouseenter="previewLaneSelection(1)" onpointerenter="previewLaneSelection(1)" onfocus="previewLaneSelection(1)" onclick="handleLaneCardClick(1)">
+        <div class="lane-card-head">
+          <span class="lane-key-label">[2 / ↓] CYAN LANE</span>
+          <span class="lane-xp-chip">+100 XP</span>
+        </div>
+        <div class="lane-choice-body">
+          <div class="lane-card-text amboss-scan-target" id="lane-1-text"><span>Option B</span></div>
+        </div>
+      </button>
+
+      <button type="button" class="lane-dom-card" id="lane-card-2" data-lane="2" onmouseenter="previewLaneSelection(2)" onpointerenter="previewLaneSelection(2)" onfocus="previewLaneSelection(2)" onclick="handleLaneCardClick(2)">
+        <div class="lane-card-head">
+          <span class="lane-key-label">[3 / →] YELLOW LANE</span>
+          <span class="lane-xp-chip">+100 XP</span>
+        </div>
+        <div class="lane-choice-body">
+          <div class="lane-card-text amboss-scan-target" id="lane-2-text"><span>Option C</span></div>
+        </div>
+      </button>
+    </div>
+  </main>
+
+  <!-- Band 4: Bottom Hints Bar (Hidden by default, toggled via [H]) -->
+  <section id="hints-bar" aria-label="Diagnostic Hint">
+    <div class="hints-inner">
+      <span class="hints-label">💡 Board Logic Clue [H]</span>
+      <p class="amboss-scan-target" id="q-clue-text">Clue loading…</p>
+    </div>
+  </section>
+
+  <!-- Slide-out Menu Drawer (Houses Title & ALL Controls) -->
+  <div id="menu-backdrop" onclick="toggleMenuDrawer()"></div>
+  <aside id="top-menu-drawer" aria-label="Mission Controls and Skill Tree">
+    <div class="drawer-header">
+      <div>
+        <p class="drawer-kicker">COMLEX-USA CP-7 &amp; Domain 1 OMT</p>
+        <h1 class="drawer-title">GI Pathology XR Diagnostic Runner</h1>
+      </div>
+      <button type="button" class="btn-neon is-cyan" onclick="toggleMenuDrawer()">✕ Close</button>
+    </div>
+
+    <div class="drawer-section">
+      <h2 class="drawer-sec-title">Run &amp; Study Controls</h2>
+      <div class="btn-grid-2">
+        <button type="button" class="btn-neon" id="menu-hints-btn" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+        <button type="button" class="btn-neon is-cyan" onclick="openCodexFromMenu()">📘 Loot Codex [C]</button>
+        <button type="button" class="btn-neon is-yellow" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+        <button type="button" class="btn-neon is-cyan" id="menu-timer-btn" onclick="toggleTimerMode()">⏱ 50s Timer: OFF [T]</button>
+        <button type="button" class="btn-neon" onclick="startTimedRunFromMenu()">▶ Start 50s Timed Run</button>
+        <button type="button" class="btn-neon is-cyan" onclick="restartOrderedFromMenu()">↻ Restart Ordered</button>
+        <button type="button" class="btn-neon is-yellow" onclick="shuffleDeckFromMenu()">🔀 Shuffle Deck</button>
+        <button type="button" class="btn-neon" id="reset-mastery-btn" onclick="handleResetMastery(this)">⚠ Reset Mastery</button>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <h2 class="drawer-sec-title">Audio Synthesizer Suite</h2>
+      <div class="btn-grid-2">
+        <button type="button" class="btn-neon is-cyan" id="master-sound-btn" onclick="toggleMasterSound()">🔊 Sound: ON</button>
+        <button type="button" class="btn-neon" id="sfx-btn" onclick="toggleSfx()">⚡ SFX: ON</button>
+        <button type="button" class="btn-neon is-yellow" id="bgm-btn" onclick="toggleProceduralBgm()">🎵 Zombies BGM: OFF</button>
+        <button type="button" class="btn-neon is-cyan" onclick="triggerCustomAudioPick()">📂 Load MP3/WAV</button>
+      </div>
+      <input type="file" id="custom-audio-input" accept="audio/*" style="display:none" onchange="handleCustomAudioFile(this)">
+      <div class="field-group">
+        <label class="field-label" for="bgm-volume-slider">BGM Volume</label>
+        <input type="range" id="bgm-volume-slider" class="neon-range" min="0" max="1" step="0.05" value="0.35" oninput="updateBgmVolume(this.value)">
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <h2 class="drawer-sec-title">GI Sector &amp; Skill Tree Filters</h2>
+      <div class="field-group">
+        <label class="field-label" for="sector-filter">Active Dungeon Sector</label>
+        <select id="sector-filter" class="neon-select" onchange="applySectorFilter(this.value)">
+          <option value="all">All 5 GI Sectors (45 Gates)</option>
+          <option value="missed">🎯 Missed Gates Only</option>
+          <option value="sector_1">Sector I — Esophageal &amp; Gastric Pathology</option>
+          <option value="sector_2">Sector II — Hepatobiliary Pathology &amp; Cirrhosis</option>
+          <option value="sector_3">Sector III — Pancreatic &amp; Malabsorptive Pathology</option>
+          <option value="sector_4">Sector IV — IBD &amp; Colorectal Neoplasia</option>
+          <option value="sector_5">Sector V — Pediatric GI, Vascular &amp; COMLEX OMM</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="entity-filter">Focus Single Entity (15 Bosses)</label>
+        <select id="entity-filter" class="neon-select" onchange="applyEntityFilter(this.value)">
+          <option value="all">All 15 GI Entities</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <span class="field-label">Phase Distribution Mix</span>
+        <div class="phase-pills-row">
+          <button type="button" class="phase-pill is-active" data-phase="all" onclick="setPhaseFilter('all', this)">All Phases</button>
+          <button type="button" class="phase-pill" data-phase="1" onclick="setPhaseFilter('1', this)">P1 Pathogenesis</button>
+          <button type="button" class="phase-pill" data-phase="2" onclick="setPhaseFilter('2', this)">P2 Histology</button>
+          <button type="button" class="phase-pill" data-phase="3" onclick="setPhaseFilter('3', this)">P3 Clinical</button>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <span class="field-label">15-Entity Skill Tree</span>
+        <div id="skill-tree-grid" class="skill-tree-grid"></div>
+      </div>
+    </div>
+
+    <div class="hotkey-guide">
+      Controls: [1/2/3] or [←/↓/→] steer &amp; lock lane • [Space/Enter] launch or continue • [H] toggle hints • [C] Loot Codex • [T] 50s timer • [S] skip gate • [↑/↓] scroll Outcome Dossier
+    </div>
+  </aside>
+
+  <!-- Outcome Review Modal (#outcome-popup-modal) -->
+  <div id="outcome-popup-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="outcome-verdict-banner">
+    <div class="modal-shell">
+      <div class="popup-header">
+        <h2 class="verdict-banner" id="outcome-verdict-banner">✔ CORRECT</h2>
+        <p class="verdict-sub" id="outcome-verdict-sub">Sector • Entity • Phase</p>
+      </div>
+      <div class="popup-question-pin">
+        <p class="popup-question-pin-text amboss-scan-target" id="outcome-pin-stem"></p>
+      </div>
+      <div class="popup-scroll-body" id="outcome-scroll-body"></div>
+      <div class="popup-footer">
+        <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(-180)">▲ Up</button>
+        <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(180)">▼ Down</button>
+        <button type="button" class="btn-neon" id="continue-runner-btn" onclick="continueToNextGate()">▶ Continue Runner [Space / Enter]</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loot Codex Modal -->
+  <div id="codex-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="codex-title">
+    <div class="modal-shell">
+      <div class="codex-top">
+        <div>
+          <p class="drawer-kicker" style="margin:0;">High-Yield Board Synthesis</p>
+          <h2 id="codex-title" style="margin:0; font-family:var(--font-headline); font-size:var(--headline-size);">GI Pathology Loot Codex (15 Entities)</h2>
+        </div>
+        <div style="display:flex; gap:var(--space-xs); align-items:center;">
+          <label for="codex-search" class="field-label" style="margin:0;">Filter</label>
+          <input type="text" id="codex-search" class="neon-select" style="width:190px; min-height:36px;" placeholder="Search entity or clue…" oninput="renderCodexTable()">
+          <button type="button" class="btn-neon is-cyan" onclick="closeCodex()">✕ Close [Esc]</button>
+        </div>
+      </div>
+      <div class="codex-filters" id="codex-sector-pills">
+        <button type="button" class="phase-pill is-active" onclick="setCodexSector('all', this)">All Sectors</button>
+        <button type="button" class="phase-pill" onclick="setCodexSector('sector_1', this)">I. Esophageal &amp; Gastric</button>
+        <button type="button" class="phase-pill" onclick="setCodexSector('sector_2', this)">II. Hepatobiliary</button>
+        <button type="button" class="phase-pill" onclick="setCodexSector('sector_3', this)">III. Pancreas &amp; Malabsorption</button>
+        <button type="button" class="phase-pill" onclick="setCodexSector('sector_4', this)">IV. IBD &amp; CRC</button>
+        <button type="button" class="phase-pill" onclick="setCodexSector('sector_5', this)">V. Peds, Vascular &amp; OMM</button>
+      </div>
+      <div class="codex-scroll">
+        <table class="codex-table">
+          <thead>
+            <tr>
+              <th>Entity</th>
+              <th>Pathogenesis</th>
+              <th>Histology / Labs</th>
+              <th>Clinical Pattern</th>
+              <th>Management / OMT</th>
+              <th>Board Trap</th>
+            </tr>
+          </thead>
+          <tbody id="codex-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="inline-toast" class="inline-toast" role="status" aria-live="polite"></div>
+</div>
+
+<api-shim></api-shim>
+<script>
+const SECTORS = {
+  sector_1: `Sector I — Esophageal & Gastric Pathology`,
+  sector_2: `Sector II — Hepatobiliary Pathology & Cirrhosis`,
+  sector_3: `Sector III — Pancreatic & Malabsorptive Pathology`,
+  sector_4: `Sector IV — IBD & Colorectal Neoplasia`,
+  sector_5: `Sector V — Pediatric GI, Vascular & COMLEX OMM`
+};
+
+const LO_VISUAL_THEMES = {
+  1: { tag: `CORRIDOR: REFLUX METAPLASIA`, dust: `#ff2d78`, gridRgb: `255, 45, 120` },
+  2: { tag: `CORRIDOR: ESOPHAGEAL NEOPLASIA`, dust: `#00ffcc`, gridRgb: `0, 255, 204` },
+  3: { tag: `CORRIDOR: GASTRIC ULCERATIONS`, dust: `#ffe04a`, gridRgb: `255, 224, 74` },
+  4: { tag: `CORRIDOR: PORTAL HYPERTENSION`, dust: `#ff2d78`, gridRgb: `255, 45, 120` },
+  5: { tag: `CORRIDOR: BILIRUBIN METABOLISM`, dust: `#00ffcc`, gridRgb: `0, 255, 204` },
+  6: { tag: `CORRIDOR: BILIARY TREE OBSTRUCTION`, dust: `#ffe04a`, gridRgb: `255, 224, 74` },
+  7: { tag: `CORRIDOR: PANCREATIC AUTODIGESTION`, dust: `#ff2d78`, gridRgb: `255, 45, 120` },
+  8: { tag: `CORRIDOR: GLUTEN VILLOUS ATROPHY`, dust: `#00ffcc`, gridRgb: `0, 255, 204` },
+  9: { tag: `CORRIDOR: LAMINA PROPRIA FOAM`, dust: `#ffe04a`, gridRgb: `255, 224, 74` },
+  10: { tag: `CORRIDOR: MUCOSAL VS TRANSMURAL`, dust: `#ff2d78`, gridRgb: `255, 45, 120` },
+  11: { tag: `CORRIDOR: HEREDITARY POLYPOSIS`, dust: `#00ffcc`, gridRgb: `0, 255, 204` },
+  12: { tag: `CORRIDOR: ADENOMA-CARCINOMA`, dust: `#ffe04a`, gridRgb: `255, 224, 74` },
+  13: { tag: `CORRIDOR: EMBRYOLOGIC REMNANTS`, dust: `#ff2d78`, gridRgb: `255, 45, 120` },
+  14: { tag: `CORRIDOR: WATERSHED ISCHEMIA`, dust: `#00ffcc`, gridRgb: `0, 255, 204` },
+  15: { tag: `CORRIDOR: VISCEROSOMATIC OMM`, dust: `#ffe04a`, gridRgb: `255, 224, 74` }
+};
+
+const ENTITIES = [
+  { id: 1, sector: `sector_1`, name: `GERD & Barrett Esophagus` },
+  { id: 2, sector: `sector_1`, name: `Esophageal Adeno vs Squamous Carcinoma` },
+  { id: 3, sector: `sector_1`, name: `Chronic Gastritis (Type A vs B) & PUD` },
+  { id: 4, sector: `sector_2`, name: `Cirrhosis, Portal HTN, Varices & Ascites` },
+  { id: 5, sector: `sector_2`, name: `Hereditary Jaundice Syndromes` },
+  { id: 6, sector: `sector_2`, name: `Cholelithiasis, Cholecystitis & Cholangitis` },
+  { id: 7, sector: `sector_3`, name: `Pancreatitis & Pancreatic Adenocarcinoma` },
+  { id: 8, sector: `sector_3`, name: `Celiac Disease & Dermatitis Herpetiformis` },
+  { id: 9, sector: `sector_3`, name: `Tropical Sprue & Whipple Disease` },
+  { id: 10, sector: `sector_4`, name: `Crohn Disease vs Ulcerative Colitis` },
+  { id: 11, sector: `sector_4`, name: `FAP (APC) & Lynch Syndrome (MSI)` },
+  { id: 12, sector: `sector_4`, name: `Colorectal Adenocarcinoma` },
+  { id: 13, sector: `sector_5`, name: `Hirschsprung Disease vs Meckel Diverticulum` },
+  { id: 14, sector: `sector_5`, name: `Acute Mesenteric Ischemia vs Ischemic Colitis` },
+  { id: 15, sector: `sector_5`, name: `Viscerosomatic Autonomics & Chapman Reflexes` }
+];
+
+const CODEX_DATA = [
+  {
+    id: 1, sector: `sector_1`, entity: `GERD & Barrett Esophagus`,
+    pathogenesis: `Transient LES relaxation/reduced LES tone allows gastric acid reflux; chronic acid stress induces lower esophageal stem cell intestinal metaplasia.`,
+    histology: `Nonciliated columnar epithelium with mucin-secreting goblet cells replacing normal stratified squamous epithelium in distal esophagus.`,
+    clinical: `Heartburn mimicking cardiac pain, adult-onset asthma/cough, dental enamel erosion; late stricture or Barrett metaplasia (~10% of GERD).`,
+    management: `PPI therapy, lifestyle modification (avoid alcohol, tobacco, fat, caffeine), endoscopic surveillance for dysplasia -> esophageal adenocarcinoma.`,
+    trap: `Goblet cells define Barrett metaplasia (intestinal type); gastric cardiac-type columnar mucosa alone does not establish Barrett esophagus.`
+  },
+  {
+    id: 2, sector: `sector_1`, entity: `Esophageal Adeno vs Squamous Carcinoma`,
+    pathogenesis: `Adenocarcinoma arises from Barrett esophagus (lower 1/3); SCC arises from chronic squamous injury (alcohol/tobacco, hot tea, achalasia, Plummer-Vinson webs, lye).`,
+    histology: `Adenocarcinoma: malignant gland proliferation in distal 1/3. SCC: keratin pearls & intercellular bridges in upper/middle 1/3.`,
+    clinical: `Late presentation with progressive dysphagia (solids -> liquids), weight loss, hematemesis; SCC adds hoarseness (RLN) and cough (tracheal invasion).`,
+    management: `Staging by depth and nodal spread: Upper 1/3 -> cervical nodes, Middle 1/3 -> mediastinal/tracheobronchial nodes, Lower 1/3 -> celiac/gastric nodes.`,
+    trap: `Worldwide, squamous cell carcinoma is most common; in the United States/West, adenocarcinoma is now most common.`
+  },
+  {
+    id: 3, sector: `sector_1`, entity: `Chronic Gastritis (Type A vs B) & PUD`,
+    pathogenesis: `Type A (Autoimmune): T-cell-mediated destruction of body/fundus parietal cells + anti-IF/anti-parietal Abs. Type B (90%): H. pylori urease/proteases weaken antral defense.`,
+    histology: `Autoimmune: body/fundus atrophy, intestinal metaplasia, antral G-cell hyperplasia. Duodenal ulcer: Brunner gland hypertrophy. Gastric ulcer: <3 cm punched-out vs heaped-up malignant.`,
+    clinical: `Duodenal ulcer (>95% H. pylori): pain improves with meals; posterior rupture bleeds gastroduodenal artery. Gastric ulcer: pain worsens with meals; lesser curvature bleeds left gastric artery.`,
+    management: `Triple therapy (PPI + clarithromycin + amoxicillin); confirm eradication via negative urea breath test or stool antigen. Biopsy all gastric ulcers to exclude cancer.`,
+    trap: `Duodenal ulcers are almost never malignant, whereas gastric ulcers can be intestinal-type gastric adenocarcinoma; autoimmune gastritis causes pernicious anemia & high gastrin.`
+  },
+  {
+    id: 4, sector: `sector_2`, entity: `Cirrhosis, Portal HTN, Varices & Ascites`,
+    pathogenesis: `Hepatic stellate (Ito) cells secrete TGF-beta and collagen into space of Disse; increased sinusoidal pressure drives portal HTN, portosystemic shunts, and ascites.`,
+    histology: `Fibrous bridging septa surrounding regenerative hepatocyte nodules; Budd-Chiari (hepatic vein thrombosis) produces centrilobular congestion ("nutmeg liver") without JVD.`,
+    clinical: `Esophageal varices (left gastric -> esophageal veins), caput medusae, anorectal varices, spider angiomas/palmar erythema/gynecomastia (hyperestrinism), asterixis, SBP.`,
+    management: `SAAG >= 1.1 g/dL confirms portal HTN; paracentesis for SBP (>250 PMNs/mm3), lactulose/rifaximin for encephalopathy, nonselective beta-blockers/banding for varices.`,
+    trap: `Budd-Chiari syndrome causes nutmeg liver and painful hepatomegaly/ascites with ABSENCE of JVD (unlike right heart failure).`
+  },
+  {
+    id: 5, sector: `sector_2`, entity: `Hereditary Jaundice Syndromes`,
+    pathogenesis: `Gilbert & Crigler-Najjar: decreased UGT1A1 conjugation. Dubin-Johnson: defective MRP2 canalicular excretion of conjugated bilirubin. Rotor: defective hepatic uptake/storage.`,
+    histology: `Dubin-Johnson: grossly black liver due to dark pigmented epinephrine metabolite granules in centrilobular hepatocytes; Rotor: uncolored normal liver.`,
+    clinical: `Gilbert: mild asymptomatic unconjugated jaundice during stress/fasting. Crigler-Najjar type I: severe neonatal unconjugated hyperbilirubinemia -> kernicterus.`,
+    management: `Gilbert requires reassurance only; Crigler-Najjar type I needs phototherapy/plasmapheresis/liver transplant (phenobarbital helps type II).`,
+    trap: `Both Dubin-Johnson and Rotor present with conjugated hyperbilirubinemia (dark urine), but only Dubin-Johnson produces a black liver.`
+  },
+  {
+    id: 6, sector: `sector_2`, entity: `Cholelithiasis, Cholecystitis & Cholangitis`,
+    pathogenesis: `Cholesterol stones (supersaturation/stasis, radiolucent) vs pigmented bilirubin stones (extravascular hemolysis, E. coli, Ascaris, Clonorchis, radiopaque). Cystic duct impaction causes ischemia.`,
+    histology: `Chronic cholecystitis shows Rokitansky-Aschoff sinuses (herniated mucosal pouches into muscularis) and dystrophic calcification (porcelain gallbladder).`,
+    clinical: `Biliary colic: post-fatty meal RUQ pain, normal labs. Acute cholecystitis: Murphy sign (inspiratory arrest), fever, leukocytosis, elevated ALP. Ascending cholangitis: Charcot triad / Reynolds pentad.`,
+    management: `RUQ ultrasound first-line (HIDA scan if equivocal); prophylactic cholecystectomy for porcelain gallbladder (adenocarcinoma risk); urgent decompression + broad-spectrum antibiotics in cholangitis.`,
+    trap: `Gallstone ileus forms a cholecystoenteric fistula causing pneumobilia, SBO at the ileocecal valve, and ectopic gallstone (Rigler triad).`
+  },
+  {
+    id: 7, sector: `sector_3`, entity: `Pancreatitis & Pancreatic Adenocarcinoma`,
+    pathogenesis: `Acute pancreatitis: premature trypsinogen activation -> pancreatic autodigestion (I GET SMASHED: gallstones, ethanol top causes). Cancer: ductal adenocarcinoma (smoking, chronic pancreatitis).`,
+    histology: `Acute: liquefactive fat necrosis + Ca2+ soap saponification (hypocalcemia). Pseudocyst: lined by granulation tissue (no true epithelium). Cancer: desmoplastic infiltrating glands.`,
+    clinical: `Acute: epigastric pain radiating to back, lipase >= 3x ULN, ARDS/shock. Pancreatic head cancer: painless obstructive jaundice + palpable gallbladder (Courvoisier) + Trousseau migratory thrombophlebitis.`,
+    management: `Acute: aggressive IV fluids, pain control, bowel rest. Cancer: CA 19-9 marker (monitoring/prognosis), Whipple pancreaticoduodenectomy if resectable (<10% 1-year survival).`,
+    trap: `Pancreatic pseudocyst lacks an epithelial lining (granulation tissue only), distinguishing it from true cysts and cystic neoplasms.`
+  },
+  {
+    id: 8, sector: `sector_3`, entity: `Celiac Disease & Dermatitis Herpetiformis`,
+    pathogenesis: `Autoimmune T-cell and B-cell reaction to deamidated gliadin (wheat, barley, rye) presented by HLA-DQ2 / HLA-DQ8 APCs after tissue transglutaminase (tTG) modification.`,
+    histology: `Distal duodenum & proximal jejunum: villous blunting/atrophy, crypt hyperplasia, and intraepithelial CD8+ lymphocytosis; skin biopsy shows dermal papillary IgA deposits.`,
+    clinical: `Steatorrhea, weight loss, iron-deficiency anemia (duodenal loss), osteopenia, pruritic vesicular rash on extensor elbows/knees (dermatitis herpetiformis), enteropathy-associated T-cell lymphoma risk.`,
+    management: `Strict lifelong gluten-free diet; serology with IgA anti-tTG, anti-endomysial, and anti-deamidated gliadin (check total serum IgA to exclude selective IgA deficiency).`,
+    trap: `D-xylose test is ABNORMAL in celiac disease (mucosal malabsorption) vs NORMAL in pancreatic insufficiency (luminal digestive defect).`
+  },
+  {
+    id: 9, sector: `sector_3`, entity: `Tropical Sprue & Whipple Disease`,
+    pathogenesis: `Tropical sprue: post-infectious small bowel mucosal injury in tropical residents/travelers. Whipple disease: intracellular gram-positive rod Tropheryma whipplei.`,
+    histology: `Tropical sprue: villous blunting extending from duodenum/jejunum down to ileum (folate + late B12 deficiency). Whipple: PAS-positive foamy macrophages stuffing intestinal lamina propria.`,
+    clinical: `Tropical sprue: chronic diarrhea and megaloblastic anemia responding to antibiotics. Whipple ("CAN"): Cardiac symptoms, Arthralgias, Neurologic symptoms + late diarrhea/steatorrhea in older males.`,
+    management: `Tropical sprue: tetracycline/doxycycline + folate/B12. Whipple disease: prolonged antibiotic therapy (IV ceftriaxone followed by TMP-SMX).`,
+    trap: `Both celiac and tropical sprue cause villous blunting, but tropical sprue involves the ileum (B12 deficiency) and responds to antibiotics rather than gluten avoidance.`
+  },
+  {
+    id: 10, sector: `sector_4`, entity: `Crohn Disease vs Ulcerative Colitis`,
+    pathogenesis: `Abnormal immune response to enteric flora: Crohn is Th1/Th17 transmural inflammation; UC is Th2-mediated mucosal/submucosal inflammation.`,
+    histology: `Crohn: skip lesions, transmural lymphoid aggregates, noncaseating granulomas, cobblestone mucosa, creeping fat. UC: continuous rectal->cecum disease, crypt abscesses with neutrophils, pseudopolyps.`,
+    clinical: `Crohn: RLQ pain, nonbloody/bloody diarrhea, fistulas, strictures ("string sign"), malabsorption. UC: LLQ pain, bloody diarrhea, "lead pipe" colon (loss of haustra), toxic megacolon, PSC.`,
+    management: `5-ASA/steroids/anti-TNF biologics; smoking worsens Crohn but reduces UC flares; colectomy cures UC (not Crohn); colon cancer screening 8 years after IBD onset.`,
+    trap: `Ulcerative colitis spares the rest of the GI tract (rectum proximally, continuous) and shows crypt abscesses without granulomas.`
+  },
+  {
+    id: 11, sector: `sector_4`, entity: `FAP (APC) & Lynch Syndrome (MSI)`,
+    pathogenesis: `FAP: AD germline APC tumor suppressor mutation (chr 5q21-q22, two-hit). Lynch (HNPCC): AD DNA mismatch repair mutation (MLH1, MSH2) causing microsatellite instability (MSI).`,
+    histology: `FAP: 100s-1000s of tubular/villous adenomatous polyps pancolonically after puberty. Lynch: de novo proximal/right-sided colorectal tumors with mucinous/lymphocytic features.`,
+    clinical: `FAP: 100% progress to CRC by age 40; Gardner (+ skull/mandible osteomas, desmoids, CHRPE); Turcot (+ CNS medulloblastoma/glioma). Lynch: 80% CRC + endometrial, ovarian, skin cancers.`,
+    management: `FAP: prophylactic colectomy. Peutz-Jeghers (AD STK11 hamartomatous polyps + mucocutaneous lip/hand macules): cancer surveillance for GI, breast, GYN.`,
+    trap: `Hyperplastic polyps (serrated left-sided) have NO malignant potential, whereas sessile villous adenomas >2 cm carry the highest sporadic malignant risk.`
+  },
+  {
+    id: 12, sector: `sector_4`, entity: `Colorectal Adenocarcinoma`,
+    pathogenesis: `Chromosomal instability adenoma-carcinoma sequence: APC loss (at risk) -> KRAS mutation (adenoma) -> p53 loss + COX-2 overexpression (carcinoma). MSI pathway drives right-sided sporadic CRC.`,
+    histology: `Infiltrating malignant colonic glands; tumors limited to mucosa do not metastasize due to lack of mucosal lymphatics; distant spread goes first to liver via portal vein.`,
+    clinical: `Left-sided: "napkin-ring" / "apple core" lesion on barium enema, decreased stool caliber, LLQ pain, blood-streaked stool. Right-sided: raised exophytic mass, occult bleeding, iron-deficiency anemia.`,
+    management: `Colonoscopy screening; aspirin/NSAIDs inhibit COX-2 progression; CEA monitors treatment response and recurrence (NOT screening); evaluate for Streptococcus bovis endocarditis.`,
+    trap: `An older adult with unexplained iron-deficiency anemia has right-sided colorectal carcinoma until proven otherwise; CEA must NEVER be used for screening.`
+  },
+  {
+    id: 13, sector: `sector_5`, entity: `Hirschsprung Disease vs Meckel Diverticulum`,
+    pathogenesis: `Hirschsprung: RET mutation causes failed craniocaudal neural crest cell migration -> absent Meissner & Auerbach ganglion cells. Meckel: incomplete obliteration of vitelline (omphalomesenteric) duct.`,
+    histology: `Hirschsprung: aganglionic distal rectum/sigmoid with hypertrophied nerve trunks & dilated proximal colon. Meckel: true diverticulum (all 3 gut layers) often with ectopic gastric/pancreatic mucosa.`,
+    clinical: `Hirschsprung: failure to pass meconium >48h, bilious emesis, explosive stool on DRE ("squirt sign"), Down syndrome association. Meckel ("Rule of 2s"): 2% pop, 2 in long, within 2 ft of ileocecal valve, <2 yrs, painless melena.`,
+    management: `Hirschsprung: suction rectal biopsy (gold standard) -> surgical resection of aganglionic segment. Meckel: Tc-99m pertechnetate scan (detects ectopic gastric parietal cells) -> resection.`,
+    trap: `False colonic diverticula (sigmoid) lack muscularis propria, whereas Meckel diverticulum is a true diverticulum containing all bowel wall layers.`
+  },
+  {
+    id: 14, sector: `sector_5`, entity: `Acute Mesenteric Ischemia vs Ischemic Colitis`,
+    pathogenesis: `Acute mesenteric ischemia: embolic (AFib) or thrombotic occlusion of SMA causing transmural small bowel infarction. Ischemic colitis: non-occlusive hypoperfusion at watershed zones.`,
+    histology: `Coagulative/hemorrhagic mucosal-to-transmural necrosis; splenic flexure (Griffith point: SMA/IMA watershed) and rectosigmoid (Sudeck point) show mucosal edema ("thumbprinting").`,
+    clinical: `Acute mesenteric ischemia: sudden severe abdominal pain "out of proportion to physical exam" + lactic acidosis in AFib patient. Ischemic colitis: older atherosclerotic patient with crampy LLQ pain & bloody diarrhea.`,
+    management: `CT angiography (gold standard for AMI), emergent embolectomy/revascularization & bowel resection if peritonitis; supportive fluids/bowel rest in non-gangrenous ischemic colitis.`,
+    trap: `Pain out of proportion to exam + metabolic/lactic acidosis + AFib points to acute SMA occlusion, whereas splenic flexure thumbprinting points to watershed ischemic colitis.`
+  },
+  {
+    id: 15, sector: `sector_5`, entity: `Viscerosomatic Autonomics & Chapman Reflexes`,
+    pathogenesis: `GI sympathetics exit thoracolumbar cord to prevertebral ganglia: T5-T9 Foregut (Celiac ganglion), T10-T11 Midgut (SMG), T12-L2 Hindgut (IMG). Parasympathetics: CN X (to splenic flexure) & S2-S4 (distal).`,
+    histology: `Viscerosomatic reflex produces acute paraspinal boggy edema/warmth or chronic ropy/fibrotic tissue texture changes at corresponding spinal segments; Chapman points are 2-3 mm gangliform myofascial nodules.`,
+    clinical: `Anterior Chapman points: Stomach acid = 5th ICS left; Stomach motility = 6th ICS left; Liver = 5th-6th ICS right; Gallbladder = 6th ICS right; Pancreas = 7th ICS right; Appendix = tip of 12th rib right; Colon = IT band.`,
+    management: `Direct/indirect OMT (rib raising, paraspinal myofascial release, celiac/mesenteric release) normalizes sympathetic hypersympathicotonia; treat OA/AA/C2 for vagal parasympathetic tone.`,
+    trap: `Spleen Chapman point is 7th ICS LEFT, whereas Pancreas is 7th ICS RIGHT; Colon Chapman points run along the iliotibial (IT) band (right = ascending, left = descending).`
+  }
+];
+
+const ALL_QUESTIONS = [
+  // Entity 1: GERD & Barrett Esophagus
+  {
+    id: 1, entityId: 1, sector: `sector_1`, phase: 1, angle: `Pathogenesis`,
+    stem: `A 52-year-old man with obesity and a hiatal hernia experiences chronic substernal burning after fatty meals and evening wine. Which cellular adaptation explains his distal esophageal lesion?`,
+    choices: [
+      `Squamous hyperplasia triggered by bile salts activating gastrin receptors`,
+      `Lower esophageal stem cells reprogramming into intestinal columnar epithelium under chronic acid stress`,
+      `Autoimmune T-cell destruction of myenteric plexus ganglion cells at the LES`
+    ],
+    correct: 1,
+    clue: `Reflux acid stress reprograms stem cells from stratified squamous to mucin-producing intestinal cells.`,
+    mechanism: `• Transient LES relaxation and reduced tone permit chronic gastric acid reflux.\n• Distal esophageal stem cells undergo metaplasia into intestinal-type columnar cells to resist acid injury.`,
+    pearl: `• Risk factors for GERD include obesity, hiatal hernia, alcohol, tobacco, caffeine, and fat-rich meals.`,
+    traps: `• Myenteric ganglion destruction causes achalasia, not Barrett esophagus.\n• Simple squamous hyperplasia occurs in reflux esophagitis before true intestinal metaplasia.`,
+    angles: {
+      patho: `• Acid stress -> columnar metaplasia.`,
+      histo: `• Nonciliated columnar + goblet cells.`,
+      clinic: `• Heartburn, adult-onset asthma, enamel erosion.`
+    }
+  },
+  {
+    id: 2, entityId: 1, sector: `sector_1`, phase: 2, angle: `Histology`,
+    stem: `Upper endoscopy in a 56-year-old woman with 12 years of GERD shows salmon-colored mucosal tongues extending 3 cm above the Z-line. Which biopsy finding confirms Barrett esophagus?`,
+    choices: [
+      `Stratified squamous epithelium with basal zone hyperplasia and intraepithelial eosinophils`,
+      `Nonciliated columnar epithelium containing mucin-filled goblet cells`,
+      `Mucosa-associated lymphoid tissue aggregates with curved gram-negative rods`
+    ],
+    correct: 1,
+    clue: `Look for the specialized intestinal cell type that secretes protective mucin.`,
+    mechanism: `• Barrett esophagus is specialized intestinal metaplasia replacing nonkeratinized stratified squamous epithelium.\n• Goblet cells appear as pale, barrel-shaped mucin vacuoles interspersed among columnar cells.`,
+    pearl: `• Presence of goblet cells is required to diagnose Barrett esophagus and confers elevated adenocarcinoma risk.`,
+    traps: `• Eosinophilic infiltration (>15/HPF) characterizes eosinophilic esophagitis.\n• MALT aggregates with curved rods describe H. pylori gastritis.`,
+    angles: {
+      patho: `• Seen in ~10% of chronic GERD patients.`,
+      histo: `• Goblet cells above gastroesophageal junction.`,
+      clinic: `• Endoscopic surveillance for dysplasia.`
+    }
+  },
+  {
+    id: 3, entityId: 1, sector: `sector_1`, phase: 3, angle: `Clinical`,
+    stem: `A 49-year-old man with untreated chronic reflux develops nocturnal wheezing, dental enamel erosion, and progressive solid-food dysphagia. What late mechanical complication besides Barrett esophagus most likely explains his dysphagia?`,
+    choices: [
+      `Peptic esophageal stricture from chronic ulceration and fibrosis`,
+      `Zenker false diverticulum above the cricopharyngeus`,
+      `Diffuse esophageal spasm producing a corkscrew barium pattern`
+    ],
+    correct: 0,
+    clue: `Chronic acid ulceration heals by scarring and luminal narrowing in the distal esophagus.`,
+    mechanism: `• Recurrent acid-induced mucosal ulceration triggers collagen deposition and concentric luminal narrowing.\n• Extraesophageal GERD manifestations include adult-onset asthma, chronic cough, and tooth enamel erosion.`,
+    pearl: `• Peptic stricture typically causes solid-food dysphagia without severe weight loss, whereas carcinoma progresses rapidly from solids to liquids.`,
+    traps: `• Zenker diverticulum causes upper dysphagia with halitosis and regurgitation of undigested food.\n• Corkscrew esophagus reflects diffuse esophageal spasm.`,
+    angles: {
+      patho: `• Chronic acid ulceration -> fibrotic scarring.`,
+      histo: `• Granulation tissue and submucosal fibrosis.`,
+      clinic: `• PPI + endoscopic dilation if strictured.`
+    }
+  },
+
+  // Entity 2: Esophageal Adeno vs Squamous Carcinoma
+  {
+    id: 4, entityId: 2, sector: `sector_1`, phase: 1, angle: `Pathogenesis`,
+    stem: `A 64-year-old man from East Asia who drinks scalding hot tea daily and has a 40-pack-year smoking history develops progressive dysphagia. Which additional risk factor predisposes to this same histologic subtype?`,
+    choices: [
+      `Long-standing achalasia and Plummer-Vinson esophageal webs`,
+      `Chronic gastroesophageal reflux with hiatal hernia`,
+      `Autoimmune destruction of gastric parietal cells`
+    ],
+    correct: 0,
+    clue: `Think of conditions causing chronic squamous stasis or mucosal injury in the upper/middle esophagus.`,
+    mechanism: `• Esophageal squamous cell carcinoma (SCC) is the most common esophageal cancer worldwide.\n• Major risk factors include alcohol, tobacco, very hot beverages, achalasia, lye ingestion, and Plummer-Vinson syndrome.`,
+    pearl: `• Alcohol and tobacco act synergistically as the leading causes of esophageal SCC.`,
+    traps: `• GERD and Barrett esophagus predispose to distal esophageal adenocarcinoma.\n• Autoimmune gastritis predisposes to intestinal-type gastric adenocarcinoma.`,
+    angles: {
+      patho: `• Chronic squamous irritation/stasis -> dysplasia -> SCC.`,
+      histo: `• Keratin pearls in upper/middle 1/3.`,
+      clinic: `• Progressive dysphagia + hoarseness.`
+    }
+  },
+  {
+    id: 5, entityId: 2, sector: `sector_1`, phase: 2, angle: `Histology / Anatomy`,
+    stem: `Biopsy of an ulcerated mass in the distal third of the esophagus in a 61-year-old man reveals malignant mucin-producing glands invading the submucosa. Which lymph nodes receive initial lymphatic drainage from this tumor?`,
+    choices: [
+      `Deep cervical lymph nodes`,
+      `Celiac and gastric lymph nodes`,
+      `Superior tracheobronchial lymph nodes`
+    ],
+    correct: 1,
+    clue: `Match the esophageal third (upper, middle, lower) to its regional nodal basin.`,
+    mechanism: `• Distal 1/3 esophageal adenocarcinoma arises from Barrett esophagus and drains to celiac and gastric lymph nodes.\n• Upper 1/3 drains to cervical nodes; middle 1/3 drains to mediastinal/tracheobronchial nodes.`,
+    pearl: `• Adenocarcinoma is the most common esophageal malignancy in the United States and Western countries.`,
+    traps: `• Cervical nodes drain upper 1/3 tumors.\n• Mediastinal/tracheobronchial nodes drain middle 1/3 tumors.`,
+    angles: {
+      patho: `• Barrett metaplasia -> dysplasia -> adenocarcinoma.`,
+      histo: `• Malignant glandular proliferation in lower 1/3.`,
+      clinic: `• Late presentation, poor prognosis.`
+    }
+  },
+  {
+    id: 6, entityId: 2, sector: `sector_1`, phase: 3, angle: `Clinical`,
+    stem: `A 67-year-old man with heavy alcohol and tobacco use presents with 12 kg weight loss, progressive dysphagia from solids to liquids, and new-onset hoarseness. Invasion of which structure accounts for his hoarseness?`,
+    choices: [
+      `Left phrenic nerve`,
+      `Recurrent laryngeal nerve`,
+      `Thoracic sympathetic chain`
+    ],
+    correct: 1,
+    clue: `Mid-esophageal squamous tumors invade adjacent mediastinal structures near the tracheoesophageal groove.`,
+    mechanism: `• Middle-third esophageal SCC frequently invades the trachea (causing cough/tracheoesophageal fistula) and the recurrent laryngeal nerve (causing vocal cord paralysis and hoarseness).`,
+    pearl: `• Progressive dysphagia (solids then liquids) with rapid weight loss in an older smoker is malignancy until biopsied.`,
+    traps: `• Phrenic nerve invasion causes diaphragmatic paralysis, not hoarseness.\n• Sympathetic chain invasion causes Horner syndrome.`,
+    angles: {
+      patho: `• Local transmural invasion (no esophageal serosa).`,
+      histo: `• Squamous nests with keratinization.`,
+      clinic: `• Hoarseness (RLN) + cough (trachea).`
+    }
+  },
+
+  // Entity 3: Chronic Gastritis & PUD
+  {
+    id: 7, entityId: 3, sector: `sector_1`, phase: 1, angle: `Pathogenesis`,
+    stem: `A 58-year-old woman with Hashimoto thyroiditis develops macrocytic anemia and achlorhydria. Although anti-parietal cell antibodies are detected in serum, what immune mechanism directly destroys her gastric parietal cells?`,
+    choices: [
+      `Type IV hypersensitivity mediated by autoreactive T cells`,
+      `Type II complement-mediated lysis driven exclusively by IgM`,
+      `Bacterial urease generating ammonia toxicity in the gastric antrum`
+    ],
+    correct: 0,
+    clue: `Antibodies are helpful diagnostic markers, but cell-mediated immunity drives the mucosal destruction.`,
+    mechanism: `• Chronic autoimmune (Type A) gastritis targets parietal cells in the gastric body and fundus via T-cell-mediated (Type IV) hypersensitivity.\n• Loss of intrinsic factor causes pernicious anemia, and loss of acid triggers antral G-cell hyperplasia and high gastrin.`,
+    pearl: `• Autoimmune gastritis spares the antrum, producing marked hypergastrinemia and enterochromaffin-like cell hyperplasia.`,
+    traps: `• H. pylori urease causes Type B antral gastritis.\n• Serum anti-parietal and anti-IF antibodies are diagnostic markers rather than the primary effectors.`,
+    angles: {
+      patho: `• T-cell destruction of body/fundus parietal cells.`,
+      histo: `• Atrophy + intestinal metaplasia + G-cell hyperplasia.`,
+      clinic: `• Pernicious anemia + high gastrin + adenocarcinoma risk.`
+    }
+  },
+  {
+    id: 8, entityId: 3, sector: `sector_1`, phase: 2, angle: `Histology`,
+    stem: `Endoscopy for epigastric pain reveals a 2.2 cm sharply demarcated, "punched-out" ulcer on the lesser curvature of the gastric antrum with radiating mucosal folds. What distinguishes this benign ulcer from a malignant ulcer?`,
+    choices: [
+      `Presence of hypertrophy of submucosal Brunner glands`,
+      `Small size (<3 cm) with clean base and radiating folds vs large irregular heaped-up margins`,
+      `Diffuse signet-ring cell infiltration creating a rigid linitis plastica wall`
+    ],
+    correct: 1,
+    clue: `Compare the gross endoscopic borders of benign peptic ulcer disease against intestinal-type gastric cancer.`,
+    mechanism: `• Benign peptic gastric ulcers are typically <3 cm, punched-out, and surrounded by smooth radiating mucosal folds.\n• Malignant gastric ulcers are large, irregular, and display heaped-up, nodular margins requiring biopsy.`,
+    pearl: `• Biopsy is mandatory for ALL gastric ulcers because intestinal-type gastric adenocarcinoma can mimic PUD.`,
+    traps: `• Brunner gland hypertrophy characterizes duodenal ulcers, which are almost never malignant.\n• Signet-ring cells cause diffuse-type gastric carcinoma (linitis plastica).`,
+    angles: {
+      patho: `• H. pylori (75%), NSAIDs, or bile reflux.`,
+      histo: `• Sharply demarcated defect; biopsy rules out cancer.`,
+      clinic: `• Pain worsens with meals; lesser curvature.`
+    }
+  },
+  {
+    id: 9, entityId: 3, sector: `sector_1`, phase: 3, angle: `Clinical`,
+    stem: `A 44-year-old man with burning epigastric pain that improves after eating presents with sudden hematemesis and hypotension. Endoscopy shows a perforated posterior duodenal ulcer. Which vessel is bleeding?`,
+    choices: [
+      `Left gastric artery`,
+      `Gastroduodenal artery`,
+      `Short gastric arteries`
+    ],
+    correct: 1,
+    clue: `Posterior duodenal ulcers erode backward toward the pancreas and its retroperitoneal arterial supply.`,
+    mechanism: `• Duodenal ulcers (>95% H. pylori) classically cause epigastric pain relieved by food.\n• Posterior duodenal perforation erodes into the gastroduodenal artery (causing massive hemorrhage) or pancreas (causing acute pancreatitis).`,
+    pearl: `• Posterior duodenal ulcer -> gastroduodenal artery; lesser-curvature gastric ulcer -> left gastric artery.`,
+    traps: `• Left gastric artery bleeding occurs with gastric ulcers along the lesser curvature.\n• Short gastric arteries supply the gastric fundus.`,
+    angles: {
+      patho: `• >95% H. pylori; anterior vs posterior duodenum.`,
+      histo: `• Ulcer with Brunner gland hypertrophy.`,
+      clinic: `• Pain improves with meals; triple therapy + negative urea breath test.`
+    }
+  },
+
+  // Entity 4: Cirrhosis, Portal HTN, Varices & Ascites
+  {
+    id: 10, entityId: 4, sector: `sector_2`, phase: 1, angle: `Pathogenesis`,
+    stem: `Chronic alcohol-induced hepatocyte injury promotes progressive hepatic fibrosis and portal hypertension. Which resident liver cell transforms into a myofibroblast and deposits collagen in the space of Disse?`,
+    choices: [
+      `Kupffer macrophage`,
+      `Hepatic stellate (Ito) cell`,
+      `Sinusoidal endothelial cell`
+    ],
+    correct: 1,
+    clue: `This perisinusoidal cell normally stores vitamin A before TGF-beta activation.`,
+    mechanism: `• Injured hepatocytes and Kupffer cells release TGF-beta, activating quiescent vitamin A-storing stellate (Ito) cells.\n• Activated stellate cells proliferate as myofibroblasts, laying down collagen in the space of Disse and raising sinusoidal resistance.`,
+    pearl: `• Fibrosis plus regenerative hepatocyte nodules defines cirrhosis and drives portal hypertension.`,
+    traps: `• Kupffer cells are resident macrophages that secrete cytokines but do not deposit extracellular collagen.\n• Sinusoidal endothelium loses fenestrations but is not the primary collagen producer.`,
+    angles: {
+      patho: `• TGF-beta activates stellate (Ito) cells.`,
+      histo: `• Bridging fibrous septa + regenerative nodules.`,
+      clinic: `• Portal HTN, varices, ascites, hyperestrinism.`
+    }
+  },
+  {
+    id: 11, entityId: 4, sector: `sector_2`, phase: 2, angle: `Histology / Labs`,
+    stem: `A 34-year-old woman with polycythemia vera develops acute RUQ pain, massive ascites, and hepatomegaly without jugular venous distension. Liver biopsy reveals centrilobular congestion and necrosis ("nutmeg liver"). What is the diagnosis?`,
+    choices: [
+      `Budd-Chiari syndrome`,
+      `Primary biliary cholangitis`,
+      `Right-sided constrictive pericarditis`
+    ],
+    correct: 0,
+    clue: `Post-hepatic venous outflow thrombosis produces a congested nutmeg liver while sparing neck veins.`,
+    mechanism: `• Budd-Chiari syndrome is hepatic venous outflow obstruction (hypercoagulable state, polycythemia vera, postpartum, HCC) leading to centrilobular congestion, necrosis, and nutmeg liver.\n• Because obstruction is below the right atrium, JVD is absent.`,
+    pearl: `• Diagnostic paracentesis in portal hypertension yields a serum-ascites albumin gradient (SAAG) >= 1.1 g/dL.`,
+    traps: `• Right heart failure/constrictive pericarditis also causes nutmeg liver, but presents with prominent JVD.\n• PBC causes lymphocytic granulomatous destruction of lobular bile ducts.`,
+    angles: {
+      patho: `• Hepatic vein thrombosis -> sinusoidal congestion.`,
+      histo: `• Centrilobular necrosis ("nutmeg liver").`,
+      clinic: `• Hepatomegaly + ascites + NO JVD.`
+    }
+  },
+  {
+    id: 12, entityId: 4, sector: `sector_2`, phase: 3, angle: `Clinical`,
+    stem: `A 57-year-old man with alcoholic cirrhosis presents with hematemesis from ruptured esophageal varices. Which portal venous tributary anastomoses with systemic caval esophageal veins to produce these varices?`,
+    choices: [
+      `Left gastric (coronary) vein`,
+      `Paraumbilical vein`,
+      `Superior rectal vein`
+    ],
+    correct: 0,
+    clue: `Match each portosystemic anastomosis site to its specific portal tributary.`,
+    mechanism: `• Portal hypertension shunts blood backward through the left gastric vein into esophageal veins (azygos/caval system), forming fragile submucosal esophageal varices.\n• Paraumbilical -> epigastric veins causes caput medusae; superior -> middle/inferior rectal causes anorectal varices.`,
+    pearl: `• Ascitic fluid PMNs >= 250/mm3 indicates spontaneous bacterial peritonitis (SBP), most commonly due to E. coli.`,
+    traps: `• Paraumbilical veins produce caput medusae.\n• Superior rectal veins produce internal/anorectal varices.`,
+    angles: {
+      patho: `• Portosystemic shunting via left gastric vein.`,
+      histo: `• Dilated submucosal distal esophageal veins.`,
+      clinic: `• Band ligation + octreotide + propranolol prophylaxis.`
+    }
+  },
+
+  // Entity 5: Hereditary Jaundice Syndromes
+  {
+    id: 13, entityId: 5, sector: `sector_2`, phase: 1, angle: `Pathogenesis`,
+    stem: `A 21-year-old medical student notices mild scleral icterus after fasting and studying during exam week. Total bilirubin is 2.8 mg/dL (direct 0.2 mg/dL) with normal AST, ALT, and ALP. What is the underlying defect?`,
+    choices: [
+      `Mildly reduced UDP-glucuronosyltransferase (UGT1A1) promoter activity`,
+      `Absent canalicular MRP2 multidrug resistance-associated protein 2`,
+      `Complete deficiency of bilirubin conjugation causing neonatal kernicterus`
+    ],
+    correct: 0,
+    clue: `Benign unconjugated hyperbilirubinemia provoked by fasting, illness, or stress.`,
+    mechanism: `• Gilbert syndrome is an autosomal recessive reduction in UGT1A1 transcription, decreasing hepatic bilirubin conjugation.\n• Stress, fasting, or intercurrent illness precipitates benign unconjugated hyperbilirubinemia.`,
+    pearl: `• Gilbert syndrome is harmless and requires only patient reassurance; Crigler-Najjar type I represents complete UGT1A1 absence.`,
+    traps: `• MRP2 deficiency causes Dubin-Johnson syndrome (conjugated hyperbilirubinemia).\n• Complete UGT1A1 deficiency causes Crigler-Najjar type I with kernicterus.`,
+    angles: {
+      patho: `• Decreased UGT1A1 activity.`,
+      histo: `• Normal liver histology.`,
+      clinic: `• Mild unconjugated jaundice with stress/fasting.`
+    }
+  },
+  {
+    id: 14, entityId: 5, sector: `sector_2`, phase: 2, angle: `Histology`,
+    stem: `A 28-year-old man evaluated for asymptomatic fluctuating conjugated hyperbilirubinemia undergoes laparoscopy for an unrelated hernia, revealing a strikingly black liver. Hepatocytes contain coarse dark cytoplasmic granules. Which condition is present?`,
+    choices: [
+      `Rotor syndrome`,
+      `Dubin-Johnson syndrome`,
+      `Wilson disease`
+    ],
+    correct: 1,
+    clue: `Both Rotor and Dubin-Johnson cause conjugated hyperbilirubinemia, but only one turns the liver black.`,
+    mechanism: `• Dubin-Johnson syndrome results from defective MRP2 canalicular transport of conjugated bilirubin into bile.\n• Impaired excretion of epinephrine metabolites produces coarse dark pigment granules in centrilobular hepatocytes ("black liver").`,
+    pearl: `• Urine coproporphyrin I >80% in Dubin-Johnson; Rotor syndrome shows an uncolored liver due to defective OATP1B1/1B3 hepatic reuptake.`,
+    traps: `• Rotor syndrome has identical conjugated hyperbilirubinemia but a normal, unpigmented liver.\n• Wilson disease accumulates copper (Kayser-Fleischer rings), not dark epinephrine pigment.`,
+    angles: {
+      patho: `• Defective MRP2 canalicular bilirubin excretion.`,
+      histo: `• Grossly black liver with dark hepatocyte pigment.`,
+      clinic: `• Benign conjugated hyperbilirubinemia.`
+    }
+  },
+  {
+    id: 15, entityId: 5, sector: `sector_2`, phase: 3, angle: `Clinical`,
+    stem: `A 3-day-old newborn develops intense jaundice (unconjugated bilirubin 26 mg/dL), lethargy, opisthotonos, and high-pitched crying. Phenobarbital fails to lower serum bilirubin. Which hereditary disorder and complication are occurring?`,
+    choices: [
+      `Crigler-Najjar syndrome type I progressing to kernicterus`,
+      `Gilbert syndrome precipitating biliary atresia`,
+      `Rotor syndrome causing obstructive cholestasis`
+    ],
+    correct: 0,
+    clue: `Complete absence of UGT1A1 does not respond to phenobarbital induction and crosses the neonatal blood-brain barrier.`,
+    mechanism: `• Crigler-Najjar type I is complete absence of UGT1A1; lipid-soluble unconjugated bilirubin deposits in the basal ganglia and brainstem (kernicterus).\n• Phenobarbital induces residual UGT1A1 in type II, but is ineffective in type I.`,
+    pearl: `• Crigler-Najjar type I requires phototherapy, plasmapheresis, and eventual liver transplantation.`,
+    traps: `• Gilbert syndrome never causes kernicterus.\n• Rotor syndrome causes benign conjugated hyperbilirubinemia.`,
+    angles: {
+      patho: `• Complete UGT1A1 absence.`,
+      histo: `• Bilirubin staining of basal ganglia (kernicterus).`,
+      clinic: `• Phototherapy/plasmapheresis/liver transplant.`
+    }
+  },
+
+  // Entity 6: Cholelithiasis, Cholecystitis & Cholangitis
+  {
+    id: 16, entityId: 6, sector: `sector_2`, phase: 1, angle: `Pathogenesis`,
+    stem: `A 35-year-old man with hereditary spherocytosis develops symptomatic radiopaque gallstones. Which mechanism explains the formation of these stones?`,
+    choices: [
+      `Supersaturation of bile with cholesterol due to estrogen-driven HMG-CoA reductase activity`,
+      `Chronic extravascular hemolysis increasing unconjugated bilirubin delivery to bile`,
+      `Autoimmune granulomatous destruction of intrahepatic bile ducts`
+    ],
+    correct: 1,
+    clue: `Pigmented bilirubin stones form with chronic hemolysis or biliary infection (E. coli, Ascaris, Clonorchis).`,
+    mechanism: `• Extravascular hemolysis floods the liver with bilirubin, forming black calcium bilirubinate stones (often radiopaque).\n• Biliary infections (E. coli beta-glucuronidase, Ascaris, Clonorchis) form brown pigment stones.`,
+    pearl: `• Cholesterol stones (80% in the West) are radiolucent and linked to the 4 Fs (Female, Fat, Fertile, Forty).`,
+    traps: `• Estrogen-driven cholesterol supersaturation forms radiolucent yellow cholesterol stones.\n• Autoimmune bile duct destruction defines primary biliary cholangitis.`,
+    angles: {
+      patho: `• Hemolysis/infection -> calcium bilirubinate stones.`,
+      histo: `• Dark radiopaque bilirubin stones.`,
+      clinic: `• Biliary colic or cystic duct impaction.`
+    }
+  },
+  {
+    id: 17, entityId: 6, sector: `sector_2`, phase: 2, angle: `Histology / Imaging`,
+    stem: `A 68-year-old woman has an incidental finding of a diffusely calcified gallbladder wall ("porcelain gallbladder") on abdominal radiograph, along with Rokitansky-Aschoff sinuses on prior pathology. Why is prophylactic cholecystectomy recommended?`,
+    choices: [
+      `High risk of developing gallbladder adenocarcinoma`,
+      `Inevitable progression to primary sclerosing cholangitis`,
+      `Certain development of gallstone ileus at the ligament of Treitz`
+    ],
+    correct: 0,
+    clue: `Chronic inflammation and dystrophic calcification carry a major neoplastic complication.`,
+    mechanism: `• Chronic cholecystitis produces mucosal herniations into the muscularis (Rokitansky-Aschoff sinuses) and dystrophic wall calcification (porcelain gallbladder).\n• Porcelain gallbladder strongly increases the risk of gallbladder adenocarcinoma.`,
+    pearl: `• Gallstone ileus forms a fistula into the duodenum/GI tract, obstructing at the narrowest point (ileocecal valve) with Rigler triad (pneumobilia, SBO, ectopic stone).`,
+    traps: `• PSC is associated with ulcerative colitis and p-ANCA, not porcelain gallbladder.\n• Gallstone ileus obstructs at the ileocecal valve, not the ligament of Treitz.`,
+    angles: {
+      patho: `• Chronic cholecystitis -> dystrophic calcification.`,
+      histo: `• Rokitansky-Aschoff sinuses + wall calcium.`,
+      clinic: `• Prophylactic cholecystectomy for cancer risk.`
+    }
+  },
+  {
+    id: 18, entityId: 6, sector: `sector_2`, phase: 3, angle: `Clinical`,
+    stem: `A 72-year-old man with choledocholithiasis presents with fever to 39.4 C, rigors, jaundice, RUQ tenderness, confusion, and blood pressure 78/46 mm Hg. Which syndrome and immediate management are indicated?`,
+    choices: [
+      `Acute acalculous cholecystitis managed with elective outpatient HIDA scan`,
+      `Ascending cholangitis with Reynolds pentad requiring urgent IV antibiotics and biliary decompression`,
+      `Uncomplicated biliary colic managed with oral ursodiol`
+    ],
+    correct: 1,
+    clue: `Charcot triad (fever, jaundice, RUQ pain) plus hypotension and altered mental status equals a biliary emergency.`,
+    mechanism: `• Stone obstruction of the common bile duct causes biliary stasis and ascending gram-negative bacterial infection (ascending cholangitis).\n• Charcot triad + hypotension + altered mental status = Reynolds pentad.`,
+    pearl: `• In acute cholecystitis (cystic duct impaction), Murphy sign is positive (inspiratory arrest on RUQ palpation) and pain may radiate to the right shoulder/scapula.`,
+    traps: `• Biliary colic has normal vitals, normal labs, and pain resolving once the stone dislodges.\n• Urgent ERCP/biliary decompression cannot be delayed for outpatient testing.`,
+    angles: {
+      patho: `• CBD stone -> stasis + enteric gram-negative sepsis.`,
+      histo: `• Purulent bile ducts, elevated ALP & direct bilirubin.`,
+      clinic: `• IV fluids + broad-spectrum antibiotics + ERCP.`
+    }
+  },
+
+  // Entity 7: Pancreatitis & Pancreatic Adenocarcinoma
+  {
+    id: 19, entityId: 7, sector: `sector_3`, phase: 1, angle: `Pathogenesis`,
+    stem: `A 46-year-old man with gallstones develops severe epigastric pain radiating to the back and serum lipase 5x the upper limit of normal. What intracellular event initiates this pancreatic injury?`,
+    choices: [
+      `Premature activation of trypsinogen to trypsin within acinar cells leading to autodigestion`,
+      `Immune complex deposition in pancreatic islets triggered by coxsackievirus`,
+      `Cholesterol crystal embolization occluding the gastroduodenal artery`
+    ],
+    correct: 0,
+    clue: `Think of the zymogen cascade (I GET SMASHED) that digests parenchyma and peripancreatic fat.`,
+    mechanism: `• Obstruction or ethanol toxicity causes premature intracellular activation of trypsinogen -> trypsin, activating elastase, phospholipase A2, and lipase.\n• Autodigestion produces fat necrosis and Ca2+ soap saponification (hypocalcemia).`,
+    pearl: `• Gallstones and ethanol are the two most common causes of acute pancreatitis (I GET SMASHED).`,
+    traps: `• Islet immune damage causes type 1 diabetes mellitus.\n• Lipase is more specific for pancreatitis than amylase.`,
+    angles: {
+      patho: `• Premature trypsinogen activation -> autodigestion.`,
+      histo: `• Liquefactive fat necrosis + Ca2+ soaps.`,
+      clinic: `• Epigastric pain to back + lipase >=3x ULN.`
+    }
+  },
+  {
+    id: 20, entityId: 7, sector: `sector_3`, phase: 2, angle: `Histology / Structure`,
+    stem: `Five weeks after severe acute pancreatitis, a 51-year-old man develops early satiety and a 7-cm fluid collection adjacent to the pancreas on CT. What histologic feature characterizes a pancreatic pseudocyst?`,
+    choices: [
+      `A wall composed of fibrous and granulation tissue lacking an epithelial lining`,
+      `Mucin-producing columnar epithelium with papillary projections`,
+      `Stratified squamous epithelium filled with keratin debris`
+    ],
+    correct: 0,
+    clue: `The prefix "pseudo-" indicates the absence of a true mucosal or epithelial lining.`,
+    mechanism: `• Ruptured pancreatic ducts leak enzyme-rich fluid that becomes walled off by granulation and fibrous tissue, forming a pseudocyst.\n• Because it lacks an epithelial lining, it is not a true cyst.`,
+    pearl: `• Pseudocysts present weeks after acute pancreatitis with abdominal fullness, persistently elevated amylase/lipase, and risk of rupture or infection.`,
+    traps: `• Mucin-producing columnar epithelium defines mucinous cystic neoplasms, which carry malignant potential.\n• True cysts possess an epithelial lining.`,
+    angles: {
+      patho: `• Walled-off pancreatic enzyme leak.`,
+      histo: `• Granulation/fibrous wall, NO epithelium.`,
+      clinic: `• Persistent mass/pain weeks post-pancreatitis.`
+    }
+  },
+  {
+    id: 21, entityId: 7, sector: `sector_3`, phase: 3, angle: `Clinical`,
+    stem: `A 71-year-old smoker presents with 9 kg weight loss, painless progressive jaundice, pale stools, a nontender palpable gallbladder, and recurrent migratory superficial thrombophlebitis in his arms and legs. Which marker and diagnosis fit best?`,
+    choices: [
+      `CA 19-9; pancreatic head adenocarcinoma with Courvoisier sign and Trousseau syndrome`,
+      `CEA; primary sclerosing cholangitis with toxic megacolon`,
+      `AFP; hepatocellular carcinoma with Budd-Chiari syndrome`
+    ],
+    correct: 0,
+    clue: `Smoking + painless jaundice + palpable gallbladder + migratory thrombophlebitis.`,
+    mechanism: `• Pancreatic ductal adenocarcinoma most commonly arises in the pancreatic head, obstructing the CBD to cause painless jaundice and a palpable nontender gallbladder (Courvoisier sign).\n• Tumor-released mucins/procoagulants cause migratory thrombophlebitis (Trousseau syndrome).`,
+    pearl: `• CA 19-9 is the classic serum marker for pancreatic adenocarcinoma; resectable head tumors undergo Whipple procedure (<10% 1-year survival).`,
+    traps: `• Painless palpable gallbladder points away from gallstones (which cause fibrotic shrunken gallbladders).\n• Body/tail pancreatic tumors present later with back pain and secondary diabetes mellitus rather than jaundice.`,
+    angles: {
+      patho: `• Risk factors: smoking, chronic pancreatitis.`,
+      histo: `• Infiltrating ductal adenocarcinoma + desmoplasia.`,
+      clinic: `• Courvoisier sign + Trousseau syndrome + CA 19-9.`
+    }
+  },
+
+  // Entity 8: Celiac Disease & Dermatitis Herpetiformis
+  {
+    id: 22, entityId: 8, sector: `sector_3`, phase: 1, angle: `Pathogenesis`,
+    stem: `A 26-year-old woman of Northern European descent develops chronic bulky greasy stools and iron-deficiency anemia after consuming wheat bread. Which genetic and enzymatic interaction initiates mucosal injury?`,
+    choices: [
+      `Tissue transglutaminase deamidates gliadin, enabling binding to HLA-DQ2/DQ8 on APCs to activate CD4+ T cells`,
+      `Brush-border lactase deficiency leaves unabsorbed disaccharides for colonic bacterial fermentation`,
+      `Apolipoprotein B-48 deficiency prevents chylomicron assembly inside enterocytes`
+    ],
+    correct: 0,
+    clue: `Remember "I ate (8) too (2) much gluten at Dairy Queen" plus the enzyme target of celiac serology.`,
+    mechanism: `• Alcohol-soluble gliadin crosses the mucosa and is deamidated by tissue transglutaminase (tTG).\n• Deamidated gliadin binds HLA-DQ2 or HLA-DQ8 on APCs, triggering CD4+ T-cell cytokines (IFN-gamma, IL-21) and CD8+ intraepithelial cytotoxicity.`,
+    pearl: `• IgA anti-tTG and anti-endomysial antibodies are the primary serologic screens (always check total IgA to avoid false negatives in selective IgA deficiency).`,
+    traps: `• Lactase deficiency causes osmotic diarrhea with normal villi and low stool pH.\n• ApoB-48/B-100 deficiency causes abetalipoproteinemia with lipid-laden enterocytes and acanthocytes.`,
+    angles: {
+      patho: `• HLA-DQ2/DQ8 + tTG deamidation of gliadin.`,
+      histo: `• Duodenal villous atrophy + crypt hyperplasia.`,
+      clinic: `• Steatorrhea, IDA, dermatitis herpetiformis.`
+    }
+  },
+  {
+    id: 23, entityId: 8, sector: `sector_3`, phase: 2, angle: `Histology`,
+    stem: `A patient with suspected celiac disease undergoes upper endoscopy with distal duodenal biopsy and biopsy of pruritic grouped vesicles on the elbows. What paired findings confirm the diagnosis?`,
+    choices: [
+      `Villous atrophy, crypt hyperplasia, intraepithelial lymphocytosis + granular IgA deposits at dermal papilla tips`,
+      `PAS-positive foamy macrophages in lamina propria + noncaseating granulomas in dermis`,
+      `Normal villi with lipid vacuolization of enterocytes + acanthocytes on blood smear`
+    ],
+    correct: 0,
+    clue: `Distal duodenum/proximal jejunum shows flattening and crypt proliferation; skin shows IgA at papillary tips.`,
+    mechanism: `• Celiac histology shows loss of villi, crypt hyperplasia, and intraepithelial lymphocytosis primarily in the distal duodenum and proximal jejunum.\n• Dermatitis herpetiformis shows subepidermal microabscesses with granular IgA deposits at dermal papilla tips.`,
+    pearl: `• D-xylose absorption test is ABNORMAL in celiac disease because mucosal surface area is lost.`,
+    traps: `• PAS-positive foamy macrophages define Whipple disease.\n• Lipid-filled enterocytes with normal villi define abetalipoproteinemia.`,
+    angles: {
+      patho: `• Autoimmune enteropathy + IgA skin cross-reactivity.`,
+      histo: `• Villous blunting + crypt hyperplasia + IELs.`,
+      clinic: `• Gluten-free diet; dapsone for skin flares.`
+    }
+  },
+  {
+    id: 24, entityId: 8, sector: `sector_3`, phase: 3, angle: `Clinical`,
+    stem: `A 48-year-old man with celiac disease who adheres poorly to a gluten-free diet develops worsening abdominal pain, fever, weight loss, and refractory malabsorption despite strict gluten elimination. Which malignancy must be ruled out?`,
+    choices: [
+      `Enteropathy-associated T-cell lymphoma`,
+      `Gastric MALT B-cell lymphoma`,
+      `Ileocecal neuroendocrine carcinoid tumor`
+    ],
+    correct: 0,
+    clue: `Chronic intraepithelial T-cell activation predisposes to a small-bowel lymphoma of the same lineage.`,
+    mechanism: `• Chronic antigen-driven stimulation of intraepithelial lymphocytes in untreated celiac disease moderately increases the risk of enteropathy-associated T-cell lymphoma (and small bowel adenocarcinoma).`,
+    pearl: `• Lifelong gluten-free diet (avoiding wheat, barley, and rye) heals the mucosa and reduces malignancy risk.`,
+    traps: `• Gastric MALT lymphoma is a B-cell lymphoma driven by H. pylori.\n• Carcinoid tumors arise from neuroendocrine enterochromaffin cells (chromogranin+, 5-HIAA).`,
+    angles: {
+      patho: `• Chronic IEL stimulation -> malignant T-cell clone.`,
+      histo: `• Ulcerating jejunal T-cell lymphoma.`,
+      clinic: `• Refractory celiac symptoms -> biopsy.`
+    }
+  },
+
+  // Entity 9: Tropical Sprue & Whipple Disease
+  {
+    id: 25, entityId: 9, sector: `sector_3`, phase: 1, angle: `Pathogenesis`,
+    stem: `A 63-year-old male farmer develops migratory arthralgias, cardiac murmur, memory decline, and later steatorrhea with weight loss. Which pathogen drives this systemic malabsorptive disorder?`,
+    choices: [
+      `Intracellular gram-positive bacillus Tropheryma whipplei`,
+      `Flagellated protozoan Giardia lamblia adhering to duodenal brush border`,
+      `Gluten-triggered anti-tissue transglutaminase IgA autoantibodies`
+    ],
+    correct: 0,
+    clue: `Remember "PASs the foamy Whipped cream in a CAN" (Cardiac, Arthralgias, Neurologic).`,
+    mechanism: `• Whipple disease is a systemic infection by Tropheryma whipplei, an intracellular gram-positive rod.\n• Bacterial accumulation inside macrophages impairs intestinal lymphatic drainage and involves joints, heart valves, and CNS.`,
+    pearl: `• Unlike celiac disease, Whipple disease classically affects older males and causes arthralgias, cardiac, and neurologic symptoms before GI steatorrhea.`,
+    traps: `• Giardia causes foul-smelling watery diarrhea without systemic arthralgias or CNS involvement.\n• Celiac disease is autoimmune and responds to gluten removal.`,
+    angles: {
+      patho: `• Tropheryma whipplei intracellular infection.`,
+      histo: `• PAS-positive foamy macrophages in lamina propria.`,
+      clinic: `• Older males; CAN + late steatorrhea.`
+    }
+  },
+  {
+    id: 26, entityId: 9, sector: `sector_3`, phase: 2, angle: `Histology`,
+    stem: `Small intestinal biopsy from a patient with arthralgias, oculomasticatory myorhythmia, and steatorrhea reveals blunted villi packed with macrophages containing diastase-resistant magenta cytoplasmic inclusions. Which stain highlights this hallmark?`,
+    choices: [
+      `Periodic acid-Schiff (PAS) stain`,
+      `Prussian blue iron stain`,
+      `Congo red birefringence stain`
+    ],
+    correct: 0,
+    clue: `Glycoprotein-rich bacterial cell walls inside macrophages stain bright magenta.`,
+    mechanism: `• Whipple disease demonstrates characteristic PAS-positive, diastase-resistant foamy macrophages distending the small-intestinal lamina propria and mesenteric lymph nodes.`,
+    pearl: `• Electron microscopy confirms rod-shaped Tropheryma whipplei bacilli within macrophages.`,
+    traps: `• Prussian blue stains hemosiderin iron in hemochromatosis.\n• Congo red stains amyloid showing apple-green birefringence.`,
+    angles: {
+      patho: `• Macrophage inability to clear T. whipplei.`,
+      histo: `• PAS+ foamy macrophages in lamina propria.`,
+      clinic: `• Ceftriaxone followed by prolonged TMP-SMX.`
+    }
+  },
+  {
+    id: 27, entityId: 9, sector: `sector_3`, phase: 3, angle: `Clinical`,
+    stem: `A 34-year-old missionary returning from prolonged residence in the Caribbean presents with chronic steatorrhea, glossitis, and megaloblastic anemia (low folate and low B12). Duodenal biopsy shows villous blunting, and anti-tTG IgA is negative. What is the best treatment?`,
+    choices: [
+      `Broad-spectrum antibiotics (tetracycline/doxycycline) plus folate and vitamin B12`,
+      `Strict lifelong gluten-free diet alone`,
+      `Oral pancreatic enzyme replacement with meals`
+    ],
+    correct: 0,
+    clue: `Distinguish tropical sprue from celiac sprue by travel history, ileal B12 loss, and antibiotic responsiveness.`,
+    mechanism: `• Tropical sprue mimics celiac disease histologically (villous blunting) in residents/travelers to tropical regions, but progresses to involve the terminal ileum.\n• Ileal involvement causes vitamin B12 deficiency in addition to early folate deficiency.`,
+    pearl: `• Tropical sprue improves rapidly with tetracycline/doxycycline and vitamin replacement, whereas celiac disease does not respond to antibiotics.`,
+    traps: `• Gluten-free diet treats celiac disease, not tropical sprue.\n• Pancreatic enzymes treat chronic pancreatitis/cystic fibrosis (where D-xylose is normal).`,
+    angles: {
+      patho: `• Post-infectious small bowel injury in tropics.`,
+      histo: `• Villous blunting extending to ileum.`,
+      clinic: `• Megaloblastic anemia (folate + B12); responds to antibiotics.`
+    }
+  },
+
+  // Entity 10: Crohn Disease vs Ulcerative Colitis
+  {
+    id: 28, entityId: 10, sector: `sector_4`, phase: 1, angle: `Pathogenesis`,
+    stem: `A 24-year-old woman with recurrent RLQ pain, nonbloody diarrhea, and perianal fistulas undergoes ileocecal resection. Which immune profile and depth of wall injury drive her condition compared with ulcerative colitis?`,
+    choices: [
+      `Th1/Th17-driven transmural inflammation with noncaseating granulomas`,
+      `Th2-mediated inflammation restricted strictly to the colonic mucosa and submucosa`,
+      `IgA immune complex deposition in mucosal capillaries`
+    ],
+    correct: 0,
+    clue: `Fistulas and strictures occur because inflammation penetrates the full thickness of the bowel wall.`,
+    mechanism: `• Crohn disease features dysregulated Th1/Th17 responses to gut flora, producing transmural inflammation from mouth to anus (skip lesions).\n• Transmural injury causes sinus tracts, enteroenteric/perianal fistulas, and fibrotic strictures.`,
+    pearl: `• Smoking exacerbates Crohn disease, whereas smoking paradoxically reduces flare severity in ulcerative colitis.`,
+    traps: `• Ulcerative colitis is limited to mucosa and submucosa, explaining why fistulas do not occur in UC.`,
+    angles: {
+      patho: `• Th1/Th17 transmural inflammation.`,
+      histo: `• Skip lesions, creeping fat, noncaseating granulomas.`,
+      clinic: `• RLQ pain, fistulas, strictures ("string sign").`
+    }
+  },
+  {
+    id: 29, entityId: 10, sector: `sector_4`, phase: 2, angle: `Histology / Imaging`,
+    stem: `Colonoscopy and barium enema in a 29-year-old man with chronic bloody diarrhea and LLQ pain reveal continuous ulceration starting at the rectum, regenerating mucosal islands (pseudopolyps), neutrophil-filled crypt abscesses, and loss of haustra ("lead pipe" sign). What is the diagnosis?`,
+    choices: [
+      `Ulcerative colitis`,
+      `Crohn colitis`,
+      `Pseudomembranous colitis`
+    ],
+    correct: 0,
+    clue: `Continuous rectal-to-cecum involvement + crypt abscesses + lead pipe colon.`,
+    mechanism: `• Ulcerative colitis always begins in the rectum and extends continuously proximally up to the cecum without skip lesions.\n• Chronic mucosal destruction produces crypt abscesses, pseudopolyps, and loss of haustra ("lead pipe" appearance).`,
+    pearl: `• Ulcerative colitis is strongly associated with primary sclerosing cholangitis (p-ANCA+, "onion-skin" bile duct fibrosis).`,
+    traps: `• Crohn disease shows skip lesions, cobblestone mucosa, and creeping fat.\n• Pseudomembranous colitis shows volcano-like mucopurulent exudates after antibiotics.`,
+    angles: {
+      patho: `• Mucosal/submucosal continuous colonic inflammation.`,
+      histo: `• Crypt abscesses + pseudopolyps (no granulomas).`,
+      clinic: `• Bloody diarrhea, lead pipe colon, toxic megacolon.`
+    }
+  },
+  {
+    id: 30, entityId: 10, sector: `sector_4`, phase: 3, angle: `Clinical`,
+    stem: `A 31-year-old man with ulcerative colitis develops fever to 39.2 C, tachycardia, severe abdominal distension, absent bowel sounds, and a transverse colon diameter of 8.5 cm on abdominal radiograph. What is the immediate priority?`,
+    choices: [
+      `Urgent colonoscopy with full bowel prep to obtain mucosal biopsies`,
+      `NG decompression, IV fluids, broad-spectrum antibiotics, IV corticosteroids, and surgical evaluation for toxic megacolon`,
+      `Oral loperamide and outpatient mesalamine escalation`
+    ],
+    correct: 1,
+    clue: `Dilated colon (>6 cm) with systemic toxicity is a surgical emergency with high perforation risk.`,
+    mechanism: `• Toxic megacolon results from severe colonic inflammation extending into the muscularis propria, causing nitric oxide-mediated smooth muscle paralysis and colonic dilation (>6 cm).\n• Colonoscopy and antidiarrheals precipitate perforation.`,
+    pearl: `• Total colectomy is curative for ulcerative colitis (unlike Crohn disease, which recurs at surgical anastomoses); screen for CRC 8 years after IBD onset.`,
+    traps: `• Colonoscopy is strictly contraindicated in toxic megacolon due to perforation risk.\n• Antimotility agents (loperamide) worsen colonic dilation.`,
+    angles: {
+      patho: `• Inflammatory paralysis of colonic muscularis.`,
+      histo: `• Deep mucosal ulceration + dilated thin wall.`,
+      clinic: `• Supportive + IV steroids + surgical consult; avoid colonoscopy.`
+    }
+  },
+
+  // Entity 11: FAP (APC) & Lynch Syndrome (MSI)
+  {
+    id: 31, entityId: 11, sector: `sector_4`, phase: 1, angle: `Pathogenesis`,
+    stem: `A 38-year-old man presents with right-sided colon cancer; his mother had endometrial cancer at age 44 and his sister had ovarian cancer. Tumor tissue demonstrates microsatellite instability (MSI). Which molecular pathway is defective?`,
+    choices: [
+      `Autosomal dominant mutation in DNA mismatch repair genes (MLH1, MSH2)`,
+      `Autosomal dominant germline mutation in the APC tumor suppressor on chromosome 5q21`,
+      `Autosomal recessive mutation in the MUTYH base-excision repair gene`
+    ],
+    correct: 0,
+    clue: `Remember "Merrill Lynch has CEOs" (Colorectal, Endometrial, Ovarian, Skin cancers).`,
+    mechanism: `• Lynch syndrome (HNPCC) is an autosomal dominant defect in DNA mismatch repair enzymes (MLH1, MSH2, MSH6, PMS2).\n• Unrepaired replication slippage in noncoding DNA repeats produces microsatellite instability and ~80% lifetime CRC risk.`,
+    pearl: `• Unlike FAP, Lynch syndrome cancers arise de novo (without 100s of polyps), present early, and favor the proximal (right) colon.`,
+    traps: `• APC mutation on 5q21 causes FAP (pancolonic thousands of polyps).\n• MUTYH polyposis is autosomal recessive.`,
+    angles: {
+      patho: `• AD mismatch repair (MLH1/MSH2) -> MSI.`,
+      histo: `• Right-sided de novo mucinous/lymphocytic CRC.`,
+      clinic: `• Colorectal + Endometrial + Ovarian cancers.`
+    }
+  },
+  {
+    id: 32, entityId: 11, sector: `sector_4`, phase: 2, angle: `Histology / Phenotype`,
+    stem: `Colonoscopy in an 18-year-old boy reveals >1,000 adenomatous polyps throughout the colon and rectum. He also has skull osteomas, supernumerary teeth, and a retroperitoneal desmoid fibromatosis. Which syndrome and gene are implicated?`,
+    choices: [
+      `Gardner syndrome (variant of FAP); APC gene on chromosome 5q`,
+      `Turcot syndrome; MLH1 mismatch repair gene`,
+      `Peutz-Jeghers syndrome; STK11 hamartomatous polyps`
+    ],
+    correct: 0,
+    clue: `FAP plus osseous/soft-tissue tumors (osteomas, desmoids, CHRPE).`,
+    mechanism: `• FAP is caused by autosomal dominant APC loss on chromosome 5q21-q22 (two-hit hypothesis), yielding 100s-1000s of tubular/villous adenomas starting after puberty.\n• Gardner syndrome adds skull/mandible osteomas, retroperitoneal desmoid fibromatosis, impacted teeth, and retinal pigment hypertrophy.`,
+    pearl: `• Without prophylactic colectomy, 100% of FAP patients develop colorectal adenocarcinoma by age 40.`,
+    traps: `• Turcot syndrome ("Turban") combines FAP or Lynch with malignant CNS tumors (medulloblastoma or glioma).\n• Peutz-Jeghers features hamartomatous polyps and mucocutaneous hyperpigmentation.`,
+    angles: {
+      patho: `• Germline APC 5q loss + second somatic hit.`,
+      histo: `• Thousands of adenomatous polyps + desmoids.`,
+      clinic: `• Prophylactic total proctocolectomy.`
+    }
+  },
+  {
+    id: 33, entityId: 11, sector: `sector_4`, phase: 3, angle: `Clinical`,
+    stem: `A 22-year-old woman presents with dark freckle-like macules on her lips, buccal mucosa, and palms, plus intermittent intussusception from hamartomatous polyps throughout her small bowel and colon. Which condition and cancer risks apply?`,
+    choices: [
+      `Peutz-Jeghers syndrome; elevated risk of colorectal, breast, gastric, small bowel, and gynecologic cancers`,
+      `Juvenile polyposis; solitary benign rectal polyp with zero cancer risk`,
+      `Hyperplastic polyposis; benign serrated left-sided polyps`
+    ],
+    correct: 0,
+    clue: `Mucocutaneous hyperpigmentation + pan-GI hamartomatous polyps.`,
+    mechanism: `• Peutz-Jeghers syndrome is an autosomal dominant disorder featuring benign hamartomatous polyps throughout the GI tract and mucocutaneous hyperpigmentation on lips, oral mucosa, hands, and genitalia.\n• Despite benign polyp histology, patients carry elevated GI, breast, pancreatic, and gynecologic cancer risks.`,
+    pearl: `• Solitary juvenile polyps (<5 yrs) prolapse and bleed without malignant potential, whereas multiple juvenile polyposis carries CRC risk.`,
+    traps: `• Hyperplastic polyps are the most common colonic polyps and are benign serrated lesions in the rectosigmoid.`,
+    angles: {
+      patho: `• AD hamartomatous polyposis + lip macules.`,
+      histo: `• Arborizing smooth muscle core inside polyps.`,
+      clinic: `• Intussusception + GI/breast/GYN surveillance.`
+    }
+  },
+
+  // Entity 12: Colorectal Adenocarcinoma
+  {
+    id: 34, entityId: 12, sector: `sector_4`, phase: 1, angle: `Pathogenesis`,
+    stem: `During sporadic left-sided colorectal tumorigenesis, an early adenomatous polyp acquires a KRAS mutation. Which subsequent molecular alteration drives final progression from adenoma to invasive carcinoma and is inhibited by aspirin?`,
+    choices: [
+      `Loss of p53 tumor suppressor and overexpression of COX-2`,
+      `Germline gain-of-function RET proto-oncogene mutation`,
+      `Loss of E-cadherin (CDH1) causing diffuse signet-ring infiltration`
+    ],
+    correct: 0,
+    clue: `Follow the Fearon-Vogelstein adenoma-carcinoma sequence: APC -> KRAS -> final step.`,
+    mechanism: `• Chromosomal instability adenoma-carcinoma sequence: APC loss puts mucosa at risk -> KRAS mutation forms adenoma -> p53 mutation and COX-2 overexpression drive progression to carcinoma.\n• NSAIDs/aspirin block COX-2 and impede adenoma-to-carcinoma progression.`,
+    pearl: `• Which adenoma features carry the highest malignant risk? Size >2 cm, sessile architecture, and villous histology.`,
+    traps: `• RET mutation causes Hirschsprung (loss) or MEN 2 (gain).\n• CDH1 E-cadherin loss drives diffuse-type gastric adenocarcinoma.`,
+    angles: {
+      patho: `• APC -> KRAS -> p53 + COX-2.`,
+      histo: `• Villous > tubular; >2 cm & sessile = high risk.`,
+      clinic: `• Aspirin chemoprevention; polypectomy.`
+    }
+  },
+  {
+    id: 35, entityId: 12, sector: `sector_4`, phase: 2, angle: `Histology / Imaging`,
+    stem: `A 66-year-old man reports pencil-thin stools, LLQ cramping, and blood-streaked bowel movements. Barium enema demonstrates a circumferential constricting "apple core" lesion in the descending colon. Which pathologic feature determines whether nodal metastasis is possible?`,
+    choices: [
+      `Depth of invasion (T stage) past the muscularis mucosae into the submucosa`,
+      `Serum CEA level above 5 ng/mL`,
+      `Presence of serrated hyperplastic glands adjacent to the tumor`
+    ],
+    correct: 0,
+    clue: `Colonic mucosa lacks lymphatic channels.`,
+    mechanism: `• Left-sided colon carcinomas grow circumferentially as "napkin-ring" / "apple core" lesions causing partial obstruction and decreased stool caliber.\n• Tumors confined to the mucosa generally do not metastasize because lymphatics begin in the submucosa.`,
+    pearl: `• Depth of invasion (T) is the most important prognostic factor; distant metastasis most commonly involves the liver via portal venous drainage.`,
+    traps: `• CEA monitors treatment response and recurrence, never screening or depth.\n• Hyperplastic polyps lack malignant potential.`,
+    angles: {
+      patho: `• Circumferential "napkin-ring" growth in left colon.`,
+      histo: `• No mucosal lymphatics -> T stage drives risk.`,
+      clinic: `• Decreased stool caliber + LLQ pain.`
+    }
+  },
+  {
+    id: 36, entityId: 12, sector: `sector_4`, phase: 3, angle: `Clinical`,
+    stem: `A 70-year-old man is hospitalized for Streptococcus bovis (gallolyticus) bacteremia and native mitral valve endocarditis. Blood studies also show microcytic anemia (Hb 8.9 g/dL, ferritin 11 ng/mL). What is the mandatory next diagnostic step?`,
+    choices: [
+      `Colonoscopy to evaluate for occult right-sided colorectal carcinoma`,
+      `Urea breath test for Helicobacter pylori`,
+      `24-hour urine 5-HIAA for carcinoid tumor`
+    ],
+    correct: 0,
+    clue: `Older adult + iron-deficiency anemia + S. bovis endocarditis = classic right-sided colon cancer board clue.`,
+    mechanism: `• Right-sided (ascending) colon cancers grow as raised exophytic masses in a wide lumen, rarely obstructing, and bleed occultly to produce iron-deficiency anemia.\n• Colonic carcinoma disrupts mucosal integrity, predisposing to Streptococcus bovis bacteremia/endocarditis.`,
+    pearl: `• Any older adult with unexplained iron-deficiency anemia has right-sided colorectal carcinoma until proven otherwise by colonoscopy; CEA is NOT a screening test.`,
+    traps: `• CEA must only be used to track recurrence or therapy response after diagnosis.\n• H. pylori causes upper GI ulcers/MALT, not S. bovis endocarditis.`,
+    angles: {
+      patho: `• Exophytic right-sided mass -> occult bleeding.`,
+      histo: `• Adenocarcinoma; portal spread to liver.`,
+      clinic: `• S. bovis endocarditis + IDA -> colonoscopy.`
+    }
+  },
+
+  // Entity 13: Hirschsprung Disease vs Meckel Diverticulum
+  {
+    id: 37, entityId: 13, sector: `sector_5`, phase: 1, angle: `Pathogenesis`,
+    stem: `A newborn boy with Down syndrome fails to pass meconium within 48 hours of birth and develops bilious vomiting and abdominal distension. Which embryologic defect underlies his presentation?`,
+    choices: [
+      `Failure of craniocaudal neural crest cell migration into the distal colon (RET mutation)`,
+      `Incomplete obliteration of the vitelline (omphalomesenteric) duct`,
+      `Failure of recanalization of the duodenal lumen during week 8`
+    ],
+    correct: 0,
+    clue: `Both Meissner submucosal and Auerbach myenteric plexuses are absent in the affected distal bowel.`,
+    mechanism: `• Hirschsprung disease (congenital megacolon) results from failed craniocaudal migration of neural crest cells (commonly RET loss-of-function mutation).\n• Without enteric ganglion cells, the distal rectosigmoid remains tonically contracted while proximal normal bowel dilates.`,
+    pearl: `• Down syndrome (trisomy 21) is strongly associated with both Hirschsprung disease and duodenal atresia ("double bubble").`,
+    traps: `• Incomplete vitelline duct obliteration causes Meckel diverticulum.\n• Failed duodenal recanalization causes duodenal atresia.`,
+    angles: {
+      patho: `• RET mutation -> failed neural crest migration.`,
+      histo: `• Absent Meissner/Auerbach ganglia + nerve hypertrophy.`,
+      clinic: `• Delayed meconium >48h; "squirt sign" on DRE.`
+    }
+  },
+  {
+    id: 38, entityId: 13, sector: `sector_5`, phase: 2, angle: `Histology / Embryology`,
+    stem: `A 2-year-old boy presents with painless bright-red-to-maroon rectal bleeding and hemoglobin 7.8 g/dL. A Tc-99m pertechnetate scan shows focal uptake in the right lower quadrant. What layers and ectopic tissue characterize this lesion?`,
+    choices: [
+      `True diverticulum containing all three gut wall layers with ectopic acid-secreting gastric mucosa`,
+      `False mucosal/submucosal herniation lacking muscularis propria at vasa recta entry sites`,
+      `Aganglionic rectal segment with hypertrophied submucosal nerve trunks`
+    ],
+    correct: 0,
+    clue: `Remember the "Rule of 2s" for a persistent vitelline duct remnant.`,
+    mechanism: `• Meckel diverticulum is a true diverticulum (mucosa, submucosa, muscularis propria) located within 2 feet of the ileocecal valve, ~2 inches long, in 2% of the population.\n• Ectopic gastric mucosa secretes HCl, ulcerating adjacent ileal mucosa and causing painless bleeding.`,
+    pearl: `• Tc-99m pertechnetate ("Meckel scan") is taken up by ectopic gastric parietal cells.`,
+    traps: `• Acquired colonic diverticula are false diverticula lacking muscularis propria where vasa recta pierce the sigmoid colon.`,
+    angles: {
+      patho: `• Persistent vitelline (omphalomesenteric) duct.`,
+      histo: `• All 3 wall layers + ectopic gastric/pancreatic tissue.`,
+      clinic: `• Rule of 2s; painless melena; Tc-99m scan.`
+    }
+  },
+  {
+    id: 39, entityId: 13, sector: `sector_5`, phase: 3, angle: `Clinical`,
+    stem: `A 3-day-old infant with delayed meconium passage undergoes digital rectal exam, which elicits an explosive gush of gas and liquid stool ("squirt sign"). Which diagnostic test definitively confirms Hirschsprung disease?`,
+    choices: [
+      `Suction rectal biopsy demonstrating absence of ganglion cells`,
+      `Tc-99m pertechnetate nuclear medicine scan`,
+      `Upper GI contrast series showing a "bird-beak" LES`
+    ],
+    correct: 0,
+    clue: `Gold standard confirmation requires tissue histology of the distal rectum.`,
+    mechanism: `• While contrast enema shows a transition zone between narrow aganglionic rectum and dilated proximal colon, suction rectal biopsy showing absent submucosal/myenteric ganglion cells (and hypertrophied acetylcholinesterase+ nerve fibers) is diagnostic.`,
+    pearl: `• Definitive management is surgical resection of the aganglionic segment with pull-through anastomosis; watch for Hirschsprung-associated enterocolitis.`,
+    traps: `• Tc-99m pertechnetate confirms Meckel diverticulum.\n• Bird-beak sign on barium swallow characterizes achalasia.`,
+    angles: {
+      patho: `• Tonic distal aganglionic spasm.`,
+      histo: `• Suction rectal biopsy: zero ganglion cells.`,
+      clinic: `• Explosive DRE squirt sign -> pull-through surgery.`
+    }
+  },
+
+  // Entity 14: Acute Mesenteric Ischemia vs Ischemic Colitis
+  {
+    id: 40, entityId: 14, sector: `sector_5`, phase: 1, angle: `Pathogenesis`,
+    stem: `A 76-year-old woman with untreated atrial fibrillation develops sudden severe periumbilical pain. Which vascular event explains acute mesenteric ischemia in this setting?`,
+    choices: [
+      `Cardioembolic occlusion of the superior mesenteric artery (SMA) causing acute transmural small-bowel ischemia`,
+      `Slow atherosclerotic narrowing of the celiac trunk causing chronic postprandial angina`,
+      `Non-occlusive venous stasis in the inferior mesenteric vein`
+    ],
+    correct: 0,
+    clue: `Atrial fibrillation throws emboli most frequently into the acute-angle takeoff of the SMA.`,
+    mechanism: `• The SMA branches from the aorta at a shallow oblique angle, making it the prime target for left atrial mural thrombi in AFib.\n• Sudden complete occlusion induces rapid small-bowel hypoxia, mucosal sloughing, and transmural necrosis.`,
+    pearl: `• Chronic mesenteric ischemia causes postprandial "intestinal angina" and food fear, whereas acute embolic SMA occlusion presents explosively.`,
+    traps: `• Celiac trunk occlusion rarely causes acute infarction due to rich gastroduodenal collaterals.\n• Mesenteric venous thrombosis is less common and subacute.`,
+    angles: {
+      patho: `• AFib embolus -> acute SMA occlusion.`,
+      histo: `• Hemorrhagic transmural coagulative necrosis.`,
+      clinic: `• Pain out of proportion to exam + lactic acidosis.`
+    }
+  },
+  {
+    id: 41, entityId: 14, sector: `sector_5`, phase: 2, angle: `Histology / Imaging`,
+    stem: `An 81-year-old man with severe atherosclerosis and recent hypotension develops crampy LLQ pain and bloody stools. CT shows colonic wall thickening with "thumbprinting" at the splenic flexure. Why is this segment uniquely vulnerable?`,
+    choices: [
+      `It is Griffith point, the watershed zone between the SMA and IMA`,
+      `It lacks muscularis propria and relies solely on portal venous supply`,
+      `It is supplied exclusively by the left gastric artery`
+    ],
+    correct: 0,
+    clue: `Distal colon ischemia targets watershed junctions where marginal artery collaterals are thinnest.`,
+    mechanism: `• Ischemic colitis is usually non-occlusive hypoperfusion affecting colonic watershed areas: the splenic flexure (Griffith point, SMA-IMA border) and rectosigmoid junction (Sudeck point, IMA-internal iliac border).\n• Submucosal edema/hemorrhage creates "thumbprinting" on imaging.`,
+    pearl: `• Mucosal sloughing in ischemic colitis leads to bloody diarrhea, whereas acute mesenteric ischemia causes severe non-localized pain before frank bleeding.`,
+    traps: `• The colon possesses complete muscularis propria (taeniae coli).\n• Left gastric artery supplies the lesser curvature of the stomach.`,
+    angles: {
+      patho: `• Non-occlusive hypoperfusion at Griffith/Sudeck watershed.`,
+      histo: `• Submucosal edema ("thumbprinting") + mucosal necrosis.`,
+      clinic: `• Older atherosclerotic patient, crampy LLQ pain + hematochezia.`
+    }
+  },
+  {
+    id: 42, entityId: 14, sector: `sector_5`, phase: 3, angle: `Clinical`,
+    stem: `A 74-year-old man with atrial fibrillation and peripheral vascular disease reports agonizing abdominal pain, yet his abdomen is soft with minimal tenderness on palpation. Labs show WBC 21,000/mm3 and lactate 6.4 mmol/L. What is the gold-standard diagnostic test and immediate step?`,
+    choices: [
+      `CT angiography (CTA) of abdomen/pelvis + emergent surgical/vascular revascularization`,
+      `Outpatient barium enema after oral bowel prep`,
+      `Oral PPI and repeat abdominal exam in 24 hours`
+    ],
+    correct: 0,
+    clue: `Pain out of proportion to exam + AFib + elevated lactate demands rapid vascular imaging.`,
+    mechanism: `• Early acute mesenteric ischemia causes visceral pain before parietal peritoneal inflammation develops, explaining "pain out of proportion to physical exam."\n• Anaerobic metabolism drives lactic acidosis and leukocytosis.`,
+    pearl: `• CT angiography (CTA) is the rapid gold-standard test; peritoneal signs indicate bowel infarction requiring immediate laparotomy.`,
+    traps: `• Delaying for 24 hours leads to bowel necrosis, perforation, and septic shock.\n• Barium enema is contraindicated in acute ischemia.`,
+    angles: {
+      patho: `• Visceral ischemia precedes peritoneal irritation.`,
+      histo: `• Elevated lactate, WBC, D-dimer.`,
+      clinic: `• Emergent CTA + anticoagulation + embolectomy.`
+    }
+  },
+
+  // Entity 15: Viscerosomatic Autonomics & Chapman Reflexes
+  {
+    id: 43, entityId: 15, sector: `sector_5`, phase: 1, angle: `OMM Pathogenesis`,
+    stem: `A 47-year-old man with an acute flare of peptic ulcer disease has boggy, warm paraspinal tissue texture changes on osteopathic structural exam. Which sympathetic spinal levels and prevertebral ganglion correspond to the foregut?`,
+    choices: [
+      `T5-T9 sympathetics synapsing in the celiac ganglion`,
+      `T10-T11 sympathetics synapsing in the superior mesenteric ganglion`,
+      `T12-L2 sympathetics synapsing in the inferior mesenteric ganglion`
+    ],
+    correct: 0,
+    clue: `Map embryologic gut divisions to thoracic/lumbar sympathetic levels: Foregut, Midgut, Hindgut.`,
+    mechanism: `• Visceral nociceptive afferents travel with sympathetic fibers to spinal cord segments, creating viscerosomatic reflexes:\n• Foregut (distal esophagus to proximal duodenum, liver, gallbladder, pancreas, spleen): T5-T9 -> Celiac ganglion.`,
+    pearl: `• Midgut (distal duodenum through proximal 2/3 transverse colon) maps to T10-T11 (SMG); Hindgut (distal 1/3 transverse colon to rectum) maps to T12-L2 (IMG).`,
+    traps: `• T10-T11 is midgut (SMG), including the appendix (T12 classically right-sided).\n• T12-L2 is hindgut (IMG).`,
+    angles: {
+      patho: `• Viscerosomatic afferent-to-efferent cord reflex.`,
+      histo: `• Acute: boggy/warm; Chronic: ropy/fibrotic.`,
+      clinic: `• T5-T9 Foregut; T10-T11 Midgut; T12-L2 Hindgut.`
+    }
+  },
+  {
+    id: 44, entityId: 15, sector: `sector_5`, phase: 2, angle: `OMM Anatomy / Chapman`,
+    stem: `On osteopathic physical exam, a patient with chronic pancreatitis exhibits a 2-3 mm tender, smooth gangliform myofascial nodule in the 7th intercostal space on the right, near the costochondral junction. Which Chapman point lies in the mirror-image 7th intercostal space on the LEFT?`,
+    choices: [
+      `Spleen`,
+      `Stomach acidity`,
+      `Gallbladder`
+    ],
+    correct: 0,
+    clue: `Recall the anterior thoracic intercostal Chapman points from 5th to 7th ICS left vs right.`,
+    mechanism: `• Anterior Chapman points reflect visceral lymphatic/autonomic congestion:\n• 7th ICS Right = Pancreas; 7th ICS Left = Spleen.\n• 5th ICS Left = Stomach acid; 6th ICS Left = Stomach motility; 5th-6th ICS Right = Liver; 6th ICS Right = Gallbladder.`,
+    pearl: `• Colon Chapman points span along the iliotibial (IT) band bilaterally (Right IT band = cecum/ascending/proximal transverse; Left IT band = descending/sigmoid).`,
+    traps: `• Stomach acidity is 5th ICS left (6th ICS left = peristalsis/motility).\n• Gallbladder is 6th ICS right.`,
+    angles: {
+      patho: `• Sympathetic-lymphatic myofascial congestion.`,
+      histo: `• 2-3 mm tender gangliform nodules.`,
+      clinic: `• 7th ICS R = Pancreas; 7th ICS L = Spleen.`
+    }
+  },
+  {
+    id: 45, entityId: 15, sector: `sector_5`, phase: 3, angle: `OMM Clinical`,
+    stem: `A 54-year-old woman recovering from biliary colic has somatic dysfunction at OA, AA, and T6-T9. Which osteopathic manipulative approach directly addresses her parasympathetic (vagal) innervation and sympathetic tone respectively?`,
+    choices: [
+      `Suboccipital / OA-AA release for CN X (vagus) + rib raising / paraspinal inhibition at T5-T9 for celiac sympathetics`,
+      `Sacral rocking at S2-S4 for foregut parasympathetics + lumbar HVLA at L1-L2`,
+      `Anterior Chapman point rotary pressure alone without addressing spinal segments`
+    ],
+    correct: 0,
+    clue: `Parasympathetic innervation up to the splenic flexure comes from the vagus nerve exiting the jugular foramen; distal colon is S2-S4.`,
+    mechanism: `• Vagus nerve (CN X) supplies parasympathetic fibers to the foregut and midgut (esophagus to splenic flexure) and is modulated via OA/AA/C2 suboccipital release.\n• Sympathetic tone to the biliary tract (T5-T9) is normalized via rib raising and paraspinal inhibition.`,
+    pearl: `• Pelvic splanchnic nerves (S2-S4) supply parasympathetic innervation ONLY to the hindgut (distal transverse colon to rectum).`,
+    traps: `• S2-S4 sacral techniques target hindgut parasympathetics, not biliary/foregut structures.\n• L1-L2 sympathetics innervate the hindgut, not the gallbladder.`,
+    angles: {
+      patho: `• Autonomic balance: CN X vs T5-T9 & S2-S4.`,
+      histo: `• Paraspinal hypertonicity at T5-T9 + OA restriction.`,
+      clinic: `• OA/AA release + T5-T9 rib raising.`
+    }
+  }
+];
+
+/* Application State */
+let activeDeck = [];
+let currentIdx = 0;
+let selectedLane = 1;
+let hp = 100;
+let xp = 0;
+let streak = 0;
+let masteredIds = {};
+let missedIds = {};
+let isHintsVisible = false;
+let isMenuOpen = false;
+let isOutcomeOpen = false;
+let isCodexOpen = false;
+let isTimerOn = false;
+let timerRemaining = 50;
+let timerInterval = null;
+let metaFadeTimeout = null;
+let sectorFilter = 'all';
+let entityFilter = 'all';
+let phaseFilter = 'all';
+let codexSectorFilter = 'all';
+
+/* Audio Engine */
+let audioCtx = null;
+let isMasterSoundOn = true;
+let isSfxOn = true;
+let isBgmOn = false;
+let bgmVolume = 0.35;
+let bgmTimer = null;
+let bgmStep = 0;
+let customAudioEl = null;
+
+function ensureAudioCtx() {
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) audioCtx = new AC();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
+  return audioCtx;
+}
+
+function playSfx(type) {
+  if (!isMasterSoundOn || !isSfxOn) return;
+  const ctx = ensureAudioCtx();
+  if (!ctx) return;
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  if (type === 'steer') {
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(520, now);
+    osc.frequency.exponentialRampToValueAtTime(760, now + 0.06);
+    gain.gain.setValueAtTime(0.08, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+    osc.start(now);
+    osc.stop(now + 0.08);
+  } else if (type === 'correct') {
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(523.25, now);
+    osc.frequency.setValueAtTime(659.25, now + 0.08);
+    osc.frequency.setValueAtTime(783.99, now + 0.16);
+    gain.gain.setValueAtTime(0.14, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+    osc.start(now);
+    osc.stop(now + 0.34);
+  } else if (type === 'wrong') {
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(220, now);
+    osc.frequency.exponentialRampToValueAtTime(110, now + 0.25);
+    gain.gain.setValueAtTime(0.12, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+    osc.start(now);
+    osc.stop(now + 0.3);
+  }
+}
+
+function startProceduralBgm() {
+  stopProceduralBgm();
+  if (!isMasterSoundOn || !isBgmOn) return;
+  const ctx = ensureAudioCtx();
+  if (!ctx) return;
+  const notes = [110, 130.81, 146.83, 164.81, 146.83, 130.81, 98, 130.81];
+  bgmTimer = setInterval(() => {
+    if (!isMasterSoundOn || !isBgmOn || !audioCtx) return;
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(notes[bgmStep % notes.length], now);
+    gain.gain.setValueAtTime(0.04 * bgmVolume, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + 0.24);
+    bgmStep += 1;
+  }, 260);
+}
+
+function stopProceduralBgm() {
+  if (bgmTimer) {
+    clearInterval(bgmTimer);
+    bgmTimer = null;
+  }
+}
+
+/* 3D Synthwave Canvas Engine (150 square pixel-dust particles + 3 teal rails + diamond craft + 1:1 portal fusion) */
+let canvasRafId = null;
+const dustParticles = [];
+for (let i = 0; i < 150; i += 1) {
+  dustParticles.push({
+    x: (Math.random() - 0.5) * 2.2,
+    y: Math.random() * 0.85,
+    z: Math.random(),
+    size: 2 + Math.floor(Math.random() * 3)
+  });
+}
+let gridOffset = 0;
+let craftXRatio = 0.5;
+
+function initCanvasLoop() {
+  const canvas = document.getElementById('bg-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  function resize() {
+    canvas.width = canvas.offsetWidth || window.innerWidth;
+    canvas.height = canvas.offsetHeight || window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const arena = document.getElementById('arena-band');
+  if (arena) {
+    arena.addEventListener('pointermove', (ev) => {
+      if (isOutcomeOpen || isCodexOpen || isMenuOpen) return;
+      const rect = arena.getBoundingClientRect();
+      if (rect.width <= 0) return;
+      const relX = (ev.clientX - rect.left) / rect.width;
+      const hoveredLane = relX < 1 / 3 ? 0 : (relX < 2 / 3 ? 1 : 2);
+      if (hoveredLane !== selectedLane) {
+        setLaneSelection(hoveredLane);
+      }
+    });
+  }
+
+  function draw() {
+    const w = canvas.width;
+    const h = canvas.height;
+    const horizonY = h * 0.44;
+    const q = activeDeck[currentIdx];
+    const theme = q ? (LO_VISUAL_THEMES[q.entityId] || LO_VISUAL_THEMES[1]) : LO_VISUAL_THEMES[1];
+
+    ctx.fillStyle = '#070814';
+    ctx.fillRect(0, 0, w, h);
+
+    // Subtle synthwave horizon glow
+    const grad = ctx.createLinearGradient(0, horizonY - 80, 0, horizonY + 100);
+    grad.addColorStop(0, 'rgba(7,8,20,0)');
+    grad.addColorStop(0.5, `rgba(${theme.gridRgb}, 0.14)`);
+    grad.addColorStop(1, 'rgba(7,8,20,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, horizonY - 80, w, 180);
+
+    // 150 crisp square pixel-dust particles (no ovals/blobs)
+    for (let i = 0; i < dustParticles.length; i += 1) {
+      const p = dustParticles[i];
+      p.z -= 0.0032;
+      if (p.z <= 0.04) {
+        p.z = 1;
+        p.x = (Math.random() - 0.5) * 2.2;
+        p.y = Math.random() * 0.85;
+      }
+      const scale = 1 / p.z;
+      const sx = w * 0.5 + p.x * w * 0.42 * scale;
+      const sy = horizonY - p.y * h * 0.36 * scale;
+      if (sx >= 0 && sx <= w && sy >= 0 && sy <= horizonY + 8) {
+        ctx.fillStyle = i % 3 === 0 ? theme.dust : 'rgba(232, 224, 240, 0.55)';
+        ctx.fillRect(Math.round(sx), Math.round(sy), p.size, p.size);
+      }
+    }
+
+    // Infinite full-width perspective wireframe floor
+    gridOffset = (gridOffset + 0.012) % 1;
+    ctx.strokeStyle = `rgba(${theme.gridRgb}, 0.22)`;
+    ctx.lineWidth = 1;
+    for (let i = -10; i <= 10; i += 1) {
+      ctx.beginPath();
+      ctx.moveTo(w * 0.5 + i * 24, horizonY);
+      ctx.lineTo(w * 0.5 + i * 210, h);
+      ctx.stroke();
+    }
+    for (let r = 0; r < 14; r += 1) {
+      const t = (r + gridOffset) / 14;
+      const y = horizonY + Math.pow(t, 2.2) * (h - horizonY);
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
+    }
+
+    // 3 teal perspective track rails + 1:1 portal fusion to DOM answer cards
+    const laneColors = ['#ff2d78', '#00ffcc', '#ffe04a'];
+    const targets = [];
+    for (let l = 0; l < 3; l += 1) {
+      const card = document.getElementById(`lane-card-${l}`);
+      if (card) {
+        const rect = card.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        targets.push({ cx, cy, w: rect.width, h: rect.height });
+      } else {
+        targets.push({ cx: w * (0.22 + l * 0.28), cy: h * 0.62, w: 200, h: 140 });
+      }
+    }
+
+    for (let l = 0; l < 3; l += 1) {
+      const topX = w * 0.5 + (l - 1) * 42;
+      const botX = targets[l].cx;
+      ctx.strokeStyle = 'rgba(0, 255, 204, 0.5)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(topX, horizonY);
+      ctx.lineTo(botX, h);
+      ctx.stroke();
+
+      // Glowing portal halo fused 1:1 to card
+      ctx.save();
+      ctx.strokeStyle = laneColors[l];
+      ctx.lineWidth = selectedLane === l ? 3 : 1.5;
+      ctx.shadowColor = laneColors[l];
+      ctx.shadowBlur = selectedLane === l ? 18 : 8;
+      ctx.strokeRect(
+        targets[l].cx - targets[l].w / 2 - 2,
+        targets[l].cy - targets[l].h / 2 - 2,
+        targets[l].w + 4,
+        targets[l].h + 4
+      );
+      ctx.restore();
+    }
+
+    // Solid geometric teal diamond craft tracking active lane
+    const destX = targets[selectedLane] ? targets[selectedLane].cx : w * 0.5;
+    craftXRatio += ((destX / w) - craftXRatio) * 0.18;
+    const craftPx = craftXRatio * w;
+    const craftPy = h - 34;
+
+    ctx.save();
+    ctx.fillStyle = '#00ffcc';
+    ctx.shadowColor = '#00ffcc';
+    ctx.shadowBlur = 14;
+    ctx.beginPath();
+    ctx.moveTo(craftPx, craftPy - 16);
+    ctx.lineTo(craftPx + 18, craftPy);
+    ctx.lineTo(craftPx, craftPy + 12);
+    ctx.lineTo(craftPx - 18, craftPy);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    canvasRafId = requestAnimationFrame(draw);
+  }
+
+  if (canvasRafId) cancelAnimationFrame(canvasRafId);
+  draw();
+}
+
+/* Deck Filtering & Question Rendering */
+function buildActiveDeck(shuffle = false) {
+  let list = ALL_QUESTIONS.filter((q) => {
+    if (sectorFilter === 'missed') {
+      if (!missedIds[q.id]) return false;
+    } else if (sectorFilter !== 'all' && q.sector !== sectorFilter) {
+      return false;
+    }
+    if (entityFilter !== 'all' && String(q.entityId) !== String(entityFilter)) {
+      return false;
+    }
+    if (phaseFilter !== 'all' && String(q.phase) !== String(phaseFilter)) {
+      return false;
+    }
+    return true;
+  });
+
+  if (list.length === 0) {
+    list = ALL_QUESTIONS.slice();
+    showToast('No gates matched filter — restored full 45-gate deck.');
+  }
+  if (shuffle) {
+    for (let i = list.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = list[i];
+      list[i] = list[j];
+      list[j] = tmp;
+    }
+  }
+  activeDeck = list;
+  currentIdx = 0;
+}
+
+function getPhaseLabel(p) {
+  if (p === 1) return `Phase 1: Pathogenesis`;
+  if (p === 2) return `Phase 2: Histology / Structure`;
+  return `Phase 3: Clinical & Management`;
+}
+
+function renderCurrentGate() {
+  const q = activeDeck[currentIdx];
+  if (!q) return;
+  const entity = ENTITIES.find((e) => e.id === q.entityId);
+  const theme = LO_VISUAL_THEMES[q.entityId] || LO_VISUAL_THEMES[1];
+
+  const badgeSector = document.getElementById('badge-sector');
+  const badgeEntity = document.getElementById('badge-entity');
+  const badgePhase = document.getElementById('badge-phase');
+  const badgeAngle = document.getElementById('badge-angle');
+  const badgeCorridor = document.getElementById('badge-corridor');
+  const stemEl = document.getElementById('q-stem-text');
+  const clueEl = document.getElementById('q-clue-text');
+
+  if (badgeSector) badgeSector.textContent = SECTORS[q.sector] || q.sector;
+  if (badgeEntity) badgeEntity.textContent = entity ? entity.name : `Entity ${q.entityId}`;
+  if (badgePhase) badgePhase.textContent = getPhaseLabel(q.phase);
+  if (badgeAngle) badgeAngle.textContent = `Angle: ${q.angle}`;
+  if (badgeCorridor) badgeCorridor.textContent = theme.tag;
+  if (stemEl) stemEl.textContent = q.stem;
+  if (clueEl) clueEl.textContent = q.clue;
+
+  for (let i = 0; i < 3; i += 1) {
+    const laneText = document.getElementById(`lane-${i}-text`);
+    if (laneText) {
+      laneText.innerHTML = '';
+      const sp = document.createElement('span');
+      sp.textContent = q.choices[i] || '';
+      laneText.appendChild(sp);
+    }
+  }
+
+  // 3-second auto-fading metadata badges (metaFadeMs: 3000)
+  const metaRow = document.getElementById('meta-badges-row');
+  if (metaRow) {
+    metaRow.classList.remove('is-faded');
+    if (metaFadeTimeout) clearTimeout(metaFadeTimeout);
+    metaFadeTimeout = setTimeout(() => {
+      metaRow.classList.add('is-faded');
+    }, 3000);
+  }
+
+  updateHud();
+  resetGateTimer();
+}
+
+function updateHud() {
+  const hpEl = document.getElementById('hud-hp');
+  const xpEl = document.getElementById('hud-xp');
+  const streakEl = document.getElementById('hud-streak');
+  const gateEl = document.getElementById('hud-gate');
+  if (hpEl) hpEl.textContent = `HP ${hp}`;
+  if (xpEl) xpEl.textContent = `XP ${xp}`;
+  if (streakEl) streakEl.textContent = `⚡ ${streak}`;
+  if (gateEl) gateEl.textContent = `Gate ${currentIdx + 1}/${activeDeck.length}`;
+}
+
+function previewLaneSelection(idx) {
+  if (isOutcomeOpen || isCodexOpen || isMenuOpen) return;
+  if (selectedLane === idx) return;
+  setLaneSelection(idx);
+}
+
+function setLaneSelection(idx) {
+  selectedLane = idx;
+  for (let i = 0; i < 3; i += 1) {
+    const card = document.getElementById(`lane-card-${i}`);
+    if (card) card.classList.toggle('is-selected', i === idx);
+  }
+  playSfx('steer');
+}
+
+function handleLaneCardClick(idx) {
+  if (isOutcomeOpen || isCodexOpen) return;
+  setLaneSelection(idx);
+  submitAnswer(idx, false);
+}
+
+/* Timer Logic */
+function resetGateTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  const timerEl = document.getElementById('hud-timer');
+  if (!isTimerOn) {
+    if (timerEl) {
+      timerEl.textContent = '⏱ OFF';
+      timerEl.classList.remove('is-urgent');
+    }
+    return;
+  }
+  timerRemaining = 50;
+  if (timerEl) {
+    timerEl.textContent = `⏱ ${timerRemaining}s`;
+    timerEl.classList.remove('is-urgent');
+  }
+  timerInterval = setInterval(() => {
+    if (isOutcomeOpen || isCodexOpen || isMenuOpen) return;
+    timerRemaining -= 1;
+    if (timerEl) {
+      timerEl.textContent = `⏱ ${timerRemaining}s`;
+      timerEl.classList.toggle('is-urgent', timerRemaining <= 10);
+    }
+    if (timerRemaining <= 0) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      submitAnswer(-1, true);
+    }
+  }, 1000);
+}
+
+/* Outcome Dossier Rendering */
+function renderDossierBullets(rawText) {
+  const frag = document.createDocumentFragment();
+  const lines = String(rawText || '').split('\n').filter((l) => l.trim().length > 0);
+  for (let i = 0; i < lines.length; i += 1) {
+    const p = document.createElement('p');
+    p.className = 'dossier-line amboss-scan-target';
+    const clean = lines[i].trim().startsWith('•') ? lines[i].trim() : `• ${lines[i].trim()}`;
+    p.textContent = clean;
+    frag.appendChild(p);
+  }
+  return frag;
+}
+
+function submitAnswer(chosenIdx, isTimeout) {
+  if (isOutcomeOpen) return;
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  const q = activeDeck[currentIdx];
+  if (!q) return;
+
+  const isCorrect = !isTimeout && chosenIdx === q.correct;
+  const shortAnswer = q.choices[q.correct] || '';
+  const entity = ENTITIES.find((e) => e.id === q.entityId);
+
+  if (isCorrect) {
+    streak += 1;
+    xp += 100 + Math.min(streak * 20, 100);
+    masteredIds[q.id] = true;
+    delete missedIds[q.id];
+    playSfx('correct');
+  } else {
+    streak = 0;
+    hp = Math.max(0, hp - 15);
+    missedIds[q.id] = true;
+    playSfx('wrong');
+    if (hp === 0) {
+      hp = 100;
+      showToast('Telemetry Rebooted: HP restored to 100 for continued diagnostic training.');
+    }
+  }
+  updateHud();
+  renderSkillTree();
+  persistAppState();
+
+  const banner = document.getElementById('outcome-verdict-banner');
+  const sub = document.getElementById('outcome-verdict-sub');
+  const pinStem = document.getElementById('outcome-pin-stem');
+  const scrollBody = document.getElementById('outcome-scroll-body');
+
+  if (banner) {
+    banner.className = 'verdict-banner ' + (isTimeout ? 'is-timeout' : isCorrect ? 'is-correct' : 'is-wrong');
+    if (isTimeout) banner.textContent = `⏱ TIME'S UP — ${shortAnswer}`;
+    else if (isCorrect) banner.textContent = `✔ CORRECT — ${shortAnswer}`;
+    else banner.textContent = `✖ INCORRECT — ${shortAnswer}`;
+  }
+  if (sub) {
+    sub.textContent = `${SECTORS[q.sector]} • ${entity ? entity.name : ''} • ${getPhaseLabel(q.phase)}`;
+  }
+  if (pinStem) pinStem.textContent = q.stem;
+
+  if (scrollBody) {
+    scrollBody.innerHTML = '';
+
+    // Section 1: Choice Comparison
+    const sec1 = document.createElement('div');
+    sec1.className = 'dossier-block amboss-scan-target';
+    sec1.innerHTML = `<h3 class="dossier-block-title">1. Diagnostic Lane Comparison</h3>`;
+    const grid = document.createElement('div');
+    grid.className = 'choices-compare-grid';
+    for (let i = 0; i < 3; i += 1) {
+      const box = document.createElement('div');
+      box.className = 'choice-box';
+      if (i === q.correct) box.classList.add('is-correct-choice');
+      else if (i === chosenIdx && !isCorrect) box.classList.add('is-user-wrong');
+      const tag = i === q.correct ? '✔ TARGET PORTAL' : (i === chosenIdx ? '✖ YOUR LANE' : 'DISTRACTOR');
+      box.innerHTML = `<p style="font-family:var(--font-label); font-size:0.75rem; color:${i === q.correct ? 'var(--secondary)' : 'var(--on-surface-variant)'};">${tag}</p><p>${q.choices[i]}</p>`;
+      grid.appendChild(box);
+    }
+    sec1.appendChild(grid);
+    scrollBody.appendChild(sec1);
+
+    // Section 2: Pathophysiologic Mechanism
+    const sec2 = document.createElement('div');
+    sec2.className = 'dossier-block amboss-scan-target';
+    sec2.innerHTML = `<h3 class="dossier-block-title">2. Core Mechanism &amp; Blueprint Grounding</h3>`;
+    sec2.appendChild(renderDossierBullets(q.mechanism));
+    scrollBody.appendChild(sec2);
+
+    // Section 3: High-Yield Board Pearl
+    const sec3 = document.createElement('div');
+    sec3.className = 'dossier-block amboss-scan-target';
+    sec3.innerHTML = `<h3 class="dossier-block-title">3. High-Yield Board Pearl</h3>`;
+    sec3.appendChild(renderDossierBullets(q.pearl));
+    scrollBody.appendChild(sec3);
+
+    // Section 4: Distractor Traps & Rule-Outs
+    const sec4 = document.createElement('div');
+    sec4.className = 'dossier-block amboss-scan-target';
+    sec4.innerHTML = `<h3 class="dossier-block-title">4. Distractor Traps &amp; Rule-Outs</h3>`;
+    sec4.appendChild(renderDossierBullets(q.traps));
+    scrollBody.appendChild(sec4);
+
+    // Section 5-7: 3-Phase Synthesis Grid
+    const sec5 = document.createElement('div');
+    sec5.className = 'dossier-block amboss-scan-target';
+    sec5.innerHTML = `<h3 class="dossier-block-title">5–7. Tri-Phase Entity Synthesis</h3>`;
+    const angGrid = document.createElement('div');
+    angGrid.className = 'angles-grid';
+    const phases = [
+      { title: `5. Pathogenesis`, text: q.angles.patho },
+      { title: `6. Histology / Labs`, text: q.angles.histo },
+      { title: `7. Clinical &amp; Management`, text: q.angles.clinic }
+    ];
+    for (let k = 0; k < phases.length; k += 1) {
+      const card = document.createElement('div');
+      card.className = 'angle-mini-card';
+      card.innerHTML = `<h4 class="angle-mini-title">${phases[k].title}</h4>`;
+      card.appendChild(renderDossierBullets(phases[k].text));
+      angGrid.appendChild(card);
+    }
+    sec5.appendChild(angGrid);
+    scrollBody.appendChild(sec5);
+
+    scrollBody.scrollTop = 0;
+  }
+
+  const modal = document.getElementById('outcome-popup-modal');
+  if (modal) modal.classList.add('is-open');
+  isOutcomeOpen = true;
+}
+
+function scrollOutcomeBody(deltaY) {
+  const body = document.getElementById('outcome-scroll-body');
+  if (!body) return;
+  if (typeof body.scrollBy === 'function') {
+    body.scrollBy({ top: deltaY, behavior: 'smooth' });
+  } else {
+    body.scrollTop += deltaY;
+  }
+}
+
+function continueToNextGate() {
+  const modal = document.getElementById('outcome-popup-modal');
+  if (modal) modal.classList.remove('is-open');
+  isOutcomeOpen = false;
+  currentIdx = (currentIdx + 1) % activeDeck.length;
+  renderCurrentGate();
+  persistAppState();
+}
+
+/* Menu Drawer & Controls */
+function toggleMenuDrawer() {
+  isMenuOpen = !isMenuOpen;
+  const drawer = document.getElementById('top-menu-drawer');
+  const backdrop = document.getElementById('menu-backdrop');
+  if (drawer) drawer.classList.toggle('is-open', isMenuOpen);
+  if (backdrop) backdrop.classList.toggle('is-open', isMenuOpen);
+  playSfx('steer');
+}
+
+function syncHintsUI() {
+  const app = document.getElementById('xr-app');
+  if (app) {
+    app.classList.toggle('hints-visible', isHintsVisible);
+    app.classList.toggle('hints-hidden', !isHintsVisible);
+  }
+  const menuBtn = document.getElementById('menu-hints-btn');
+  if (menuBtn) {
+    menuBtn.textContent = isHintsVisible ? `💡 Hints: ON [H]` : `💡 Hints: OFF [H]`;
+    menuBtn.classList.toggle('is-active', isHintsVisible);
+  }
+}
+
+function toggleHintsBar() {
+  isHintsVisible = !isHintsVisible;
+  syncHintsUI();
+  playSfx('steer');
+  persistAppState();
+}
+
+function syncTimerControlsUI() {
+  const btn = document.getElementById('menu-timer-btn');
+  if (btn) {
+    btn.textContent = isTimerOn ? `⏱ 50s Timer: ON [T]` : `⏱ 50s Timer: OFF [T]`;
+    btn.classList.toggle('is-active', isTimerOn);
+  }
+}
+
+function toggleTimerMode() {
+  isTimerOn = !isTimerOn;
+  syncTimerControlsUI();
+  resetGateTimer();
+  persistAppState();
+}
+
+function startTimedRunFromMenu() {
+  isTimerOn = true;
+  syncTimerControlsUI();
+  if (isMenuOpen) toggleMenuDrawer();
+  buildActiveDeck(false);
+  renderCurrentGate();
+  showToast('50-second timed diagnostic run activated.');
+  persistAppState();
+}
+
+function skipCurrentQuestion() {
+  if (isOutcomeOpen || isCodexOpen) return;
+  currentIdx = (currentIdx + 1) % activeDeck.length;
+  renderCurrentGate();
+  showToast('Skipped to next diagnostic gate.');
+}
+
+function skipFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  skipCurrentQuestion();
+}
+
+function restartOrderedFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  buildActiveDeck(false);
+  renderCurrentGate();
+  showToast('Deck restarted in ordered curriculum sequence.');
+  persistAppState();
+}
+
+function shuffleDeckFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  buildActiveDeck(true);
+  renderCurrentGate();
+  showToast('Diagnostic gates shuffled.');
+  persistAppState();
+}
+
+function handleResetMastery(btn) {
+  if (!btn) return;
+  if (btn.dataset.armed !== 'true') {
+    btn.dataset.armed = 'true';
+    btn.textContent = '⚠ Tap Again to Confirm';
+    setTimeout(() => {
+      if (btn.dataset.armed === 'true') {
+        btn.dataset.armed = 'false';
+        btn.textContent = '⚠ Reset Mastery';
+      }
+    }, 3500);
+    return;
+  }
+  btn.dataset.armed = 'false';
+  btn.textContent = '⚠ Reset Mastery';
+  hp = 100;
+  xp = 0;
+  streak = 0;
+  masteredIds = {};
+  missedIds = {};
+  updateHud();
+  renderSkillTree();
+  persistAppState();
+  showToast('Mastery telemetry cleared.');
+}
+
+function toggleMasterSound() {
+  isMasterSoundOn = !isMasterSoundOn;
+  const btn = document.getElementById('master-sound-btn');
+  if (btn) btn.textContent = isMasterSoundOn ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+  if (!isMasterSoundOn) {
+    stopProceduralBgm();
+    if (customAudioEl) customAudioEl.pause();
+  } else if (isBgmOn) {
+    startProceduralBgm();
+  }
+  persistAppState();
+}
+
+function toggleSfx() {
+  isSfxOn = !isSfxOn;
+  const btn = document.getElementById('sfx-btn');
+  if (btn) btn.textContent = isSfxOn ? '⚡ SFX: ON' : '⚡ SFX: OFF';
+  persistAppState();
+}
+
+function toggleProceduralBgm() {
+  isBgmOn = !isBgmOn;
+  const btn = document.getElementById('bgm-btn');
+  if (btn) btn.textContent = isBgmOn ? '🎵 Zombies BGM: ON' : '🎵 Zombies BGM: OFF';
+  if (isBgmOn) startProceduralBgm();
+  else stopProceduralBgm();
+  persistAppState();
+}
+
+function triggerCustomAudioPick() {
+  const input = document.getElementById('custom-audio-input');
+  if (input) input.click();
+}
+
+function handleCustomAudioFile(input) {
+  if (!input || !input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const url = URL.createObjectURL(file);
+  if (customAudioEl) customAudioEl.pause();
+  customAudioEl = new Audio(url);
+  customAudioEl.loop = true;
+  customAudioEl.volume = bgmVolume;
+  if (isMasterSoundOn) customAudioEl.play().catch(() => {});
+  showToast(`Loaded track: ${file.name}`);
+}
+
+function updateBgmVolume(val) {
+  bgmVolume = parseFloat(val) || 0.35;
+  if (customAudioEl) customAudioEl.volume = bgmVolume;
+}
+
+/* Filters & Skill Tree */
+function populateEntityDropdown() {
+  const sel = document.getElementById('entity-filter');
+  if (!sel) return;
+  sel.innerHTML = `<option value="all">All 15 GI Entities</option>`;
+  for (let i = 0; i < ENTITIES.length; i += 1) {
+    const opt = document.createElement('option');
+    opt.value = String(ENTITIES[i].id);
+    opt.textContent = `${ENTITIES[i].id}. ${ENTITIES[i].name}`;
+    sel.appendChild(opt);
+  }
+}
+
+function applySectorFilter(val) {
+  sectorFilter = val;
+  buildActiveDeck(false);
+  renderCurrentGate();
+  persistAppState();
+}
+
+function applyEntityFilter(val) {
+  entityFilter = val;
+  buildActiveDeck(false);
+  renderCurrentGate();
+  persistAppState();
+}
+
+function setPhaseFilter(val, btn) {
+  phaseFilter = val;
+  const pills = document.querySelectorAll('.phase-pills-row .phase-pill');
+  pills.forEach((p) => p.classList.remove('is-active'));
+  if (btn) btn.classList.add('is-active');
+  buildActiveDeck(false);
+  renderCurrentGate();
+  persistAppState();
+}
+
+function jumpToEntity(entId) {
+  entityFilter = String(entId);
+  const sel = document.getElementById('entity-filter');
+  if (sel) sel.value = entityFilter;
+  buildActiveDeck(false);
+  renderCurrentGate();
+  if (isMenuOpen) toggleMenuDrawer();
+  persistAppState();
+}
+
+function renderSkillTree() {
+  const grid = document.getElementById('skill-tree-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  for (let i = 0; i < ENTITIES.length; i += 1) {
+    const ent = ENTITIES[i];
+    const qs = ALL_QUESTIONS.filter((q) => q.entityId === ent.id);
+    const done = qs.filter((q) => masteredIds[q.id]).length;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'skill-node-btn' + (done === qs.length ? ' is-mastered' : '');
+    btn.onclick = () => jumpToEntity(ent.id);
+    btn.innerHTML = `<span class="skill-node-title">${ent.id}. ${ent.name}</span><span class="skill-node-meta">${SECTORS[ent.sector]} • Mastered ${done}/${qs.length}</span>`;
+    grid.appendChild(btn);
+  }
+}
+
+/* Loot Codex Modal */
+function openCodex() {
+  isCodexOpen = true;
+  const modal = document.getElementById('codex-modal');
+  if (modal) modal.classList.add('is-open');
+  renderCodexTable();
+}
+
+function closeCodex() {
+  isCodexOpen = false;
+  const modal = document.getElementById('codex-modal');
+  if (modal) modal.classList.remove('is-open');
+}
+
+function openCodexFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  openCodex();
+}
+
+function setCodexSector(sec, btn) {
+  codexSectorFilter = sec;
+  const pills = document.querySelectorAll('#codex-sector-pills .phase-pill');
+  pills.forEach((p) => p.classList.remove('is-active'));
+  if (btn) btn.classList.add('is-active');
+  renderCodexTable();
+}
+
+function renderCodexTable() {
+  const tbody = document.getElementById('codex-tbody');
+  const searchEl = document.getElementById('codex-search');
+  if (!tbody) return;
+  const query = (searchEl ? searchEl.value : '').trim().toLowerCase();
+  tbody.innerHTML = '';
+
+  const rows = CODEX_DATA.filter((row) => {
+    if (codexSectorFilter !== 'all' && row.sector !== codexSectorFilter) return false;
+    if (!query) return true;
+    const blob = `${row.entity} ${row.pathogenesis} ${row.histology} ${row.clinical} ${row.management} ${row.trap}`.toLowerCase();
+    return blob.includes(query);
+  });
+
+  for (let i = 0; i < rows.length; i += 1) {
+    const r = rows[i];
+    const tr = document.createElement('tr');
+    tr.className = 'amboss-scan-target';
+    tr.innerHTML = `
+      <td class="amboss-scan-target"><strong>${r.id}. ${r.entity}</strong></td>
+      <td class="amboss-scan-target">${r.pathogenesis}</td>
+      <td class="amboss-scan-target">${r.histology}</td>
+      <td class="amboss-scan-target">${r.clinical}</td>
+      <td class="amboss-scan-target">${r.management}</td>
+      <td class="amboss-scan-target">${r.trap}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+function showToast(msg) {
+  const el = document.getElementById('inline-toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('is-shown');
+  setTimeout(() => {
+    el.classList.remove('is-shown');
+  }, 2600);
+}
+
+/* Keyboard Navigation */
+document.addEventListener('keydown', (e) => {
+  if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) return;
+  if (isOutcomeOpen) {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      scrollOutcomeBody(-180);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      scrollOutcomeBody(180);
+    } else if (e.key === ' ' || e.key === 'Enter' || e.key === 'Escape') {
+      e.preventDefault();
+      continueToNextGate();
+    }
+    return;
+  }
+  if (isCodexOpen) {
+    if (e.key === 'Escape' || e.key.toLowerCase() === 'c') {
+      e.preventDefault();
+      closeCodex();
+    }
+    return;
+  }
+  if (e.key === '1') { setLaneSelection(0); submitAnswer(0, false); }
+  else if (e.key === '2') { setLaneSelection(1); submitAnswer(1, false); }
+  else if (e.key === '3') { setLaneSelection(2); submitAnswer(2, false); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); setLaneSelection(Math.max(0, selectedLane - 1)); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); setLaneSelection(Math.min(2, selectedLane + 1)); }
+  else if (e.key === 'ArrowDown') { e.preventDefault(); setLaneSelection(1); }
+  else if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); submitAnswer(selectedLane, false); }
+  else if (e.key.toLowerCase() === 'h') { e.preventDefault(); toggleHintsBar(); }
+  else if (e.key.toLowerCase() === 'c') { e.preventDefault(); openCodex(); }
+  else if (e.key.toLowerCase() === 's') { e.preventDefault(); skipCurrentQuestion(); }
+  else if (e.key.toLowerCase() === 't') { e.preventDefault(); toggleTimerMode(); }
+  else if (e.key === 'Escape' && isMenuOpen) { toggleMenuDrawer(); }
+});
+
+/* Persistence via Gemini Notebook Shim API */
+async function persistAppState() {
+  try {
+    if (!window.notebookAppApi || !window.notebookAppApi.setAppState) return;
+    await window.notebookAppApi.setAppState({
+      hp,
+      xp,
+      streak,
+      masteredIds,
+      missedIds,
+      isHintsVisible,
+      isTimerOn,
+      isMasterSoundOn,
+      isSfxOn,
+      sectorFilter,
+      entityFilter,
+      phaseFilter,
+      currentQuestionId: activeDeck[currentIdx] ? activeDeck[currentIdx].id : 1
+    });
+  } catch (err) {}
+}
+
+async function restoreAppState() {
+  try {
+    if (!window.notebookAppApi || !window.notebookAppApi.getAppState) return;
+    const saved = await window.notebookAppApi.getAppState();
+    if (!saved) return;
+    if (typeof saved.hp === 'number') hp = saved.hp;
+    if (typeof saved.xp === 'number') xp = saved.xp;
+    if (typeof saved.streak === 'number') streak = saved.streak;
+    if (saved.masteredIds && typeof saved.masteredIds === 'object') masteredIds = saved.masteredIds;
+    if (saved.missedIds && typeof saved.missedIds === 'object') missedIds = saved.missedIds;
+    if (typeof saved.isHintsVisible === 'boolean') isHintsVisible = saved.isHintsVisible;
+    if (typeof saved.isTimerOn === 'boolean') isTimerOn = saved.isTimerOn;
+    if (typeof saved.isMasterSoundOn === 'boolean') isMasterSoundOn = saved.isMasterSoundOn;
+    if (typeof saved.isSfxOn === 'boolean') isSfxOn = saved.isSfxOn;
+    if (saved.sectorFilter) sectorFilter = saved.sectorFilter;
+    if (saved.entityFilter) entityFilter = saved.entityFilter;
+    if (saved.phaseFilter) phaseFilter = saved.phaseFilter;
+
+    const secSel = document.getElementById('sector-filter');
+    if (secSel) secSel.value = sectorFilter;
+    const entSel = document.getElementById('entity-filter');
+    if (entSel) entSel.value = entityFilter;
+
+    buildActiveDeck(false);
+    if (saved.currentQuestionId) {
+      const idx = activeDeck.findIndex((q) => q.id === saved.currentQuestionId);
+      if (idx >= 0) currentIdx = idx;
+    }
+  } catch (err) {}
+}
+
+async function initApp() {
+  populateEntityDropdown();
+  buildActiveDeck(false);
+  await restoreAppState();
+  syncHintsUI();
+  syncTimerControlsUI();
+  renderSkillTree();
+  renderCurrentGate();
+  initCanvasLoop();
+
+  const soundBtn = document.getElementById('master-sound-btn');
+  if (soundBtn) soundBtn.textContent = isMasterSoundOn ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+  const sfxBtn = document.getElementById('sfx-btn');
+  if (sfxBtn) sfxBtn.textContent = isSfxOn ? '⚡ SFX: ON' : '⚡ SFX: OFF';
+
+  if (window.notebookAppApi && window.notebookAppApi.notifyAppReady) {
+    window.notebookAppApi.notifyAppReady();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', initApp);
+</script>
+</body>
+</html>
