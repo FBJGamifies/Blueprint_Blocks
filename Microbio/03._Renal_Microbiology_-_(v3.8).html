@@ -1,0 +1,3342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="artifact-type" content="tool">
+<meta name="design-style" content="neon_noir">
+<title>03. Renal Microbiology — XR 3-Lane Diagnostic Runner (v3.8)</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --background: #0a0a12;
+  --surface-container-low: #111118;
+  --surface-container: #141422;
+  --surface-container-high: #1e1e30;
+  --on-surface: #e8e0f0;
+  --on-surface-variant: #a098b0;
+  --outline: #5a5068;
+  --outline-variant: #302840;
+  --primary: #ff2d78;
+  --on-primary: #1a0010;
+  --primary-container: #b3004e;
+  --on-primary-container: #ffe0ec;
+  --secondary: #00ffcc;
+  --tertiary: #ffe04a;
+  --error: #ff4444;
+  --on-error: #1a0000;
+  --positive: #00ffcc;
+  --warning: #ffe04a;
+  --focus: #ff2d78;
+  --data-1: #ff2d78;
+  --data-2: #00ffcc;
+  --data-3: #ffe04a;
+  --data-4: #b388ff;
+  --data-context: #6e6680;
+  --font-headline: 'Sora', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-label: 'Space Mono', monospace;
+  --display-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+  --headline-size: clamp(1.15rem, 1rem + 0.5vw, 1.45rem);
+  --subhead-size: clamp(1rem, 0.95rem + 0.25vw, 1.15rem);
+  --body-size: clamp(0.9375rem, 0.9rem + 0.15vw, 1rem);
+  --label-size: 0.75rem;
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+  --rounded: 0.125rem;
+  --rounded-lg: 0.25rem;
+  --rounded-full: 0.75rem;
+  --glow-text: 0 0 8px currentColor;
+  --glow-primary: 0 0 16px color-mix(in srgb, var(--primary) 40%, transparent);
+  --glow-secondary: 0 0 16px color-mix(in srgb, var(--secondary) 35%, transparent);
+  --glow-tertiary: 0 0 16px color-mix(in srgb, var(--tertiary) 35%, transparent);
+  --neon-border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 50%, transparent);
+  --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+  --glass-bg: color-mix(in srgb, var(--surface-container) 86%, transparent);
+  --backdrop-dark: color-mix(in srgb, var(--background) 84%, transparent);
+  --card-min-h: clamp(8.5rem, 19dvh, 12.25rem);
+  --card-pad: 0.85rem;
+  --card-font: clamp(0.94rem, 1.25vw, 1.06rem);
+  --stem-max-h: 24dvh;
+  --stem-font: clamp(0.96rem, 1.3vw, 1.08rem);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overflow-x: clip;
+  background-color: var(--background);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: var(--body-size);
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+}
+button, input, select { font-family: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* 4-Band Cockpit */
+#xr-app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--background);
+}
+#xr-app.hints-visible {
+  --card-min-h: clamp(6.6rem, 14.5dvh, 9.5rem);
+  --card-pad: 0.65rem;
+  --card-font: clamp(0.88rem, 1.15vw, 0.98rem);
+  --stem-max-h: 19dvh;
+  --stem-font: clamp(0.9rem, 1.18vw, 1rem);
+}
+
+/* Band 1: Ultra-Slim Top Bar */
+.top-mini-bar {
+  position: relative;
+  z-index: 30;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: 0.35rem 0.75rem;
+  background: color-mix(in srgb, var(--surface-container-low) 92%, transparent);
+  border-bottom: 1px solid var(--outline-variant);
+}
+.menu-mini-btn {
+  min-height: 36px;
+  padding: 0.25rem 0.65rem;
+  background: var(--surface-container);
+  color: var(--secondary);
+  border: 1px solid color-mix(in srgb, var(--secondary) 55%, transparent);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: border-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out);
+}
+.menu-mini-btn:hover {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+}
+.mini-telemetry {
+  display: flex;
+  align-items: center;
+  gap: 0.38rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.tele-chip {
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  padding: 0.16rem 0.48rem;
+  border-radius: var(--rounded);
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  color: var(--on-surface);
+  white-space: nowrap;
+}
+.tele-chip.is-hp { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+.tele-chip.is-xp { border-color: color-mix(in srgb, var(--primary) 45%, transparent); color: var(--primary); }
+.tele-chip.is-streak { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+.tele-chip.is-timer { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+.tele-chip.is-timer.is-urgent { border-color: var(--error); color: var(--error); box-shadow: 0 0 10px color-mix(in srgb, var(--error) 45%, transparent); }
+
+/* Band 2: Top Question Stage */
+.question-stage {
+  position: relative;
+  z-index: 20;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.55rem 0.9rem 0.35rem;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--background) 92%, transparent) 0%, color-mix(in srgb, var(--background) 62%, transparent) 100%);
+  pointer-events: none;
+}
+.question-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.38rem;
+  margin-bottom: 0.38rem;
+  max-height: 4rem;
+  opacity: 1;
+  overflow: hidden;
+  transition: opacity var(--dur-long) var(--ease-out), max-height var(--dur-long) var(--ease-out), margin-bottom var(--dur-long) var(--ease-out);
+}
+.question-meta-row.is-faded {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+}
+.meta-badge {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.14rem 0.48rem;
+  border-radius: var(--rounded);
+  background: var(--surface-container);
+  border: 1px solid color-mix(in srgb, var(--primary) 50%, transparent);
+  color: var(--primary);
+}
+.meta-badge.is-angle { border-color: color-mix(in srgb, var(--secondary) 50%, transparent); color: var(--secondary); }
+.meta-badge.is-phase { border-color: color-mix(in srgb, var(--tertiary) 50%, transparent); color: var(--tertiary); }
+.meta-badge.is-corridor { border-color: color-mix(in srgb, var(--data-4) 55%, transparent); color: var(--data-4); }
+
+.question-stem-box {
+  width: min(960px, 100%);
+  max-height: var(--stem-max-h);
+  overflow-y: auto;
+  margin: 0 auto;
+  padding: 0.55rem 0.9rem;
+  background: var(--glass-bg);
+  border: var(--neon-border-lit);
+  box-shadow: var(--neon-inset);
+  border-radius: var(--rounded-lg);
+  pointer-events: auto;
+  text-align: center;
+}
+#q-stem-text, .question-stem {
+  margin: 0 auto;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: var(--stem-font);
+  font-weight: 500;
+  line-height: 1.48;
+  color: var(--on-surface);
+  max-width: 78ch;
+}
+
+/* Band 3: 3D Synthwave Void & Centered Cards */
+.viewport-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+}
+#synthwave-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.lane-overlay-container {
+  position: absolute;
+  left: 50%;
+  top: 47%;
+  transform: translate(-50%, -50%);
+  z-index: 15;
+  width: min(1040px, calc(100% - 1.5rem));
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+  align-items: stretch;
+}
+.lane-dom-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  min-height: var(--card-min-h);
+  padding: var(--card-pad);
+  background: color-mix(in srgb, var(--surface-container) 82%, transparent);
+  backdrop-filter: blur(8px);
+  border-radius: var(--rounded-lg);
+  cursor: pointer;
+  user-select: none;
+  transition: transform var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+.lane-dom-card.lane-0 {
+  border: 1.5px solid color-mix(in srgb, var(--primary) 70%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--primary) 16%, transparent);
+}
+.lane-dom-card.lane-1 {
+  border: 1.5px solid color-mix(in srgb, var(--secondary) 70%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--secondary) 16%, transparent);
+}
+.lane-dom-card.lane-2 {
+  border: 1.5px solid color-mix(in srgb, var(--tertiary) 70%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--tertiary) 16%, transparent);
+}
+.lane-dom-card:hover, .lane-dom-card.is-previewed { transform: translateY(-2px); }
+.lane-dom-card.lane-0:hover, .lane-dom-card.lane-0.is-previewed { border-color: var(--primary); box-shadow: var(--glow-primary); }
+.lane-dom-card.lane-1:hover, .lane-dom-card.lane-1.is-previewed { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.lane-dom-card.lane-2:hover, .lane-dom-card.lane-2.is-previewed { border-color: var(--tertiary); box-shadow: var(--glow-tertiary); }
+
+.lane-card-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  margin-bottom: 0.35rem;
+}
+.lane-portal-name {
+  font-family: var(--font-label);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.lane-0 .lane-portal-name { color: var(--primary); }
+.lane-1 .lane-portal-name { color: var(--secondary); }
+.lane-2 .lane-portal-name { color: var(--tertiary); }
+.lane-key-label {
+  font-family: var(--font-label);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--on-surface-variant);
+  padding: 0.08rem 0.36rem;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+}
+.lane-choice-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  padding: 0.25rem 0;
+}
+.lane-card-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  font-size: var(--card-font);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--on-surface);
+}
+.fusion-lock-tag {
+  font-family: var(--font-label);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+  margin-top: 0.35rem;
+}
+
+.vignette-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 12;
+  opacity: 0;
+  transition: opacity var(--dur-short) var(--ease-out);
+}
+.vignette-overlay.is-correct { opacity: 1; box-shadow: inset 0 0 70px color-mix(in srgb, var(--secondary) 45%, transparent); }
+.vignette-overlay.is-wrong { opacity: 1; box-shadow: inset 0 0 70px color-mix(in srgb, var(--error) 50%, transparent); }
+.heal-toast {
+  position: absolute;
+  top: 0.65rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
+  z-index: 25;
+  padding: 0.32rem 0.85rem;
+  background: var(--surface-container-high);
+  border: 1px solid var(--secondary);
+  color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.78rem;
+  font-weight: 700;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out);
+}
+.heal-toast.is-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Band 4: Bottom Hints Bar */
+#hints-bar {
+  position: relative;
+  z-index: 25;
+  flex-shrink: 0;
+  width: 100%;
+  background: var(--surface-container-low);
+  border-top: 1px solid color-mix(in srgb, var(--tertiary) 45%, transparent);
+  padding: 0.5rem 0.9rem;
+  max-height: 18dvh;
+  overflow-y: auto;
+  text-align: center;
+}
+#xr-app.hints-hidden #hints-bar { display: none; }
+.hints-inner {
+  width: min(920px, 100%);
+  margin: 0 auto;
+  text-align: center;
+}
+.hints-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+.hints-tag {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--tertiary);
+  letter-spacing: 0.08em;
+}
+.hints-subtag {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  color: var(--on-surface-variant);
+}
+.hints-text {
+  margin: 0 auto;
+  text-align: center;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: var(--on-surface);
+}
+
+/* Menu Drawer */
+.menu-backdrop, .modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--backdrop-dark);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+}
+.menu-backdrop.is-open, .modal-backdrop.is-open { display: flex; }
+#top-menu-drawer {
+  width: min(920px, 100%);
+  max-height: calc(100dvh - 1.5rem);
+  overflow-y: auto;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  padding: 1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.drawer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--outline-variant);
+  padding-bottom: 0.65rem;
+}
+.drawer-kicker {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--secondary);
+  text-shadow: var(--glow-text);
+  margin: 0 0 0.2rem;
+}
+.drawer-title {
+  font-family: var(--font-headline);
+  font-size: var(--headline-size);
+  font-weight: 700;
+  margin: 0;
+  color: var(--on-surface);
+}
+.menu-section-label {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--on-surface-variant);
+  margin: 0 0 0.35rem;
+  display: block;
+}
+.menu-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+.menu-filters-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+}
+.filter-label {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  color: var(--on-surface-variant);
+  text-transform: uppercase;
+}
+.neon-select, .neon-input {
+  width: 100%;
+  min-height: 40px;
+  padding: 0.4rem 0.6rem;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-bottom: 2px solid var(--primary);
+  border-radius: var(--rounded);
+  font-size: 0.82rem;
+}
+.btn-neon {
+  min-height: 40px;
+  padding: 0.38rem 0.7rem;
+  background: var(--surface-container-low);
+  color: var(--primary);
+  border: var(--neon-border-lit);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+}
+.btn-neon:hover { border-color: var(--primary); box-shadow: var(--glow-primary); }
+.btn-neon.is-cyan { color: var(--secondary); border-color: color-mix(in srgb, var(--secondary) 55%, transparent); }
+.btn-neon.is-cyan:hover { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.btn-neon.is-yellow { color: var(--tertiary); border-color: color-mix(in srgb, var(--tertiary) 55%, transparent); }
+.btn-neon.is-yellow:hover { border-color: var(--tertiary); box-shadow: var(--glow-tertiary); }
+.btn-neon.is-active { background: color-mix(in srgb, var(--primary) 18%, var(--surface-container)); border-color: var(--primary); }
+.btn-neon.is-cyan.is-active { background: color-mix(in srgb, var(--secondary) 16%, var(--surface-container)); border-color: var(--secondary); }
+
+.audio-controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.volume-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  color: var(--on-surface-variant);
+}
+.phase-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.phase-mix-pill {
+  min-height: 36px;
+  padding: 0.3rem 0.65rem;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+.phase-mix-pill.is-active {
+  border-color: var(--secondary);
+  color: var(--secondary);
+  background: color-mix(in srgb, var(--secondary) 14%, var(--surface-container));
+}
+.menu-divider {
+  border: 0;
+  border-top: 1px solid var(--outline-variant);
+  margin: 0.1rem 0;
+}
+.inline-toast {
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  color: var(--secondary);
+  min-height: 1.1rem;
+}
+.skill-tree-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+  gap: 0.45rem;
+}
+.skill-node-btn {
+  text-align: left;
+  padding: 0.5rem 0.6rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+.skill-node-btn:hover { border-color: var(--secondary); }
+.skill-node-btn.is-mastered { border-color: var(--secondary); background: color-mix(in srgb, var(--secondary) 10%, var(--surface-container-low)); }
+.skill-node-title { font-size: 0.8rem; font-weight: 600; color: var(--on-surface); line-height: 1.28; }
+.skill-node-meta { font-family: var(--font-label); font-size: 0.64rem; color: var(--on-surface-variant); }
+.hotkey-guide {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  color: var(--on-surface-variant);
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.45rem 0.65rem;
+  line-height: 1.45;
+}
+
+/* Outcome Modal — Complete Text-Centering Lock */
+#outcome-popup-modal {
+  width: 82vw;
+  height: 84vh;
+  max-width: 1120px;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-align: center !important;
+}
+#outcome-popup-modal * {
+  text-align: center !important;
+}
+.popup-header {
+  flex-shrink: 0;
+  background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 0.65rem 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+}
+.popup-verdict {
+  font-family: var(--font-headline);
+  font-size: var(--headline-size);
+  font-weight: 700;
+  margin: 0;
+}
+.popup-verdict.is-correct { color: var(--secondary); text-shadow: var(--glow-text); }
+.popup-verdict.is-wrong { color: var(--primary); text-shadow: var(--glow-text); }
+.popup-question-pin {
+  flex-shrink: 0;
+  padding: 0.55rem 0.9rem;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+}
+.popup-question-pin-label {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  color: var(--tertiary);
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+}
+.popup-question-pin-text {
+  margin: 0 auto;
+  font-size: 0.88rem;
+  color: var(--on-surface);
+  max-width: 82ch;
+}
+.popup-scroll-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.dossier-block {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.7rem 0.85rem;
+}
+.dossier-block.is-highlight {
+  border-color: color-mix(in srgb, var(--secondary) 45%, transparent);
+}
+.dossier-block-title {
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--secondary);
+  margin: 0 0 0.4rem;
+}
+.choice-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.choice-box {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.5rem 0.65rem;
+}
+.choice-box.is-correct { border-color: var(--secondary); }
+.choice-box.is-wrong { border-color: var(--error); }
+.choice-box-label {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  color: var(--on-surface-variant);
+  margin-bottom: 0.2rem;
+}
+.dossier-line {
+  margin: 0.2rem auto;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--on-surface);
+}
+.angles-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+.angle-mini-card {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.55rem;
+}
+.angle-mini-title {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--tertiary);
+  margin: 0 0 0.3rem;
+}
+.popup-footer {
+  flex-shrink: 0;
+  background: var(--surface-container-high);
+  border-top: 1px solid var(--outline-variant);
+  padding: 0.55rem 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* Loot Codex & Run Summary Modals */
+#codex-modal, #run-summary-modal {
+  width: min(1140px, 92vw);
+  max-height: 88dvh;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-secondary);
+  border-radius: var(--rounded-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0.9rem 1rem;
+  gap: 0.7rem;
+}
+.codex-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.codex-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.codex-table-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+}
+.codex-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+.codex-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-container-high);
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: var(--secondary);
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--outline);
+  text-align: left;
+}
+.codex-table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--outline-variant);
+  vertical-align: top;
+}
+.codex-table tr:nth-child(even) td { background: var(--surface-container-low); }
+
+.summary-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+.summary-tile {
+  background: var(--surface-container-low);
+  border: var(--neon-border);
+  border-radius: var(--rounded);
+  padding: 0.65rem;
+  text-align: center;
+}
+.summary-tile-val {
+  display: block;
+  font-family: var(--font-headline);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--secondary);
+}
+.summary-tile-label {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  color: var(--on-surface-variant);
+  text-transform: uppercase;
+}
+.summary-subtitle { text-align: center; margin: 0; color: var(--on-surface-variant); font-size: 0.88rem; }
+.missed-review-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.missed-item {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.5rem 0.7rem;
+  font-size: 0.82rem;
+}
+
+/* =========================================================
+   VERBATIM PHONE MEDIA QUERIES (DO NOT ALTER TABLETS)
+   ========================================================= */
+@media (max-width: 600px) {
+  .tele-chip.is-xp { display: none; }
+  .question-stem-box { max-height: 27dvh; padding: 0.45rem 0.6rem; }
+  #xr-app.hints-visible .question-stem-box { max-height: 22dvh; }
+  .lane-overlay-container {
+    top: 44%;
+    width: calc(100% - 1rem);
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
+  .lane-dom-card { min-height: 4.1rem; padding: 0.45rem 0.65rem; }
+  #xr-app.hints-visible .lane-dom-card { min-height: 3.4rem; padding: 0.36rem 0.55rem; }
+  .lane-card-head, .lane-key-label { display: none; }
+  #hints-bar { padding: 0.4rem 0.65rem; max-height: 22dvh; }
+  .hints-text { font-size: 0.84rem; line-height: 1.35; }
+  .menu-backdrop { padding: 0.35rem; }
+  #top-menu-drawer { max-height: calc(100dvh - 0.7rem); padding: 0.8rem; }
+  .menu-actions-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .menu-filters-grid { grid-template-columns: 1fr; }
+  .choice-compare-grid, .angles-grid { grid-template-columns: 1fr; }
+  .summary-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #outcome-popup-modal, #codex-modal, #run-summary-modal {
+    width: 96vw;
+    height: 92dvh;
+    max-height: 92dvh;
+  }
+}
+
+@media (max-height: 500px) and (pointer: coarse) {
+  .question-stage { padding: 0.28rem 0.6rem 0.2rem; }
+  .question-stem-box { max-height: 22dvh; padding: 0.35rem 0.6rem; }
+  .lane-overlay-container {
+    top: 48%;
+    width: calc(100% - 1rem);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+  .lane-dom-card { min-height: 4.2rem; padding: 0.35rem 0.45rem; }
+  .lane-card-head, .lane-key-label { display: none; }
+  #hints-bar { padding: 0.26rem 0.6rem; max-height: 20dvh; }
+  .hints-text { font-size: 0.78rem; line-height: 1.3; }
+  #outcome-popup-modal, #codex-modal, #run-summary-modal {
+    width: 96vw;
+    height: 94dvh;
+    max-height: 94dvh;
+  }
+}
+
+@media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+  html { font-size: 200%; }
+  .lane-overlay-container {
+    grid-template-columns: 1fr;
+    width: calc(100% - 1rem);
+    gap: 0.45rem;
+  }
+  .lane-card-head, .lane-key-label { display: none; }
+  .menu-actions-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .menu-filters-grid { grid-template-columns: 1fr; }
+  #outcome-popup-modal, #codex-modal, #run-summary-modal {
+    width: 96vw;
+    height: 92dvh;
+    max-height: 92dvh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+<div id="xr-app" class="hints-hidden">
+  <!-- BAND 1: ULTRA-SLIM TOP BAR -->
+  <div class="top-mini-bar">
+    <button type="button" class="menu-mini-btn" id="menu-toggle-btn" onclick="toggleMenuDrawer()" aria-expanded="false" aria-controls="top-menu-drawer">☰ MENU</button>
+    <div class="mini-telemetry" aria-label="Game Status">
+      <span class="tele-chip is-hp" id="hp-chip">HP <span id="hp-text">100</span></span>
+      <span class="tele-chip is-xp">XP <span id="xp-text">0</span></span>
+      <span class="tele-chip is-streak">⚡<span id="streak-text">0</span></span>
+      <span class="tele-chip" id="gate-chip">Gate <span id="gate-text">1/45</span></span>
+      <span class="tele-chip is-timer" id="timer-chip">⏱ <span id="timer-text">50s</span></span>
+    </div>
+  </div>
+
+  <!-- BAND 2: TOP QUESTION STAGE (3s AUTO-HIDING META) -->
+  <div class="question-stage">
+    <div class="question-meta-row" id="question-meta-row">
+      <span class="meta-badge" id="meta-lo-badge">Sector I</span>
+      <span class="meta-badge is-angle" id="meta-angle-badge">Presentation -> Diagnosis</span>
+      <span class="meta-badge is-phase" id="meta-phase-badge">Phase 1</span>
+      <span class="meta-badge is-corridor" id="meta-corridor-badge">CORRIDOR</span>
+    </div>
+    <div class="question-stem-box">
+      <p id="q-stem-text" class="question-stem amboss-scan-target">Initializing Renal Microbiology Diagnostic Runner…</p>
+    </div>
+  </div>
+
+  <!-- BAND 3: 3D SYNTHWAVE VOID & 1:1 PORTAL CARDS -->
+  <div class="viewport-stage" id="viewport-stage">
+    <canvas id="synthwave-canvas" aria-hidden="true"></canvas>
+    <div class="lane-overlay-container">
+      <div id="lane-0-card" class="lane-dom-card lane-0" role="button" tabindex="0"
+        onmouseenter="previewLaneTarget(0)" onpointerenter="previewLaneTarget(0)" onfocus="previewLaneTarget(0)"
+        onclick="selectLaneAndResolve(0)"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(0);}">
+        <div class="lane-card-head">
+          <span class="lane-portal-name">LEFT PORTAL</span>
+          <span class="lane-key-label">1 / A / ←</span>
+        </div>
+        <div class="lane-choice-body">
+          <span id="lane-0-text" class="lane-card-text amboss-scan-target">Option A</span>
+        </div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+
+      <div id="lane-1-card" class="lane-dom-card lane-1" role="button" tabindex="0"
+        onmouseenter="previewLaneTarget(1)" onpointerenter="previewLaneTarget(1)" onfocus="previewLaneTarget(1)"
+        onclick="selectLaneAndResolve(1)"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(1);}">
+        <div class="lane-card-head">
+          <span class="lane-portal-name">CENTER PORTAL</span>
+          <span class="lane-key-label">2 / W / ↑</span>
+        </div>
+        <div class="lane-choice-body">
+          <span id="lane-1-text" class="lane-card-text amboss-scan-target">Option B</span>
+        </div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+
+      <div id="lane-2-card" class="lane-dom-card lane-2" role="button" tabindex="0"
+        onmouseenter="previewLaneTarget(2)" onpointerenter="previewLaneTarget(2)" onfocus="previewLaneTarget(2)"
+        onclick="selectLaneAndResolve(2)"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(2);}">
+        <div class="lane-card-head">
+          <span class="lane-portal-name">RIGHT PORTAL</span>
+          <span class="lane-key-label">3 / D / →</span>
+        </div>
+        <div class="lane-choice-body">
+          <span id="lane-2-text" class="lane-card-text amboss-scan-target">Option C</span>
+        </div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+    </div>
+    <div class="vignette-overlay" id="vignette-overlay"></div>
+    <div class="heal-toast" id="heal-toast">✚ STREAK BONUS +25 HP</div>
+  </div>
+
+  <!-- BAND 4: BOTTOM HINTS BAR -->
+  <div id="hints-bar" aria-live="polite">
+    <div class="hints-inner">
+      <div class="hints-header-row">
+        <span class="hints-tag">💡 HINT [H]</span>
+        <span class="hints-subtag" id="hints-meta-ref">LO 1 • Phase 1</span>
+      </div>
+      <p class="hints-text amboss-scan-target" id="q-clue-text">—</p>
+    </div>
+  </div>
+</div>
+
+<!-- MENU & SKILL TREE DRAWER -->
+<div class="menu-backdrop" id="menu-backdrop" onclick="if(event.target===this)toggleMenuDrawer()">
+  <div id="top-menu-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+    <div class="drawer-header">
+      <div>
+        <p class="drawer-kicker">03. RENAL MICROBIOLOGY • COMLEX / USMLE XR DIAGNOSTIC RUNNER (v3.8)</p>
+        <h1 class="drawer-title" id="drawer-title">Renal Pathogens &amp; Urologic Infections</h1>
+      </div>
+      <button type="button" class="btn-neon is-cyan" onclick="toggleMenuDrawer()">✕ Close [M]</button>
+    </div>
+
+    <div>
+      <span class="menu-section-label">Tactical Controls &amp; Run Actions</span>
+      <div class="menu-actions-grid">
+        <button type="button" class="btn-neon is-yellow" id="menu-hints-btn" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+        <button type="button" class="btn-neon is-cyan" onclick="openCodexFromMenu()">📖 Loot Codex [C]</button>
+        <button type="button" class="btn-neon" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+        <button type="button" class="btn-neon is-cyan" id="menu-timer-btn" onclick="toggleTimerEnabled()">⏱ 50s Timer: ON [T]</button>
+        <button type="button" class="btn-neon is-yellow" onclick="startTimedRun()">🚀 Start 50s Timed Run</button>
+        <button type="button" class="btn-neon is-cyan" onclick="restartDeck(false)">↺ Restart Ordered</button>
+        <button type="button" class="btn-neon" onclick="restartDeck(true)">🔀 Shuffle Deck</button>
+        <button type="button" class="btn-neon" id="reset-mastery-btn" onclick="handleResetMastery(this)">🧹 Reset Mastery</button>
+      </div>
+    </div>
+
+    <div>
+      <span class="menu-section-label">Audio Suite (Synth SFX, Zombies BGM &amp; Custom Track)</span>
+      <div class="audio-controls-row">
+        <button type="button" class="btn-neon is-cyan is-active" id="master-sound-btn" onclick="toggleMasterSound()">🔊 Sound: ON</button>
+        <button type="button" class="btn-neon is-active" id="sfx-toggle-btn" onclick="toggleSfx()">✨ SFX: ON</button>
+        <button type="button" class="btn-neon is-yellow" id="bgm-toggle-btn" onclick="toggleBgm()">🧟 Zombies BGM: OFF</button>
+        <label class="volume-wrap" for="bgm-volume-slider">Vol
+          <input type="range" id="bgm-volume-slider" min="0" max="1" step="0.05" value="0.35" oninput="setBgmVolume(this.value)">
+        </label>
+        <label class="btn-neon is-cyan" style="display:inline-flex;align-items:center;gap:0.3rem;">
+          🎵 Load MP3/WAV
+          <input type="file" id="custom-audio-input" accept="audio/*" style="display:none;" onchange="loadCustomAudio(this)">
+        </label>
+      </div>
+    </div>
+
+    <div class="menu-filters-grid">
+      <div class="filter-field">
+        <label class="filter-label" for="sector-filter">Sector / Boss Entity</label>
+        <select id="sector-filter" class="neon-select" onchange="applyDeckFilters()">
+          <option value="all">All 5 Sectors (45 Gates)</option>
+          <option value="missed">🎯 Missed Gates Only</option>
+          <option value="sector_1">Sector I — Common Uropathogens</option>
+          <option value="sector_2">Sector II — Urease &amp; Struvite</option>
+          <option value="sector_3">Sector III — Post-Infectious &amp; Zoonoses</option>
+          <option value="sector_4">Sector IV — Mycobacteria, Fungi &amp; Parasites</option>
+          <option value="sector_5">Sector V — Transplant &amp; Opportunistic Viruses</option>
+          <option value="1">1. Uropathogenic E. coli</option>
+          <option value="2">2. Staphylococcus saprophyticus</option>
+          <option value="3">3. Enterococcus faecalis</option>
+          <option value="4">4. Proteus mirabilis</option>
+          <option value="5">5. Klebsiella pneumoniae</option>
+          <option value="6">6. Pseudomonas aeruginosa</option>
+          <option value="7">7. Streptococcus pyogenes (PSGN)</option>
+          <option value="8">8. Leptospira interrogans</option>
+          <option value="9">9. Corynebacterium urealyticum</option>
+          <option value="10">10. Mycobacterium tuberculosis</option>
+          <option value="11">11. Candida albicans</option>
+          <option value="12">12. Schistosoma haematobium</option>
+          <option value="13">13. BK Polyomavirus</option>
+          <option value="14">14. Cytomegalovirus (CMV)</option>
+          <option value="15">15. Adenovirus (11 &amp; 21)</option>
+        </select>
+      </div>
+
+      <div class="filter-field">
+        <label class="filter-label" for="angle-filter">Question Angle</label>
+        <select id="angle-filter" class="neon-select" onchange="applyDeckFilters()">
+          <option value="all">All 3 Diagnostic Angles</option>
+          <option value="Presentation -> Diagnosis">Presentation -&gt; Diagnosis</option>
+          <option value="Mechanism -> Pathophysiology">Mechanism -&gt; Pathophysiology</option>
+          <option value="Hallmarks -> Management">Hallmarks -&gt; Management</option>
+        </select>
+      </div>
+
+      <div class="filter-field">
+        <label class="filter-label" for="timeout-mode">Time's Up Behavior</label>
+        <select id="timeout-mode" class="neon-select" onchange="setTimeoutMode(this.value)">
+          <option value="review">Time's Up = Wrong → Review</option>
+          <option value="hold">Hold at 0s (Manual Answer)</option>
+        </select>
+      </div>
+
+      <div class="filter-field">
+        <label class="filter-label" for="compartment-filter">Urinary Tract Niche</label>
+        <select id="compartment-filter" class="neon-select" onchange="applyDeckFilters()">
+          <option value="all">All Urinary Compartments</option>
+          <option value="lower_tract_bladder">Lower Tract / Bladder</option>
+          <option value="renal_pelvis_stones">Renal Pelvis / Calculi</option>
+          <option value="glomerular_interstitial">Glomerular / Interstitial</option>
+          <option value="transplant_allograft">Transplant Allograft / Immunocompromised</option>
+        </select>
+      </div>
+
+      <div class="filter-field">
+        <label class="filter-label" for="age-filter">Patient Population</label>
+        <select id="age-filter" class="neon-select" onchange="applyDeckFilters()">
+          <option value="all">All Populations</option>
+          <option value="young_adult">Sexually Active / Young Adult</option>
+          <option value="pediatric">Pediatric</option>
+          <option value="catheter_elderly">Catheterized / Nosocomial / Elderly</option>
+          <option value="transplant_travel">Transplant / Endemic Exposure</option>
+        </select>
+      </div>
+
+      <div class="filter-field">
+        <label class="filter-label" for="behavior-filter">Microbe Class</label>
+        <select id="behavior-filter" class="neon-select" onchange="applyDeckFilters()">
+          <option value="all">All Microbe Classes</option>
+          <option value="gram_neg_rod">Gram-Negative Rods</option>
+          <option value="gram_pos_cocci_rod">Gram-Positive Cocci / Rods</option>
+          <option value="acid_fast_spirochete">Acid-Fast / Spirochete</option>
+          <option value="fungus_parasite">Fungus / Parasite</option>
+          <option value="dna_virus">DNA Virus</option>
+        </select>
+      </div>
+    </div>
+
+    <div>
+      <span class="menu-section-label">Phase Distribution Filter (Global 30% / 35% / 35% Split)</span>
+      <div class="phase-pills-row" id="phase-pills-row">
+        <button type="button" class="phase-mix-pill is-active" data-phase="all" onclick="setPhaseFilter('all')">All Phases (100%)</button>
+        <button type="button" class="phase-mix-pill" data-phase="Phase 1: Pathogenesis" onclick="setPhaseFilter('Phase 1: Pathogenesis')">Phase 1: Pathogenesis (30%)</button>
+        <button type="button" class="phase-mix-pill" data-phase="Phase 2: Histology / Structure" onclick="setPhaseFilter('Phase 2: Histology / Structure')">Phase 2: Histology / Structure (35%)</button>
+        <button type="button" class="phase-mix-pill" data-phase="Phase 3: Clinical & Management" onclick="setPhaseFilter('Phase 3: Clinical & Management')">Phase 3: Clinical &amp; Management (35%)</button>
+      </div>
+    </div>
+
+    <div class="inline-toast" id="menu-status-msg" role="status" aria-live="polite"></div>
+    <hr class="menu-divider">
+
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;flex-wrap:wrap;gap:0.4rem;">
+        <span class="menu-section-label" style="margin:0;">15-Entity Renal Microbiology Skill Tree (Tap to Deploy)</span>
+        <span style="font-family:var(--font-label);font-size:0.7rem;color:var(--on-surface-variant);" id="mastery-summary">Mastered: 0 / 15 Entities • Accuracy: --%</span>
+      </div>
+      <div class="skill-tree-grid" id="skill-tree-grid"></div>
+    </div>
+
+    <div class="hotkey-guide">
+      <strong>Keyboard Shortcuts:</strong> [1 / 2 / 3] or [A / W / D] or [← / ↑ / →] Select Portal • [H] Toggle Bottom Hints • [M] Menu • [C] Loot Codex • [S] Skip • [T] Toggle 50s Timer • [Space / Enter] Continue Review • [↑ / ↓] Scroll Dossier
+    </div>
+  </div>
+</div>
+
+<!-- 7-PART OUTCOME DOSSIER MODAL -->
+<div class="modal-backdrop" id="outcome-backdrop" role="dialog" aria-modal="true" aria-labelledby="outcome-verdict">
+  <div id="outcome-popup-modal">
+    <div class="popup-header">
+      <h2 class="popup-verdict" id="outcome-verdict">✔ CORRECT — [SHORT ANSWER]</h2>
+      <span class="meta-badge" id="outcome-xp-delta">+100 XP</span>
+      <span class="meta-badge is-phase" id="outcome-hp-delta">+5 HP</span>
+    </div>
+    <div class="popup-question-pin">
+      <span class="popup-question-pin-label" id="outcome-lo-ref">Original Board Vignette</span>
+      <p class="popup-question-pin-text amboss-scan-target" id="outcome-question-text"></p>
+    </div>
+    <div class="popup-scroll-body" id="outcome-scroll-body">
+      <div class="dossier-block is-highlight">
+        <h3 class="dossier-block-title">1. Your Choice vs. Correct Answer</h3>
+        <div class="choice-compare-grid">
+          <div class="choice-box" id="your-choice-box">
+            <span class="choice-box-label">Your Portal Selection</span>
+            <p class="dossier-line amboss-scan-target" id="your-choice-text"></p>
+          </div>
+          <div class="choice-box is-correct" id="correct-choice-box">
+            <span class="choice-box-label">Correct Diagnostic Answer</span>
+            <p class="dossier-line amboss-scan-target" id="correct-choice-text"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">2. Board Rationale &amp; Distractor Exclusion</h3>
+        <div id="dossier-explanation" class="amboss-scan-target"></div>
+      </div>
+
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">3. Second-Order Board Logic Clue</h3>
+        <div id="dossier-second-order" class="amboss-scan-target"></div>
+      </div>
+
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">4. Phase 1 Pearl — Pathogenesis &amp; Virulence</h3>
+        <div id="dossier-phase1" class="amboss-scan-target"></div>
+      </div>
+
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">5. Phase 2 Hallmark — Microscopy, Culture &amp; Lab Signature</h3>
+        <div id="dossier-phase2" class="amboss-scan-target"></div>
+      </div>
+
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">6. Phase 3 Guild Master's Secret — Management &amp; Pitfalls</h3>
+        <div id="dossier-phase3" class="amboss-scan-target"></div>
+      </div>
+
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">7. 3-Phase Rapid Synthesis Dossier</h3>
+        <div class="angles-grid">
+          <div class="angle-mini-card">
+            <h4 class="angle-mini-title">Phase 1: Pathogenesis</h4>
+            <div id="dossier-angle-1" class="amboss-scan-target"></div>
+          </div>
+          <div class="angle-mini-card">
+            <h4 class="angle-mini-title">Phase 2: Histology / Structure</h4>
+            <div id="dossier-angle-2" class="amboss-scan-target"></div>
+          </div>
+          <div class="angle-mini-card">
+            <h4 class="angle-mini-title">Phase 3: Clinical &amp; Management</h4>
+            <div id="dossier-angle-3" class="amboss-scan-target"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="popup-footer">
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(-180)">▲ Up</button>
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(180)">▼ Down</button>
+      <button type="button" class="btn-neon" id="continue-runner-btn" onclick="continueToNextGate()">▶ Continue Runner [Space / Enter]</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6-COLUMN LOOT CODEX MODAL -->
+<div class="modal-backdrop" id="codex-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="codex-title">
+  <div id="codex-modal">
+    <div class="codex-toolbar">
+      <div>
+        <h2 class="popup-verdict is-cyan" id="codex-title">RENAL MICROBIOLOGY LOOT CODEX</h2>
+      </div>
+      <div style="display:flex;gap:0.45rem;align-items:center;flex-wrap:wrap;">
+        <label for="codex-search" style="font-family:var(--font-label);font-size:0.7rem;color:var(--on-surface-variant);">Filter:</label>
+        <input type="text" id="codex-search" class="neon-input" style="width:200px;min-height:36px;" placeholder="Search organism, toxin, drug..." oninput="renderCodexTable()">
+        <button type="button" class="btn-neon is-cyan" onclick="closeCodex()">✕ Close [C]</button>
+      </div>
+    </div>
+    <div class="codex-pills" id="codex-sector-pills">
+      <button type="button" class="phase-mix-pill is-active" data-sector="all" onclick="setCodexSector('all')">All Sectors</button>
+      <button type="button" class="phase-mix-pill" data-sector="sector_1" onclick="setCodexSector('sector_1')">Sector I</button>
+      <button type="button" class="phase-mix-pill" data-sector="sector_2" onclick="setCodexSector('sector_2')">Sector II</button>
+      <button type="button" class="phase-mix-pill" data-sector="sector_3" onclick="setCodexSector('sector_3')">Sector III</button>
+      <button type="button" class="phase-mix-pill" data-sector="sector_4" onclick="setCodexSector('sector_4')">Sector IV</button>
+      <button type="button" class="phase-mix-pill" data-sector="sector_5" onclick="setCodexSector('sector_5')">Sector V</button>
+    </div>
+    <div class="codex-table-wrap">
+      <table class="codex-table">
+        <thead>
+          <tr>
+            <th>LO &amp; Entity / Boss</th>
+            <th>Etiology / Trigger</th>
+            <th>Pathogenesis Cascade</th>
+            <th>Gross &amp; Histology Hallmarks</th>
+            <th>Clinical Presentation</th>
+            <th>Management &amp; Guild Secret</th>
+          </tr>
+        </thead>
+        <tbody id="codex-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- END-OF-RUN SUMMARY MODAL -->
+<div class="modal-backdrop" id="summary-backdrop" role="dialog" aria-modal="true" aria-labelledby="summary-title">
+  <div id="run-summary-modal">
+    <h2 class="popup-verdict is-cyan" id="summary-title">DIAGNOSTIC RUN COMPLETE</h2>
+    <p class="summary-subtitle" id="summary-subtitle">03. Renal Microbiology — 45-Gate Raid</p>
+    <div class="summary-metrics">
+      <div class="summary-tile"><span class="summary-tile-val" id="sum-xp">0</span><span class="summary-tile-label">Total XP</span></div>
+      <div class="summary-tile"><span class="summary-tile-val" id="sum-acc">0%</span><span class="summary-tile-label">Accuracy</span></div>
+      <div class="summary-tile"><span class="summary-tile-val" id="sum-streak">0</span><span class="summary-tile-label">Best Streak</span></div>
+      <div class="summary-tile"><span class="summary-tile-val" id="sum-hp">100</span><span class="summary-tile-label">Final HP</span></div>
+    </div>
+    <div class="missed-review-list" id="missed-review-list"></div>
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:0.5rem;">
+      <button type="button" class="btn-neon is-yellow" id="retry-missed-btn" onclick="retryMissedOnly()">🎯 Retry Missed Gates</button>
+      <button type="button" class="btn-neon is-cyan" onclick="restartDeck(false);closeSummaryModal();">↺ Restart Full Deck</button>
+      <button type="button" class="btn-neon" onclick="closeSummaryModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<api-shim></api-shim>
+<script>
+const GAME_CONFIG = {
+  lectureTitle: `03. Renal Microbiology — Uropathogens, Nephritides & Opportunists`,
+  timerSeconds: 50,
+  metaFadeMs: 3000,
+  streakBonusStep: 4,
+  streakBonusHp: 25
+};
+
+const LO_VISUAL_THEMES = {
+  1:  { tag: `SECTOR I • P-FIMBRIAE CORRIDOR`, dust: `#ff2d78`, gridRgb: `0, 255, 204` },
+  2:  { tag: `SECTOR I • NOVOBIOCIN-R VAULT`, dust: `#00ffcc`, gridRgb: `255, 45, 120` },
+  3:  { tag: `SECTOR I • BILE-ESCULIN RAIL`, dust: `#ffe04a`, gridRgb: `0, 255, 204` },
+  4:  { tag: `SECTOR II • STRUVITE STAGHORN`, dust: `#00ffcc`, gridRgb: `255, 224, 74` },
+  5:  { tag: `SECTOR II • MUCOID CAPSULE BAY`, dust: `#ff2d78`, gridRgb: `179, 136, 255` },
+  6:  { tag: `SECTOR II • PYOCYANIN CONDUIT`, dust: `#00ffcc`, gridRgb: `0, 255, 204` },
+  7:  { tag: `SECTOR III • LUMPY-BUMPY BRIDGE`, dust: `#ffe04a`, gridRgb: `255, 45, 120` },
+  8:  { tag: `SECTOR III • SPIROCHETE FLOOD`, dust: `#b388ff`, gridRgb: `0, 255, 204` },
+  9:  { tag: `SECTOR III • ENCRUSTED MUCOSA`, dust: `#ff2d78`, gridRgb: `255, 224, 74` },
+  10: { tag: `SECTOR IV • STERILE PYURIA LAB`, dust: `#ffe04a`, gridRgb: `179, 136, 255` },
+  11: { tag: `SECTOR IV • PSEUDOHYPHAE BALL`, dust: `#00ffcc`, gridRgb: `255, 45, 120` },
+  12: { tag: `SECTOR IV • TERMINAL SPINE NILE`, dust: `#ff2d78`, gridRgb: `255, 224, 74` },
+  13: { tag: `SECTOR V • DECOY CELL GRAFT`, dust: `#b388ff`, gridRgb: `0, 255, 204` },
+  14: { tag: `SECTOR V • OWL-EYE INTERSTITIUM`, dust: `#00ffcc`, gridRgb: `179, 136, 255` },
+  15: { tag: `SECTOR V • HEMORRHAGIC SEROTYPE`, dust: `#ff2d78`, gridRgb: `255, 45, 120` }
+};
+
+const CODEX_DATA = [
+  {
+    lo: 1, sector: `sector_1`, tag: `Sector I`, compartment: `lower_tract_bladder`, ageGroup: `young_adult`, behavior: `gram_neg_rod`,
+    entity: `Uropathogenic Escherichia coli`, badgeMeta: `Sector I • #1 UTI Pathogen`,
+    etiology: `Ascending enteric Gram-negative rod; females (short urethra), sexual intercourse, indwelling catheters.`,
+    pathogenesis: `P-fimbriae (pyelonephritis) & Type 1 pili bind uroepithelial D-mannose / Gal-Gal receptors; K capsular antigen resists phagocytosis; LPS triggers TLR4 inflammation.`,
+    hallmarks: `Lactose-fermenting pink colonies on MacConkey agar; metallic green sheen on EMB agar; catalase+, oxidase-, indole+; UA shows >10 WBC/hpf, +nitrite, +leukocyte esterase.`,
+    clinical: `Uncomplicated cystitis (dysuria, urgency, frequency, suprapubic pain without fever) vs. pyelonephritis (fever, flank pain, CVA tenderness, WBC casts).`,
+    management: `Uncomplicated cystitis: nitrofurantoin or TMP-SMX (avoid nitrofurantoin in pyelonephritis due to low renal tissue levels; use fluoroquinolone or IV ceftriaxone). Guild Secret: #1 cause of BOTH community and nosocomial UTIs.`
+  },
+  {
+    lo: 2, sector: `sector_1`, tag: `Sector I`, compartment: `lower_tract_bladder`, ageGroup: `young_adult`, behavior: `gram_pos_cocci_rod`,
+    entity: `Staphylococcus saprophyticus`, badgeMeta: `Sector I • Honeymoon Cystitis`,
+    etiology: `Coagulase-negative Gram-positive coccus in clusters; #2 cause of uncomplicated cystitis in young, sexually active women.`,
+    pathogenesis: `Adhesins & surface-associated urease allow colonization of periurethral tissue and uroepithelium following sexual intercourse without systemic invasion.`,
+    hallmarks: `Gram+ cocci in clusters; catalase+, coagulase-, novobiocin-RESISTANT (vs. S. epidermidis, which is novobiocin-sensitive); nitrites NEGATIVE on dipstick.`,
+    clinical: `Acute dysuria, urinary frequency, urgency, and suprapubic tenderness in a young sexually active woman; lacks fever or flank pain.`,
+    management: `Nitrofurantoin or TMP-SMX (3-day course for uncomplicated cystitis). Guild Secret: Negative urine nitrites do NOT rule out UTI—Gram+ cocci cannot reduce dietary nitrates to nitrites.`
+  },
+  {
+    lo: 3, sector: `sector_1`, tag: `Sector I`, compartment: `lower_tract_bladder`, ageGroup: `catheter_elderly`, behavior: `gram_pos_cocci_rod`,
+    entity: `Enterococcus faecalis`, badgeMeta: `Sector I • Bile-Esculin+`,
+    etiology: `Normal colonic flora Gram-positive cocci in chains; nosocomial UTI and post-GU/GI procedure bacteremia/endocarditis.`,
+    pathogenesis: `Biofilm formation on urinary catheters; intrinsic penicillin G resistance and ability to acquire vanA gene cluster (D-Ala-D-Lac) conferring vancomycin resistance (VRE).`,
+    hallmarks: `Gram+ cocci in pairs/chains; catalase-, PYR+, gamma-hemolytic (usually); grows in 6.5% NaCl and hydrolyzes bile esculin (black agar); nitrite-negative UA.`,
+    clinical: `Catheter-associated UTI in hospitalized older men post-cystoscopy/TURP; subacute infective endocarditis weeks after GU manipulation.`,
+    management: `Ampicillin (or ampicillin + gentamicin for endocarditis); VRE treated with linezolid or daptomycin (note daptomycin inactivated by lung surfactant, fine for UTI/bacteremia). Guild Secret: Intrinsically resistant to cephalosporins!`
+  },
+  {
+    lo: 4, sector: `sector_2`, tag: `Sector II`, compartment: `renal_pelvis_stones`, ageGroup: `catheter_elderly`, behavior: `gram_neg_rod`,
+    entity: `Proteus mirabilis`, badgeMeta: `Sector II • Staghorn Calculi`,
+    etiology: `Motile, facultatively anaerobic Gram-negative rod; chronic UTIs, neurogenic bladder, and indwelling urinary catheters.`,
+    pathogenesis: `Potent urease splits urea into NH3 + CO2 → alkaline urine (pH > 7.2) → precipitates Mg2+, NH4+, and PO4^3- into struvite (ammonium magnesium phosphate) stones.`,
+    hallmarks: `Swarming motility on blood agar; fishy/ammonia odor; urease+; non-lactose fermenter (colorless on MacConkey); coffin-lid shaped struvite crystals and staghorn renal pelvis calculus on KUB/CT.`,
+    clinical: `Recurrent flank pain, hematuria, alkaline urine with strong ammonia scent; stone harbors bacteria causing refractory relapsing UTIs.`,
+    management: `TMP-SMX, fluoroquinolone, or cephalosporin + surgical stone removal (PCNL) because antibiotics alone cannot sterilize inside a staghorn stone. Guild Secret: "Swarming" + "coffin-lid" + "alkaline pH" = Proteus.`
+  },
+  {
+    lo: 5, sector: `sector_2`, tag: `Sector II`, compartment: `renal_pelvis_stones`, ageGroup: `catheter_elderly`, behavior: `gram_neg_rod`,
+    entity: `Klebsiella pneumoniae`, badgeMeta: `Sector II • Mucoid Capsule`,
+    etiology: `Encapsulated, immotile enteric Gram-negative rod; hospitalized/catheterized patients, diabetics, and alcohol use disorder.`,
+    pathogenesis: `Thick polysaccharide capsule prevents phagocytosis and complement opsonization; produces urease (weaker than Proteus) and frequently carries ESBL or carbapenemase (KPC) plasmids.`,
+    hallmarks: `Large mucoid, lactose-fermenting pink colonies on MacConkey agar; Gram- rods with prominent clear halo; urease+, indole-, immotile.`,
+    clinical: `Nosocomial/catheter-associated UTI or pyelonephritis (can cause emphysematous pyelonephritis in diabetics) alongside classic lobar pneumonia risk.`,
+    management: `3rd-gen cephalosporin if susceptible; carbapenems (meropenem/imipenem) for ESBL-producing strains. Guild Secret: "Immotile + mucoid pink MacConkey + urease+" distinguishes Klebsiella from E. coli (motile, urease-).`
+  },
+  {
+    lo: 6, sector: `sector_2`, tag: `Sector II`, compartment: `lower_tract_bladder`, ageGroup: `catheter_elderly`, behavior: `gram_neg_rod`,
+    entity: `Pseudomonas aeruginosa`, badgeMeta: `Sector II • Blue-Green Pigment`,
+    etiology: `Obligate aerobic, motile Gram-negative rod; chronic indwelling Foley catheters, ICU patients, and structural uropathy.`,
+    pathogenesis: `Pyocyanin & pyoverdine generate ROS; Exotoxin A ADP-ribosylates EF-2 (halting protein synthesis); alginate biofilm coats catheters; Type III secretion injects cytotoxins.`,
+    hallmarks: `Non-lactose fermenter (colorless on MacConkey), oxidase+, blue-green pigment on agar with grape-like odor; negative nitrite dipstick (many strains reduce nitrate past nitrite to N2).`,
+    clinical: `Refractory hospital-acquired/catheter UTI; risk of ecthyma gangrenosum and Gram-negative septic shock in neutropenic hosts.`,
+    management: `Anti-pseudomonal beta-lactam (piperacillin-tazobactam, cefepime, ceftazidime, meropenem) or ciprofloxacin (only oral agent) + catheter removal. Guild Secret: Ciprofloxacin is the classic oral antipseudomonal UTI drug.`
+  },
+  {
+    lo: 7, sector: `sector_3`, tag: `Sector III`, compartment: `glomerular_interstitial`, ageGroup: `pediatric`, behavior: `gram_pos_cocci_rod`,
+    entity: `Streptococcus pyogenes (PSGN)`, badgeMeta: `Sector III • Nephritic Syndrome`,
+    etiology: `Group A beta-hemolytic streptococci (GAS); nephritogenic M-protein strains 2–4 weeks after pharyngitis or impetigo.`,
+    pathogenesis: `Type III hypersensitivity: circulating antigen-antibody immune complexes deposit in glomerular subepithelial space → complement activation (low C3) and neutrophil influx.`,
+    hallmarks: `Gram+ cocci in chains, bacitracin-sensitive, PYR+; LM: enlarged hypercellular glomeruli; IF: granular ("starry sky" / lumpy-bumpy) IgG & C3; EM: subepithelial humps; UA: dysmorphic RBCs & RBC casts.`,
+    clinical: `Child with cola-colored urine, periorbital edema, hypertension, and oliguria 2–3 weeks after sore throat or skin infection; elevated ASO / anti-DNase B titers.`,
+    management: `Supportive care (salt/fluid restriction, loop diuretics, antihypertensives); antibiotics do NOT prevent PSGN once initiated (treat acute GAS pharyngitis early to prevent RF). Guild Secret: Low C3 normalizes within 6–8 weeks.`
+  },
+  {
+    lo: 8, sector: `sector_3`, tag: `Sector III`, compartment: `glomerular_interstitial`, ageGroup: `transplant_travel`, behavior: `acid_fast_spirochete`,
+    entity: `Leptospira interrogans`, badgeMeta: `Sector III • Weil Disease`,
+    etiology: `Thin, hooked spirochete shed in rodent/dog/livestock urine; freshwater exposure (triathletes, surfers, floodwaters, Hawaii/tropics).`,
+    pathogenesis: `Enters abraded skin/mucosa → hematogenous dissemination → invades renal proximal tubules and hepatic sinusoids causing vasculitis, interstitial nephritis, and tubular necrosis.`,
+    hallmarks: `Question-mark shaped hooked ends seen on dark-field microscopy (poorly visualized on Gram stain); elevated bilirubin, AST/ALT, BUN/Cr, and CPK; sterile pyuria or hematuria.`,
+    clinical: `Biphasic illness: acute fever, myalgias (calves), and conjunctival suffusion → Weil disease (jaundice + acute kidney injury/azotemia + hemorrhage).`,
+    management: `Mild: doxycycline or amoxicillin; severe (Weil disease): IV penicillin G or ceftriaxone. Guild Secret: "Conjunctival suffusion + calf myalgia + jaundice + AKI after freshwater swimming" = Leptospirosis.`
+  },
+  {
+    lo: 9, sector: `sector_3`, tag: `Sector III`, compartment: `lower_tract_bladder`, ageGroup: `catheter_elderly`, behavior: `gram_pos_cocci_rod`,
+    entity: `Corynebacterium urealyticum`, badgeMeta: `Sector III • Encrusted Cystitis`,
+    etiology: `Slow-growing, lipophilic Gram-positive diphtheroid rod; elderly, debilitated, immunosuppressed, or post-urologic surgery patients.`,
+    pathogenesis: `Extremely potent urease splits urea → marked urinary alkalinization (pH > 8) → ammonium magnesium phosphate (struvite) & calcium phosphate encrustations embed into bladder urothelium.`,
+    hallmarks: `Pleomorphic Gram+ rods ("Chinese letters"); requires >48–72 hr incubation on routine agar; markedly alkaline urine (pH 8–9), struvite crystals, and calcified bladder mucosal plaques on CT.`,
+    clinical: `Chronic dysuria, gross hematuria, passage of gritty/calcified mucosal debris, and "culture-negative" alkaline cystitis on standard 24-hr plates.`,
+    management: `Glycopeptide (vancomycin or teicoplanin; multidrug-resistant to beta-lactams/fluoroquinolones) + urine acidification + endoscopic debulking of encrustations. Guild Secret: Think C. urealyticum when alkaline struvite cystitis has negative 24-hr cultures!`
+  },
+  {
+    lo: 10, sector: `sector_4`, tag: `Sector IV`, compartment: `glomerular_interstitial`, ageGroup: `transplant_travel`, behavior: `acid_fast_spirochete`,
+    entity: `Mycobacterium tuberculosis`, badgeMeta: `Sector IV • Sterile Pyuria`,
+    etiology: `Obligate aerobic acid-fast bacillus; hematogenous spread from primary pulmonary focus to renal cortex (genitourinary TB).`,
+    pathogenesis: `Mycolic acid cell wall + cord factor + sulfatides prevent phagolysosome fusion; Th1 caseating granulomas destroy renal papillae ("moth-eaten" calyces) and strictured ureters.`,
+    hallmarks: `Acid-fast bacilli (Ziehl-Neelsen/auramine-rhodamine) on early-morning urine; "sterile pyuria" (WBCs in urine with negative routine bacterial culture); calyceal blunting / autonephrectomy ("putty kidney") on CT.`,
+    clinical: `Painless gross hematuria, chronic frequency/dysuria unresponsive to standard UTI antibiotics, flank ache, and constitutional symptoms (night sweats, weight loss).`,
+    management: `RIPE therapy (Rifampin, Isoniazid, Pyrazinamide, Ethambutol) for 6 months (2m RIPE + 4m RI). Guild Secret: Persistent sterile pyuria + acidic urine + negative standard culture = Renal TB until proven otherwise (check 3 morning urines).`
+  },
+  {
+    lo: 11, sector: `sector_4`, tag: `Sector IV`, compartment: `renal_pelvis_stones`, ageGroup: `catheter_elderly`, behavior: `fungus_parasite`,
+    entity: `Candida albicans`, badgeMeta: `Sector IV • Fungus Ball`,
+    etiology: `Dimorphic budding yeast; indwelling Foley catheters, broad-spectrum antibiotics, poorly controlled diabetes mellitus, ICU patients.`,
+    pathogenesis: `Germ tube transition to pseudohyphae/hyphae enables tissue invasion and biofilm assembly on catheters, coalescing into obstructing fungal bezoars in the renal pelvis.`,
+    hallmarks: `KOH prep / UA showing budding yeasts and pseudohyphae; germ tube positive at 37°C in serum; ultrasound/CT showing non-shadowing echogenic mass (fungus ball) in collecting system.`,
+    clinical: `Asymptomatic candiduria (most common with Foley) vs. symptomatic cystitis or obstructive pyelonephritis from a sloughed fungal bezoar.`,
+    management: `Asymptomatic: remove catheter (no antifungal unless neutropenic/urologic procedure). Symptomatic UTI: oral fluconazole (achieves high urine levels—echinocandins do NOT!). Guild Secret: NEVER use caspofungin/micafungin for Candida UTI.`
+  },
+  {
+    lo: 12, sector: `sector_4`, tag: `Sector IV`, compartment: `lower_tract_bladder`, ageGroup: `transplant_travel`, behavior: `fungus_parasite`,
+    entity: `Schistosoma haematobium`, badgeMeta: `Sector IV • Bladder SCC`,
+    etiology: `Blood fluke (trematode); freshwater snail intermediate host (Bulinus) in Egypt / Sub-Saharan Africa; cercariae penetrate human skin.`,
+    pathogenesis: `Adult worms reside in perivesical venous plexus; egg deposition in bladder wall induces granulomatous inflammation, squamous metaplasia, and progression to squamous cell carcinoma.`,
+    hallmarks: `Oval trematode eggs in urine with a characteristic TERMINAL SPINE; eosinophilia; bladder wall calcifications ("porcelain bladder") on pelvic X-ray/CT; keratin pearls on biopsy if SCC develops.`,
+    clinical: `Painless terminal hematuria, dysuria, and obstructive uropathy in a patient from the Nile River valley or Sub-Saharan Africa.`,
+    management: `Praziquantel (increases Ca2+ permeability causing worm tegument paralysis/destruction); cystoscopy + biopsy to rule out bladder squamous cell carcinoma. Guild Secret: Terminal spine = S. haematobium (bladder); lateral spine = S. mansoni (GI).`
+  },
+  {
+    lo: 13, sector: `sector_5`, tag: `Sector V`, compartment: `transplant_allograft`, ageGroup: `transplant_travel`, behavior: `dna_virus`,
+    entity: `BK Polyomavirus`, badgeMeta: `Sector V • Decoy Cells`,
+    etiology: `Non-enveloped circular dsDNA polyomavirus; latent in renal tubular epithelium, reactivates 3–12 months post-kidney transplant under immunosuppression.`,
+    pathogenesis: `Intense T-cell immunosuppression (tacrolimus/MMF) permits lytic viral replication in tubular epithelial nuclei → tubulointerstitial nephritis and ureteral stenosis.`,
+    hallmarks: `Urine cytology "decoy cells" (enlarged epithelial cells with ground-glass basophilic intranuclear inclusions); SV40 immunostain positive on renal biopsy; rising serum creatinine + BK viremia.`,
+    clinical: `Asymptomatic gradual rise in serum creatinine in a renal transplant recipient without fever (mimics acute cellular rejection).`,
+    management: `REDUCE immunosuppression (first-line!) rather than increasing steroids; cidofovir/leflunomide reserved for refractory cases. Guild Secret: Biopsy/SV40 separates BK nephropathy (reduce immunosuppression) from acute rejection (increase steroids).`
+  },
+  {
+    lo: 14, sector: `sector_5`, tag: `Sector V`, compartment: `transplant_allograft`, ageGroup: `transplant_travel`, behavior: `dna_virus`,
+    entity: `Cytomegalovirus (CMV)`, badgeMeta: `Sector V • Owl-Eye Nephritis`,
+    etiology: `Enveloped linear dsDNA herpesvirus (HHV-5); D+/R- solid organ transplant recipients, HIV/AIDS (CD4 < 50).`,
+    pathogenesis: `Latency in mononuclear cells; reactivation drives viremia and direct cytopathic infection of glomerular capillary endothelial and tubular epithelial cells.`,
+    hallmarks: `Cytomegaly with large basophilic intranuclear inclusions surrounded by a clear halo ("owl-eye" appearance) on renal biopsy; quantitative CMV PCR viremia.`,
+    clinical: `Fever, leukopenia, thrombocytopenia, transaminitis, and allograft dysfunction (proteinuria/rising Cr) 1–6 months post-transplant.`,
+    management: `IV ganciclovir or oral valganciclovir (monophosphate via viral UL97 kinase → inhibits viral DNA polymerase); foscarnet or cidofovir if UL97-resistant. Guild Secret: Ganciclovir causes neutropenia; foscarnet causes nephrotoxicity & hypocalcemia.`
+  },
+  {
+    lo: 15, sector: `sector_5`, tag: `Sector V`, compartment: `lower_tract_bladder`, ageGroup: `pediatric`, behavior: `dna_virus`,
+    entity: `Adenovirus (Serotypes 11 & 21)`, badgeMeta: `Sector V • Hemorrhagic Cystitis`,
+    etiology: `Non-enveloped linear dsDNA virus; immunocompetent children/military recruits and pediatric hematopoietic stem cell transplant (HSCT) recipients.`,
+    pathogenesis: `Direct viral lytic replication in bladder urothelium causes mucosal sloughing, submucosal edema, and diffuse capillary hemorrhage.`,
+    hallmarks: `Gross hematuria with blood clots, negative routine bacterial/fungal urine cultures, smudge cells (basophilic intranuclear inclusions) on urine cytology, positive urine Adenovirus PCR.`,
+    clinical: `Sudden onset severe dysuria, frequency, and gross painless/painful hematuria with clots in a child or post-HSCT patient.`,
+    management: `Supportive hydration & bladder irrigation in immunocompetent children (self-limited); cidofovir + reduced immunosuppression in severe HSCT disease. Guild Secret: Distinguish infectious hemorrhagic cystitis (Adenovirus 11/21, BK) from cyclophosphamide toxicity (prevent with Mesna).`
+  }
+];
+
+const ALL_QUESTIONS = [
+  // LO 1: Uropathogenic E. coli
+  {
+    id: `RN01-Q1`, lo: 1, sector: `sector_1`, compartment: `lower_tract_bladder`, ageGroup: `young_adult`, behavior: `gram_neg_rod`,
+    loTitle: `Sector I • Uropathogenic E. coli`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Uropathogenic Escherichia coli`,
+    stem: `A 24-year-old woman presents with 2 days of dysuria, urinary urgency, and suprapubic discomfort. She is afebrile without flank pain. Urinalysis reveals positive leukocyte esterase, positive nitrites, and >50 WBC/hpf. Which pathogen is most likely responsible?`,
+    clue: `Think of the #1 overall cause of uncomplicated cystitis that reduces urinary nitrates to nitrites.`,
+    choices: [`Uropathogenic Escherichia coli`, `Staphylococcus saprophyticus`, `Enterococcus faecalis`],
+    correctIndex: 0,
+    explanation: `Correct: Uropathogenic E. coli accounts for ~80% of community-acquired uncomplicated cystitis and is nitrite-positive. Distractor exclusion: S. saprophyticus and E. faecalis are Gram-positive cocci that lack nitrate reductase and produce nitrite-negative urinalyses.`,
+    secondOrderClue: `Uncomplicated cystitis + Positive Nitrites -> Gram-negative enteric rod (#1 E. coli).`,
+    phase1Pearl: `Type 1 pili bind D-mannose residues on bladder uroepithelium during lower tract cystitis.`,
+    phase2Hallmark: `Lactose-fermenting pink colonies on MacConkey agar and metallic green sheen on EMB agar.`,
+    phase3Secret: `Treat uncomplicated cystitis with nitrofurantoin (5 days) or TMP-SMX (3 days); avoid nitrofurantoin if pyelonephritis is suspected.`,
+    dossierBullets: {
+      p1: [`Type 1 pili mediate bladder adherence; P-fimbriae mediate renal parenchymal ascent.`, `Capsular K antigen confers antiphagocytic resistance.`],
+      p2: [`Metallic green sheen on EMB agar; pink lactose+ colonies on MacConkey.`, `Positive leukocyte esterase and positive urine nitrites.`],
+      p3: [`First-line uncomplicated cystitis: nitrofurantoin or TMP-SMX.`, `Never use nitrofurantoin for pyelonephritis (poor parenchymal penetration).`]
+    }
+  },
+  {
+    id: `RN01-Q2`, lo: 1, sector: `sector_1`, compartment: `lower_tract_bladder`, ageGroup: `young_adult`, behavior: `gram_neg_rod`,
+    loTitle: `Sector I • Uropathogenic E. coli`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `P-fimbriae (Pyelonephritis pili)`,
+    stem: `A 26-year-old woman develops fever (39.1°C), chills, right flank pain, and CVA tenderness 4 days after untreated dysuria. Urine culture grows >100,000 CFU/mL of a lactose-fermenting Gram-negative rod. Which bacterial virulence factor specifically enables ascension to the renal parenchyma against urinary flow?`,
+    clue: `This adhesin binds Gal-Gal glycolipids on renal tubular epithelial cells to trigger upper tract disease.`,
+    choices: [`P-fimbriae binding Gal-Gal receptors`, `Potent cytoplasmic urease enzyme`, `Exotoxin A inhibiting EF-2`],
+    correctIndex: 0,
+    explanation: `Correct: P-fimbriae (pyelonephritis-associated pili) bind Gal-Gal disaccharide receptors on renal uroepithelium, enabling ascending pyelonephritis. Distractor exclusion: Potent urease causing struvite stones characterizes Proteus mirabilis, while Exotoxin A is produced by Pseudomonas aeruginosa.`,
+    secondOrderClue: `Ascending E. coli cystitis -> Pyelonephritis = P-fimbriae (P for Pyelonephritis).`,
+    phase1Pearl: `P-fimbriae resist shear washout by urine flow and stimulate IL-8 chemokine recruitment of neutrophils.`,
+    phase2Hallmark: `Urinalysis in pyelonephritis demonstrates WBC casts (distinguishing upper from lower UTI).`,
+    phase3Secret: `Outpatient pyelonephritis is treated with ciprofloxacin/levofloxacin; inpatient/pregnant patients receive IV ceftriaxone.`,
+    dossierBullets: {
+      p1: [`P-fimbriae bind Gal-Gal glycosphingolipids on renal epithelium.`, `LPS lipid A triggers TLR4-mediated fever and systemic inflammation.`],
+      p2: [`WBC casts on urinalysis localize infection to renal tubules.`, `Motile, indole+, catalase+, oxidase- Gram-negative rod.`],
+      p3: [`Use fluoroquinolone or IV ceftriaxone for acute pyelonephritis.`, `Check renal ultrasound if fever persists >48–72 hours to rule out abscess.`]
+    }
+  },
+  {
+    id: `RN01-Q3`, lo: 1, sector: `sector_1`, compartment: `lower_tract_bladder`, ageGroup: `young_adult`, behavior: `gram_neg_rod`,
+    loTitle: `Sector I • Uropathogenic E. coli`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Metallic green sheen on EMB`,
+    stem: `A urine specimen from a patient with acute pyelonephritis is plated on Eosin Methylene Blue (EMB) agar and MacConkey agar. Rapid lactose fermentation produces a strong acidic drop on EMB. Which colony morphology confirms the most likely causative organism?`,
+    clue: `Rapid acid fermentation of lactose by E. coli precipitates the EMB dye into a classic iridescent surface.`,
+    choices: [`Metallic green sheen colonies`, `Swarming concentric waves`, `Blue-green pyocyanin colonies`],
+    correctIndex: 0,
+    explanation: `Correct: E. coli vigorously ferments lactose, producing a metallic green sheen on EMB agar and pink colonies on MacConkey agar. Distractor exclusion: Swarming motility is classic for non-lactose-fermenting Proteus mirabilis, and blue-green pyocyanin is produced by Pseudomonas aeruginosa.`,
+    secondOrderClue: `Lactose-fermenting Gram- rod + EMB agar -> Metallic green sheen (E. coli).`,
+    phase1Pearl: `MacConkey agar contains bile salts and crystal violet to select Gram-negatives and neutral red to detect lactose fermentation.`,
+    phase2Hallmark: `E. coli produces flat pink MacConkey colonies (vs. mucoid pink Klebsiella) and green sheen on EMB.`,
+    phase3Secret: `Screen for extended-spectrum beta-lactamase (ESBL) resistance in recurrent healthcare-associated E. coli UTIs; treat ESBL with carbapenems.`,
+    dossierBullets: {
+      p1: [`Beta-galactosidase cleaves lactose to drive rapid acid production.`, `Distinguishes E. coli from slower lactose fermenters (Enterobacter/Klebsiella).`],
+      p2: [`EMB agar: metallic green sheen; MacConkey agar: dry pink colonies.`, `Indole positive (Kovac reagent red ring).`],
+      p3: [`Oral fosfomycin or nitrofurantoin for uncomplicated ESBL cystitis.`, `Carbapenems (ertapenem/meropenem) for ESBL pyelonephritis.`]
+    }
+  },
+
+  // LO 2: Staphylococcus saprophyticus
+  {
+    id: `RN02-Q1`, lo: 2, sector: `sector_1`, compartment: `lower_tract_bladder`, ageGroup: `young_adult`, behavior: `gram_pos_cocci_rod`,
+    loTitle: `Sector I • S. saprophyticus`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Staphylococcus saprophyticus`,
+    stem: `A 21-year-old college student presents with 24 hours of burning urination and frequency after returning from a weekend trip with her partner. She has no fever or CVA tenderness. Urine dipstick is positive for leukocyte esterase and negative for nitrites; Gram stain shows Gram-positive cocci in clusters. What is the most likely organism?`,
+    clue: `This #2 cause of UTI in young sexually active women is a Gram+ coccus that is nitrite-negative.`,
+    choices: [`Staphylococcus saprophyticus`, `Streptococcus agalactiae`, `Proteus mirabilis`],
+    correctIndex: 0,
+    explanation: `Correct: Staphylococcus saprophyticus is the second most common cause of uncomplicated cystitis in young sexually active women and yields negative urine nitrites. Distractor exclusion: S. agalactiae (GBS) forms chains rather than clusters and is rare in healthy young non-pregnant cystitis; P. mirabilis is a Gram-negative rod.`,
+    secondOrderClue: `Young sexually active woman + Nitrite(-) cystitis + Gram+ clusters -> S. saprophyticus.`,
+    phase1Pearl: `Surface adhesins bind lactosamine/urothelial glycoproteins after sexual intercourse ("honeymoon cystitis").`,
+    phase2Hallmark: `Catalase-positive, coagulase-negative Gram+ cocci in clusters; resistant to novobiocin.`,
+    phase3Secret: `Treat with nitrofurantoin or TMP-SMX; advise post-coital voiding to reduce recurrence.`,
+    dossierBullets: {
+      p1: [`Second leading cause of uncomplicated UTI in sexually active young women.`, `Lacks nitrate reductase, explaining the negative nitrite dipstick.`],
+      p2: [`Gram-positive cocci in clusters; catalase+, coagulase-.`, `Novobiocin resistant (unlike S. epidermidis).`],
+      p3: [`Uncomplicated cystitis responds to 3-day TMP-SMX or 5-day nitrofurantoin.`, `Negative nitrites never exclude Gram-positive UTI.`]
+    }
+  },
+  {
+    id: `RN02-Q2`, lo: 2, sector: `sector_1`, compartment: `lower_tract_bladder`, ageGroup: `young_adult`, behavior: `gram_pos_cocci_rod`,
+    loTitle: `Sector I • S. saprophyticus`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Absence of nitrate reductase`,
+    stem: `A 23-year-old woman is diagnosed with uncomplicated cystitis due to Staphylococcus saprophyticus. Her urine dipstick strongly reacted for leukocyte esterase, yet the nitrite pad remained completely white. Which microbial property explains the negative nitrite result?`,
+    clue: `Dipstick nitrite pads detect conversion of dietary nitrates by Gram-negative enteric bacilli.`,
+    choices: [`Absence of bacterial nitrate reductase`, `Rapid destruction of nitrites by urease`, `Inhibition of dipstick reagent by capsule`],
+    correctIndex: 0,
+    explanation: `Correct: Gram-positive cocci such as S. saprophyticus and Enterococcus lack nitrate reductase and cannot convert urinary nitrate to nitrite. Distractor exclusion: Urease converts urea to ammonia rather than destroying nitrites, and S. saprophyticus does not mask the reagent via a capsule.`,
+    secondOrderClue: `Leukocyte esterase(+) + Nitrite(-) + Pyuria -> Suspect Gram+ cocci (S. saprophyticus / Enterococcus) or Chlamydia.`,
+    phase1Pearl: `Enterobacteriaceae reduce dietary NO3- to NO2- during 4+ hours of bladder dwell time; Gram-positives lack this pathway.`,
+    phase2Hallmark: `Leukocyte esterase detects esterases released from lysed neutrophils (pyuria) regardless of pathogen Gram stain.`,
+    phase3Secret: `Always obtain or interpret clinical context alongside dipstick—empiric therapy for dysuria still covers S. saprophyticus when nitrites are negative.`,
+    dossierBullets: {
+      p1: [`Gram-positive uropathogens lack nitrate reductase.`, `Short bladder dwell time (<4 hours) can also yield false-negative nitrites.`],
+      p2: [`Leukocyte esterase remains positive due to host neutrophil recruitment.`, `S. saprophyticus also possesses mild urease activity.`],
+      p3: [`Do not withhold UTI treatment solely for a negative nitrite strip.`, `Nitrofurantoin covers both E. coli and S. saprophyticus.`]
+    }
+  },
+  {
+    id: `RN02-Q3`, lo: 2, sector: `sector_1`, compartment: `lower_tract_bladder`, ageGroup: `young_adult`, behavior: `gram_pos_cocci_rod`,
+    loTitle: `Sector I • S. saprophyticus`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Novobiocin resistance`,
+    stem: `A microbiology lab isolates catalase-positive, coagulase-negative Gram-positive cocci in clusters from a midstream urine culture (>100,000 CFU/mL) of a 22-year-old woman. Which disk diffusion test definitively differentiates Staphylococcus saprophyticus from Staphylococcus epidermidis?`,
+    clue: `Remember the mnemonic: "S. epidermidis is Sensitive, S. saprophyticus is Resistant" (Wait—No! Actually NOvo = NO resistance for epidermidis; Saprophyticus is Resistant!).`,
+    choices: [`Novobiocin resistance`, `Bacitracin sensitivity`, `Optochin sensitivity`],
+    correctIndex: 0,
+    explanation: `Correct: S. saprophyticus is novobiocin-resistant (zone <=16 mm), whereas S. epidermidis is novobiocin-sensitive. Distractor exclusion: Bacitracin differentiates Group A Strep (sensitive) from Group B Strep (resistant), and optochin differentiates S. pneumoniae (sensitive) from viridans strep.`,
+    secondOrderClue: `Catalase+ Coagulase- Staph in urine + Novobiocin-Resistant -> S. saprophyticus.`,
+    phase1Pearl: `Coagulase-negative staphylococci require novobiocin testing when isolated from urine to separate true uropathogen (S. saprophyticus) from skin/catheter colonizer (S. epidermidis).`,
+    phase2Hallmark: `No zone of inhibition around the novobiocin disk confirms S. saprophyticus; gamma-hemolytic white colonies on blood agar.`,
+    phase3Secret: `Unlike S. epidermidis catheter infections (often requiring vancomycin), uncomplicated S. saprophyticus cystitis is readily treated orally with TMP-SMX or nitrofurantoin.`,
+    dossierBullets: {
+      p1: [`Catalase+ separates Staph from Strep; Coagulase- separates from S. aureus.`],
+      p2: [`Novobiocin resistant = S. saprophyticus; Novobiocin sensitive = S. epidermidis.`],
+      p3: [`Treat uncomplicated cystitis orally; reserve vancomycin for S. epidermidis prosthetic/line infections.`]
+    }
+  },
+
+  // LO 3: Enterococcus faecalis
+  {
+    id: `RN03-Q1`, lo: 3, sector: `sector_1`, compartment: `lower_tract_bladder`, ageGroup: `catheter_elderly`, behavior: `gram_pos_cocci_rod`,
+    loTitle: `Sector I • Enterococcus faecalis`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Enterococcus faecalis`,
+    stem: `A 71-year-old man develops dysuria, low-grade fever, and urinary frequency 4 days after transurethral resection of the prostate (TURP) with indwelling Foley catheterization. Urine Gram stain reveals Gram-positive cocci in pairs and short chains. Cultures grow in 6.5% NaCl and turn bile-esculin agar black. Which pathogen is responsible?`,
+    clue: `Colonic flora Gram+ cocci in chains that thrive in hypertonic salt and bile following GU instrumentation.`,
+    choices: [`Enterococcus faecalis`, `Streptococcus gallolyticus`, `Staphylococcus epidermidis`],
+    correctIndex: 0,
+    explanation: `Correct: Enterococcus faecalis grows in 6.5% NaCl and hydrolyzes bile esculin, classically causing UTI and endocarditis after GU/GI procedures. Distractor exclusion: S. gallolyticus (S. bovis) is bile-esculin+ but does NOT grow in 6.5% NaCl and links to colon cancer; S. epidermidis grows in clusters and is catalase+.`,
+    secondOrderClue: `Post-GU procedure UTI + 6.5% NaCl(+) + Bile-esculin(+) -> Enterococcus faecalis.`,
+    phase1Pearl: `Resilience to bile salts and 6.5% NaCl reflects enteric adaptation and permits survival on hospitalized mucosal/catheter surfaces.`,
+    phase2Hallmark: `Catalase-negative, PYR-positive, gamma-hemolytic Gram+ cocci in chains; blackening of bile-esculin agar.`,
+    phase3Secret: `Remove/replace Foley catheter and treat susceptible E. faecalis with ampicillin or amoxicillin (nitrofurantoin/fosfomycin for uncomplicated cystitis).`,
+    dossierBullets: {
+      p1: [`Normal GI commensal causing nosocomial UTI and subacute endocarditis post-GU manipulation.`],
+      p2: [`Grows in 6.5% NaCl AND bile esculin (vs. S. gallolyticus which fails 6.5% NaCl).`, `PYR positive, catalase negative.`],
+      p3: [`Ampicillin is first-line for susceptible Enterococcus; use linezolid or daptomycin for VRE.`]
+    }
+  },
+  {
+    id: `RN03-Q2`, lo: 3, sector: `sector_1`, compartment: `lower_tract_bladder`, ageGroup: `catheter_elderly`, behavior: `gram_pos_cocci_rod`,
+    loTitle: `Sector I • Enterococcus faecalis`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `D-Ala-D-Lac peptidoglycan alteration`,
+    stem: `A 68-year-old ICU patient with a prolonged Foley catheter develops urosepsis from vancomycin-resistant Enterococcus faecium (VRE). Which molecular mechanism explains resistance to vancomycin in this isolate?`,
+    clue: `Vancomycin normally binds the D-Ala-D-Ala terminus of peptidoglycan pentapeptide precursors.`,
+    choices: [`Substitution of D-Ala-D-Ala with D-Ala-D-Lac`, `Beta-lactamase cleavage of glycopeptide ring`, `30S ribosomal subunit methylation`],
+    correctIndex: 0,
+    explanation: `Correct: The vanA operon replaces terminal D-Ala-D-Ala with D-Ala-D-Lac, eliminating a critical hydrogen bond required for vancomycin binding. Distractor exclusion: Beta-lactamases cleave beta-lactams (not glycopeptides like vancomycin), and ribosomal methylation confers macrolide/aminoglycoside resistance.`,
+    secondOrderClue: `VRE resistance mechanism -> D-Ala-D-Ala becomes D-Ala-D-Lac (vanA gene).`,
+    phase1Pearl: `Replacing the terminal amide with an ester oxygen (D-Lac) lowers vancomycin affinity ~1,000-fold.`,
+    phase2Hallmark: `VRE colonies persist on bile-esculin azide agar supplemented with vancomycin; PYR+.`,
+    phase3Secret: `Treat VRE UTI/bacteremia with linezolid or daptomycin (avoid cephalosporins—all enterococci are intrinsically cephalosporin-resistant).`,
+    dossierBullets: {
+      p1: [`vanA gene cluster converts D-Ala-D-Ala -> D-Ala-D-Lac.`, `Loss of H-bond prevents vancomycin steric blockade of transglycosylation.`],
+      p2: [`Intrinsically resistant to all cephalosporins due to low-affinity PBPs.`],
+      p3: [`VRE therapy: linezolid or daptomycin.`, `Always remove infected urinary catheters to clear biofilm.`]
+    }
+  },
+  {
+    id: `RN03-Q3`, lo: 3, sector: `sector_1`, compartment: `lower_tract_bladder`, ageGroup: `catheter_elderly`, behavior: `gram_pos_cocci_rod`,
+    loTitle: `Sector I • Enterococcus faecalis`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Intrinsic cephalosporin resistance`,
+    stem: `A 75-year-old hospitalized woman started on IV ceftriaxone for suspected urosepsis continues to have fever and bacteremia. Blood and urine cultures grow Gram-positive cocci in chains that are PYR-positive and grow in 6.5% NaCl. Why did empiric ceftriaxone fail?`,
+    clue: `Enterococci possess low-affinity penicillin-binding proteins (PBP5) that do not bind a major beta-lactam class.`,
+    choices: [`Intrinsic resistance to all cephalosporins`, `Rapid inactivation of ceftriaxone by urease`, `Intracellular sequestration inside macrophages`],
+    correctIndex: 0,
+    explanation: `Correct: Enterococci are intrinsically resistant to ALL cephalosporins (including ceftriaxone and cefepime) because of low-affinity PBPs. Distractor exclusion: Urease does not degrade ceftriaxone, and Enterococcus is an extracellular pathogen.`,
+    secondOrderClue: `Breakthrough UTI/bacteremia on ceftriaxone + PYR+ 6.5% NaCl+ -> Enterococcus (switch to Ampicillin).`,
+    phase1Pearl: `Cephalosporin monotherapy selects for enterococcal superinfection in hospitalized catheterized patients.`,
+    phase2Hallmark: `Enterococci are PYR+ and non-hemolytic (gamma) or alpha-hemolytic on blood agar.`,
+    phase3Secret: `Switch to ampicillin (+ gentamicin if endocarditis is confirmed) or vancomycin if ampicillin-resistant.`,
+    dossierBullets: {
+      p1: [`Low-affinity PBP5 renders all cephalosporins ineffective against Enterococcus.`],
+      p2: [`PYR+, bile-esculin+, 6.5% NaCl+ confirms Enterococcus over Group D non-enterococci.`],
+      p3: [`Ampicillin is drug of choice for susceptible E. faecalis; avoid cephalosporin monotherapy.`]
+    }
+  },
+
+  // LO 4: Proteus mirabilis
+  {
+    id: `RN04-Q1`, lo: 4, sector: `sector_2`, compartment: `renal_pelvis_stones`, ageGroup: `catheter_elderly`, behavior: `gram_neg_rod`,
+    loTitle: `Sector II • Proteus mirabilis`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Proteus mirabilis`,
+    stem: `A 58-year-old man with spina bifida and chronic intermittent catheterization presents with recurrent right flank pain and foul-smelling urine. Urinalysis shows pH 8.0 and rectangular "coffin-lid" crystals. Non-contrast CT shows a large branching calculus filling the right renal pelvis. Which pathogen is most likely responsible?`,
+    clue: `Swarming Gram-negative rod whose potent urease creates alkaline urine and staghorn struvite stones.`,
+    choices: [`Proteus mirabilis`, `Escherichia coli`, `Pseudomonas aeruginosa`],
+    correctIndex: 0,
+    explanation: `Correct: Proteus mirabilis produces potent urease that alkalinizes urine (pH > 7.2) and precipitates magnesium ammonium phosphate (struvite) staghorn calculi. Distractor exclusion: E. coli is urease-negative, and Pseudomonas is rarely associated with struvite staghorn stones.`,
+    secondOrderClue: `Alkaline urine (pH 8.0) + Coffin-lid crystals + Staghorn stone -> Proteus mirabilis.`,
+    phase1Pearl: `Urease hydrolyzes urea into 2 NH3 + CO2; NH3 consumes H+ to form NH4+, sharply elevating urine pH.`,
+    phase2Hallmark: `Coffin-lid struvite crystals on microscopy; radiopaque branching staghorn calculus on KUB/CT.`,
+    phase3Secret: `Both antimicrobial therapy (TMP-SMX or fluoroquinolone) AND surgical stone clearance (PCNL) are required to prevent relapse.`,
+    dossierBullets: {
+      p1: [`Urease splits urea -> NH3 + CO2 -> pH > 7.2 -> precipitates MgNH4PO4.`],
+      p2: [`Coffin-lid crystals + branching staghorn calculus in renal pelvis.`],
+      p3: [`Antibiotics alone cannot sterilize stone core; surgical extraction is mandatory.`]
+    }
+  },
+  {
+    id: `RN04-Q2`, lo: 4, sector: `sector_2`, compartment: `renal_pelvis_stones`, ageGroup: `catheter_elderly`, behavior: `gram_neg_rod`,
+    loTitle: `Sector II • Proteus mirabilis`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Urease-driven urinary alkalinization`,
+    stem: `A 64-year-old woman with a chronic suprapubic catheter develops recurrent Proteus mirabilis bacteriuria and rapid formation of a large renal pelvis calculus. What biochemical change directly precipitates magnesium, ammonium, and phosphate ions into a staghorn stone?`,
+    clue: `Hydrolysis of urinary urea releases ammonia, shifting urinary pH above 7.2.`,
+    choices: [`Urease hydrolysis of urea raising urine pH`, `Excess oxalate generation from bacterial glyoxylate`, `Acidification of urine below pH 5.0`],
+    correctIndex: 0,
+    explanation: `Correct: Bacterial urease converts urea into ammonia and carbon dioxide, raising urine pH > 7.2 and decreasing solubility of magnesium ammonium phosphate (struvite). Distractor exclusion: Oxalate stones form independently of urease, and acidic urine (<5.5) precipitates uric acid or cystine stones, not struvite.`,
+    secondOrderClue: `Urea + H2O --(urease)--> 2 NH3 + CO2 -> Alkaline urine -> Struvite precipitation.`,
+    phase1Pearl: `Proteus also expresses peritrichous flagella that drive "swarming" motility up catheters and ureters.`,
+    phase2Hallmark: `Struvite stones are radiopaque on plain KUB X-ray (unlike radiolucent uric acid stones).`,
+    phase3Secret: `Avoid urinary alkalinizing agents (potassium citrate) in struvite stone formers; control infection and remove stone burden.`,
+    dossierBullets: {
+      p1: [`Urease raises urine pH > 7.2, supplying NH4+ and supersaturating PO4^3-.`],
+      p2: [`Radiopaque staghorn calculus; coffin-lid prism crystals.`],
+      p3: [`Treat infection + perform percutaneous nephrolithotomy (PCNL) for complete clearance.`]
+    }
+  },
+  {
+    id: `RN04-Q3`, lo: 4, sector: `sector_2`, compartment: `renal_pelvis_stones`, ageGroup: `catheter_elderly`, behavior: `gram_neg_rod`,
+    loTitle: `Sector II • Proteus mirabilis`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Swarming motility on agar`,
+    stem: `A urine sample with a pungent ammonia odor is streaked onto blood agar and incubated overnight. The next morning, concentric rings of bacterial growth cover the entire plate surface, and colonies on MacConkey agar are colorless. Which hallmark confirms Proteus mirabilis?`,
+    clue: `Hyperflagellated swarmer cells migrate across solid agar surfaces in rhythmic concentric waves.`,
+    choices: [`Swarming motility and non-lactose fermentation`, `Mucoid pink colonies and immotility`, `Blue-green pigment and oxidase positivity`],
+    correctIndex: 0,
+    explanation: `Correct: Proteus mirabilis displays classic concentric swarming motility on blood agar and is a non-lactose fermenter (colorless on MacConkey) and oxidase-negative. Distractor exclusion: Mucoid pink immotile colonies indicate Klebsiella pneumoniae, and blue-green oxidase+ colonies indicate Pseudomonas aeruginosa.`,
+    secondOrderClue: `Ammonia odor + Swarming blood agar + Colorless MacConkey -> Proteus mirabilis.`,
+    phase1Pearl: `Swarmer-cell differentiation increases flagellar density over 10-fold, accelerating catheter biofilm migration.`,
+    phase2Hallmark: `Swarming waves on blood agar; colorless colonies on MacConkey; H2S+ on TSI agar.`,
+    phase3Secret: `Note that Proteus mirabilis is intrinsically resistant to nitrofurantoin and polymyxins—choose TMP-SMX, cephalosporins, or fluoroquinolones instead!`,
+    dossierBullets: {
+      p1: [`Peritrichous flagella mediate concentric swarming across agar and catheters.`],
+      p2: [`Non-lactose fermenter (colorless MacConkey); urease+; H2S+.`],
+      p3: [`Intrinsic resistance to nitrofurantoin—use TMP-SMX, ciprofloxacin, or ceftriaxone.`]
+    }
+  },
+
+  // LO 5: Klebsiella pneumoniae
+  {
+    id: `RN05-Q1`, lo: 5, sector: `sector_2`, compartment: `renal_pelvis_stones`, ageGroup: `catheter_elderly`, behavior: `gram_neg_rod`,
+    loTitle: `Sector II • Klebsiella pneumoniae`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Klebsiella pneumoniae`,
+    stem: `A 66-year-old man with poorly controlled type 2 diabetes mellitus and an indwelling Foley catheter develops high fever, flank pain, and sepsis. CT abdomen reveals gas within the right renal parenchyma (emphysematous pyelonephritis). Urine culture grows large, mucoid pink colonies on MacConkey agar that are urease-positive and immotile. Which organism is isolated?`,
+    clue: `Think of the encapsulated, immotile, lactose-fermenting Gram-negative rod that is weakly urease-positive.`,
+    choices: [`Klebsiella pneumoniae`, `Proteus mirabilis`, `Pseudomonas aeruginosa`],
+    correctIndex: 0,
+    explanation: `Correct: Klebsiella pneumoniae is an immotile, urease-positive, heavily encapsulated Gram-negative rod forming large mucoid pink colonies on MacConkey agar. Distractor exclusion: P. mirabilis and P. aeruginosa are motile and non-lactose fermenting (colorless on MacConkey).`,
+    secondOrderClue: `Diabetic emphysematous pyelonephritis + Mucoid pink MacConkey + Immotile + Urease+ -> Klebsiella.`,
+    phase1Pearl: `Thick polysaccharide capsule prevents C3b opsonization and macrophage phagocytosis; glucose fermentation in diabetics generates parenchymal gas.`,
+    phase2Hallmark: `Large wet mucoid pink colonies on MacConkey agar; clear peribacillary halo on India ink/capsule stain.`,
+    phase3Secret: `Start IV carbapenem or 3rd/4th-gen cephalosporin + urgent percutaneous drainage/urologic consultation for emphysematous pyelonephritis.`,
+    dossierBullets: {
+      p1: [`Thick polysaccharide capsule is primary antiphagocytic virulence factor.`],
+      p2: [`Mucoid lactose-fermenting pink colonies on MacConkey; immotile; urease+.`],
+      p3: [`Frequently harbors ESBL or KPC carbapenemase—check susceptibility before narrowing.`]
+    }
+  },
+  {
+    id: `RN05-Q2`, lo: 5, sector: `sector_2`, compartment: `renal_pelvis_stones`, ageGroup: `catheter_elderly`, behavior: `gram_neg_rod`,
+    loTitle: `Sector II • Klebsiella pneumoniae`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Polysaccharide capsule evading phagocytosis`,
+    stem: `A hospitalized 72-year-old woman develops nosocomial pyelonephritis from a Klebsiella pneumoniae strain resistant to ceftriaxone. In addition to extended-spectrum beta-lactamase production, which structural feature is most responsible for its ability to evade splenic and renal macrophage clearance?`,
+    clue: `This bulky outer carbohydrate layer creates the glistening, stringy mucoid appearance on agar.`,
+    choices: [`Thick antiphagocytic polysaccharide capsule`, `Peritrichous flagella driving swarming`, `Poly-D-glutamate polypeptide capsule`],
+    correctIndex: 0,
+    explanation: `Correct: Klebsiella pneumoniae possesses a prominent polysaccharide capsule that blocks phagocytosis and complement deposition. Distractor exclusion: Klebsiella is immotile (no flagella), and Bacillus anthracis is the organism with a poly-D-glutamate polypeptide capsule.`,
+    secondOrderClue: `Mucoid colonies + Evasion of opsonization -> Klebsiella polysaccharide capsule.`,
+    phase1Pearl: `Capsular serotypes K1/K2 inhibit macrophage ingestion and confer hypermucoviscosity (positive "string test").`,
+    phase2Hallmark: `Immotile encapsulated Gram-negative rods; indole-negative and methyl-red negative (Voges-Proskauer+).`,
+    phase3Secret: `ESBL-producing Klebsiella hydrolyzes penicillins and 1st–3rd gen cephalosporins; treat invasive UTI with a carbapenem (meropenem).`,
+    dossierBullets: {
+      p1: [`Polysaccharide capsule blocks C3b binding and phagocytosis.`],
+      p2: [`Positive string test (>5 mm viscous filament) in hypermucoviscous strains.`],
+      p3: [`ESBL strains require carbapenems; KPC carbapenemase strains require ceftazidime-avibactam.`]
+    }
+  },
+  {
+    id: `RN05-Q3`, lo: 5, sector: `sector_2`, compartment: `renal_pelvis_stones`, ageGroup: `catheter_elderly`, behavior: `gram_neg_rod`,
+    loTitle: `Sector II • Klebsiella pneumoniae`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Carbapenem (Meropenem / Ertapenem)`,
+    stem: `A 79-year-old nursing home resident with an indwelling Foley catheter develops febrile UTI. Blood and urine cultures grow mucoid pink MacConkey colonies of Klebsiella pneumoniae. Susceptibility testing confirms extended-spectrum beta-lactamase (ESBL) production with resistance to ceftriaxone, cefepime, and ciprofloxacin. What is the first-line IV antibiotic?`,
+    clue: `Beta-lactam class intrinsically stable against ESBL hydrolysis.`,
+    choices: [`Meropenem`, `Ceftazidime`, `Ampicillin-sulbactam`],
+    correctIndex: 0,
+    explanation: `Correct: Carbapenems (meropenem, imipenem, ertapenem) are first-line therapy for invasive ESBL-producing Klebsiella infections. Distractor exclusion: Ceftazidime is hydrolyzed by ESBLs, and ampicillin-sulbactam lacks reliable clinical efficacy against ESBL pyelonephritis/bacteremia.`,
+    secondOrderClue: `ESBL Klebsiella bacteremia/pyelonephritis -> Carbapenem (Meropenem).`,
+    phase1Pearl: `ESBLs are plasmid-encoded beta-lactamases that hydrolyze oxyimino-cephalosporins (ceftriaxone, ceftazidime) and aztreonam.`,
+    phase2Hallmark: `Phenotypic ESBL confirmation shows >=5 mm zone restoration when clavulanate is added to ceftazidime/cefotaxime.`,
+    phase3Secret: `Always remove/exchange the colonized Foley catheter alongside starting meropenem.`,
+    dossierBullets: {
+      p1: [`Plasmid-mediated ESBLs confer resistance to 3rd-gen cephalosporins and monobactams.`],
+      p2: [`Mucoid pink MacConkey growth + clavulanate synergy on disk testing.`],
+      p3: [`Meropenem or ertapenem is treatment of choice for systemic ESBL UTI.`]
+    }
+  },
+
+  // LO 6: Pseudomonas aeruginosa
+  {
+    id: `RN06-Q1`, lo: 6, sector: `sector_2`, compartment: `lower_tract_bladder`, ageGroup: `catheter_elderly`, behavior: `gram_neg_rod`,
+    loTitle: `Sector II • Pseudomonas aeruginosa`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Pseudomonas aeruginosa`,
+    stem: `A 63-year-old neutropenic man with an indwelling urinary catheter in the ICU develops fever, hypotension, and necrotic black-centered skin lesions (ecthyma gangrenosum). Urine culture yields oxidase-positive, non-lactose-fermenting Gram-negative rods with a sweet grape-like odor and blue-green agar pigmentation. Which organism is responsible?`,
+    clue: `Obligate aerobe producing pyocyanin (blue) and pyoverdine (green) pigments in catheterized/ICU hosts.`,
+    choices: [`Pseudomonas aeruginosa`, `Serratia marcescens`, `Proteus mirabilis`],
+    correctIndex: 0,
+    explanation: `Correct: Pseudomonas aeruginosa is an oxidase-positive, non-lactose-fermenting rod producing blue-green pyocyanin/pyoverdine pigment and ecthyma gangrenosum. Distractor exclusion: Serratia marcescens produces red pigment (prodigiosin) and is oxidase-negative; Proteus is oxidase-negative and swarms.`,
+    secondOrderClue: `Catheter UTI + Oxidase+ + Blue-green pigment + Ecthyma gangrenosum -> Pseudomonas aeruginosa.`,
+    phase1Pearl: `Perivascular bacterial invasion causes ischemic necrosis of skin vessels (ecthyma gangrenosum) in neutropenia.`,
+    phase2Hallmark: `Oxidase-positive, colorless on MacConkey agar, blue-green pyocyanin pigment on Mueller-Hinton agar.`,
+    phase3Secret: `Empiric ICU coverage requires antipseudomonal beta-lactam (piperacillin-tazobactam, cefepime, or meropenem) + catheter removal.`,
+    dossierBullets: {
+      p1: [`Exotoxin A ADP-ribosylates EF-2; elastase degrades vascular elastic lamina.`],
+      p2: [`Oxidase+, non-lactose fermenter, blue-green pigment, grape-like odor.`],
+      p3: [`Oral ciprofloxacin works for mild UTI; use cefepime/pip-tazo/meropenem for urosepsis.`]
+    }
+  },
+  {
+    id: `RN06-Q2`, lo: 6, sector: `sector_2`, compartment: `lower_tract_bladder`, ageGroup: `catheter_elderly`, behavior: `gram_neg_rod`,
+    loTitle: `Sector II • Pseudomonas aeruginosa`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `ADP-ribosylation of Elongation Factor-2`,
+    stem: `A 69-year-old man with chronic catheter-associated Pseudomonas aeruginosa urosepsis experiences progressive tissue necrosis and shock. Which molecular mechanism is shared by Pseudomonas Exotoxin A and Corynebacterium diphtheriae toxin?`,
+    clue: `Both bacterial exotoxins permanently halt host protein translation at the ribosomal translocation step.`,
+    choices: [`Inactivation of elongation factor-2 (EF-2)`, `Cleavage of 28S rRNA by Shiga-like toxin`, `Constitutive activation of Gs alpha (cAMP)`],
+    correctIndex: 0,
+    explanation: `Correct: Pseudomonas Exotoxin A ADP-ribosylates host elongation factor-2 (EF-2), arresting protein synthesis and causing cell death—identical to diphtheria toxin. Distractor exclusion: Shiga toxin cleaves 60S (28S rRNA), whereas cholera/LT toxins ADP-ribosylate Gs alpha.`,
+    secondOrderClue: `Pseudomonas Exotoxin A == Diphtheria toxin -> ADP-ribosylate EF-2.`,
+    phase1Pearl: `Pyocyanin also generates reactive oxygen species (superoxide/H2O2) that damage adjacent uroepithelial cells.`,
+    phase2Hallmark: `Obligate aerobe (fails to ferment glucose on TSI slant: K/K alkaline/no change).`,
+    phase3Secret: `Alginate slime biofilm shields bacteria from antibiotics—catheter removal is essential for cure.`,
+    dossierBullets: {
+      p1: [`Exotoxin A ADP-ribosylates EF-2 -> halts host protein synthesis.`],
+      p2: [`Oxidase+, obligate aerobe, non-lactose fermenter.`],
+      p3: [`Combine antipseudomonal beta-lactam with aminoglycoside in severe septic shock.`]
+    }
+  },
+  {
+    id: `RN06-Q3`, lo: 6, sector: `sector_2`, compartment: `lower_tract_bladder`, ageGroup: `catheter_elderly`, behavior: `gram_neg_rod`,
+    loTitle: `Sector II • Pseudomonas aeruginosa`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Ciprofloxacin (oral antipseudomonal)`,
+    stem: `A 70-year-old man with benign prostatic hyperplasia and recent cystoscopy develops symptomatic Pseudomonas aeruginosa cystitis without sepsis or bacteremia. He has normal renal function and prefers outpatient oral therapy. Which oral antibiotic reliably achieves high urinary concentrations against Pseudomonas?`,
+    clue: `This fluoroquinolone is the classic outpatient oral agent with reliable antipseudomonal activity.`,
+    choices: [`Ciprofloxacin`, `Ceftriaxone`, `Trimethoprim-sulfamethoxazole`],
+    correctIndex: 0,
+    explanation: `Correct: Ciprofloxacin (and levofloxacin) is the only oral antibiotic class with reliable antipseudomonal activity for outpatient UTI. Distractor exclusion: Ceftriaxone is IV-only and lacks antipseudomonal activity (unlike ceftazidime/cefepime), and Pseudomonas is intrinsically resistant to TMP-SMX.`,
+    secondOrderClue: `Outpatient oral Pseudomonas UTI -> Ciprofloxacin.`,
+    phase1Pearl: `Ciprofloxacin inhibits bacterial DNA gyrase (topoisomerase II) and topoisomerase IV.`,
+    phase2Hallmark: `Note that many Pseudomonas isolates reduce nitrite completely to N2 gas, causing a negative nitrite dipstick.`,
+    phase3Secret: `Avoid fluoroquinolones in pregnancy and monitor for tendonitis/QT prolongation in older adults.`,
+    dossierBullets: {
+      p1: [`Inhibits DNA gyrase (topoisomerase II) in Gram-negative rods.`],
+      p2: [`Oxidase+, blue-green pigment; may show negative urine nitrites.`],
+      p3: [`Ciprofloxacin is the sole reliable oral drug for Pseudomonas UTI.`]
+    }
+  },
+
+  // LO 7: Streptococcus pyogenes (PSGN)
+  {
+    id: `RN07-Q1`, lo: 7, sector: `sector_3`, compartment: `glomerular_interstitial`, ageGroup: `pediatric`, behavior: `gram_pos_cocci_rod`,
+    loTitle: `Sector III • S. pyogenes (PSGN)`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Post-streptococcal glomerulonephritis`,
+    stem: `An 8-year-old boy is brought in with periorbital puffiness, dark tea-colored urine, and BP 142/92 mmHg. Three weeks ago, he had crusted honey-colored impetigo lesions around his mouth that resolved. Urinalysis reveals 3+ blood, 1+ protein, dysmorphic RBCs, and RBC casts. Serum C3 is low. What is the most likely diagnosis?`,
+    clue: `Acute nephritic syndrome 2–4 weeks after Group A strep pharyngitis or impetigo with low C3.`,
+    choices: [`Post-streptococcal glomerulonephritis`, `IgA nephropathy (Berger disease)`, `Minimal change disease`],
+    correctIndex: 0,
+    explanation: `Correct: PSGN develops 2–4 weeks after nephritogenic Group A strep pharyngitis or impetigo, causing nephritic syndrome (hematuria, RBC casts, hypertension, periorbital edema) and low C3. Distractor exclusion: IgA nephropathy occurs concurrently (synpharyngitic, 1–3 days) with normal C3; minimal change disease causes nephrotic syndrome without RBC casts.`,
+    secondOrderClue: `2–4 weeks post-impetigo/pharyngitis + RBC casts + Low C3 -> PSGN.`,
+    phase1Pearl: `Type III hypersensitivity: circulating immune complexes deposit subepithelially and consume serum C3.`,
+    phase2Hallmark: `EM: subepithelial immune complex humps; IF: granular ("starry sky") IgG and C3.`,
+    phase3Secret: `Supportive care (Na+ restriction, furosemide, antihypertensives); over 95% of children recover completely.`,
+    dossierBullets: {
+      p1: [`Nephritogenic M-protein GAS strains trigger Type III immune complex deposition.`],
+      p2: [`Dysmorphic RBCs, RBC casts, low C3, elevated ASO / anti-DNase B (after skin infection).`],
+      p3: [`Supportive management; early antibiotics for strep do NOT prevent PSGN.`]
+    }
+  },
+  {
+    id: `RN07-Q2`, lo: 7, sector: `sector_3`, compartment: `glomerular_interstitial`, ageGroup: `pediatric`, behavior: `gram_pos_cocci_rod`,
+    loTitle: `Sector III • S. pyogenes (PSGN)`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Type III hypersensitivity with C3 consumption`,
+    stem: `A 9-year-old girl develops oliguria, periorbital edema, and smoky urine 18 days after Group A streptococcal pharyngitis. Laboratory testing shows elevated ASO titers and markedly decreased serum C3 with normal C4. What immunopathologic mechanism drives glomerular injury in this condition?`,
+    clue: `Circulating strep-antibody complexes lodge in the glomerulus and activate the alternative/classical complement cascade.`,
+    choices: [`Type III immune complex deposition consuming C3`, `Type II anti-GBM linear IgG antibodies`, `T-cell cytokine podocyte foot-process effacement`],
+    correctIndex: 0,
+    explanation: `Correct: PSGN is a Type III hypersensitivity reaction where circulating streptococcal antigen-IgG immune complexes trap in the glomerular basement membrane, activating complement and consuming C3. Distractor exclusion: Linear anti-GBM antibodies cause Goodpasture syndrome (Type II), and T-cell cytokine podocyte effacement causes minimal change disease.`,
+    secondOrderClue: `PSGN immunopathology -> Type III hypersensitivity -> Consumptive hypocomplementemia (low C3).`,
+    phase1Pearl: `Anti-DNase B titer is more sensitive than ASO after cutaneous impetigo (skin lipids inhibit streptolysin O).`,
+    phase2Hallmark: `Light microscopy reveals enlarged, hypercellular glomeruli packed with neutrophils and endothelial/mesangial cells.`,
+    phase3Secret: `If C3 fails to normalize by 8 weeks or renal function rapidly worsens, biopsy to rule out membranoproliferative GN or crescentic RPGN.`,
+    dossierBullets: {
+      p1: [`Type III hypersensitivity immune complex trapping -> C3a/C5a chemotaxis.`],
+      p2: [`Hypercellular glomeruli on LM; granular IgG + C3 on IF; subepithelial humps on EM.`],
+      p3: [`Expect C3 normalization within 6–8 weeks; persistent low C3 suggests MPGN.`]
+    }
+  },
+  {
+    id: `RN07-Q3`, lo: 7, sector: `sector_3`, compartment: `glomerular_interstitial`, ageGroup: `pediatric`, behavior: `gram_pos_cocci_rod`,
+    loTitle: `Sector III • S. pyogenes (PSGN)`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Subepithelial humps & granular IF`,
+    stem: `An adult with persistent hematuria and renal insufficiency 3 weeks after severe Group A streptococcal cellulitis undergoes renal biopsy. Light microscopy shows hypercellular glomeruli. Which immunofluorescence and electron microscopy findings confirm post-streptococcal glomerulonephritis?`,
+    clue: `Immune complexes sit on the outer (urinary) side of the GBM, creating a classic "lumpy-bumpy" pattern.`,
+    choices: [`Granular IgG/C3 IF and subepithelial humps`, `Linear IgG IF and GBM breaks`, `Mesangial IgA IF and mesangial deposits`],
+    correctIndex: 0,
+    explanation: `Correct: PSGN demonstrates granular ("starry sky" / lumpy-bumpy) IgG and C3 on immunofluorescence and dome-shaped subepithelial electron-dense humps on EM. Distractor exclusion: Linear IgG IF occurs in Goodpasture syndrome, and mesangial IgA deposits define IgA nephropathy.`,
+    secondOrderClue: `PSGN biopsy -> Starry-sky granular IF + Subepithelial EM humps.`,
+    phase1Pearl: `Subepithelial humps form as immune complexes traverse the GBM and stall beneath podocyte slit diaphragms.`,
+    phase2Hallmark: `LM: diffuse proliferative endocapillary hypercellularity; IF: granular IgG + C3; EM: subepithelial humps.`,
+    phase3Secret: `Adults with PSGN carry a higher risk (~15–30%) of progressing to chronic kidney disease or crescentic GN than children.`,
+    dossierBullets: {
+      p1: [`Cationic streptococcal antigens (NAPlr/SpeB) traverse GBM to lodge subepithelially.`],
+      p2: [`Granular "lumpy-bumpy" IF; dome-like subepithelial EM humps.`],
+      p3: [`Control BP and volume with loop diuretics; monitor Cr and C3 recovery.`]
+    }
+  },
+
+  // LO 8: Leptospira interrogans
+  {
+    id: `RN08-Q1`, lo: 8, sector: `sector_3`, compartment: `glomerular_interstitial`, ageGroup: `transplant_travel`, behavior: `acid_fast_spirochete`,
+    loTitle: `Sector III • Leptospira interrogans`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Leptospira interrogans (Weil disease)`,
+    stem: `A 29-year-old triathlete presents 10 days after competing in a freshwater river race in Hawaii with high fever, severe calf myalgias, non-purulent conjunctival suffusion, scleral icterus, and serum creatinine of 3.6 mg/dL. Dark-field microscopy of blood reveals thin spiral bacteria with hooked ends. What is the diagnosis?`,
+    clue: `Water-borne spirochete from animal urine causing conjunctival suffusion, calf pain, jaundice, and AKI.`,
+    choices: [`Leptospirosis (Weil disease)`, `Hantavirus pulmonary syndrome`, `Borrelia burgdorferi infection`],
+    correctIndex: 0,
+    explanation: `Correct: Leptospira interrogans is acquired from freshwater contaminated by rodent/animal urine, causing biphasic fever, calf myalgia, conjunctival suffusion, and Weil disease (jaundice + AKI). Distractor exclusion: Hantavirus causes pulmonary edema after rodent aerosol exposure without jaundice/hooked spirochetes; Borrelia causes erythema migrans.`,
+    secondOrderClue: `Freshwater sports + Conjunctival suffusion + Calf pain + Jaundice + AKI -> Leptospirosis.`,
+    phase1Pearl: `Hooked spirochetes penetrate abraded skin/mucosa and colonize renal proximal convoluted tubules.`,
+    phase2Hallmark: `Question-mark shaped spirochetes on dark-field microscopy; elevated bilirubin, Cr, and CPK.`,
+    phase3Secret: `Severe Weil disease is treated promptly with IV penicillin G or IV ceftriaxone; mild disease responds to oral doxycycline.`,
+    dossierBullets: {
+      p1: [`Zoonotic reservoir (rats/dogs) sheds spirochetes in urine into freshwater.`],
+      p2: [`Thin helical spirochetes with hooked ends; non-oliguric or oliguric AKI with hypokalemia.`],
+      p3: [`IV Penicillin G or ceftriaxone for Weil disease; doxycycline for mild cases/prophylaxis.`]
+    }
+  },
+  {
+    id: `RN08-Q2`, lo: 8, sector: `sector_3`, compartment: `glomerular_interstitial`, ageGroup: `transplant_travel`, behavior: `acid_fast_spirochete`,
+    loTitle: `Sector III • Leptospira interrogans`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Endothelial vasculitis & tubulointerstitial nephritis`,
+    stem: `A 34-year-old surfer develops Weil disease with azotemia, hyperbilirubinemia, and thrombocytopenia 12 days after flooding in a tropical region. Renal biopsy shows mononuclear interstitial inflammation and proximal tubular epithelial injury without glomerular crescents. How does Leptospira induce renal dysfunction?`,
+    clue: `Leptospires directly invade renal capillaries and proximal tubules rather than depositing immune complexes.`,
+    choices: [`Capillary endothelial vasculitis and interstitial nephritis`, `Immune complex deposition in glomerular mesangium`, `Urease-mediated tubular stone obstruction`],
+    correctIndex: 0,
+    explanation: `Correct: Leptospira directly invades vascular endothelium and proximal renal tubules, causing capillary vasculitis, hypovolemia, and acute tubulointerstitial nephritis/ATN. Distractor exclusion: Glomerular mesangial IgA deposition defines IgA nephropathy, and urease obstruction occurs in Proteus/Corynebacterium.`,
+    secondOrderClue: `Weil disease AKI -> Endothelial vasculitis + Proximal tubule invasion (interstitial nephritis).`,
+    phase1Pearl: `Proximal tubular dysfunction in leptospirosis uniquely wastes potassium, often causing AKI with normokalemia or hypokalemia.`,
+    phase2Hallmark: `Interstitial mononuclear infiltrate, tubular necrosis, and spirochetes visible on silver (Warthin-Starry) stain.`,
+    phase3Secret: `Initiate IV penicillin G or ceftriaxone early; Jarisch-Herxheimer reaction may briefly occur upon antibiotic initiation.`,
+    dossierBullets: {
+      p1: [`Endothelial injury triggers capillary leak, hemorrhage, and ischemic tubular damage.`],
+      p2: [`Tubulointerstitial nephritis with proximal tubular K+ wasting.`],
+      p3: [`Monitor for Jarisch-Herxheimer reaction and support fluid/electrolytes.`]
+    }
+  },
+  {
+    id: `RN08-Q3`, lo: 8, sector: `sector_3`, compartment: `glomerular_interstitial`, ageGroup: `transplant_travel`, behavior: `acid_fast_spirochete`,
+    loTitle: `Sector III • Leptospira interrogans`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `IV Penicillin G or Ceftriaxone`,
+    stem: `A 41-year-old sewer worker is hospitalized with fever, conjunctival suffusion, bilirubin 6.8 mg/dL, AST 140 U/L, and creatinine 4.1 mg/dL. Serologic MAT testing for Leptospira is pending, and he has moderate thrombocytopenia. What is the best immediate antimicrobial management?`,
+    clue: `Severe leptospirosis (Weil disease) requires parenteral beta-lactam therapy rather than oral prophylaxis.`,
+    choices: [`IV Penicillin G or Ceftriaxone`, `Oral nitrofurantoin`, `IV vancomycin plus gentamicin`],
+    correctIndex: 0,
+    explanation: `Correct: Severe leptospirosis (Weil disease) is treated with IV penicillin G or IV ceftriaxone (while mild outpatient disease uses doxycycline). Distractor exclusion: Nitrofurantoin achieves no systemic/renal parenchymal levels, and vancomycin/gentamicin is ineffective against spirochetes and risks nephrotoxicity.`,
+    secondOrderClue: `Severe Weil disease (jaundice + AKI) -> IV Penicillin G or IV Ceftriaxone.`,
+    phase1Pearl: `Leptospires are cleared from blood by day 7 via antibodies but persist in renal tubules and urine for weeks.`,
+    phase2Hallmark: `Microscopic agglutination test (MAT) is the serologic gold standard; PCR detects early leptospiremia.`,
+    phase3Secret: `Doxycycline 200 mg weekly is used for pre-exposure prophylaxis in high-risk floodwater/military deployments.`,
+    dossierBullets: {
+      p1: [`Biphasic course: septicemic week 1 (blood/CSF) -> immune week 2 (urine shedding).`],
+      p2: [`MAT serology and dark-field microscopy confirm hooked spirochetes.`],
+      p3: [`IV Penicillin G / ceftriaxone for severe disease; oral doxycycline for mild disease.`]
+    }
+  },
+
+  // LO 9: Corynebacterium urealyticum
+  {
+    id: `RN09-Q1`, lo: 9, sector: `sector_3`, compartment: `lower_tract_bladder`, ageGroup: `catheter_elderly`, behavior: `gram_pos_cocci_rod`,
+    loTitle: `Sector III • C. urealyticum`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Corynebacterium urealyticum`,
+    stem: `A 76-year-old man with prior urologic surgery and multiple antibiotic courses has 2 months of severe dysuria, gross hematuria, and passage of gritty sand-like mucosal debris. Routine 24-hour urine cultures are repeatedly negative, yet urine pH is 8.5 with struvite crystals. Pelvic CT shows calcified plaques lining the bladder mucosa. Which pathogen is most likely?`,
+    clue: `Fastidious, slow-growing Gram+ diphtheroid that causes alkaline-encrusted cystitis.`,
+    choices: [`Corynebacterium urealyticum`, `Mycobacterium tuberculosis`, `Schistosoma haematobium`],
+    correctIndex: 0,
+    explanation: `Correct: Corynebacterium urealyticum is a slow-growing (>48–72 hr), strongly urease-positive Gram-positive rod causing alkaline-encrusted cystitis with struvite plaques. Distractor exclusion: Renal TB classically causes acidic sterile pyuria without struvite encrustation; S. haematobium occurs after African freshwater exposure with terminal-spine eggs.`,
+    secondOrderClue: `Negative 24-hr culture + Urine pH 8.5 + Calcified bladder plaques -> Corynebacterium urealyticum.`,
+    phase1Pearl: `Potent urease activity precipitates struvite and calcium phosphate directly onto injured bladder urothelium.`,
+    phase2Hallmark: `Pleomorphic Gram+ rods ("Chinese letters") requiring 48–72 hours on sheep blood agar or lipid-enriched media.`,
+    phase3Secret: `Treat with IV vancomycin (or teicoplanin) plus urinary acidification and endoscopic resection of mucosal plaques.`,
+    dossierBullets: {
+      p1: [`Strong urease elevates urine pH > 8.0, embedding struvite salts into bladder wall.`],
+      p2: [`Fastidious Gram+ diphtheroids missed by standard 24-hour urine culture discard protocols.`],
+      p3: [`Multidrug-resistant to beta-lactams/fluoroquinolones—treat with vancomycin.`]
+    }
+  },
+  {
+    id: `RN09-Q2`, lo: 9, sector: `sector_3`, compartment: `lower_tract_bladder`, ageGroup: `catheter_elderly`, behavior: `gram_pos_cocci_rod`,
+    loTitle: `Sector III • C. urealyticum`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Urease-induced mucosal struvite encrustation`,
+    stem: `A 74-year-old renal transplant recipient develops painful encrusted cystitis caused by Corynebacterium urealyticum. Why does this organism fail to appear on standard overnight urine culture plates while simultaneously producing bladder wall calcifications?`,
+    clue: `Its lipophilic cell envelope slows colony growth beyond 24 hours, while its powerful enzyme rapidly splits urea.`,
+    choices: [`Slow lipophilic growth with potent urease activity`, `Obligate intracellular replication inside umbrella cells`, `Spore dormancy triggered by acidic urine`],
+    correctIndex: 0,
+    explanation: `Correct: C. urealyticum is lipophilic and slow-growing (requiring 48–72 hours of incubation), while its potent urease alkalinizes urine to form mucosal struvite plaques. Distractor exclusion: It is an extracellular, non-spore-forming diphtheroid rod.`,
+    secondOrderClue: `Alkaline "sterile" pyuria + Struvite plaques -> Hold urine plates 72h for C. urealyticum.`,
+    phase1Pearl: `Prior urothelial trauma (catheters, TURP, chemotherapy) exposes fibronectin and glycosaminoglycan defects for adherence.`,
+    phase2Hallmark: `Pinpoint non-hemolytic white colonies appear only after 48–72 hours; catalase+, urease+++.`,
+    phase3Secret: `Alert the microbiology lab to incubate urine plates for 72 hours whenever alkaline urine (pH >= 8) has negative 24-hour cultures.`,
+    dossierBullets: {
+      p1: [`Lipophilic slow growth delays colonies past routine 24-hour plate readouts.`],
+      p2: [`Rapid urea hydrolysis generates NH3, driving pH 8–9 and mucosal calcification.`],
+      p3: [`Request extended 72-hour culture + vancomycin susceptibility testing.`]
+    }
+  },
+  {
+    id: `RN09-Q3`, lo: 9, sector: `sector_3`, compartment: `lower_tract_bladder`, ageGroup: `catheter_elderly`, behavior: `gram_pos_cocci_rod`,
+    loTitle: `Sector III • C. urealyticum`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Vancomycin plus urine acidification`,
+    stem: `Cystoscopy in a 78-year-old man with urine pH 8.5 reveals ulcerated bladder mucosa coated in gritty white-yellow calcified plaques. Extended 72-hour urine culture grows catalase-positive, urease-positive Gram-positive diphtheroid rods resistant to ciprofloxacin, TMP-SMX, and beta-lactams. What is the definitive treatment?`,
+    clue: `Glycopeptide antibiotic paired with chemical dissolution/debridement of the calcified plaques.`,
+    choices: [`Vancomycin plus urinary acidification`, `Oral nitrofurantoin alone`, `Praziquantel plus prednisone`],
+    correctIndex: 0,
+    explanation: `Correct: C. urealyticum is reliably susceptible to glycopeptides (vancomycin or teicoplanin) and requires urinary acidification/plaque removal for cure. Distractor exclusion: Nitrofurantoin is ineffective against C. urealyticum and inactive in heavily alkaline/encrusted tissue; praziquantel treats Schistosoma.`,
+    secondOrderClue: `Encrusted cystitis (C. urealyticum) -> Vancomycin + Acidification + Plaque debulking.`,
+    phase1Pearl: `Urease inhibitors or local acidifying solutions (Suby G) help dissolve calcium/struvite encrustations alongside antibiotics.`,
+    phase2Hallmark: `CT shows linear hyperdense urothelial calcifications; histology reveals necrotic urothelium with basophilic mineral deposits.`,
+    phase3Secret: `Never treat empirically with fluoroquinolones—most hospital strains of C. urealyticum are multidrug-resistant.`,
+    dossierBullets: {
+      p1: [`Multidrug resistance is driven by hospital antibiotic selection pressure.`],
+      p2: [`CT demonstrates calcified bladder/ureteral wall thickening ("encrusted uropathy").`],
+      p3: [`Vancomycin (or linezolid) + plaque removal + acidification resolves symptoms.`]
+    }
+  },
+
+  // LO 10: Mycobacterium tuberculosis
+  {
+    id: `RN10-Q1`, lo: 10, sector: `sector_4`, compartment: `glomerular_interstitial`, ageGroup: `transplant_travel`, behavior: `acid_fast_spirochete`,
+    loTitle: `Sector IV • M. tuberculosis`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Genitourinary Mycobacterium tuberculosis`,
+    stem: `A 44-year-old immigrant from Southeast Asia has 4 months of painless gross hematuria, frequency, and night sweats that failed to improve after ciprofloxacin and TMP-SMX. Urinalysis shows pH 5.5, 40 WBC/hpf, and negative routine bacterial cultures. CT urogram demonstrates moth-eaten renal calyces and a strictured distal ureter. What is the diagnosis?`,
+    clue: `Classic cause of persistent acidic sterile pyuria with papillary destruction and ureteral strictures.`,
+    choices: [`Renal tuberculosis`, `Chlamydia trachomatis urethritis`, `Interstitial nephritis`],
+    correctIndex: 0,
+    explanation: `Correct: Genitourinary Mycobacterium tuberculosis presents with chronic sterile pyuria, acidic urine, painless hematuria, and "moth-eaten" calyces/ureteral strictures. Distractor exclusion: Chlamydia causes sterile pyuria with urethral discharge (not calyceal destruction or night sweats); interstitial nephritis causes eosinophiluria and rash/fever.`,
+    secondOrderClue: `Acidic sterile pyuria + Moth-eaten calyces + Antibiotic failure -> Renal TB.`,
+    phase1Pearl: `Hematogenous seeding from primary lung infection forms cortical granulomas that later rupture into renal papillae.`,
+    phase2Hallmark: `Acid-fast bacilli on early-morning urine AFB smear/culture; caseating granulomas on biopsy; "putty kidney" calcification.`,
+    phase3Secret: `Collect 3 consecutive early-morning urine specimens for AFB culture/PCR and initiate standard 6-month RIPE therapy.`,
+    dossierBullets: {
+      p1: [`Cord factor and sulfatides prevent phagolysosome fusion inside renal macrophages.`],
+      p2: [`Acidic sterile pyuria; moth-eaten calyces; calcification leading to autonephrectomy.`],
+      p3: [`Confirm with 3 early-morning urine AFB cultures; treat with 6-month RIPE regimen.`]
+    }
+  },
+  {
+    id: `RN10-Q2`, lo: 10, sector: `sector_4`, compartment: `glomerular_interstitial`, ageGroup: `transplant_travel`, behavior: `acid_fast_spirochete`,
+    loTitle: `Sector IV • M. tuberculosis`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Sulfatides blocking phagolysosome fusion`,
+    stem: `A 50-year-old man with healed apical lung scarring develops unilateral renal autonephrectomy ("putty kidney") from Mycobacterium tuberculosis. Which mycobacterial cell-wall lipid directly enables survival inside renal macrophages by inhibiting phagosome-lysosome fusion?`,
+    clue: `Surface glycolipid found in virulent M. tuberculosis that prevents acidification and lysosomal fusion.`,
+    choices: [`Sulfatides in the mycolic acid cell wall`, `Protein A binding Fc region of IgG`, `IgA1 protease cleaving mucosal antibody`],
+    correctIndex: 0,
+    explanation: `Correct: Mycobacterial sulfatides (and cord factor/trehalose dimycolate) inhibit phagosome-lysosome fusion, allowing intracellular survival and chronic caseating granuloma formation. Distractor exclusion: Protein A belongs to S. aureus, and IgA1 protease belongs to S. pneumoniae, H. influenzae, and Neisseria.`,
+    secondOrderClue: `M. tuberculosis macrophage survival -> Sulfatides block phagolysosome fusion.`,
+    phase1Pearl: `Th1 CD4+ T cells secrete IFN-gamma to activate macrophages and TNF-alpha to maintain granuloma architecture.`,
+    phase2Hallmark: `Caseating necrosis with Langhans multinucleated giant cells and Ziehl-Neelsen red acid-fast rods.`,
+    phase3Secret: `Before starting anti-TNF biologics for autoimmune disease, always screen with IGRA/PPD to prevent reactivation of latent renal/pulmonary TB.`,
+    dossierBullets: {
+      p1: [`Sulfatides inhibit phagolysosome fusion; cord factor induces serpentine cords & TNF-alpha.`],
+      p2: [`Caseating granulomas destroy renal papillae -> strictures & calcified putty kidney.`],
+      p3: [`Monitor for ureteral stricture obstruction during RIPE healing (may need stenting).`]
+    }
+  },
+  {
+    id: `RN10-Q3`, lo: 10, sector: `sector_4`, compartment: `glomerular_interstitial`, ageGroup: `transplant_travel`, behavior: `acid_fast_spirochete`,
+    loTitle: `Sector IV • M. tuberculosis`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Three early-morning urine AFB cultures`,
+    stem: `A 38-year-old woman with HIV has persistent sterile pyuria and microscopic hematuria. Chest X-ray shows an old calcified Ghon complex, and renal ultrasound reveals focal calyceal blunting. What is the gold-standard diagnostic specimen collection to isolate Mycobacterium tuberculosis from the urinary tract?`,
+    clue: `Mycobacteria are shed intermittently into pooled overnight urine—avoid random daytime swabs.`,
+    choices: [`Three consecutive early-morning urine AFB cultures`, `Single midstream urine on MacConkey agar`, `24-hour urine protein and urine eosinophils`],
+    correctIndex: 0,
+    explanation: `Correct: Because bacilluria is intermittent, three consecutive early-morning first-void urine specimens for AFB smear, culture (Lowenstein-Jensen), and NAAT/PCR maximize sensitivity. Distractor exclusion: M. tuberculosis does not grow on MacConkey agar, and 24-hour urine protein/eosinophils do not isolate mycobacteria.`,
+    secondOrderClue: `Suspected genitourinary TB -> 3 consecutive first-morning urine AFB cultures.`,
+    phase1Pearl: `Overnight concentration in the bladder increases the yield of acid-fast bacilli in first-morning voids.`,
+    phase2Hallmark: `Ziehl-Neelsen stain (red rods on blue background) or auramine-rhodamine fluorescence; Lowenstein-Jensen agar.`,
+    phase3Secret: `Start RIPE (Rifampin, Isoniazid + B6, Pyrazinamide, Ethambutol); remember rifampin induces CYP450 and turns urine/tears red-orange.`,
+    dossierBullets: {
+      p1: [`Intermittent renal shedding requires multiple concentrated morning specimens.`],
+      p2: [`Ziehl-Neelsen / auramine-rhodamine stain + Lowenstein-Jensen culture + GeneXpert PCR.`],
+      p3: [`Supplement Isoniazid with pyridoxine (Vitamin B6) to prevent peripheral neuropathy.`]
+    }
+  },
+
+  // LO 11: Candida albicans
+  {
+    id: `RN11-Q1`, lo: 11, sector: `sector_4`, compartment: `renal_pelvis_stones`, ageGroup: `catheter_elderly`, behavior: `fungus_parasite`,
+    loTitle: `Sector IV • Candida albicans`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Candida albicans fungus ball`,
+    stem: `A 65-year-old woman with poorly controlled diabetes mellitus receiving broad-spectrum meropenem for peritonitis develops sudden left flank pain and oliguria. Renal ultrasound reveals hydronephrosis and a 2-cm echogenic, non-shadowing mass in the left renal pelvis. Urine microscopy shows budding yeasts and pseudohyphae. What is the diagnosis?`,
+    clue: `Diabetes + broad-spectrum antibiotics -> fungal bezoar obstructing the renal pelvis.`,
+    choices: [`Candida albicans fungus ball`, `Proteus mirabilis staghorn stone`, `Schistosoma bladder granuloma`],
+    correctIndex: 0,
+    explanation: `Correct: Candida albicans forms pseudohyphal mycelial masses (fungus balls) in diabetic/catheterized patients on broad-spectrum antibiotics, causing non-shadowing pelvicalyceal obstruction. Distractor exclusion: Proteus staghorn stones cast sharp posterior acoustic shadows on ultrasound; Schistosoma causes bladder calcifications in endemic travelers.`,
+    secondOrderClue: `Diabetic on broad-spectrum antibiotics + Non-shadowing pelvic mass + Pseudohyphae -> Candida fungus ball.`,
+    phase1Pearl: `Antibiotics eradicate competing bacterial flora while hyperglycemia impairs neutrophil chemotaxis and fuels yeast growth.`,
+    phase2Hallmark: `Budding yeasts and pseudohyphae on KOH/UA; germ tube formation at 37°C in serum.`,
+    phase3Secret: `Treat symptomatic Candida UTI/fungus ball with oral/IV fluconazole (high urinary excretion) + urologic decompression/nephrostomy.`,
+    dossierBullets: {
+      p1: [`Dimorphic switch from yeast to pseudohyphae/hyphae promotes biofilm and tissue invasion.`],
+      p2: [`Non-shadowing echogenic mass on renal US; budding yeasts & pseudohyphae on microscopy.`],
+      p3: [`Fluconazole achieves high urine levels; echinocandins do NOT penetrate urine.`]
+    }
+  },
+  {
+    id: `RN11-Q2`, lo: 11, sector: `sector_4`, compartment: `renal_pelvis_stones`, ageGroup: `catheter_elderly`, behavior: `fungus_parasite`,
+    loTitle: `Sector IV • Candida albicans`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Yeast-to-hyphae transition & biofilm`,
+    stem: `A 59-year-old ICU patient with a 14-day Foley catheter develops persistent candiduria and renal parenchymal microabscesses. Which morphologic virulence transition allows Candida albicans to penetrate urothelial barriers and form catheter-adherent fungal aggregates?`,
+    clue: `Candida albicans is uniquely dimorphic in reverse—forming elongated filaments at body temperature.`,
+    choices: [`Yeast-to-pseudohyphae/true hyphae transition`, `Thermal dimorphism into spherules at 37°C`, `Encapsulated yeast growth at 25°C only`],
+    correctIndex: 0,
+    explanation: `Correct: Candida albicans transitions from budding yeast to invasive pseudohyphae and true hyphae (germ tubes) at 37°C, enabling catheter biofilm formation and tissue penetration. Distractor exclusion: Spherules at 37°C characterize Coccidioides immitis, and heavily encapsulated yeast without pseudohyphae characterizes Cryptococcus neoformans.`,
+    secondOrderClue: `Candida tissue invasion -> Germ tube formation (37°C) -> Pseudohyphae/hyphae.`,
+    phase1Pearl: `Catalase-positive Candida also poses high risk for disseminated candidemia in patients with chronic granulomatous disease (CGD).`,
+    phase2Hallmark: `Germ tube test positive in serum at 37°C; Sabouraud dextrose agar creamy white colonies.`,
+    phase3Secret: `In asymptomatic non-neutropenic catheterized patients, catheter removal alone clears candiduria—do NOT treat asymptomatic candiduria with antifungals.`,
+    dossierBullets: {
+      p1: [`Germ tubes elongate into hyphae/pseudohyphae that anchor biofilms to silicone catheters.`],
+      p2: [`Positive germ tube test distinguishes C. albicans from C. glabrata.`],
+      p3: [`Remove Foley catheter first; reserve fluconazole for symptomatic UTI, neutropenia, or urologic procedures.`]
+    }
+  },
+  {
+    id: `RN11-Q3`, lo: 11, sector: `sector_4`, compartment: `renal_pelvis_stones`, ageGroup: `catheter_elderly`, behavior: `fungus_parasite`,
+    loTitle: `Sector IV • Candida albicans`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Fluconazole (avoid echinocandins in UTI)`,
+    stem: `A 62-year-old man with symptomatic Candida albicans cystitis (dysuria, pyuria, >100,000 CFU/mL yeast) despite Foley catheter removal requires antifungal therapy. Why should fluconazole be chosen over caspofungin or micafungin?`,
+    clue: `Echinocandins are heavily protein-bound and hepatically cleared, resulting in negligible glomerular filtration.`,
+    choices: [`Fluconazole achieves high active urinary concentrations`, `Caspofungin cannot inhibit fungal beta-glucan synthase`, `Fluconazole dissolves struvite crystals directly`],
+    correctIndex: 0,
+    explanation: `Correct: Fluconazole is excreted largely unchanged (>80%) into urine, whereas echinocandins (caspofungin, micafungin) achieve minimal urinary concentrations and fail in Candida UTI. Distractor exclusion: Echinocandins do inhibit beta-1,3-glucan synthase (good for candidemia), and fluconazole does not dissolve struvite.`,
+    secondOrderClue: `Symptomatic Candida UTI -> Fluconazole (NEVER echinocandins/voriconazole due to poor urine levels).`,
+    phase1Pearl: `Fluconazole inhibits fungal 14-alpha-demethylase (CYP51), blocking ergosterol synthesis.`,
+    phase2Hallmark: `If fluconazole-resistant C. glabrata or C. krusei causes UTI, amphotericin B deoxycholate (IV or bladder irrigation) or flucytosine is used.`,
+    phase3Secret: `Voriconazole and posaconazole also have poor urinary excretion—fluconazole is the azole of choice for renal/bladder candidiasis.`,
+    dossierBullets: {
+      p1: [`Fluconazole blocks ergosterol synthesis via 14-alpha-demethylase inhibition.`],
+      p2: [`Renally excreted unchanged (>80%), reaching high concentrations in renal parenchyma and bladder.`],
+      p3: [`Never use echinocandins or voriconazole for isolated lower/upper Candida UTI.`]
+    }
+  },
+
+  // LO 12: Schistosoma haematobium
+  {
+    id: `RN12-Q1`, lo: 12, sector: `sector_4`, compartment: `lower_tract_bladder`, ageGroup: `transplant_travel`, behavior: `fungus_parasite`,
+    loTitle: `Sector IV • Schistosoma haematobium`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Schistosoma haematobium`,
+    stem: `A 27-year-old Peace Corps volunteer returning from freshwater swimming along the Nile River in Egypt presents with painless terminal hematuria and dysuria. CBC shows 14% eosinophils, and concentrated urine microscopy reveals large oval eggs with a sharp terminal spine. Which organism is responsible?`,
+    clue: `Blood fluke transmitted by Bulinus freshwater snails that migrates to the perivesical venous plexus.`,
+    choices: [`Schistosoma haematobium`, `Schistosoma mansoni`, `Enterobius vermicularis`],
+    correctIndex: 0,
+    explanation: `Correct: Schistosoma haematobium resides in the vesical venous plexus, shedding terminal-spine eggs into urine and causing painless terminal hematuria. Distractor exclusion: S. mansoni has a lateral-spine egg in stool causing portal hypertension; Enterobius causes perianal pruritus with D-shaped eggs.`,
+    secondOrderClue: `Nile River swimming + Terminal hematuria + Terminal-spine egg -> Schistosoma haematobium.`,
+    phase1Pearl: `Fork-tailed cercariae released by Bulinus snails penetrate intact human skin and mature into paired adult flukes in bladder veins.`,
+    phase2Hallmark: `Terminal-spine eggs in midday urine; peripheral eosinophilia; calcified "porcelain" bladder wall on imaging.`,
+    phase3Secret: `Treat with oral praziquantel; perform cystoscopy if chronic hematuria persists to screen for bladder squamous cell carcinoma.`,
+    dossierBullets: {
+      p1: [`Cercariae penetrate skin -> adult worms inhabit perivesical venous plexus.`],
+      p2: [`Large oval eggs with a prominent TERMINAL spine in urine.`],
+      p3: [`Praziquantel cures infection; chronic inflammation predisposes to squamous cell carcinoma.`]
+    }
+  },
+  {
+    id: `RN12-Q2`, lo: 12, sector: `sector_4`, compartment: `lower_tract_bladder`, ageGroup: `transplant_travel`, behavior: `fungus_parasite`,
+    loTitle: `Sector IV • Schistosoma haematobium`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Bladder squamous cell carcinoma`,
+    stem: `A 52-year-old Egyptian farmer with untreated childhood hematuria presents with weight loss, pelvic pain, and hydronephrosis. Pelvic X-ray shows linear bladder wall calcification, and cystoscopy reveals an ulcerated mass. Biopsy shows invasive malignant nests with keratin pearls. How did chronic Schistosoma haematobium infection lead to this malignancy?`,
+    clue: `Chronic egg-induced granulomas drive urothelial squamous metaplasia rather than transitional cell carcinoma.`,
+    choices: [`Granulomatous inflammation causing squamous metaplasia`, `Viral E6/E7 inactivation of p53 and Rb`, `Aromatic amine DNA adduct formation`],
+    correctIndex: 0,
+    explanation: `Correct: Schistosoma haematobium eggs trapped in the bladder wall trigger chronic granulomatous inflammation, squamous metaplasia, and progression to bladder squamous cell carcinoma (keratin pearls). Distractor exclusion: E6/E7 inactivation reflects HPV (cervical/anal SCC), and aromatic amines (naphthylamine/smoking) classically cause urothelial (transitional) carcinoma.`,
+    secondOrderClue: `Schistosoma haematobium + Bladder mass + Keratin pearls -> Squamous cell carcinoma of bladder.`,
+    phase1Pearl: `Egg-antigen-driven Th2/eosinophilic granulomas release ROS and nitrosamines, driving squamous metaplasia to dysplasia.`,
+    phase2Hallmark: `Keratin pearls and intercellular bridges on bladder biopsy (vs. papillary urothelial carcinoma in smokers).`,
+    phase3Secret: `Even after eradicating worms with praziquantel, patients with calcified bladders require cystoscopic surveillance for SCC.`,
+    dossierBullets: {
+      p1: [`Chronic egg retention -> granulomas -> squamous metaplasia -> squamous cell carcinoma.`],
+      p2: [`Biopsy shows keratin pearls; radiology shows linear bladder calcification.`],
+      p3: [`Praziquantel prevents progression if given early; invasive SCC requires radical cystectomy.`]
+    }
+  },
+  {
+    id: `RN12-Q3`, lo: 12, sector: `sector_4`, compartment: `lower_tract_bladder`, ageGroup: `transplant_travel`, behavior: `fungus_parasite`,
+    loTitle: `Sector IV • Schistosoma haematobium`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Praziquantel`,
+    stem: `A 31-year-old traveler returning from Lake Malawi has eosinophilia and midday urine microscopy demonstrating Schistosoma haematobium eggs with terminal spines. Renal function is normal and cystoscopy shows mild sandy-patch inflammation without malignancy. What is the drug of choice?`,
+    clue: `Antihelminthic that opens parasite calcium channels, inducing spastic paralysis and tegument disruption.`,
+    choices: [`Praziquantel`, `Albendazole`, `Ivermectin`],
+    correctIndex: 0,
+    explanation: `Correct: Praziquantel is the drug of choice for all Schistosoma species, increasing Ca2+ influx into the worm tegument to cause paralysis and immune clearance. Distractor exclusion: Albendazole targets nematodes/cestodes (e.g., neurocysticercosis, pinworm), and ivermectin treats Strongyloides and Onchocerca.`,
+    secondOrderClue: `All trematodes (Schistosoma, Clonorchis) -> Praziquantel.`,
+    phase1Pearl: `Praziquantel damages adult worm tegument, exposing previously masked surface antigens to host antibodies.`,
+    phase2Hallmark: `Repeat urine microscopy 6–12 weeks post-treatment to confirm cessation of viable egg shedding.`,
+    phase3Secret: `Note: Praziquantel kills adult worms (not immature schistosomula), so wait 6–8 weeks after exposure or repeat dosing if treated early.`,
+    dossierBullets: {
+      p1: [`Praziquantel increases membrane Ca2+ permeability -> tetanic worm contraction & detachment.`],
+      p2: [`Sandy patches on cystoscopy represent submucosal calcified egg granulomas.`],
+      p3: [`Oral praziquantel is drug of choice for S. haematobium.`]
+    }
+  },
+
+  // LO 13: BK Polyomavirus
+  {
+    id: `RN13-Q1`, lo: 13, sector: `sector_5`, compartment: `transplant_allograft`, ageGroup: `transplant_travel`, behavior: `dna_virus`,
+    loTitle: `Sector V • BK Polyomavirus`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `BK Polyomavirus nephropathy`,
+    stem: `A 49-year-old man who received a deceased-donor kidney transplant 5 months ago on tacrolimus, mycophenolate mofetil, and prednisone has an asymptomatic rise in serum creatinine from 1.2 to 2.4 mg/dL. Urine cytology reveals enlarged tubular epithelial cells with homogeneous basophilic "ground-glass" intranuclear inclusions ("decoy cells"). What is the most likely diagnosis?`,
+    clue: `Non-enveloped dsDNA polyomavirus reactivating in kidney allografts with "decoy cells" in urine.`,
+    choices: [`BK Polyomavirus nephropathy`, `Acute T-cell-mediated rejection`, `Tacrolimus nephrotoxicity`],
+    correctIndex: 0,
+    explanation: `Correct: BK polyomavirus reactivates in ~5% of renal transplants during the first year, shedding "decoy cells" with ground-glass nuclear inclusions and causing allograft nephropathy. Distractor exclusion: Acute rejection lacks viral decoy cells/SV40 positivity; tacrolimus toxicity shows striped interstitial fibrosis and isometric tubular vacuolization.`,
+    secondOrderClue: `Kidney transplant + Rising Cr + Urine "decoy cells" -> BK Polyomavirus nephropathy.`,
+    phase1Pearl: `BK virus establishes lifelong latency in urothelium and reactivates when cellular immunity is heavily suppressed.`,
+    phase2Hallmark: `Urine "decoy cells" (ground-glass nuclear inclusions); renal biopsy positive for SV40 large T-antigen immunostain.`,
+    phase3Secret: `First-line management is REDUCTION of immunosuppression (NOT steroid pulses, which worsen viremia!).`,
+    dossierBullets: {
+      p1: [`Circular dsDNA polyomavirus latent in renal tubular cells; reactivates with tacrolimus/MMF.`],
+      p2: [`Decoy cells on Papanicolaou urine cytology; SV40+ tubular nuclei on biopsy.`],
+      p3: [`Reduce immunosuppression first-line; screen plasma BK PCR monthly post-transplant.`]
+    }
+  },
+  {
+    id: `RN13-Q2`, lo: 13, sector: `sector_5`, compartment: `transplant_allograft`, ageGroup: `transplant_travel`, behavior: `dna_virus`,
+    loTitle: `Sector V • BK Polyomavirus`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `SV40 large T-antigen positivity`,
+    stem: `A 53-year-old renal transplant recipient with rising creatinine and 120,000 copies/mL of plasma BK virus undergoes allograft biopsy. Light microscopy shows tubulitis and interstitial lymphocytic infiltrates closely mimicking acute cellular rejection. Which immunohistochemical stain definitively confirms BK virus nephropathy?`,
+    clue: `Simian polyomavirus cross-reactive antibody staining viral large T-antigen in infected tubular nuclei.`,
+    choices: [`SV40 large T-antigen immunostain`, `C4d peritubular capillary stain`, `Congo red apple-green birefringence`],
+    correctIndex: 0,
+    explanation: `Correct: Immunohistochemical staining for SV40 large T-antigen cross-reacts with BK virus (and JC virus) nuclear proteins, confirming viral tubulointerstitial nephritis. Distractor exclusion: C4d linear peritubular staining identifies antibody-mediated rejection, and Congo red identifies renal amyloidosis.`,
+    secondOrderClue: `Distinguishing BK nephropathy from acute rejection on biopsy -> SV40 immunostain.`,
+    phase1Pearl: `BK large T-antigen binds host p53 and Rb to drive host S-phase machinery for viral dsDNA replication, lysing tubular cells.`,
+    phase2Hallmark: `Nuclear enlargement with smudgy basophilic inclusions + positive nuclear SV40 staining in tubular epithelium.`,
+    phase3Secret: `Misdiagnosing BK nephropathy as acute rejection and giving high-dose methylprednisolone accelerates graft loss.`,
+    dossierBullets: {
+      p1: [`Viral large T-antigen hijacks host DNA replication, causing lytic tubular necrosis.`],
+      p2: [`SV40+ tubular nuclei confirm BK nephropathy over T-cell rejection.`],
+      p3: [`Taper mycophenolate/tacrolimus while monitoring serial BK viral load and creatinine.`]
+    }
+  },
+  {
+    id: `RN13-Q3`, lo: 13, sector: `sector_5`, compartment: `transplant_allograft`, ageGroup: `transplant_travel`, behavior: `dna_virus`,
+    loTitle: `Sector V • BK Polyomavirus`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Reduce immunosuppression`,
+    stem: `A 45-year-old kidney transplant recipient has a serum creatinine increase from 1.1 to 2.1 mg/dL, high-grade BK viremia (>50,000 copies/mL), and biopsy-proven SV40-positive BK nephropathy without vascular rejection. What is the most appropriate initial step in management?`,
+    clue: `No proven direct antiviral exists—restoring host cytotoxic T-cell immunity is paramount.`,
+    choices: [`Reduce maintenance immunosuppression`, `Administer IV pulse methylprednisolone`, `Start oral valganciclovir`],
+    correctIndex: 0,
+    explanation: `Correct: Reducing maintenance immunosuppression (e.g., halving or stopping mycophenolate and lowering tacrolimus troughs) allows host T cells to clear BK virus. Distractor exclusion: Pulse steroids worsen viral replication; valganciclovir targets CMV, not polyomaviruses.`,
+    secondOrderClue: `Confirmed BK nephropathy -> Stepwise reduction of immunosuppression.`,
+    phase1Pearl: `Recovery of BK-specific CD8+ T cells suppresses viremia and halts tubular destruction.`,
+    phase2Hallmark: `Monitor quantitative plasma BK DNA PCR every 2 weeks until clearance.`,
+    phase3Secret: `Cidofovir or leflunomide are adjunctive options only if BK viremia progresses despite reduced immunosuppression.`,
+    dossierBullets: {
+      p1: [`Restoring T-cell surveillance is the only consistently effective therapy.`],
+      p2: [`Distinguish from CMV (treated with ganciclovir) via decoy cells & SV40.`],
+      p3: [`Lower MMF/tacrolimus first; watch carefully for rebound rejection.`]
+    }
+  },
+
+  // LO 14: Cytomegalovirus (CMV)
+  {
+    id: `RN14-Q1`, lo: 14, sector: `sector_5`, compartment: `transplant_allograft`, ageGroup: `transplant_travel`, behavior: `dna_virus`,
+    loTitle: `Sector V • Cytomegalovirus (CMV)`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Cytomegalovirus (CMV) nephritis`,
+    stem: `A 51-year-old CMV-seronegative kidney transplant recipient who received an organ from a CMV-seropositive donor (D+/R-) presents 3 months after stopping prophylaxis with fever, leukopenia, thrombocytopenia, transaminitis, and rising serum creatinine. Renal biopsy shows enlarged endothelial and tubular cells with large intranuclear inclusions surrounded by a clear halo. What is the diagnosis?`,
+    clue: `Herpesvirus (HHV-5) causing D+/R- post-transplant syndrome with "owl-eye" inclusions.`,
+    choices: [`Cytomegalovirus (CMV) infection`, `BK polyomavirus nephropathy`, `Adenovirus hemorrhagic cystitis`],
+    correctIndex: 0,
+    explanation: `Correct: CMV (HHV-5) characteristically reactivates in D+/R- transplant recipients after prophylaxis ends, causing fever, cytopenias, and "owl-eye" intranuclear inclusions. Distractor exclusion: BK virus causes ground-glass decoy cells without fever or cytopenias; Adenovirus causes smudge cells and hemorrhagic cystitis.`,
+    secondOrderClue: `D+/R- transplant + Fever + Leukopenia + Owl-eye inclusions -> CMV.`,
+    phase1Pearl: `D+/R- carries the highest risk for primary post-transplant CMV disease because the recipient lacks preformed anti-CMV T cells.`,
+    phase2Hallmark: `Cytomegalic cells with basophilic intranuclear inclusions and clear perinuclear halos ("owl-eye" cells).`,
+    phase3Secret: `Treat tissue-invasive CMV disease with IV ganciclovir (or oral valganciclovir) and lower immunosuppression if tolerated.`,
+    dossierBullets: {
+      p1: [`Enveloped dsDNA herpesvirus (HHV-5) latent in monocytes/endothelial cells.`],
+      p2: [`Owl-eye intranuclear inclusions on biopsy + quantitative plasma CMV PCR.`],
+      p3: [`IV ganciclovir / oral valganciclovir first-line; give valganciclovir prophylaxis to D+/R-.`]
+    }
+  },
+  {
+    id: `RN14-Q2`, lo: 14, sector: `sector_5`, compartment: `transplant_allograft`, ageGroup: `transplant_travel`, behavior: `dna_virus`,
+    loTitle: `Sector V • Cytomegalovirus (CMV)`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Viral UL97 kinase phosphorylation`,
+    stem: `A renal transplant recipient with CMV glomerulonephritis fails to respond to IV ganciclovir, with rising CMV PCR titers. Sequencing reveals a mutation in the viral UL97 gene. Why does a UL97 mutation cause ganciclovir resistance while preserving sensitivity to foscarnet?`,
+    clue: `Ganciclovir is an inactive prodrug requiring a specific CMV-encoded enzyme for its initial phosphorylation.`,
+    choices: [`UL97 kinase performs initial ganciclovir phosphorylation`, `UL97 encodes the viral thymidine kinase used by foscarnet`, `UL97 pumps ganciclovir out of tubular cells`],
+    correctIndex: 0,
+    explanation: `Correct: CMV lacks thymidine kinase and instead uses viral UL97 protein kinase to monophosphorylate ganciclovir; foscarnet is a direct pyrophosphate analog that does not require phosphorylation. Distractor exclusion: CMV does not use thymidine kinase (unlike HSV/VZV), and UL97 is not an efflux pump.`,
+    secondOrderClue: `CMV ganciclovir resistance -> UL97 kinase mutation -> Switch to Foscarnet (direct DNA pol inhibitor).`,
+    phase1Pearl: `Following UL97 monophosphorylation, host cellular kinases convert ganciclovir to active ganciclovir triphosphate, inhibiting viral DNA polymerase (UL54).`,
+    phase2Hallmark: `UL54 viral DNA polymerase mutations can confer cross-resistance to ganciclovir, cidofovir, and/or foscarnet.`,
+    phase3Secret: `When switching to foscarnet for UL97-resistant CMV, aggressively hydrate and monitor Mg2+/Ca2+/Cr (foscarnet is nephrotoxic and chelates Ca2+).`,
+    dossierBullets: {
+      p1: [`CMV UL97 kinase (not TK!) activates ganciclovir -> inhibits UL54 DNA polymerase.`],
+      p2: [`Foscarnet directly blocks pyrophosphate binding site on viral DNA polymerase.`],
+      p3: [`Ganciclovir toxicity: bone marrow suppression (neutropenia); Foscarnet toxicity: nephrotoxicity & hypocalcemia.`]
+    }
+  },
+  {
+    id: `RN14-Q3`, lo: 14, sector: `sector_5`, compartment: `transplant_allograft`, ageGroup: `transplant_travel`, behavior: `dna_virus`,
+    loTitle: `Sector V • Cytomegalovirus (CMV)`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Owl-eye intranuclear inclusions`,
+    stem: `A kidney allograft biopsy from a febrile transplant recipient with proteinuria and leukopenia is examined under H&E staining. Glomerular capillary endothelial cells and tubular epithelial cells are markedly enlarged with dense central basophilic nuclear inclusions separated from the nuclear membrane by a clear halo. What is this histologic hallmark?`,
+    clue: `Classic pathognomonic cytomegalic morphology of HHV-5 infection.`,
+    choices: [`Owl-eye intranuclear inclusions`, `Subepithelial electron-dense humps`, `Ground-glass decoy cell nuclei`],
+    correctIndex: 0,
+    explanation: `Correct: CMV causes cytomegaly with basophilic intranuclear inclusions surrounded by a clear halo ("owl-eye" appearance), plus smaller basophilic cytoplasmic inclusions. Distractor exclusion: Subepithelial humps characterize PSGN, and ground-glass nuclei without a clear halo characterize BK decoy cells.`,
+    secondOrderClue: `Cytomegaly + Clear perinuclear halo ("owl-eye") -> CMV.`,
+    phase1Pearl: `CMV infects glomerular endothelial cells, causing CMV glomerulopathy and predisposing to chronic allograft rejection.`,
+    phase2Hallmark: `H&E owl-eye inclusions confirmed by anti-CMV immunohistochemistry.`,
+    phase3Secret: `Monitor ANC closely during valganciclovir/ganciclovir therapy—neutropenia is the dose-limiting toxicity.`,
+    dossierBullets: {
+      p1: [`Endothelial tropism triggers microvascular injury and immune upregulation in allografts.`],
+      p2: [`Owl-eye basophilic intranuclear inclusions with clear halo + cytoplasmic inclusions.`],
+      p3: [`Treat with IV ganciclovir until viremia clears; check CBC weekly for neutropenia.`]
+    }
+  },
+
+  // LO 15: Adenovirus (11 & 21)
+  {
+    id: `RN15-Q1`, lo: 15, sector: `sector_5`, compartment: `lower_tract_bladder`, ageGroup: `pediatric`, behavior: `dna_virus`,
+    loTitle: `Sector V • Adenovirus (11 & 21)`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Adenovirus hemorrhagic cystitis`,
+    stem: `An 8-year-old boy who underwent allogeneic hematopoietic stem cell transplantation (HSCT) 6 weeks ago develops sudden severe dysuria, suprapubic pain, and gross hematuria with large blood clots. He has not received cyclophosphamide since conditioning. Bacterial and fungal urine cultures are negative, and urine PCR is positive for a non-enveloped dsDNA virus. Which serotypes are most likely?`,
+    clue: `Non-enveloped icosahedral dsDNA virus with penton fibers; specific serotypes target bladder urothelium.`,
+    choices: [`Adenovirus serotypes 11 and 21`, `Adenovirus serotypes 40 and 41`, `Coxsackie B virus`],
+    correctIndex: 0,
+    explanation: `Correct: Adenovirus serotypes 11 and 21 classically cause acute hemorrhagic cystitis in children and HSCT recipients. Distractor exclusion: Adenovirus serotypes 40 and 41 cause viral gastroenteritis in infants, and Coxsackie B causes pleurodynia/myocarditis.`,
+    secondOrderClue: `Child / HSCT + Gross hemorrhagic cystitis + Sterile cultures -> Adenovirus 11 & 21.`,
+    phase1Pearl: `Non-enveloped icosahedral dsDNA virus resists detergents and alcohol, spreading easily in pediatric/transplant wards.`,
+    phase2Hallmark: `Gross hematuria with clots, sterile bacterial/fungal cultures, smudge cells on urine cytology, positive urine Adenovirus PCR.`,
+    phase3Secret: `Immunocompetent children resolve spontaneously with hydration; severe HSCT cases receive IV cidofovir + reduced immunosuppression.`,
+    dossierBullets: {
+      p1: [`Serotypes 11 & 21 show urothelial tropism; serotypes 40 & 41 cause infant diarrhea.`],
+      p2: [`Gross clot-forming hematuria + sterile routine cultures + positive urine PCR.`],
+      p3: [`Supportive hydration in immunocompetent hosts; cidofovir in severe HSCT disease.`]
+    }
+  },
+  {
+    id: `RN15-Q2`, lo: 15, sector: `sector_5`, compartment: `lower_tract_bladder`, ageGroup: `pediatric`, behavior: `dna_virus`,
+    loTitle: `Sector V • Adenovirus (11 & 21)`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Direct urothelial lytic replication`,
+    stem: `A 7-year-old immunocompetent boy develops self-limited acute hemorrhagic cystitis due to Adenovirus serotype 11. How does this non-enveloped DNA virus trigger sudden gross hematuria?`,
+    clue: `Penton base fiber proteins mediate endocytosis followed by host cell lysis and mucosal capillary exposure.`,
+    choices: [`Direct viral lytic replication in bladder urothelium`, `Type III immune complex deposition in glomeruli`, `Acrolein metabolite toxicity from viral enzymes`],
+    correctIndex: 0,
+    explanation: `Correct: Adenovirus attaches via fiber/penton proteins, replicates inside urothelial nuclei, and lyses bladder mucosal cells, exposing submucosal capillaries. Distractor exclusion: Type III glomerular deposition describes PSGN, and acrolein is the toxic metabolite of cyclophosphamide (prevented by Mesna).`,
+    secondOrderClue: `Adenovirus 11/21 cystitis -> Direct urothelial cell lysis (vs. cyclophosphamide acrolein).`,
+    phase1Pearl: `Because it lacks a lipid envelope, Adenovirus survives harsh urinary conditions and environmental disinfectants.`,
+    phase2Hallmark: `Urinalysis shows isomorphic (non-dysmorphic) RBCs without RBC casts, localizing bleeding to the lower urinary tract.`,
+    phase3Secret: `Always distinguish viral hemorrhagic cystitis (isomorphic RBCs, positive PCR) from nephritic glomerulonephritis (dysmorphic RBCs, RBC casts).`,
+    dossierBullets: {
+      p1: [`Non-enveloped linear dsDNA replicates in urothelial nuclei -> mucosal sloughing.`],
+      p2: [`Isomorphic RBCs without casts confirm lower tract (bladder) bleeding.`],
+      p3: [`Distinguish from cyclophosphamide-induced hemorrhagic cystitis (prevent with Mesna).`]
+    }
+  },
+  {
+    id: `RN15-Q3`, lo: 15, sector: `sector_5`, compartment: `lower_tract_bladder`, ageGroup: `pediatric`, behavior: `dna_virus`,
+    loTitle: `Sector V • Adenovirus (11 & 21)`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Cidofovir with probenecid & hydration`,
+    stem: `A 12-year-old post-HSCT patient develops refractory Adenovirus serotype 21 hemorrhagic cystitis with rising plasma adenoviral load and clot retention despite tapering immunosuppression. Bladder irrigation is started. Which antiviral agent has direct activity against Adenovirus, and how is its renal toxicity mitigated?`,
+    clue: `Nucleotide analog (already monophosphorylated) active against dsDNA viruses including Adenovirus and resistant CMV.`,
+    choices: [`Cidofovir given with probenecid and IV hydration`, `Acyclovir given with oral alkalinization`, `Oseltamivir given with furosemide`],
+    correctIndex: 0,
+    explanation: `Correct: Cidofovir inhibits adenoviral DNA polymerase and is co-administered with probenecid (blocks OAT tubular uptake) and aggressive IV hydration to limit nephrotoxicity. Distractor exclusion: Acyclovir requires HSV/VZV thymidine kinase (absent in Adenovirus), and oseltamivir targets influenza neuraminidase.`,
+    secondOrderClue: `Severe HSCT Adenovirus cystitis -> Cidofovir + Probenecid + Hydration.`,
+    phase1Pearl: `Probenecid blocks organic anion transporter (OAT) secretion of cidofovir into proximal tubular cells, preventing acute tubular necrosis.`,
+    phase2Hallmark: `Urine cytology shows "smudge cells" (enlarged nuclei filled with viral inclusions obliterating nuclear detail).`,
+    phase3Secret: `In healthy children, NEVER give cidofovir—adenoviral hemorrhagic cystitis is self-limited within 5–10 days with oral hydration alone.`,
+    dossierBullets: {
+      p1: [`Cidofovir is a cytosine nucleotide analog active without viral kinase activation.`],
+      p2: [`Probenecid + IV hydration protect proximal tubules from cidofovir ATN.`],
+      p3: [`Reserve cidofovir strictly for severe disseminated/HSCT Adenovirus disease.`]
+    }
+  }
+];
+
+/* STATE */
+let activeDeck = [];
+let deckIndex = 0;
+let currentGate = null;
+let currentChoiceMap = [0, 1, 2];
+let playerHp = 100;
+let playerXp = 0;
+let currentStreak = 0;
+let bestStreak = 0;
+let answeredCount = 0;
+let correctCount = 0;
+let missedIds = [];
+let masteredLos = {};
+let isHintsVisible = false;
+let isMenuOpen = false;
+let isTimerEnabled = true;
+let timeoutMode = `review`;
+let timeRemaining = GAME_CONFIG.timerSeconds;
+let timerInterval = null;
+let metaFadeTimeout = null;
+let activePhaseFilter = `all`;
+let activeCodexSector = `all`;
+let isResolvingGate = false;
+
+/* AUDIO ENGINE */
+let masterSoundOn = true;
+let sfxOn = true;
+let bgmOn = false;
+let bgmVolume = 0.35;
+let audioCtx = null;
+let bgmInterval = null;
+let bgmStep = 0;
+let customAudioEl = null;
+
+function ensureAudioCtx() {
+  if (!audioCtx && (window.AudioContext || window.webkitAudioContext)) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new Ctx();
+  }
+  if (audioCtx && audioCtx.state === `suspended`) {
+    audioCtx.resume().catch(() => {});
+  }
+  return audioCtx;
+}
+
+function playSfx(type) {
+  if (!masterSoundOn || !sfxOn) return;
+  const ctx = ensureAudioCtx();
+  if (!ctx) return;
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  if (type === `correct`) {
+    osc.type = `triangle`;
+    osc.frequency.setValueAtTime(523.25, now);
+    osc.frequency.exponentialRampToValueAtTime(1046.5, now + 0.16);
+    gain.gain.setValueAtTime(0.14, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+    osc.start(now); osc.stop(now + 0.25);
+  } else if (type === `wrong`) {
+    osc.type = `sawtooth`;
+    osc.frequency.setValueAtTime(190, now);
+    osc.frequency.exponentialRampToValueAtTime(85, now + 0.26);
+    gain.gain.setValueAtTime(0.14, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+    osc.start(now); osc.stop(now + 0.29);
+  } else {
+    osc.type = `sine`;
+    osc.frequency.setValueAtTime(420, now);
+    osc.frequency.exponentialRampToValueAtTime(620, now + 0.06);
+    gain.gain.setValueAtTime(0.06, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+    osc.start(now); osc.stop(now + 0.09);
+  }
+}
+
+function startProceduralBgm() {
+  stopProceduralBgm();
+  if (!masterSoundOn || !bgmOn) return;
+  if (customAudioEl) {
+    customAudioEl.volume = bgmVolume;
+    customAudioEl.play().catch(() => {});
+    return;
+  }
+  const ctx = ensureAudioCtx();
+  if (!ctx) return;
+  const notes = [146.83, 174.61, 220.0, 261.63, 220.0, 174.61, 164.81, 220.0];
+  bgmInterval = setInterval(() => {
+    if (!masterSoundOn || !bgmOn || customAudioEl) return;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = `triangle`;
+    osc.frequency.setValueAtTime(notes[bgmStep % notes.length], now);
+    gain.gain.setValueAtTime(Math.max(0.01, bgmVolume * 0.16), now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.34);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.35);
+    bgmStep++;
+  }, 360);
+}
+
+function stopProceduralBgm() {
+  if (bgmInterval) { clearInterval(bgmInterval); bgmInterval = null; }
+  if (customAudioEl) { customAudioEl.pause(); }
+}
+
+function toggleMasterSound() {
+  masterSoundOn = !masterSoundOn;
+  if (!masterSoundOn) stopProceduralBgm();
+  else if (bgmOn) startProceduralBgm();
+  syncAudioUI();
+  persistAppState();
+}
+
+function toggleSfx() {
+  sfxOn = !sfxOn;
+  if (sfxOn) playSfx(`steer`);
+  syncAudioUI();
+  persistAppState();
+}
+
+function toggleBgm() {
+  bgmOn = !bgmOn;
+  if (bgmOn && masterSoundOn) startProceduralBgm();
+  else stopProceduralBgm();
+  syncAudioUI();
+  persistAppState();
+}
+
+function setBgmVolume(val) {
+  bgmVolume = parseFloat(val) || 0.35;
+  if (customAudioEl) customAudioEl.volume = bgmVolume;
+  persistAppState();
+}
+
+function loadCustomAudio(inputEl) {
+  if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
+  const file = inputEl.files[0];
+  if (customAudioEl) { customAudioEl.pause(); customAudioEl = null; }
+  const url = URL.createObjectURL(file);
+  customAudioEl = new Audio(url);
+  customAudioEl.loop = true;
+  customAudioEl.volume = bgmVolume;
+  bgmOn = true;
+  if (masterSoundOn) startProceduralBgm();
+  syncAudioUI();
+  setMenuStatus(`Loaded custom audio: ${file.name}`);
+}
+
+function syncAudioUI() {
+  const mBtn = document.getElementById(`master-sound-btn`);
+  const sBtn = document.getElementById(`sfx-toggle-btn`);
+  const bBtn = document.getElementById(`bgm-toggle-btn`);
+  if (mBtn) {
+    mBtn.textContent = masterSoundOn ? `🔊 Sound: ON` : `🔇 Sound: OFF`;
+    mBtn.classList.toggle(`is-active`, masterSoundOn);
+  }
+  if (sBtn) {
+    sBtn.textContent = sfxOn ? `✨ SFX: ON` : `✨ SFX: OFF`;
+    sBtn.classList.toggle(`is-active`, sfxOn);
+  }
+  if (bBtn) {
+    bBtn.textContent = bgmOn ? `🧟 Zombies BGM: ON` : `🧟 Zombies BGM: OFF`;
+    bBtn.classList.toggle(`is-active`, bgmOn);
+  }
+}
+
+/* 3D SYNTHWAVE CANVAS ENGINE */
+const canvas = document.getElementById(`synthwave-canvas`);
+const ctx2d = canvas ? canvas.getContext(`2d`) : null;
+const PIXEL_DUST = Array.from({ length: 150 }, (_, idx) => {
+  const theta = idx * 2.399963229728653;
+  const radiusBias = 0.08 + Math.sqrt((idx * 0.754877666) % 1) * 1.15;
+  return {
+    dx: Math.cos(theta) * radiusBias,
+    dy: Math.sin(theta) * radiusBias * 0.72 - 0.16,
+    z: 0.04 + ((idx + 0.5) / 150) * 0.96,
+    speed: 0.085 + (idx % 7) * 0.018,
+    baseSize: 1.4 + (idx % 4) * 1.25
+  };
+});
+let targetShipLane = 1;
+let shipXNorm = 0;
+let floorScroll = 0;
+let portalBurst = 0;
+let portalBurstColor = `#00ffcc`;
+
+function resizeCanvas() {
+  if (!canvas) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.max(1, Math.floor(canvas.clientWidth * dpr));
+  canvas.height = Math.max(1, Math.floor(canvas.clientHeight * dpr));
+  if (ctx2d) ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function previewLaneTarget(laneIdx) {
+  targetShipLane = laneIdx;
+  for (let i = 0; i < 3; i++) {
+    const c = document.getElementById(`lane-${i}-card`);
+    if (c) c.classList.toggle(`is-previewed`, i === laneIdx);
+  }
+}
+
+function renderSynthwaveFrame() {
+  if (!canvas || !ctx2d) return;
+  const w = canvas.clientWidth || 1;
+  const h = canvas.clientHeight || 1;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const targetW = Math.max(1, Math.floor(w * dpr));
+  const targetH = Math.max(1, Math.floor(h * dpr));
+  if (canvas.width !== targetW || canvas.height !== targetH) {
+    canvas.width = targetW;
+    canvas.height = targetH;
+  }
+  ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const horizonY = h * 0.34;
+  const theme = currentGate ? (LO_VISUAL_THEMES[currentGate.lo] || LO_VISUAL_THEMES[1]) : LO_VISUAL_THEMES[1];
+
+  ctx2d.fillStyle = `#0a0a12`;
+  ctx2d.fillRect(0, 0, w, h);
+
+  // 150 crisp 3D square pixel-dust particles streaming cleanly across the void
+  ctx2d.save();
+  ctx2d.fillStyle = theme.dust;
+  const spreadX = w * 0.58;
+  const spreadY = h * 0.64;
+  for (let i = 0; i < PIXEL_DUST.length; i++) {
+    const p = PIXEL_DUST[i];
+    p.z -= p.speed * 0.016;
+    if (p.z <= 0.03) p.z = 1.0;
+    const invZ = 1 / (p.z + 0.14);
+    const normDepth = 1 - p.z;
+    const sx = w * 0.5 + p.dx * spreadX * (invZ * 0.22);
+    const sy = horizonY + p.dy * spreadY * (invZ * 0.24);
+    if (sx < -16 || sx > w + 16 || sy < -16 || sy > h + 16) continue;
+    const s = Math.min(8.5, Math.max(1.2, p.baseSize * (0.28 + Math.pow(normDepth, 2.2) * 1.9)));
+    ctx2d.globalAlpha = Math.min(0.88, Math.pow(normDepth, 0.7) * 0.85 + 0.08);
+    ctx2d.fillRect(Math.round(sx - s * 0.5), Math.round(sy - s * 0.5), s, s);
+  }
+  ctx2d.restore();
+
+  // Infinite perspective wireframe floor
+  floorScroll = (floorScroll + 0.018) % 1;
+  ctx2d.strokeStyle = `rgba(${theme.gridRgb}, 0.24)`;
+  ctx2d.lineWidth = 1;
+  for (let i = -10; i <= 10; i++) {
+    const bx = w * 0.5 + i * (w * 0.14);
+    const tx = w * 0.5 + i * (w * 0.018);
+    ctx2d.beginPath();
+    ctx2d.moveTo(tx, horizonY);
+    ctx2d.lineTo(bx, h);
+    ctx2d.stroke();
+  }
+  for (let j = 0; j < 14; j++) {
+    const t = Math.pow((j + floorScroll) / 14, 2.2);
+    const gy = horizonY + t * (h - horizonY);
+    ctx2d.beginPath();
+    ctx2d.moveTo(0, gy);
+    ctx2d.lineTo(w, gy);
+    ctx2d.stroke();
+  }
+
+  // 3 Teal perspective track rails & 1:1 Portal Fusion
+  const stageRect = canvas.getBoundingClientRect();
+  const portalColors = [`#ff2d78`, `#00ffcc`, `#ffe04a`];
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`lane-${i}-card`);
+    if (!card) continue;
+    const cr = card.getBoundingClientRect();
+    const cx = cr.left - stageRect.left + cr.width * 0.5;
+    const cy = cr.top - stageRect.top + cr.height * 0.5;
+    const cw = cr.width;
+    const ch = cr.height;
+    const topX = w * 0.5 + (i - 1) * (w * 0.045);
+
+    ctx2d.strokeStyle = `rgba(0, 255, 204, 0.42)`;
+    ctx2d.lineWidth = 2;
+    ctx2d.beginPath();
+    ctx2d.moveTo(topX, horizonY);
+    ctx2d.lineTo(cx, h);
+    ctx2d.stroke();
+
+    // 1:1 Neon portal halo fused to card bounding box
+    ctx2d.save();
+    ctx2d.strokeStyle = portalColors[i];
+    ctx2d.lineWidth = i === targetShipLane ? 2.8 : 1.6;
+    ctx2d.shadowColor = portalColors[i];
+    ctx2d.shadowBlur = i === targetShipLane ? 18 : 8;
+    ctx2d.strokeRect(cx - cw * 0.5 - 3, cy - ch * 0.5 - 3, cw + 6, ch + 6);
+    ctx2d.restore();
+  }
+
+  // Solid geometric teal diamond craft
+  const targetNorm = targetShipLane - 1;
+  shipXNorm += (targetNorm - shipXNorm) * 0.16;
+  const shipX = w * 0.5 + shipXNorm * (w * 0.25);
+  const shipY = h * 0.87;
+  ctx2d.save();
+  ctx2d.translate(shipX, shipY);
+  ctx2d.fillStyle = `#00ffcc`;
+  ctx2d.shadowColor = `#00ffcc`;
+  ctx2d.shadowBlur = 16;
+  ctx2d.beginPath();
+  ctx2d.moveTo(0, -18);
+  ctx2d.lineTo(14, 2);
+  ctx2d.lineTo(0, 14);
+  ctx2d.lineTo(-14, 2);
+  ctx2d.closePath();
+  ctx2d.fill();
+  ctx2d.restore();
+
+  if (portalBurst > 0) {
+    ctx2d.fillStyle = portalBurstColor;
+    ctx2d.globalAlpha = portalBurst * 0.22;
+    ctx2d.fillRect(0, 0, w, h);
+    ctx2d.globalAlpha = 1;
+    portalBurst = Math.max(0, portalBurst - 0.045);
+  }
+  requestAnimationFrame(renderSynthwaveFrame);
+}
+
+/* DECK & FILTERS */
+function buildDeck(shuffle) {
+  const sectorVal = (document.getElementById(`sector-filter`) || {}).value || `all`;
+  const angleVal = (document.getElementById(`angle-filter`) || {}).value || `all`;
+  const compVal = (document.getElementById(`compartment-filter`) || {}).value || `all`;
+  const ageVal = (document.getElementById(`age-filter`) || {}).value || `all`;
+  const behVal = (document.getElementById(`behavior-filter`) || {}).value || `all`;
+
+  let pool = ALL_QUESTIONS.filter((q) => {
+    if (sectorVal === `missed`) {
+      if (!missedIds.includes(q.id)) return false;
+    } else if (sectorVal.startsWith(`sector_`)) {
+      if (q.sector !== sectorVal) return false;
+    } else if (sectorVal !== `all`) {
+      if (String(q.lo) !== sectorVal) return false;
+    }
+    if (angleVal !== `all` && q.angle !== angleVal) return false;
+    if (compVal !== `all` && q.compartment !== compVal) return false;
+    if (ageVal !== `all` && q.ageGroup !== ageVal) return false;
+    if (behVal !== `all` && q.behavior !== behVal) return false;
+    if (activePhaseFilter !== `all` && q.phaseFocus !== activePhaseFilter) return false;
+    return true;
+  });
+
+  if (pool.length === 0) {
+    setMenuStatus(`No gates match current filter combination — showing all 45 gates.`);
+    pool = ALL_QUESTIONS.slice();
+  } else {
+    setMenuStatus(`Active deck loaded: ${pool.length} diagnostic gates.`);
+  }
+
+  if (shuffle) {
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = pool[i]; pool[i] = pool[j]; pool[j] = tmp;
+    }
+  }
+  activeDeck = pool;
+  deckIndex = 0;
+  loadGate(0);
+}
+
+function applyDeckFilters() {
+  buildDeck(false);
+  persistAppState();
+}
+
+function setPhaseFilter(phase) {
+  activePhaseFilter = phase;
+  const pills = document.querySelectorAll(`#phase-pills-row .phase-mix-pill`);
+  pills.forEach((p) => p.classList.toggle(`is-active`, p.dataset.phase === phase));
+  applyDeckFilters();
+}
+
+function setTimeoutMode(mode) {
+  timeoutMode = mode === `hold` ? `hold` : `review`;
+  persistAppState();
+}
+
+function restartDeck(shuffle) {
+  playerHp = 100;
+  playerXp = 0;
+  currentStreak = 0;
+  answeredCount = 0;
+  correctCount = 0;
+  buildDeck(shuffle);
+  updateTelemetryUI();
+  if (isMenuOpen) toggleMenuDrawer();
+  persistAppState();
+}
+
+function startTimedRun() {
+  isTimerEnabled = true;
+  syncTimerControlsUI();
+  restartDeck(true);
+}
+
+function loadGate(idx) {
+  if (!activeDeck.length) return;
+  if (idx >= activeDeck.length) {
+    showRunSummary();
+    return;
+  }
+  deckIndex = idx;
+  currentGate = activeDeck[idx];
+  isResolvingGate = false;
+
+  // Shuffle 3 portal positions at runtime
+  const perm = [0, 1, 2];
+  for (let i = perm.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = perm[i]; perm[i] = perm[j]; perm[j] = t;
+  }
+  currentChoiceMap = perm;
+
+  const theme = LO_VISUAL_THEMES[currentGate.lo] || LO_VISUAL_THEMES[1];
+  const loEl = document.getElementById(`meta-lo-badge`);
+  const angEl = document.getElementById(`meta-angle-badge`);
+  const phEl = document.getElementById(`meta-phase-badge`);
+  const corEl = document.getElementById(`meta-corridor-badge`);
+  const metaRow = document.getElementById(`question-meta-row`);
+
+  if (loEl) loEl.textContent = currentGate.loTitle;
+  if (angEl) angEl.textContent = currentGate.angle;
+  if (phEl) phEl.textContent = currentGate.phaseFocus;
+  if (corEl) corEl.textContent = theme.tag;
+
+  if (metaRow) {
+    metaRow.classList.remove(`is-faded`);
+    if (metaFadeTimeout) clearTimeout(metaFadeTimeout);
+    metaFadeTimeout = setTimeout(() => {
+      metaRow.classList.add(`is-faded`);
+    }, GAME_CONFIG.metaFadeMs);
+  }
+
+  const stemEl = document.getElementById(`q-stem-text`);
+  const clueEl = document.getElementById(`q-clue-text`);
+  const hRefEl = document.getElementById(`hints-meta-ref`);
+  if (stemEl) stemEl.textContent = currentGate.stem;
+  if (clueEl) clueEl.textContent = currentGate.clue;
+  if (hRefEl) hRefEl.textContent = `${currentGate.loTitle} • ${currentGate.phaseFocus}`;
+
+  for (let lane = 0; lane < 3; lane++) {
+    const choiceTextEl = document.getElementById(`lane-${lane}-text`);
+    if (choiceTextEl) choiceTextEl.textContent = currentGate.choices[currentChoiceMap[lane]];
+  }
+  previewLaneTarget(1);
+  updateTelemetryUI();
+  resetGateTimer();
+}
+
+/* TIMER */
+function resetGateTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  timeRemaining = GAME_CONFIG.timerSeconds;
+  syncTimerUI();
+  if (!isTimerEnabled) return;
+  timerInterval = setInterval(() => {
+    if (isMenuOpen || isModalOpen()) return;
+    timeRemaining--;
+    syncTimerUI();
+    if (timeRemaining <= 0) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      if (timeoutMode === `review`) {
+        resolveGate(-1, true);
+      }
+    }
+  }, 1000);
+}
+
+function syncTimerUI() {
+  const tEl = document.getElementById(`timer-text`);
+  const chip = document.getElementById(`timer-chip`);
+  if (tEl) tEl.textContent = isTimerEnabled ? `${Math.max(0, timeRemaining)}s` : `OFF`;
+  if (chip) chip.classList.toggle(`is-urgent`, isTimerEnabled && timeRemaining <= 10);
+}
+
+function toggleTimerEnabled() {
+  isTimerEnabled = !isTimerEnabled;
+  syncTimerControlsUI();
+  resetGateTimer();
+  persistAppState();
+}
+
+function syncTimerControlsUI() {
+  const btn = document.getElementById(`menu-timer-btn`);
+  if (btn) {
+    btn.textContent = isTimerEnabled ? `⏱ 50s Timer: ON [T]` : `⏱ 50s Timer: OFF [T]`;
+    btn.classList.toggle(`is-active`, isTimerEnabled);
+  }
+  syncTimerUI();
+}
+
+/* GATE RESOLUTION & 7-PART OUTCOME DOSSIER */
+function selectLaneAndResolve(laneIdx) {
+  if (isResolvingGate || !currentGate || isModalOpen()) return;
+  previewLaneTarget(laneIdx);
+  resolveGate(laneIdx, false);
+}
+
+function resolveGate(chosenLane, isTimesUp) {
+  isResolvingGate = true;
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+
+  const chosenChoiceIdx = chosenLane >= 0 ? currentChoiceMap[chosenLane] : -1;
+  const isCorrect = !isTimesUp && chosenChoiceIdx === currentGate.correctIndex;
+  answeredCount++;
+
+  let xpDelta = 0;
+  let hpDelta = 0;
+  const vig = document.getElementById(`vignette-overlay`);
+
+  if (isCorrect) {
+    correctCount++;
+    currentStreak++;
+    if (currentStreak > bestStreak) bestStreak = currentStreak;
+    xpDelta = 100 + Math.min(100, (currentStreak - 1) * 20);
+    playerXp += xpDelta;
+    hpDelta = 5;
+    playerHp = Math.min(100, playerHp + hpDelta);
+    masteredLos[currentGate.lo] = true;
+    missedIds = missedIds.filter((id) => id !== currentGate.id);
+
+    if (currentStreak > 0 && currentStreak % GAME_CONFIG.streakBonusStep === 0) {
+      playerHp = Math.min(100, playerHp + GAME_CONFIG.streakBonusHp);
+      hpDelta += GAME_CONFIG.streakBonusHp;
+      showStreakHealToast();
+    }
+    portalBurst = 1;
+    portalBurstColor = `#00ffcc`;
+    if (vig) { vig.className = `vignette-overlay is-correct`; setTimeout(() => { vig.className = `vignette-overlay`; }, 550); }
+    playSfx(`correct`);
+  } else {
+    currentStreak = 0;
+    hpDelta = -20;
+    playerHp = Math.max(0, playerHp + hpDelta);
+    if (!missedIds.includes(currentGate.id)) missedIds.push(currentGate.id);
+    portalBurst = 1;
+    portalBurstColor = `#ff2d78`;
+    if (vig) { vig.className = `vignette-overlay is-wrong`; setTimeout(() => { vig.className = `vignette-overlay`; }, 550); }
+    playSfx(`wrong`);
+  }
+
+  updateTelemetryUI();
+  renderSkillTree();
+  populateOutcomeModal(currentGate, chosenChoiceIdx, isCorrect, xpDelta, `${hpDelta >= 0 ? `+` : ``}${hpDelta} HP`, isTimesUp);
+  persistAppState();
+}
+
+function showStreakHealToast() {
+  const toast = document.getElementById(`heal-toast`);
+  if (!toast) return;
+  toast.classList.add(`is-visible`);
+  setTimeout(() => toast.classList.remove(`is-visible`), 2100);
+}
+
+function renderDossierBullets(el, lines) {
+  if (!el) return;
+  const items = (Array.isArray(lines) ? lines : [lines])
+    .flatMap((line) => String(line || ``).split(/\n|<br\s*\/?>/i))
+    .map((line) => line.replace(/^\s*[•\-\*]\s*/, ``).trim())
+    .filter(Boolean);
+  el.innerHTML = items.map((line) => `<p class="dossier-line">• ${line}</p>`).join(``);
+}
+
+function populateOutcomeModal(q, chosenChoiceIdx, isCorrect, xpDelta, hpDeltaLabel, isTimesUp) {
+  const verdict = document.getElementById(`outcome-verdict`);
+  const xpBadge = document.getElementById(`outcome-xp-delta`);
+  const hpBadge = document.getElementById(`outcome-hp-delta`);
+  const loRef = document.getElementById(`outcome-lo-ref`);
+  const qText = document.getElementById(`outcome-question-text`);
+  const yourBox = document.getElementById(`your-choice-box`);
+  const yourText = document.getElementById(`your-choice-text`);
+  const corrText = document.getElementById(`correct-choice-text`);
+
+  if (verdict) {
+    if (isTimesUp) {
+      verdict.textContent = `⏱ TIME'S UP — ${q.shortAnswer}`;
+      verdict.className = `popup-verdict is-wrong`;
+    } else if (isCorrect) {
+      verdict.textContent = `✔ CORRECT — ${q.shortAnswer}`;
+      verdict.className = `popup-verdict is-correct`;
+    } else {
+      verdict.textContent = `✖ INCORRECT — ${q.shortAnswer}`;
+      verdict.className = `popup-verdict is-wrong`;
+    }
+  }
+  if (xpBadge) xpBadge.textContent = `+${xpDelta} XP`;
+  if (hpBadge) hpBadge.textContent = hpDeltaLabel;
+  if (loRef) loRef.textContent = `${q.loTitle} • ${q.angle} • ${q.phaseFocus}`;
+  if (qText) qText.textContent = q.stem;
+
+  if (yourText) {
+    yourText.textContent = chosenChoiceIdx >= 0 ? q.choices[chosenChoiceIdx] : `No portal selected before 50s timer expired`;
+  }
+  if (yourBox) {
+    yourBox.className = `choice-box ${isCorrect ? `is-correct` : `is-wrong`}`;
+  }
+  if (corrText) corrText.textContent = q.choices[q.correctIndex];
+
+  renderDossierBullets(document.getElementById(`dossier-explanation`), q.explanation);
+  renderDossierBullets(document.getElementById(`dossier-second-order`), q.secondOrderClue);
+  renderDossierBullets(document.getElementById(`dossier-phase1`), q.phase1Pearl);
+  renderDossierBullets(document.getElementById(`dossier-phase2`), q.phase2Hallmark);
+  renderDossierBullets(document.getElementById(`dossier-phase3`), q.phase3Secret);
+  renderDossierBullets(document.getElementById(`dossier-angle-1`), q.dossierBullets.p1);
+  renderDossierBullets(document.getElementById(`dossier-angle-2`), q.dossierBullets.p2);
+  renderDossierBullets(document.getElementById(`dossier-angle-3`), q.dossierBullets.p3);
+
+  const scrollBody = document.getElementById(`outcome-scroll-body`);
+  if (scrollBody) scrollBody.scrollTop = 0;
+
+  const backdrop = document.getElementById(`outcome-backdrop`);
+  if (backdrop) backdrop.classList.add(`is-open`);
+}
+
+function scrollOutcomeBody(delta) {
+  const el = document.getElementById(`outcome-scroll-body`);
+  if (!el) return;
+  if (typeof el.scrollBy === `function`) {
+    el.scrollBy({ top: delta, behavior: `smooth` });
+  } else {
+    el.scrollTop = (el.scrollTop || 0) + delta;
+  }
+}
+
+function continueToNextGate() {
+  const backdrop = document.getElementById(`outcome-backdrop`);
+  if (backdrop) backdrop.classList.remove(`is-open`);
+  if (playerHp <= 0 || deckIndex + 1 >= activeDeck.length) {
+    showRunSummary();
+  } else {
+    loadGate(deckIndex + 1);
+  }
+}
+
+function skipCurrentQuestion() {
+  playSfx(`steer`);
+  loadGate(deckIndex + 1);
+}
+
+function skipFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  skipCurrentQuestion();
+}
+
+/* UI TOGGLES & TELEMETRY */
+function updateTelemetryUI() {
+  const hpEl = document.getElementById(`hp-text`);
+  const xpEl = document.getElementById(`xp-text`);
+  const stEl = document.getElementById(`streak-text`);
+  const gtEl = document.getElementById(`gate-text`);
+  if (hpEl) hpEl.textContent = String(playerHp);
+  if (xpEl) xpEl.textContent = String(playerXp);
+  if (stEl) stEl.textContent = String(currentStreak);
+  if (gtEl) gtEl.textContent = `${Math.min(deckIndex + 1, Math.max(1, activeDeck.length))}/${activeDeck.length || 45}`;
+}
+
+function toggleHintsBar() {
+  isHintsVisible = !isHintsVisible;
+  syncHintsUI();
+  resizeCanvas();
+  playSfx(`steer`);
+  persistAppState();
+}
+
+function syncHintsUI() {
+  const app = document.getElementById(`xr-app`);
+  const menuBtn = document.getElementById(`menu-hints-btn`);
+  if (app) {
+    app.classList.toggle(`hints-visible`, isHintsVisible);
+    app.classList.toggle(`hints-hidden`, !isHintsVisible);
+  }
+  if (menuBtn) {
+    menuBtn.textContent = isHintsVisible ? `💡 Hints: ON [H]` : `💡 Hints: OFF [H]`;
+    menuBtn.classList.toggle(`is-active`, isHintsVisible);
+  }
+}
+
+function toggleMenuDrawer() {
+  isMenuOpen = !isMenuOpen;
+  const bd = document.getElementById(`menu-backdrop`);
+  const btn = document.getElementById(`menu-toggle-btn`);
+  if (bd) bd.classList.toggle(`is-open`, isMenuOpen);
+  if (btn) btn.setAttribute(`aria-expanded`, String(isMenuOpen));
+  playSfx(`steer`);
+}
+
+function setMenuStatus(msg) {
+  const el = document.getElementById(`menu-status-msg`);
+  if (el) el.textContent = msg;
+}
+
+function handleResetMastery(btn) {
+  if (!btn) return;
+  if (btn.dataset.armed !== `true`) {
+    btn.dataset.armed = `true`;
+    btn.textContent = `⚠ Confirm Reset`;
+    setTimeout(() => {
+      if (btn.dataset.armed === `true`) {
+        btn.dataset.armed = `false`;
+        btn.textContent = `🧹 Reset Mastery`;
+      }
+    }, 3500);
+    return;
+  }
+  btn.dataset.armed = `false`;
+  btn.textContent = `🧹 Reset Mastery`;
+  masteredLos = {};
+  missedIds = [];
+  playerHp = 100;
+  playerXp = 0;
+  currentStreak = 0;
+  bestStreak = 0;
+  answeredCount = 0;
+  correctCount = 0;
+  renderSkillTree();
+  updateTelemetryUI();
+  setMenuStatus(`Mastery, streak, and missed gates reset.`);
+  persistAppState();
+}
+
+/* SKILL TREE */
+function renderSkillTree() {
+  const grid = document.getElementById(`skill-tree-grid`);
+  if (!grid) return;
+  grid.innerHTML = CODEX_DATA.map((item) => {
+    const isMastered = Boolean(masteredLos[item.lo]);
+    return `<button type="button" class="skill-node-btn ${isMastered ? `is-mastered` : ``}" onclick="selectSectorFromTree(${item.lo})">
+      <div class="skill-node-title">${item.lo}. ${item.entity}</div>
+      <div class="skill-node-meta">${item.badgeMeta} • ${isMastered ? `✔ MASTERED` : `TAP TO DEPLOY`}</div>
+    </button>`;
+  }).join(``);
+  const sumEl = document.getElementById(`mastery-summary`);
+  const masteredCount = Object.keys(masteredLos).filter((k) => masteredLos[k]).length;
+  const acc = answeredCount > 0 ? `${Math.round((correctCount / answeredCount) * 100)}%` : `--%`;
+  if (sumEl) sumEl.textContent = `Mastered: ${masteredCount} / ${CODEX_DATA.length} Entities • Accuracy: ${acc}`;
+}
+
+function selectSectorFromTree(loNum) {
+  const sel = document.getElementById(`sector-filter`);
+  if (sel) sel.value = String(loNum);
+  applyDeckFilters();
+  if (isMenuOpen) toggleMenuDrawer();
+}
+
+/* LOOT CODEX */
+function openCodexFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  openCodex();
+}
+
+function openCodex() {
+  renderCodexTable();
+  const bd = document.getElementById(`codex-modal-backdrop`);
+  if (bd) bd.classList.add(`is-open`);
+}
+
+function closeCodex() {
+  const bd = document.getElementById(`codex-modal-backdrop`);
+  if (bd) bd.classList.remove(`is-open`);
+}
+
+function setCodexSector(sector) {
+  activeCodexSector = sector;
+  document.querySelectorAll(`#codex-sector-pills .phase-mix-pill`).forEach((p) => {
+    p.classList.toggle(`is-active`, p.dataset.sector === sector);
+  });
+  renderCodexTable();
+}
+
+function renderCodexTable() {
+  const tbody = document.getElementById(`codex-tbody`);
+  const q = ((document.getElementById(`codex-search`) || {}).value || ``).trim().toLowerCase();
+  if (!tbody) return;
+  const rows = CODEX_DATA.filter((item) => {
+    if (activeCodexSector !== `all` && item.sector !== activeCodexSector) return false;
+    if (!q) return true;
+    return [item.entity, item.etiology, item.pathogenesis, item.hallmarks, item.clinical, item.management].join(` `).toLowerCase().includes(q);
+  });
+  tbody.innerHTML = rows.map((r) => `<tr>
+    <td class="amboss-scan-target"><strong>${r.lo}. ${r.entity}</strong><br><span style="color:var(--secondary);font-family:var(--font-label);font-size:0.7rem;">${r.badgeMeta}</span></td>
+    <td class="amboss-scan-target">${r.etiology}</td>
+    <td class="amboss-scan-target">${r.pathogenesis}</td>
+    <td class="amboss-scan-target">${r.hallmarks}</td>
+    <td class="amboss-scan-target">${r.clinical}</td>
+    <td class="amboss-scan-target">${r.management}</td>
+  </tr>`).join(``);
+}
+
+/* RUN SUMMARY */
+function showRunSummary() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  const sumXp = document.getElementById(`sum-xp`);
+  const sumAcc = document.getElementById(`sum-acc`);
+  const sumStr = document.getElementById(`sum-streak`);
+  const sumHp = document.getElementById(`sum-hp`);
+  const sumTitle = document.getElementById(`summary-title`);
+  const missedList = document.getElementById(`missed-review-list`);
+  const retryBtn = document.getElementById(`retry-missed-btn`);
+  const acc = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
+
+  if (sumTitle) {
+    sumTitle.textContent = playerHp <= 0 ? `BIO-SUIT BREACHED (0 HP)` : `DIAGNOSTIC RUN COMPLETE`;
+    sumTitle.className = `popup-verdict ${playerHp <= 0 ? `is-wrong` : `is-correct`}`;
+  }
+  if (sumXp) sumXp.textContent = String(playerXp);
+  if (sumAcc) sumAcc.textContent = `${acc}%`;
+  if (sumStr) sumStr.textContent = String(bestStreak);
+  if (sumHp) sumHp.textContent = String(playerHp);
+
+  if (missedList) {
+    if (missedIds.length === 0) {
+      missedList.innerHTML = `<div class="missed-item" style="text-align:center;color:var(--secondary);">Zero missed gates in this diagnostic run!</div>`;
+    } else {
+      missedList.innerHTML = missedIds.map((id) => {
+        const q = ALL_QUESTIONS.find((item) => item.id === id);
+        return q ? `<div class="missed-item"><strong>${q.id} • ${q.shortAnswer}</strong> — ${q.secondOrderClue}</div>` : ``;
+      }).join(``);
+    }
+  }
+  if (retryBtn) retryBtn.style.display = missedIds.length > 0 ? `inline-flex` : `none`;
+  const bd = document.getElementById(`summary-backdrop`);
+  if (bd) bd.classList.add(`is-open`);
+}
+
+function closeSummaryModal() {
+  const bd = document.getElementById(`summary-backdrop`);
+  if (bd) bd.classList.remove(`is-open`);
+}
+
+function retryMissedOnly() {
+  closeSummaryModal();
+  const sel = document.getElementById(`sector-filter`);
+  if (sel) sel.value = `missed`;
+  playerHp = 100;
+  buildDeck(false);
+}
+
+function isModalOpen() {
+  const o = document.getElementById(`outcome-backdrop`);
+  const c = document.getElementById(`codex-modal-backdrop`);
+  const s = document.getElementById(`summary-backdrop`);
+  return Boolean((o && o.classList.contains(`is-open`)) || (c && c.classList.contains(`is-open`)) || (s && s.classList.contains(`is-open`)));
+}
+
+/* KEYBOARD SHORTCUTS */
+document.addEventListener(`keydown`, (e) => {
+  const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : ``;
+  if (tag === `input` || tag === `select`) return;
+  const key = e.key.toLowerCase();
+  const outcomeOpen = Boolean((document.getElementById(`outcome-backdrop`) || {}).classList?.contains(`is-open`));
+  const codexOpen = Boolean((document.getElementById(`codex-modal-backdrop`) || {}).classList?.contains(`is-open`));
+
+  if (key === `escape`) {
+    if (codexOpen) { closeCodex(); return; }
+    if (isMenuOpen) { toggleMenuDrawer(); return; }
+  }
+  if (codexOpen) {
+    if (key === `c`) { e.preventDefault(); closeCodex(); }
+    return;
+  }
+  if (outcomeOpen) {
+    if (key === ` ` || key === `enter`) {
+      e.preventDefault();
+      continueToNextGate();
+    } else if (e.key === `ArrowDown`) {
+      e.preventDefault();
+      scrollOutcomeBody(140);
+    } else if (e.key === `ArrowUp`) {
+      e.preventDefault();
+      scrollOutcomeBody(-140);
+    }
+    return;
+  }
+  if (key === `m`) { e.preventDefault(); toggleMenuDrawer(); return; }
+  if (key === `c`) { e.preventDefault(); openCodex(); return; }
+  if (key === `h`) { e.preventDefault(); toggleHintsBar(); return; }
+  if (key === `s`) { e.preventDefault(); skipCurrentQuestion(); return; }
+  if (key === `t`) { e.preventDefault(); toggleTimerEnabled(); return; }
+  if (isMenuOpen) return;
+
+  if (key === `1` || key === `a` || e.key === `ArrowLeft`) { e.preventDefault(); selectLaneAndResolve(0); }
+  else if (key === `2` || key === `w` || e.key === `ArrowUp`) { e.preventDefault(); selectLaneAndResolve(1); }
+  else if (key === `3` || key === `d` || e.key === `ArrowRight`) { e.preventDefault(); selectLaneAndResolve(2); }
+});
+
+/* PERSISTENCE VIA NOTEBOOK APP API */
+async function persistAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.setAppState !== `function`) return;
+  try {
+    await window.notebookAppApi.setAppState({
+      playerHp,
+      playerXp,
+      currentStreak,
+      bestStreak,
+      answeredCount,
+      correctCount,
+      missedIds,
+      masteredLos,
+      isHintsVisible,
+      isTimerEnabled,
+      timeoutMode,
+      activePhaseFilter,
+      sectorFilter: (document.getElementById(`sector-filter`) || {}).value || `all`,
+      angleFilter: (document.getElementById(`angle-filter`) || {}).value || `all`,
+      compartmentFilter: (document.getElementById(`compartment-filter`) || {}).value || `all`,
+      ageFilter: (document.getElementById(`age-filter`) || {}).value || `all`,
+      behaviorFilter: (document.getElementById(`behavior-filter`) || {}).value || `all`,
+      masterSoundOn,
+      sfxOn,
+      bgmVolume
+    });
+  } catch (err) {}
+}
+
+async function restoreAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.getAppState !== `function`) return;
+  try {
+    const s = await window.notebookAppApi.getAppState();
+    if (!s) return;
+    if (typeof s.playerHp === `number`) playerHp = s.playerHp;
+    if (typeof s.playerXp === `number`) playerXp = s.playerXp;
+    if (typeof s.currentStreak === `number`) currentStreak = s.currentStreak;
+    if (typeof s.bestStreak === `number`) bestStreak = s.bestStreak;
+    if (typeof s.answeredCount === `number`) answeredCount = s.answeredCount;
+    if (typeof s.correctCount === `number`) correctCount = s.correctCount;
+    if (Array.isArray(s.missedIds)) missedIds = s.missedIds;
+    if (s.masteredLos && typeof s.masteredLos === `object`) masteredLos = s.masteredLos;
+    if (typeof s.isHintsVisible === `boolean`) isHintsVisible = s.isHintsVisible;
+    if (typeof s.isTimerEnabled === `boolean`) isTimerEnabled = s.isTimerEnabled;
+    if (s.timeoutMode) timeoutMode = s.timeoutMode;
+    if (s.activePhaseFilter) activePhaseFilter = s.activePhaseFilter;
+    if (typeof s.masterSoundOn === `boolean`) masterSoundOn = s.masterSoundOn;
+    if (typeof s.sfxOn === `boolean`) sfxOn = s.sfxOn;
+    if (typeof s.bgmVolume === `number`) bgmVolume = s.bgmVolume;
+
+    const setVal = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+    setVal(`sector-filter`, s.sectorFilter);
+    setVal(`angle-filter`, s.angleFilter);
+    setVal(`compartment-filter`, s.compartmentFilter);
+    setVal(`age-filter`, s.ageFilter);
+    setVal(`behavior-filter`, s.behaviorFilter);
+    setVal(`timeout-mode`, timeoutMode);
+    const volEl = document.getElementById(`bgm-volume-slider`);
+    if (volEl) volEl.value = String(bgmVolume);
+    document.querySelectorAll(`#phase-pills-row .phase-mix-pill`).forEach((p) => {
+      p.classList.toggle(`is-active`, p.dataset.phase === activePhaseFilter);
+    });
+  } catch (err) {}
+}
+
+/* BOOTSTRAP */
+window.addEventListener(`resize`, resizeCanvas);
+document.addEventListener(`DOMContentLoaded`, async () => {
+  await restoreAppState();
+  syncHintsUI();
+  syncTimerControlsUI();
+  syncAudioUI();
+  renderSkillTree();
+  resizeCanvas();
+  buildDeck(false);
+  requestAnimationFrame(renderSynthwaveFrame);
+  if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === `function`) {
+    window.notebookAppApi.notifyAppReady();
+  }
+});
+</script>
+</body>
+</html>

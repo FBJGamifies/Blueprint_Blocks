@@ -1,0 +1,3453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="artifact-type" content="tool">
+<meta name="design-style" content="neon_noir">
+<title>MSK Microbiology — XR 3-Lane Diagnostic Runner (v3.8)</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@100;200;300;400;500;600;700;800&family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+
+  /* 1. Neon Noir Style Tokens */
+  --background: #0a0a12;
+  --surface-container-low: #111118;
+  --surface-container: #141422;
+  --surface-container-high: #1e1e30;
+
+  --on-surface: #e8e0f0;
+  --on-surface-variant: #a098b0;
+
+  --outline: #5a5068;
+  --outline-variant: #302840;
+
+  --primary: #ff2d78;
+  --on-primary: #1a0010;
+  --primary-container: #b3004e;
+  --on-primary-container: #ffe0ec;
+  --secondary: #00ffcc;
+  --tertiary: #ffe04a;
+  --error: #ff4444;
+  --on-error: #1a0000;
+
+  --data-1: #ff2d78;
+  --data-2: #00ffcc;
+  --data-3: #ffe04a;
+  --data-4: #b388ff;
+  --data-context: #6e6680;
+
+  --font-headline: 'Sora', system-ui, -apple-system, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-label: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --rounded: 0.125rem;
+  --rounded-lg: 0.25rem;
+  --rounded-full: 0.75rem;
+
+  --glow-text: 0 0 8px currentColor;
+  --glow-primary: 0 0 16px color-mix(in srgb, var(--primary) 40%, transparent);
+  --glow-secondary: 0 0 16px color-mix(in srgb, var(--secondary) 35%, transparent);
+  --glow-tertiary: 0 0 16px color-mix(in srgb, var(--tertiary) 35%, transparent);
+  --neon-border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 50%, transparent);
+  --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+  --glow-line: drop-shadow(0 0 4px currentColor);
+  --scanlines: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in srgb, var(--on-surface) 3%, transparent) 3px 4px);
+
+  /* 2. Shared Design Foundation Tokens */
+  --positive: #00ffcc;
+  --warning: #ffe04a;
+  --focus: var(--primary);
+
+  --display-size: clamp(1.45rem, 1.15rem + 1.1vw, 2rem);
+  --headline-size: clamp(1.125rem, 1rem + 0.45vw, 1.375rem);
+  --subhead-size: clamp(0.95rem, 0.9rem + 0.25vw, 1.125rem);
+  --body-size: clamp(0.9375rem, 0.88rem + 0.18vw, 1rem);
+  --label-size: 0.75rem;
+
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+
+  /* 3. XR 4-Band Cockpit Adaptive Tokens */
+  --glass-backdrop: rgba(10, 10, 18, 0.84);
+  --backdrop-drawer: rgba(6, 6, 12, 0.72);
+  --backdrop-modal: rgba(6, 6, 12, 0.82);
+  --glass-card-bg: rgba(16, 18, 32, 0.82);
+  --glass-card-hover: rgba(24, 26, 46, 0.94);
+  --lane-0-tint: color-mix(in srgb, var(--primary) 16%, var(--surface-container));
+  --lane-1-tint: color-mix(in srgb, var(--secondary) 14%, var(--surface-container));
+  --lane-2-tint: color-mix(in srgb, var(--tertiary) 14%, var(--surface-container));
+  --shadow-modal: 0 18px 48px rgba(0, 0, 0, 0.72);
+
+  --game-body-size: var(--body-size);
+  --stem-font-size: clamp(0.92rem, 0.84rem + 0.35vw, 1.08rem);
+  --card-min-h: clamp(128px, 21dvh, 210px);
+  --card-font-size: clamp(0.86rem, 0.8rem + 0.28vw, 1rem);
+  --card-pad-y: 0.85rem;
+  --card-pad-x: 0.9rem;
+  --stage-pad-y: 0.55rem;
+}
+
+/* Base Reset */
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overflow-x: clip;
+  background-color: var(--background);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: var(--game-body-size);
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+}
+header { position: static !important; }
+button, input, select {
+  font-family: inherit;
+  color: inherit;
+}
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Main Full-Viewport 4-Band Cockpit */
+#xr-app {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--background);
+  background-image: var(--scanlines);
+}
+
+/* Hints-Visible Proportional Auto-Resizing */
+#xr-app.hints-visible {
+  --stem-font-size: clamp(0.84rem, 0.76rem + 0.28vw, 0.98rem);
+  --card-min-h: clamp(104px, 16dvh, 165px);
+  --card-font-size: clamp(0.8rem, 0.74rem + 0.22vw, 0.92rem);
+  --card-pad-y: 0.58rem;
+  --stage-pad-y: 0.4rem;
+}
+
+/* =========================================================
+   BAND 1: ULTRA-SLIM TOP UTILITY BAR (SMALL MENU BUTTON ONLY)
+   ========================================================= */
+.top-mini-bar {
+  flex-shrink: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: 0.3rem 0.65rem;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.menu-mini-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.38rem;
+  min-height: 36px;
+  padding: 0.28rem 0.7rem;
+  background: var(--surface-container);
+  color: var(--secondary);
+  border: 1px solid color-mix(in srgb, var(--secondary) 48%, transparent);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: box-shadow var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+}
+.menu-mini-btn:hover {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+  background: var(--surface-container-high);
+}
+
+.telemetry-strip {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.38rem;
+  min-width: 0;
+}
+
+.tele-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.2rem 0.48rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  line-height: 1.15;
+  white-space: nowrap;
+}
+.tele-label {
+  color: var(--on-surface-variant);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.tele-val {
+  color: var(--on-surface);
+  font-weight: 700;
+}
+.tele-chip.is-hp .tele-val { color: var(--secondary); }
+.tele-chip.is-xp .tele-val { color: var(--primary); }
+.tele-chip.is-streak .tele-val { color: var(--tertiary); }
+.tele-chip.is-timer.is-urgent {
+  border-color: var(--error);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--error) 45%, transparent);
+}
+.tele-chip.is-timer.is-urgent .tele-val {
+  color: var(--error);
+  text-shadow: var(--glow-text);
+}
+
+/* =========================================================
+   BAND 2: TOP QUESTION STAGE + 3S AUTO-HIDING METADATA
+   ========================================================= */
+#question-stage {
+  flex-shrink: 0;
+  z-index: 20;
+  padding: var(--stage-pad-y) var(--space-md);
+  background: color-mix(in srgb, var(--surface-container-low) 92%, transparent);
+  border-bottom: 1px solid var(--outline-variant);
+  text-align: center;
+}
+
+.q-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.35rem;
+  max-height: 60px;
+  opacity: 1;
+  overflow: hidden;
+  transition: opacity var(--dur-long) var(--ease-out), max-height var(--dur-long) var(--ease-out), margin-bottom var(--dur-long) var(--ease-out);
+}
+.q-meta-row.is-faded {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+}
+
+.meta-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.14rem 0.5rem;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--primary) 50%, transparent);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--primary);
+}
+.meta-badge.is-angle {
+  border-color: color-mix(in srgb, var(--secondary) 50%, transparent);
+  color: var(--secondary);
+}
+.meta-badge.is-phase {
+  border-color: color-mix(in srgb, var(--tertiary) 55%, transparent);
+  color: var(--tertiary);
+}
+.meta-badge.is-corridor {
+  border-color: color-mix(in srgb, var(--data-4) 55%, transparent);
+  color: var(--data-4);
+}
+
+.question-stem {
+  max-width: 960px;
+  margin: 0 auto;
+  text-align: center;
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: var(--stem-font-size);
+  font-weight: 500;
+  line-height: 1.42;
+}
+
+/* =========================================================
+   BAND 3: 3D SYNTHWAVE VIEWPORT & 3 CENTERED ANSWER CARDS
+   ========================================================= */
+.viewport-shell {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  background: var(--background);
+  overflow: hidden;
+}
+
+#xr-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.lane-overlay-container {
+  position: absolute;
+  top: 51%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(1120px, calc(100% - 1.5rem));
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(0.6rem, 1.3vw, 1.15rem);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.lane-dom-card {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  min-height: var(--card-min-h);
+  padding: var(--card-pad-y) var(--card-pad-x);
+  background: var(--glass-card-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: var(--rounded-lg);
+  border: 1.5px solid var(--outline-variant);
+  cursor: pointer;
+  user-select: none;
+  gap: 0.42rem;
+  transition: transform var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+}
+
+.lane-dom-card[data-lane="0"] {
+  border-color: color-mix(in srgb, var(--primary) 60%, transparent);
+  box-shadow: inset 0 0 18px color-mix(in srgb, var(--primary) 12%, transparent);
+}
+.lane-dom-card[data-lane="1"] {
+  border-color: color-mix(in srgb, var(--secondary) 60%, transparent);
+  box-shadow: inset 0 0 18px color-mix(in srgb, var(--secondary) 12%, transparent);
+}
+.lane-dom-card[data-lane="2"] {
+  border-color: color-mix(in srgb, var(--tertiary) 60%, transparent);
+  box-shadow: inset 0 0 18px color-mix(in srgb, var(--tertiary) 12%, transparent);
+}
+
+.lane-dom-card:hover,
+.lane-dom-card.is-steered {
+  transform: translateY(-3px);
+  background: var(--glass-card-hover);
+}
+.lane-dom-card[data-lane="0"]:hover,
+.lane-dom-card[data-lane="0"].is-steered {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary), inset 0 0 18px color-mix(in srgb, var(--primary) 22%, transparent);
+}
+.lane-dom-card[data-lane="1"]:hover,
+.lane-dom-card[data-lane="1"].is-steered {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary), inset 0 0 18px color-mix(in srgb, var(--secondary) 22%, transparent);
+}
+.lane-dom-card[data-lane="2"]:hover,
+.lane-dom-card[data-lane="2"].is-steered {
+  border-color: var(--tertiary);
+  box-shadow: var(--glow-tertiary), inset 0 0 18px color-mix(in srgb, var(--tertiary) 22%, transparent);
+}
+
+.lane-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+.lane-dom-card[data-lane="0"] .lane-card-head { color: var(--primary); }
+.lane-dom-card[data-lane="1"] .lane-card-head { color: var(--secondary); }
+.lane-dom-card[data-lane="2"] .lane-card-head { color: var(--tertiary); }
+
+.lane-choice-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  flex: 1 1 auto;
+}
+
+.lane-card-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: var(--card-font-size);
+  font-weight: 600;
+  line-height: 1.32;
+  overflow-wrap: break-word;
+}
+
+.fusion-lock-tag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  color: var(--on-surface-variant);
+  text-transform: uppercase;
+}
+
+.vignette-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 12;
+  opacity: 0;
+  transition: opacity 280ms var(--ease-out);
+}
+.vignette-overlay.is-hit-correct {
+  opacity: 1;
+  box-shadow: inset 0 0 65px color-mix(in srgb, var(--secondary) 48%, transparent);
+}
+.vignette-overlay.is-hit-wrong {
+  opacity: 1;
+  box-shadow: inset 0 0 75px color-mix(in srgb, var(--error) 55%, transparent);
+}
+
+.heal-toast {
+  position: absolute;
+  top: 0.85rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
+  z-index: 25;
+  padding: 0.35rem 0.9rem;
+  background: var(--surface-container-high);
+  border: 1px solid var(--secondary);
+  box-shadow: var(--glow-secondary);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  color: var(--secondary);
+  letter-spacing: 0.08em;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out);
+}
+.heal-toast.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* =========================================================
+   BAND 4: BOTTOM HINTS BAR (TOGGLED BY [H] OR MENU)
+   ========================================================= */
+#hints-bar {
+  flex-shrink: 0;
+  z-index: 15;
+  background: var(--surface-container);
+  border-top: 2px solid color-mix(in srgb, var(--tertiary) 55%, transparent);
+  padding: 0.48rem 0.85rem;
+  max-height: 22dvh;
+  overflow-y: auto;
+  text-align: center;
+}
+#xr-app.hints-hidden #hints-bar {
+  display: none;
+}
+
+.hints-inner {
+  max-width: 920px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.18rem;
+}
+.hints-kicker {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-align: center;
+}
+#q-clue-text {
+  margin: 0;
+  text-align: center;
+  color: var(--on-surface);
+  font-size: 0.88rem;
+  line-height: 1.38;
+}
+
+/* =========================================================
+   SLIDE-OUT MENU DRAWER (HOUSES TITLE + ALL CONTROLS)
+   ========================================================= */
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--backdrop-drawer);
+  backdrop-filter: blur(4px);
+  display: none;
+}
+.drawer-backdrop.is-open {
+  display: block;
+}
+
+#top-menu-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(440px, 94vw);
+  z-index: 70;
+  background: var(--surface-container-low);
+  border-right: var(--neon-border-lit);
+  box-shadow: var(--shadow-modal);
+  transform: translateX(-102%);
+  transition: transform var(--dur-short) var(--ease-out);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#top-menu-drawer.is-open {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  flex-shrink: 0;
+  padding: var(--space-md);
+  background: var(--surface-container);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.drawer-kicker {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-shadow: var(--glow-text);
+  margin-bottom: 0.25rem;
+}
+.drawer-title {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: var(--headline-size);
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--on-surface);
+}
+
+.drawer-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.menu-section {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.menu-section-title {
+  margin: 0;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.menu-btn-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.btn-neon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 38px;
+  padding: 0.42rem 0.68rem;
+  background: var(--surface-container-high);
+  color: var(--primary);
+  border: 1px solid color-mix(in srgb, var(--primary) 52%, transparent);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  text-align: center;
+  transition: box-shadow var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+}
+.btn-neon:hover {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+}
+.btn-neon.is-cyan {
+  color: var(--secondary);
+  border-color: color-mix(in srgb, var(--secondary) 52%, transparent);
+}
+.btn-neon.is-cyan:hover {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+}
+.btn-neon.is-yellow {
+  color: var(--tertiary);
+  border-color: color-mix(in srgb, var(--tertiary) 52%, transparent);
+}
+.btn-neon.is-yellow:hover {
+  border-color: var(--tertiary);
+  box-shadow: var(--glow-tertiary);
+}
+.btn-neon.is-active {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  border-color: var(--primary);
+}
+.btn-neon.is-cyan.is-active {
+  background: color-mix(in srgb, var(--secondary) 22%, var(--surface-container-high));
+  color: var(--secondary);
+  border-color: var(--secondary);
+}
+.btn-neon.is-danger {
+  color: var(--error);
+  border-color: color-mix(in srgb, var(--error) 55%, transparent);
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+.field-label {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.menu-select, .menu-input {
+  width: 100%;
+  min-height: 38px;
+  padding: 0.4rem 0.6rem;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border: 1px solid var(--outline-variant);
+  border-bottom: 1.5px solid var(--secondary);
+  border-radius: var(--rounded);
+  font-size: 0.82rem;
+}
+.menu-range {
+  width: 100%;
+  accent-color: var(--secondary);
+}
+.file-input-hidden {
+  font-size: 0.75rem;
+  color: var(--on-surface-variant);
+}
+
+.phase-mix-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.phase-pill {
+  padding: 0.22rem 0.45rem;
+  border-radius: var(--rounded);
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  font-family: var(--font-label);
+  font-size: 0.65rem;
+  color: var(--on-surface-variant);
+}
+
+.skill-tree-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.42rem;
+}
+.skill-node-btn {
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.65rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.16rem;
+  transition: border-color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+}
+.skill-node-btn:hover {
+  border-color: var(--secondary);
+  background: var(--surface-container-high);
+}
+.skill-node-btn.is-mastered {
+  border-color: var(--secondary);
+}
+.skill-node-btn.is-active-lo {
+  border-color: var(--primary);
+  box-shadow: var(--neon-inset);
+}
+.skill-node-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--on-surface);
+  line-height: 1.3;
+}
+.skill-node-meta {
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  color: var(--on-surface-variant);
+}
+
+.hotkey-guide {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  color: var(--on-surface-variant);
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.45rem 0.65rem;
+  line-height: 1.5;
+}
+
+.inline-toast {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  color: var(--secondary);
+  min-height: 1.1em;
+}
+
+/* =========================================================
+   MODALS: 7-PART OUTCOME DOSSIER & 6-COLUMN LOOT CODEX
+   ========================================================= */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: var(--backdrop-modal);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-sm);
+}
+.modal-backdrop.is-open {
+  display: flex;
+}
+
+#outcome-popup-modal {
+  width: min(860px, 95vw);
+  max-height: 92dvh;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--shadow-modal), var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-align: center !important;
+}
+#outcome-popup-modal * {
+  text-align: center !important;
+}
+
+.popup-header {
+  flex-shrink: 0;
+  padding: 0.75rem 1rem;
+  background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+}
+
+.popup-verdict {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: clamp(1rem, 0.92rem + 0.45vw, 1.32rem);
+  font-weight: 700;
+  color: var(--secondary);
+  text-shadow: var(--glow-text);
+  width: 100%;
+}
+.popup-verdict.is-wrong {
+  color: var(--error);
+}
+.popup-verdict.is-timeout {
+  color: var(--tertiary);
+}
+
+.popup-question-pin {
+  flex-shrink: 0;
+  padding: 0.65rem 1rem;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.22rem;
+}
+.popup-question-pin-label {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.popup-question-pin-text {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--on-surface);
+  max-width: 78ch;
+  line-height: 1.4;
+}
+
+.popup-scroll-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dossier-block {
+  width: 100%;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.7rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+.dossier-block.is-highlight {
+  border-color: color-mix(in srgb, var(--secondary) 45%, transparent);
+}
+
+.dossier-block-title {
+  margin: 0;
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.choice-compare-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.choice-box {
+  padding: 0.55rem 0.65rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+}
+.choice-box.is-correct-box {
+  border-color: var(--secondary);
+}
+.choice-box.is-wrong-box {
+  border-color: var(--error);
+}
+.choice-box-label {
+  font-family: var(--font-label);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.choice-box-val {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--on-surface);
+}
+
+.dossier-line {
+  width: 100%;
+  font-size: 0.88rem;
+  color: var(--on-surface);
+  line-height: 1.48;
+  padding: 0.12rem 0;
+}
+
+.angle-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.angle-mini-card {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.55rem 0.65rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.35rem;
+}
+.angle-mini-head {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.popup-footer {
+  flex-shrink: 0;
+  padding: 0.65rem 1rem;
+  background: var(--surface-container-high);
+  border-top: 1px solid var(--outline-variant);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* Loot Codex Modal */
+#codex-modal {
+  width: min(1160px, 96vw);
+  max-height: 92dvh;
+  background: var(--surface-container);
+  border: 1px solid color-mix(in srgb, var(--secondary) 55%, transparent);
+  box-shadow: var(--shadow-modal), var(--glow-secondary);
+  border-radius: var(--rounded-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.codex-header {
+  flex-shrink: 0;
+  padding: 0.75rem 1rem;
+  background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+}
+.codex-title {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: var(--headline-size);
+  color: var(--secondary);
+}
+.codex-controls {
+  flex-shrink: 0;
+  padding: 0.6rem 1rem;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.65rem;
+}
+.codex-filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.codex-table-wrap {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 0.75rem 1rem;
+}
+.codex-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.codex-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-container-high);
+  color: var(--secondary);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.55rem 0.6rem;
+  border-bottom: 1px solid var(--outline);
+  text-align: left;
+}
+.codex-table td {
+  padding: 0.58rem 0.6rem;
+  border-bottom: 1px solid var(--outline-variant);
+  vertical-align: top;
+  color: var(--on-surface);
+  line-height: 1.42;
+}
+.codex-table tr:nth-child(even) td {
+  background: var(--surface-container-low);
+}
+.codex-table tr:hover td {
+  background: var(--surface-container-high);
+}
+.codex-jump-btn {
+  margin-top: 0.35rem;
+  padding: 0.22rem 0.48rem;
+  font-size: 0.65rem;
+  min-height: 28px;
+}
+
+/* =========================================================
+   3 VERBATIM v3.8 PHONE / HANDHELD MEDIA QUERIES
+   (Tablets >= 744px tall and Desktop remain untouched)
+   ========================================================= */
+@media (max-width: 600px) {
+  .lane-overlay-container {
+    grid-template-columns: 1fr;
+    top: 52%;
+    width: calc(100% - 1rem);
+    gap: 0.42rem;
+  }
+  .lane-dom-card {
+    min-height: clamp(66px, 12dvh, 92px);
+    padding: 0.45rem 0.65rem;
+  }
+  #xr-app.hints-visible .lane-dom-card {
+    min-height: clamp(54px, 9.5dvh, 74px);
+    padding: 0.35rem 0.55rem;
+  }
+  .lane-card-head,
+  .lane-key-label,
+  .fusion-lock-tag,
+  .tele-chip.is-xp {
+    display: none;
+  }
+  .question-stem {
+    font-size: 0.88rem;
+    line-height: 1.34;
+  }
+  #xr-app.hints-visible .question-stem {
+    font-size: 0.8rem;
+    line-height: 1.28;
+  }
+  #outcome-popup-modal,
+  #codex-modal {
+    width: 96vw;
+    max-height: 92dvh;
+  }
+  .choice-compare-grid,
+  .angle-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-height: 500px) and (pointer: coarse) {
+  .top-mini-bar {
+    padding: 0.18rem 0.5rem;
+  }
+  #question-stage {
+    padding: 0.25rem 0.65rem;
+  }
+  .question-stem {
+    font-size: 0.82rem;
+    line-height: 1.26;
+  }
+  .lane-overlay-container {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    top: 54%;
+    gap: 0.45rem;
+  }
+  .lane-dom-card {
+    min-height: 76px;
+    padding: 0.38rem 0.48rem;
+  }
+  .lane-card-text {
+    font-size: 0.78rem;
+    line-height: 1.22;
+  }
+  .fusion-lock-tag {
+    display: none;
+  }
+}
+
+@media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+  html {
+    font-size: 200%;
+  }
+  .lane-overlay-container {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
+  .lane-dom-card {
+    min-height: 68px;
+    padding: 0.45rem 0.65rem;
+  }
+  .choice-compare-grid,
+  .angle-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+<body>
+<div id="xr-app" class="hints-hidden">
+
+  <!-- BAND 1: ULTRA-SLIM TOP UTILITY BAR (SMALL MENU BUTTON + TELEMETRY ONLY) -->
+  <div class="top-mini-bar">
+    <button type="button" class="menu-mini-btn" id="menu-toggle-btn" onclick="toggleMenuDrawer()" aria-expanded="false" aria-controls="top-menu-drawer">
+      ☰ MENU
+    </button>
+    <div class="telemetry-strip" aria-label="Telemetry">
+      <div class="tele-chip is-hp"><span class="tele-label">HP</span><span class="tele-val" id="hud-hp">100</span></div>
+      <div class="tele-chip is-xp"><span class="tele-label">XP</span><span class="tele-val" id="hud-xp">0</span></div>
+      <div class="tele-chip is-streak"><span class="tele-label">⚡</span><span class="tele-val" id="hud-streak">0</span></div>
+      <div class="tele-chip is-gate"><span class="tele-label">GATE</span><span class="tele-val" id="hud-gate">1/45</span></div>
+      <div class="tele-chip is-timer" id="hud-timer-chip"><span class="tele-label">⏱</span><span class="tele-val" id="hud-timer">50s</span></div>
+    </div>
+  </div>
+
+  <!-- BAND 2: TOP QUESTION STAGE + 3-SECOND AUTO-HIDING METADATA -->
+  <section id="question-stage" aria-live="polite">
+    <div class="q-meta-row" id="q-meta-row">
+      <span class="meta-badge" id="q-lo-badge">LO 1 · S. aureus Osteomyelitis</span>
+      <span class="meta-badge is-angle" id="q-angle-badge">Presentation -> Diagnosis</span>
+      <span class="meta-badge is-phase" id="q-phase-badge">Phase 3: Clinical &amp; Management</span>
+      <span class="meta-badge is-corridor" id="q-corridor-badge">CORRIDOR · METAPHYSIS VAULT</span>
+    </div>
+    <p class="question-stem amboss-scan-target" id="q-stem-text">Loading diagnostic corridor…</p>
+  </section>
+
+  <!-- BAND 3: CENTER 3D SYNTHWAVE VOID & 3 CENTERED ANSWER CARDS -->
+  <main class="viewport-shell" id="viewport-shell">
+    <canvas id="xr-canvas"></canvas>
+
+    <div class="lane-overlay-container" id="lane-overlay-container">
+      <div class="lane-dom-card" id="lane-0-card" data-lane="0" role="button" tabindex="0" onclick="handleLaneSelect(0)">
+        <div class="lane-card-head"><span class="lane-key-label">[1 / A / ←]</span><span>PORTAL 01</span></div>
+        <div class="lane-choice-body">
+          <span id="lane-0-text" class="lane-card-text amboss-scan-target">Option A</span>
+        </div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+
+      <div class="lane-dom-card" id="lane-1-card" data-lane="1" role="button" tabindex="0" onclick="handleLaneSelect(1)">
+        <div class="lane-card-head"><span class="lane-key-label">[2 / W / ↑]</span><span>PORTAL 02</span></div>
+        <div class="lane-choice-body">
+          <span id="lane-1-text" class="lane-card-text amboss-scan-target">Option B</span>
+        </div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+
+      <div class="lane-dom-card" id="lane-2-card" data-lane="2" role="button" tabindex="0" onclick="handleLaneSelect(2)">
+        <div class="lane-card-head"><span class="lane-key-label">[3 / D / →]</span><span>PORTAL 03</span></div>
+        <div class="lane-choice-body">
+          <span id="lane-2-text" class="lane-card-text amboss-scan-target">Option C</span>
+        </div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+    </div>
+
+    <div class="vignette-overlay" id="vignette-overlay"></div>
+    <div class="heal-toast" id="heal-toast">✚ STREAK BONUS +25 HP</div>
+  </main>
+
+  <!-- BAND 4: BOTTOM HINTS BAR (HIDDEN BY DEFAULT; TOGGLED WITH [H] OR MENU) -->
+  <div id="hints-bar" aria-live="polite">
+    <div class="hints-inner">
+      <span class="hints-kicker">Tactical Hint [H]</span>
+      <p id="q-clue-text" class="amboss-scan-target">Press [H] or select Hints inside Menu to reveal tactical clue.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE-OUT MENU DRAWER (HOUSES TITLE & ALL CONTROLS) -->
+<div class="drawer-backdrop" id="drawer-backdrop" onclick="toggleMenuDrawer()"></div>
+<aside id="top-menu-drawer" aria-label="Mission Command Menu" aria-hidden="true">
+  <div class="drawer-header">
+    <div>
+      <div class="drawer-kicker">MSK MICROBIOLOGY · USMLE / COMLEX-USA</div>
+      <h1 class="drawer-title">XR 3-Lane Diagnostic Runner (v3.8)</h1>
+    </div>
+    <button type="button" class="btn-neon is-cyan" onclick="toggleMenuDrawer()" aria-label="Close Menu">✕</button>
+  </div>
+
+  <div class="drawer-scroll">
+    <div class="menu-section">
+      <h2 class="menu-section-title">Cockpit &amp; Deck Actions</h2>
+      <div class="menu-btn-grid">
+        <button type="button" class="btn-neon is-yellow" id="menu-hints-btn" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+        <button type="button" class="btn-neon is-cyan" onclick="openCodexFromMenu()">📖 Loot Codex [C]</button>
+        <button type="button" class="btn-neon" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+        <button type="button" class="btn-neon is-cyan is-active" id="menu-timer-btn" onclick="toggleTimerEnabled()">⏱ 50s Timer: ON [T]</button>
+        <button type="button" class="btn-neon is-yellow" onclick="startTimedRunFromMenu()">⚡ Start 50s Timed Run</button>
+        <button type="button" class="btn-neon is-cyan" onclick="restartOrderedDeck()">🔄 Restart Ordered</button>
+        <button type="button" class="btn-neon" onclick="shuffleDeckFromMenu()">🔀 Shuffle Deck</button>
+        <button type="button" class="btn-neon is-danger" id="reset-mastery-btn" onclick="handleResetMastery(this)">🗑 Reset Mastery</button>
+      </div>
+      <div class="inline-toast" id="menu-status-toast">45 Gates · 15 Entities · 5 Sectors</div>
+    </div>
+
+    <div class="menu-section">
+      <h2 class="menu-section-title">Sector, Angle &amp; Timer Filters</h2>
+      <div class="field-group">
+        <label class="field-label" for="sector-filter-select">Sector / Entity Filter</label>
+        <select id="sector-filter-select" class="menu-select" onchange="applyDeckFilters()">
+          <option value="ALL">All 5 Sectors (45 Gates)</option>
+          <option value="MISSED">🎯 Missed Gates Only</option>
+          <option value="S1">Sector I: Acute &amp; Chronic Osteomyelitis (1–3)</option>
+          <option value="S2">Sector II: Septic Arthritis &amp; Prosthetic Joints (4–6)</option>
+          <option value="S3">Sector III: Reactive Arthritis &amp; HLA-B27 (7–9)</option>
+          <option value="S4">Sector IV: Necrotizing Soft Tissue &amp; Bites (10–12)</option>
+          <option value="S5">Sector V: Vector, Fungal &amp; Granulomatous (13–15)</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="angle-filter-select">Question Angle Filter</label>
+        <select id="angle-filter-select" class="menu-select" onchange="applyDeckFilters()">
+          <option value="ALL">All 3 Diagnostic Angles</option>
+          <option value="Presentation -> Diagnosis">Presentation -&gt; Diagnosis</option>
+          <option value="Mechanism -> Pathophysiology">Mechanism -&gt; Pathophysiology</option>
+          <option value="Hallmarks -> Management">Hallmarks -&gt; Management</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="timeout-mode-select">Time's Up Mode</label>
+        <select id="timeout-mode-select" class="menu-select" onchange="setTimeoutMode(this.value)">
+          <option value="wrong">Time's Up = Wrong → Review Screen</option>
+          <option value="hold">Hold at 0s (Wait for Answer)</option>
+        </select>
+      </div>
+      <div class="phase-mix-pills" id="phase-mix-pills"></div>
+    </div>
+
+    <div class="menu-section">
+      <h2 class="menu-section-title">Audio &amp; Zombies Synthwave Suite</h2>
+      <div class="menu-btn-grid">
+        <button type="button" class="btn-neon is-cyan is-active" id="audio-master-btn" onclick="toggleMasterAudio()">🔊 Master Sound: ON</button>
+        <button type="button" class="btn-neon is-cyan is-active" id="audio-sfx-btn" onclick="toggleSfxAudio()">🎛 SFX: ON</button>
+        <button type="button" class="btn-neon" id="audio-bgm-btn" onclick="toggleProceduralBgm()">🎵 Zombies BGM: OFF</button>
+        <button type="button" class="btn-neon is-yellow" onclick="stopCustomAudio()">⏹ Stop Custom Audio</button>
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="bgm-volume-slider">BGM Volume (<span id="bgm-volume-readout">35%</span>)</label>
+        <input type="range" id="bgm-volume-slider" class="menu-range" min="0" max="100" value="35" oninput="handleBgmVolumeChange(this.value)">
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="custom-audio-input">Load Custom MP3 / WAV Track</label>
+        <input type="file" id="custom-audio-input" class="file-input-hidden" accept="audio/*" onchange="loadCustomAudioFile(this)">
+      </div>
+    </div>
+
+    <div class="menu-section">
+      <h2 class="menu-section-title">15-Entity Skill Tree (Click to Jump)</h2>
+      <div class="skill-tree-grid" id="skill-tree-grid"></div>
+    </div>
+
+    <div class="hotkey-guide">
+      <strong>Hotkeys:</strong> [1/2/3] or [A/W/D] or [←/↑/→] Steer/Lock · [H] Hints · [S] Skip · [T] Timer · [M] Menu · [C] Codex · [Space/Enter] Continue · [▲/▼] Scroll Dossier
+    </div>
+  </div>
+</aside>
+
+<!-- 7-PART OUTCOME DOSSIER MODAL -->
+<div class="modal-backdrop" id="outcome-backdrop" role="dialog" aria-modal="true" aria-labelledby="outcome-verdict">
+  <div id="outcome-popup-modal">
+    <div class="popup-header">
+      <h2 class="popup-verdict" id="outcome-verdict">✔ CORRECT — Diagnosis</h2>
+      <span class="meta-badge" id="outcome-xp-delta">+100 XP</span>
+      <span class="meta-badge is-phase" id="outcome-hp-delta">+0 HP</span>
+    </div>
+
+    <div class="popup-question-pin">
+      <span class="popup-question-pin-label" id="outcome-lo-ref">Entity Reference</span>
+      <p class="popup-question-pin-text amboss-scan-target" id="outcome-question-text"></p>
+    </div>
+
+    <div class="popup-scroll-body" id="outcome-scroll-body">
+      <div class="dossier-block is-highlight">
+        <h3 class="dossier-block-title">1. Your Choice vs. Correct Answer</h3>
+        <div class="choice-compare-grid">
+          <div class="choice-box" id="your-choice-box">
+            <span class="choice-box-label">Your Choice</span>
+            <span class="choice-box-val amboss-scan-target" id="outcome-your-choice">—</span>
+          </div>
+          <div class="choice-box is-correct-box">
+            <span class="choice-box-label">Correct Answer</span>
+            <span class="choice-box-val amboss-scan-target" id="outcome-correct-choice">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">2. Rationale &amp; Distractor Exclusion</h3>
+        <div id="dossier-explanation" class="amboss-scan-target" style="width:100%;"></div>
+      </div>
+
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">3. Second-Order Vignette Logic Clue</h3>
+        <div id="dossier-second-order" class="amboss-scan-target" style="width:100%;"></div>
+      </div>
+
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">4. Phase 1 — Pathogenesis Pearl</h3>
+        <div id="dossier-phase1" class="amboss-scan-target" style="width:100%;"></div>
+      </div>
+
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">5. Phase 2 — Histology / Lab / Imaging Hallmark</h3>
+        <div id="dossier-phase2" class="amboss-scan-target" style="width:100%;"></div>
+      </div>
+
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">6. Phase 3 — Clinical Management &amp; Guild Master's Secret</h3>
+        <div id="dossier-phase3" class="amboss-scan-target" style="width:100%;"></div>
+      </div>
+
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">7. 3-Angle Entity Mastery Snapshot</h3>
+        <div class="angle-grid">
+          <div class="angle-mini-card">
+            <div class="angle-mini-head">Phase 1 · Pathogenesis</div>
+            <div id="dossier-angle-1" class="amboss-scan-target" style="width:100%;"></div>
+          </div>
+          <div class="angle-mini-card">
+            <div class="angle-mini-head">Phase 2 · Structure/Labs</div>
+            <div id="dossier-angle-2" class="amboss-scan-target" style="width:100%;"></div>
+          </div>
+          <div class="angle-mini-card">
+            <div class="angle-mini-head">Phase 3 · Management</div>
+            <div id="dossier-angle-3" class="amboss-scan-target" style="width:100%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="popup-footer">
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(-180)">▲ Up</button>
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(180)">▼ Down</button>
+      <button type="button" class="btn-neon" id="continue-runner-btn" onclick="continueToNextGate()">▶ Continue Runner [Space / Enter]</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6-COLUMN LOOT CODEX MODAL -->
+<div class="modal-backdrop" id="codex-backdrop" role="dialog" aria-modal="true" aria-labelledby="codex-modal-title">
+  <div id="codex-modal">
+    <div class="codex-header">
+      <h2 class="codex-title" id="codex-modal-title">MSK Microbiology — 15-Entity Loot Codex</h2>
+      <button type="button" class="btn-neon" onclick="closeCodex()">✕ Close [Esc / C]</button>
+    </div>
+    <div class="codex-controls">
+      <div class="field-group" style="flex:1 1 220px;">
+        <label class="field-label" for="codex-search-input">Search Organism, Virulence, Lab, or Drug</label>
+        <input type="text" id="codex-search-input" class="menu-input" placeholder="Filter codex rows…" oninput="renderCodexTable()">
+      </div>
+      <div class="codex-filter-pills" id="codex-sector-pills">
+        <button type="button" class="btn-neon is-cyan is-active" onclick="setCodexSectorFilter('ALL', this)">All Sectors</button>
+        <button type="button" class="btn-neon is-cyan" onclick="setCodexSectorFilter('S1', this)">I · Osteomyelitis</button>
+        <button type="button" class="btn-neon is-cyan" onclick="setCodexSectorFilter('S2', this)">II · Septic Arthritis</button>
+        <button type="button" class="btn-neon is-cyan" onclick="setCodexSectorFilter('S3', this)">III · Reactive / B27</button>
+        <button type="button" class="btn-neon is-cyan" onclick="setCodexSectorFilter('S4', this)">IV · NSTI &amp; Bites</button>
+        <button type="button" class="btn-neon is-cyan" onclick="setCodexSectorFilter('S5', this)">V · Vector/Fungal/TB</button>
+      </div>
+    </div>
+    <div class="codex-table-wrap">
+      <table class="codex-table">
+        <thead>
+          <tr>
+            <th>Entity &amp; Sector</th>
+            <th>Classic Presentation</th>
+            <th>Core Mechanism / Virulence</th>
+            <th>Morphology / Lab / Imaging</th>
+            <th>First-Line Tx / Management</th>
+            <th>Board Clues &amp; Mastery</th>
+          </tr>
+        </thead>
+        <tbody id="codex-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<api-shim></api-shim>
+
+<script>
+const GAME_CONFIG = {
+  title: `MSK Microbiology — XR 3-Lane Diagnostic Runner`,
+  metaFadeMs: 3000,
+  timerSeconds: 50,
+  baseHp: 100,
+  wrongHpPenalty: 15,
+  xpCorrect: 100,
+  streakBonusStep: 4,
+  streakHpBonus: 25
+};
+
+const LO_VISUAL_THEMES = {
+  1:  { corridor: `CORRIDOR I · METAPHYSIS VAULT`,     dustColor: `#ff2d78`, gridRgb: `255, 45, 120` },
+  2:  { corridor: `CORRIDOR I · SICKLE MARROW`,        dustColor: `#ffe04a`, gridRgb: `255, 224, 74` },
+  3:  { corridor: `CORRIDOR I · BIOFILM IMPLANT`,      dustColor: `#00ffcc`, gridRgb: `0, 255, 204` },
+  4:  { corridor: `CORRIDOR II · THAYER-MARTIN LAB`,   dustColor: `#ff2d78`, gridRgb: `255, 45, 120` },
+  5:  { corridor: `CORRIDOR II · SYNOVIAL EFFUSION`,   dustColor: `#00ffcc`, gridRgb: `0, 255, 204` },
+  6:  { corridor: `CORRIDOR II · TITANIUM GLYCOCALYX`, dustColor: `#b388ff`, gridRgb: `179, 136, 255` },
+  7:  { corridor: `CORRIDOR III · HLA-B27 SYNAPSE`,    dustColor: `#00ffcc`, gridRgb: `0, 255, 204` },
+  8:  { corridor: `CORRIDOR III · ENTERIC ENTHESIS`,   dustColor: `#ffe04a`, gridRgb: `255, 224, 74` },
+  9:  { corridor: `CORRIDOR III · PLANTAR PLAQUE`,     dustColor: `#ff2d78`, gridRgb: `255, 45, 120` },
+  10: { corridor: `CORRIDOR IV · FASCIAL PLANE`,       dustColor: `#ff4444`, gridRgb: `255, 68, 68` },
+  11: { corridor: `CORRIDOR IV · MYONECROSIS GAS`,     dustColor: `#ffe04a`, gridRgb: `255, 224, 74` },
+  12: { corridor: `CORRIDOR IV · FELINE PUNCTURE`,     dustColor: `#00ffcc`, gridRgb: `0, 255, 204` },
+  13: { corridor: `CORRIDOR V · IXODES SPIROCHETE`,    dustColor: `#00ffcc`, gridRgb: `0, 255, 204` },
+  14: { corridor: `CORRIDOR V · LYMPHATIC THORN`,      dustColor: `#ff2d78`, gridRgb: `255, 45, 120` },
+  15: { corridor: `CORRIDOR V · POTT PSOAS TRACK`,     dustColor: `#b388ff`, gridRgb: `179, 136, 255` }
+};
+
+const CODEX_DATA = [
+  {
+    lo: 1, sector: `S1`, sectorLabel: `Sector I: Osteomyelitis`,
+    entity: `Staphylococcus aureus Osteomyelitis`,
+    presentation: `Children: acute hematogenous fever + refusal to bear weight (long bone metaphysis). Adults: subacute back pain (vertebral osteomyelitis).`,
+    mechanism: `Protein A binds Fc region of IgG to block opsonization/phagocytosis; coagulase forms fibrin clot; MRSA alters PBP2a (low beta-lactam affinity).`,
+    hallmarks: `Gram+ cocci in clusters, Cat+, Coag+, mannitol fermenter (yellow). X-ray (late): sequestrum (necrotic bone) + involucrum (reactive sclerosis). MRI best early.`,
+    management: `Bone biopsy/culture before empiric abx when stable. Empiric IV Vancomycin (MRSA) or Nafcillin/Cefazolin (MSSA) for 4-6 weeks.`,
+    clues: `Assume S. aureus if no other risk factor is given. Metaphyseal venous loops predispose children to hematogenous seeding.`
+  },
+  {
+    lo: 2, sector: `S1`, sectorLabel: `Sector I: Osteomyelitis`,
+    entity: `Salmonella enterica Osteomyelitis (SCD)`,
+    presentation: `Child or young adult with sickle cell disease presenting with localized bone pain, fever, and leukocytosis (often diaphysis/long bones).`,
+    mechanism: `Functional asplenia (autosplenectomy) impairs clearance of encapsulated organisms; Salmonella survives intracellularly in macrophages (H2S+, motile).`,
+    hallmarks: `Gram- motile rod, non-lactose fermenting, H2S+ (black colonies on Hektoen agar), acid-labile. Note: S. aureus remains overall common, but Salmonella is hallmark in SCD.`,
+    management: `IV Ceftriaxone or Fluoroquinolone (ciprofloxacin/levofloxacin) covering Salmonella + anti-staphylococcal coverage empirically.`,
+    clues: `Sickle cell disease + osteomyelitis = think Salmonella enterica (remember "salmon" + "sickle" board pairing).`
+  },
+  {
+    lo: 3, sector: `S1`, sectorLabel: `Sector I: Osteomyelitis`,
+    entity: `Pseudomonas aeruginosa & S. epidermidis Hardware Osteomyelitis`,
+    presentation: `Puncture wound through rubber-soled tennis shoe, diabetic foot ulcer, or IVDU (Pseudomonas); indolent pain around orthopedic plate/screws (S. epidermidis).`,
+    mechanism: `Pseudomonas: Exotoxin A ADP-ribosylates EF-2 (halting protein synthesis); S. epidermidis: polysaccharide glycocalyx biofilm on prosthetic metal.`,
+    hallmarks: `Pseudomonas: obligate aerobe, Oxidase+, blue-green pigment (pyocyanin/pyoverdine), fruity grape odor. S. epidermidis: Coag-, Novobiocin-sensitive.`,
+    management: `Pseudomonas: anti-pseudomonal beta-lactam (piperacillin-tazobactam, cefepime) or ciprofloxacin + debridement. S. epidermidis hardware: Vancomycin + hardware removal.`,
+    clues: `Rubber-soled sneaker puncture -> Pseudomonas. Prosthetic orthopedic hardware biofilm -> S. epidermidis.`
+  },
+  {
+    lo: 4, sector: `S2`, sectorLabel: `Sector II: Septic Arthritis`,
+    entity: `Neisseria gonorrhoeae (DGI & Septic Arthritis)`,
+    presentation: `Sexually active young adult with migratory asymmetric polyarthralgias, tenosynovitis, and pustular/hemorrhagic skin lesions OR acute purulent monoarthritis (knee).`,
+    mechanism: `Pili antigenic variation evades host immunity; IgA protease cleaves mucosal IgA; facultative intracellular invasion of PMNs; C5-C9 MAC deficiency increases risk.`,
+    hallmarks: `Gram- diplococci inside PMNs, Oxidase+, ferments glucose only (NOT maltose). Grown on Thayer-Martin (VPN) chocolate agar; NAAT most sensitive.`,
+    management: `IV/IM Ceftriaxone; add Doxycycline (or Azithromycin) if Chlamydia trachomatis coinfection is not excluded by molecular testing.`,
+    clues: `Triad of migratory polyarthralgia + tenosynovitis + pustular dermatitis = Disseminated Gonococcal Infection (DGI).`
+  },
+  {
+    lo: 5, sector: `S2`, sectorLabel: `Sector II: Septic Arthritis`,
+    entity: `Non-Gonococcal Acute Septic Arthritis`,
+    presentation: `Acute monoarticular warm, erythematous, exquisitely tender joint (most commonly knee) with severely restricted passive/active ROM and fever.`,
+    mechanism: `Hematogenous seeding or direct inoculation of synovium triggers intense PMN chemotaxis and lysosomal enzyme destruction of articular cartilage.`,
+    hallmarks: `Synovial fluid WBC >50,000/mm3 with >75% PMNs, turbid/purulent appearance, low glucose, positive Gram stain/culture. S. aureus #1 overall (GAS #2).`,
+    management: `Urgent arthrocentesis and surgical/needle joint drainage + immediate empiric IV Vancomycin (plus Cefazolin/Nafcillin if MSSA).`,
+    clues: `Do NOT delay joint aspiration or drainage: proteolytic PMN enzymes rapidly destroy cartilage within days.`
+  },
+  {
+    lo: 6, sector: `S2`, sectorLabel: `Sector II: Septic Arthritis`,
+    entity: `Prosthetic Joint Infections (Early vs Delayed)`,
+    presentation: `Early (<3 mo post-op): acute wound erythema, fever, drainage (S. aureus/Gram-). Delayed (3-12 mo): chronic joint pain/loosening without fever (S. epidermidis).`,
+    mechanism: `Low-virulence skin flora (S. epidermidis) adhere to inert prosthetic surfaces and secrete extracellular glycocalyx biofilm shielding bacteria from antibiotics and PMNs.`,
+    hallmarks: `Elevated ESR/CRP, peri-prosthetic radiolucency/loosening on X-ray; S. epidermidis is Gram+ cocci in clusters, Cat+, Coag-, Urease+, Novobiocin-sensitive.`,
+    management: `Antibiotics alone fail due to biofilm; requires prosthetic joint removal/replacement (2-stage exchange) + IV Vancomycin (often + Rifampin for biofilm penetration).`,
+    clues: `Timing separates bugs: <3 months = virulent S. aureus; 3-12 months = indolent biofilm-forming S. epidermidis.`
+  },
+  {
+    lo: 7, sector: `S3`, sectorLabel: `Sector III: Reactive / B27`,
+    entity: `Chlamydia trachomatis Post-Venereal Reactive Arthritis`,
+    presentation: `Young adult developing asymmetric oligoarthritis (knees/ankles), urethritis, and conjunctivitis 1-4 weeks after unprotected sexual contact.`,
+    mechanism: `Obligate intracellular bacterium lacking muramic acid in cell wall (relies on host ATP); triggers HLA-B27-restricted CD8+ T-cell cross-reactivity in synovium.`,
+    hallmarks: `Infectious Elementary Body (EB) and replicating Reticulate Body (RB); cytoplasmic inclusion bodies on Giemsa; diagnosed via urine/cervical NAAT. Sterile joint fluid.`,
+    management: `NSAIDs first-line for joint inflammation; Doxycycline or Azithromycin to eradicate active Chlamydia urethritis (treat partners).`,
+    clues: `Urethritis + conjunctivitis + asymmetric oligoarthritis in a young sexually active patient = Chlamydia D-K post-venereal reactive arthritis.`
+  },
+  {
+    lo: 8, sector: `S3`, sectorLabel: `Sector III: Reactive / B27`,
+    entity: `Post-Enteric Reactive Arthritis`,
+    presentation: `Asymmetric lower-extremity oligoarthritis, dactylitis ("sausage digits"), Achilles enthesitis, conjunctivitis, and dysuria weeks after bloody/watery diarrhea.`,
+    mechanism: `Prior GI mucosal infection (Campylobacter jejuni, Shigella, Salmonella, Yersinia) primes HLA-B27 molecular mimicry causing sterile immune synovitis.`,
+    hallmarks: `Campylobacter: curved Gram- rod, 42C, oxidase+. Synovial fluid shows inflammatory WBCs (2,000-50,000) with NEGATIVE Gram stain and sterile culture.`,
+    management: `First-line NSAIDs (indomethacin/naproxen); intra-articular glucocorticoids or sulfasalazine/MTX if chronic; antibiotics do not reverse established post-enteric arthritis.`,
+    clues: `"Can't see, can't pee, can't climb a tree" + sausage digits + Achilles tendon pain weeks after poultry/enteritis = Post-enteric reactive arthritis.`
+  },
+  {
+    lo: 9, sector: `S3`, sectorLabel: `Sector III: Reactive / B27`,
+    entity: `Keratoderma Blennorrhagica & Circinate Balanitis`,
+    presentation: `Patient with recent Chlamydia urethritis or enteritis develops painless shallow plaques on glans penis and hyperkeratotic waxy plaques on soles/palms.`,
+    mechanism: `HLA-B27-linked aberrant Th17/CD8+ immune response against persistent bacterial antigens triggering psoriasiform epidermal hyperplasia.`,
+    hallmarks: `Circinate balanitis (serpiginous erythematous painless penile lesions) + Keratoderma blennorrhagica (pustular/hyperkeratotic palmar-plantar lesions resembling pustular psoriasis).`,
+    management: `Topical corticosteroids/keratolytics for mucocutaneous lesions + systemic NSAIDs for associated spondyloarthropathy.`,
+    clues: `Hyperkeratotic plantar plaques + painless serpiginous penile plaques in reactive arthritis = Keratoderma blennorrhagica & Circinate balanitis.`
+  },
+  {
+    lo: 10, sector: `S4`, sectorLabel: `Sector IV: NSTI & Bites`,
+    entity: `Streptococcus pyogenes Necrotizing Fasciitis`,
+    presentation: `Rapidly spreading erythema, edema, violaceous bullae, systemic toxicity, and severe pain OUT OF PROPORTION to superficial skin findings.`,
+    mechanism: `GAS pyrogenic exotoxins (SpeA/B/C) act as superantigens cross-linking MHC-II and TCR beta-chain -> massive IL-1, IL-2, IFN-gamma, TNF-alpha cytokine storm.`,
+    hallmarks: `Gram+ cocci in chains, beta-hemolytic, Bacitracin-sensitive, PYR+, hyaluronic acid capsule, M-protein. LRINEC / surgical fascia shows "dishwater" fluid.`,
+    management: `Emergent surgical debridement (most critical!) + IV Penicillin G (or broad beta-lactam) PLUS Clindamycin (inhibits 50S ribosomal exotoxin synthesis).`,
+    clues: `Pain out of proportion to exam + rapid fascial spread -> emergent OR debridement + Penicillin G + Clindamycin.`
+  },
+  {
+    lo: 11, sector: `S4`, sectorLabel: `Sector IV: NSTI & Bites`,
+    entity: `Clostridium perfringens Gas Gangrene`,
+    presentation: `Dirty soil/combat crush wound developing bronze skin discoloration, foul-smelling thin exudate, shock, and palpable subcutaneous crepitus.`,
+    mechanism: `Alpha-toxin (lecithinase / phospholipase C) hydrolyzes phosphatidylcholine in host cell membranes -> massive myonecrosis, platelet aggregation, and intravascular hemolysis.`,
+    hallmarks: `Large Gram+ boxcar-shaped spore-forming obligate anaerobic rod; DOUBLE ZONE of beta-hemolysis on blood agar; soft tissue gas on X-ray/CT.`,
+    management: `Emergent surgical debridement/amputation + high-dose IV Penicillin G + Clindamycin (suppresses alpha-toxin production).`,
+    clues: `Alpha-toxin lecithinase + double zone of hemolysis + crepitus in contaminated trauma = Clostridium perfringens myonecrosis.`
+  },
+  {
+    lo: 12, sector: `S4`, sectorLabel: `Sector IV: NSTI & Bites`,
+    entity: `Pasteurella multocida Animal Bite Infection`,
+    presentation: `Rapidly progressive, exquisitely painful cellulitis, purulent drainage, tenosynovitis, or osteomyelitis developing within <24 hours of a cat or dog bite.`,
+    mechanism: `Endotoxin (LPS) and polysaccharide capsule from normal feline/canine oral flora rapidly invade deep periosteal and tendon sheath planes via puncture teeth.`,
+    hallmarks: `Small Gram- coccobacillus, Oxidase+, Catalase+, bipolar ("safety-pin") staining; grows on blood/chocolate agar (NOT MacConkey).`,
+    management: `Amoxicillin-clavulanate first-line (or Doxycycline / 3rd-gen cephalosporin); copious irrigation and avoid primary closure of deep puncture wounds.`,
+    clues: `Cat bite + rapid cellulitis within 24 hours + bipolar staining Gram- coccobacillus = Pasteurella multocida -> Amoxicillin-clavulanate.`
+  },
+  {
+    lo: 13, sector: `S5`, sectorLabel: `Sector V: Vector/Fungal/TB`,
+    entity: `Borrelia burgdorferi Lyme Arthritis`,
+    presentation: `Hiker from Northeast US with history of targetoid erythema migrans presenting months later with chronic, recurrent large-joint swelling (especially knee), minimal erythema.`,
+    mechanism: `Transmitted by Ixodes scapularis deer tick; outer surface protein (Osp) antigenic variation allows spirochete persistence in synovial tissue causing Stage 3 arthritis.`,
+    hallmarks: `Large spirochete visualized by darkfield microscopy or Wright/Giemsa stain (too thin for standard Gram stain); diagnosed by 2-tier ELISA + Western blot.`,
+    management: `Oral Doxycycline (28 days) for uncomplicated Lyme arthritis; IV Ceftriaxone if refractory or accompanied by neuroborreliosis/carditis.`,
+    clues: `Stage 3 Lyme = chronic asymmetric mono/oligoarthritis of the knee with large effusion and surprisingly little warmth/erythema.`
+  },
+  {
+    lo: 14, sector: `S5`, sectorLabel: `Sector V: Vector/Fungal/TB`,
+    entity: `Sporothrix schenckii (Rose Gardener's Disease)`,
+    presentation: `Gardener/florist with painless pustule/ulcer on finger after thorn prick, followed by ascending subcutaneous nodules tracking proximally along arm lymphatics.`,
+    mechanism: `Thermally dimorphic fungus inoculated into dermis converts from environmental mold (25C) to tissue yeast (37C) and spreads via regional lymphatic channels.`,
+    hallmarks: `Biopsy/PAS stain reveals elongated "cigar-shaped" budding yeasts (37C) and asteroid bodies; branching hyphae with rosettes of conidia at 25C.`,
+    management: `Oral Itraconazole first-line for lymphocutaneous sporotrichosis (or saturated solution of Potassium Iodide [SSKI]); IV Amphotericin B if disseminated.`,
+    clues: `Rose thorn prick + ascending nodular lymphangitis + cigar-shaped yeast = Sporothrix schenckii -> Itraconazole.`
+  },
+  {
+    lo: 15, sector: `S5`, sectorLabel: `Sector V: Vector/Fungal/TB`,
+    entity: `Mycobacterium tuberculosis Osteomyelitis (Pott Disease)`,
+    presentation: `Immigrant or immunocompromised patient with chronic thoracic/lumbar back pain, night sweats, weight loss, spinal kyphosis, and a painless flank/groin swelling.`,
+    mechanism: `Acid-fast bacillus resists phagolysosomal fusion via sulfatides and cord factor (trehalose dimycolate), triggering Th1 caseating granulomatous vertebral destruction.`,
+    hallmarks: `Acid-fast bacilli (Ziehl-Neelsen carbolfuchsin red rods); MRI shows thoracic/lumbar vertebral collapse sparing/involving disc + cold psoas abscess tracking below inguinal ligament.`,
+    management: `RIPE quadruple therapy (Rifampin, Isoniazid, Pyrazinamide, Ethambutol) + surgical decompression/stabilization if spinal instability or cord compression.`,
+    clues: `Vertebral destruction + painless "cold" psoas abscess tracking to groin = Pott disease -> RIPE therapy.`
+  }
+];
+
+const ALL_QUESTIONS = [
+  // ENTITY 1: S. aureus Osteomyelitis
+  {
+    id: `LO01-Q1`, lo: 1, loTitle: `LO 1: S. aureus Osteomyelitis`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Staphylococcus aureus osteomyelitis`,
+    stem: `An 8-year-old boy develops high fever, chills, and refusal to bear weight on his right leg 5 days after a minor skin abrasion. Point tenderness is elicited over the distal femoral metaphysis. Blood cultures grow Gram-positive cocci in clusters. Which pathogen is most likely responsible?`,
+    clue: `In children without sickle cell disease, acute hematogenous osteomyelitis classically seeds long bone metaphyses.`,
+    choices: [`Staphylococcus aureus`, `Salmonella enterica`, `Pasteurella multocida`],
+    correctIndex: 0,
+    explanation: `Correct: Staphylococcus aureus accounts for roughly 90% of acute hematogenous osteomyelitis overall and classically localizes to the highly vascular metaphysis of long bones in children. Distractor exclusion: Salmonella enterica is strongly associated with sickle cell disease rather than healthy children, and Pasteurella multocida follows cat or dog bites.`,
+    secondOrderClue: `Pediatric long bone metaphysis tenderness + fever + Gram-positive clusters = hematogenous S. aureus osteomyelitis.`,
+    phase1Pearl: `Sharp capillary loops in the pediatric metaphysis cause sluggish blood flow and lack phagocytic lining, favoring bacterial seeding.`,
+    phase2Hallmark: `Gram-positive cocci in grape-like clusters that are catalase-positive, coagulase-positive, and beta-hemolytic.`,
+    phase3Secret: `Start empiric IV Vancomycin to cover MRSA until culture sensitivities return, then narrow to Nafcillin or Cefazolin if MSSA.`
+  },
+  {
+    id: `LO01-Q2`, lo: 1, loTitle: `LO 1: S. aureus Osteomyelitis`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Protein A binding IgG Fc`,
+    stem: `A 54-year-old man with lumbar vertebral osteomyelitis has bone biopsy cultures yielding catalase-positive, coagulase-positive Gram-positive cocci. Which cell wall virulence factor on this organism directly binds the Fc portion of host IgG to prevent complement fixation and opsonization?`,
+    clue: `Think of the specific surface protein on S. aureus that inverts IgG antibodies to block macrophage Fc receptors.`,
+    choices: [`Protein A`, `M-protein`, `Lipooligosaccharide (LOS)`],
+    correctIndex: 0,
+    explanation: `Correct: Staphylococcal Protein A binds the Fc region of IgG, preventing proper antibody orientation, complement activation, and phagocytosis. Distractor exclusion: M-protein is the anti-phagocytic virulence factor of Streptococcus pyogenes, and LOS is the potent endotoxin of Neisseria species.`,
+    secondOrderClue: `Vertebral osteomyelitis in adults (without TB exposure) is most commonly S. aureus; link S. aureus to Protein A.`,
+    phase1Pearl: `Protein A binds IgG Fc backwards so the Fab regions cannot bridge to phagocyte Fc receptors; MRSA additionally expresses altered PBP2a.`,
+    phase2Hallmark: `S. aureus ferments mannitol on mannitol salt agar (turning the medium yellow) and produces golden-yellow colonies.`,
+    phase3Secret: `Adult vertebral osteomyelitis requires MRI to evaluate epidural abscess risk before initiating prolonged IV anti-staphylococcal therapy.`
+  },
+  {
+    id: `LO01-Q3`, lo: 1, loTitle: `LO 1: S. aureus Osteomyelitis`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `MRI spine/bone + biopsy culture`,
+    stem: `A 42-year-old man with chronic S. aureus osteomyelitis of the tibia undergoes plain radiography showing a central lytic focus of necrotic bone surrounded by a rim of reactive sclerotic bone. In acute presentations when plain radiographs are still normal, which diagnostic modality is most sensitive for detecting early marrow edema?`,
+    clue: `Radiographs lag 10-14 days behind acute bone infection; choose the imaging study with highest early sensitivity before biopsy.`,
+    choices: [`MRI of the affected bone`, `Plain lateral radiograph`, `Antistreptolysin O (ASO) titer`],
+    correctIndex: 0,
+    explanation: `Correct: MRI is the imaging modality of choice for detecting acute osteomyelitis early and detailing marrow edema and soft-tissue extension, while bone biopsy with culture identifies the organism. Distractor exclusion: Plain X-rays are insensitive in acute infection (useful later for sequestrum/involucrum), and ASO titers evaluate prior Group A Strep infection.`,
+    secondOrderClue: `Sequestrum (devitalized lytic core) + involucrum (reactive periosteal sclerosis) characterize chronic osteomyelitis on X-ray.`,
+    phase1Pearl: `Devitalized sequestrum lacks blood supply, preventing systemic antibiotics and host leukocytes from clearing embedded bacteria.`,
+    phase2Hallmark: `MRI shows decreased T1 and increased T2 marrow signal within days of symptom onset, well before radiographic cortical destruction.`,
+    phase3Secret: `Definitive management of chronic osteomyelitis with sequestrum requires surgical debridement of necrotic bone alongside culture-guided IV antibiotics.`
+  },
+
+  // ENTITY 2: Salmonella enterica Osteomyelitis (SCD)
+  {
+    id: `LO02-Q1`, lo: 2, loTitle: `LO 2: Salmonella Osteomyelitis (SCD)`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Salmonella enterica osteomyelitis`,
+    stem: `A 14-year-old boy with homozygous sickle cell disease presents with 4 days of worsening left humeral diaphyseal pain, fever to 39.2C, and leukocytosis. Blood cultures isolate a motile, non-lactose-fermenting Gram-negative rod that produces hydrogen sulfide. What is the most likely diagnosis?`,
+    clue: `Repeated splenic infarctions in sickle cell disease predispose patients to osteomyelitis from an H2S-producing enteric bacillus.`,
+    choices: [`Salmonella enterica osteomyelitis`, `Pseudomonas aeruginosa osteomyelitis`, `Mycobacterium tuberculosis osteomyelitis`],
+    correctIndex: 0,
+    explanation: `Correct: Salmonella enterica is the hallmark pathogen of osteomyelitis in patients with sickle cell disease, growing as a motile, non-lactose-fermenting, H2S-positive Gram-negative rod. Distractor exclusion: Pseudomonas is linked to puncture wounds through sneakers or IV drug use, and M. tuberculosis causes spinal Pott disease.`,
+    secondOrderClue: `Sickle cell disease + diaphyseal bone pain + H2S+ motile Gram-negative rod = Salmonella osteomyelitis.`,
+    phase1Pearl: `Micro-infarctions in bone marrow during vaso-occlusive crises create necrotic foci seeded hematogenously by enteric bacteria.`,
+    phase2Hallmark: `Black colonies on Hektoen enteric agar confirm H2S production; Salmonella is motile and acid-labile unlike Shigella.`,
+    phase3Secret: `Distinguishing vaso-occlusive crisis from osteomyelitis in SCD requires blood cultures and MRI; treat empirically with Ceftriaxone plus Vancomycin.`
+  },
+  {
+    id: `LO02-Q2`, lo: 2, loTitle: `LO 2: Salmonella Osteomyelitis (SCD)`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Functional asplenia + polysaccharide capsule`,
+    stem: `A 19-year-old woman with sickle cell disease is hospitalized for Salmonella osteomyelitis. Peripheral blood smear demonstrates Howell-Jolly bodies inside erythrocytes. Which immunologic defect explains her heightened susceptibility to this organism compared with the general population?`,
+    clue: `Howell-Jolly bodies indicate loss of splenic macrophage filtration needed to clear encapsulated pathogens.`,
+    choices: [`Functional asplenia impairing capsule opsonization`, `Terminal C5-C9 complement deficiency`, `Th1 cytokine receptor mutation`],
+    correctIndex: 0,
+    explanation: `Correct: Repeated splenic vaso-occlusive infarcts lead to autosplenectomy (functional asplenia, marked by Howell-Jolly bodies), impairing opsonization and clearance of encapsulated bacteria including Salmonella (Vi capsule), S. pneumoniae, and H. influenzae. Distractor exclusion: C5-C9 deficiency predisposes to recurrent Neisseria infections, and Th1 defects predispose to mycobacterial disease.`,
+    secondOrderClue: `Howell-Jolly bodies on smear are the histologic fingerprint of functional asplenia in sickle cell disease.`,
+    phase1Pearl: `Salmonella survives facultatively inside macrophages and uses a polysaccharide capsule to evade non-splenic clearance.`,
+    phase2Hallmark: `Peripheral smear shows sickled RBCs, target cells, and nuclear remnants (Howell-Jolly bodies) normally pitted by the spleen.`,
+    phase3Secret: `Always remember: S. aureus is still the #1 overall cause of osteomyelitis, but Salmonella is the uniquely classic pathogen tested in SCD.`
+  },
+  {
+    id: `LO02-Q3`, lo: 2, loTitle: `LO 2: Salmonella Osteomyelitis (SCD)`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Ceftriaxone or fluoroquinolone`,
+    stem: `A 16-year-old girl with sickle cell disease has MRI-confirmed femoral osteomyelitis, and bone aspirate grows non-lactose-fermenting Gram-negative bacilli producing black colonies on Hektoen agar. Which antimicrobial regimen is most appropriate for definitive targeted therapy of this invasive infection?`,
+    clue: `Hektoen black colonies point to Salmonella; choose an agent with strong bone penetration and Gram-negative invasive activity.`,
+    choices: [`IV Ceftriaxone or a fluoroquinolone`, `Oral Penicillin V potassium`, `Topical Bacitracin ointment`],
+    correctIndex: 0,
+    explanation: `Correct: Invasive Salmonella infections such as osteomyelitis or bacteremia are treated aggressively with a third-generation cephalosporin (Ceftriaxone) or a fluoroquinolone (ciprofloxacin/levofloxacin). Distractor exclusion: Penicillin V lacks reliable Gram-negative coverage for Salmonella, and topical bacitracin cannot treat deep bone infection.`,
+    secondOrderClue: `Uncomplicated Salmonella gastroenteritis avoids antibiotics to prevent prolonged carrier shedding, whereas invasive osteomyelitis demands Ceftriaxone or fluoroquinolone.`,
+    phase1Pearl: `Biliary gallbladder carriage can harbor Salmonella typhi chronically, whereas non-typhoidal invasive spread seeds infarcted marrow.`,
+    phase2Hallmark: `Salmonella is oxidase-negative, ferments glucose without lactose, and forms black-centered colonies on Hektoen agar.`,
+    phase3Secret: `In children/adolescents, IV Ceftriaxone is preferred first-line for invasive Salmonella osteomyelitis; fluoroquinolones are an alternative in adults.`
+  },
+
+  // ENTITY 3: Pseudomonas aeruginosa & S. epidermidis Hardware Osteomyelitis
+  {
+    id: `LO03-Q1`, lo: 3, loTitle: `LO 3: Pseudomonas & S. epidermidis Osteo`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Pseudomonas aeruginosa osteomyelitis`,
+    stem: `A 21-year-old male steps on a rusty nail while wearing damp rubber-soled tennis shoes. Two weeks later, he develops progressive foot swelling, pain, and greenish purulent drainage over the plantar metatarsal head. Culture grows an oxidase-positive Gram-negative rod with a fruity odor. What is the diagnosis?`,
+    clue: `Puncture wounds through foam-lined athletic sneakers classically introduce an aquatic aerobic Gram-negative rod.`,
+    choices: [`Pseudomonas aeruginosa osteomyelitis`, `Staphylococcus epidermidis osteomyelitis`, `Clostridium perfringens gas gangrene`],
+    correctIndex: 0,
+    explanation: `Correct: Puncture wounds through rubber-soled sneakers classically cause Pseudomonas aeruginosa osteomyelitis, characterized by an oxidase-positive Gram-negative rod with blue-green pigment and a grape-like odor. Distractor exclusion: S. epidermidis is Gram-positive and linked to prosthetic hardware, while C. perfringens is an anaerobic Gram-positive rod causing myonecrosis.`,
+    secondOrderClue: `Tennis shoe puncture + oxidase+ Gram-negative rod + fruity odor = Pseudomonas aeruginosa.`,
+    phase1Pearl: `Moist sneaker foam harbors Pseudomonas; puncture drives organisms directly into plantar cartilage and metatarsal bone.`,
+    phase2Hallmark: `Blue-green colonies (pyocyanin and pyoverdine pigments) on agar with positive oxidase and catalase reactions.`,
+    phase3Secret: `Treat with surgical debridement plus an anti-pseudomonal beta-lactam (cefepime, piperacillin-tazobactam) or ciprofloxacin.`
+  },
+  {
+    id: `LO03-Q2`, lo: 3, loTitle: `LO 3: Pseudomonas & S. epidermidis Osteo`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Exotoxin A ADP-ribosylates EF-2`,
+    stem: `A 63-year-old man with poorly controlled diabetes mellitus develops calcaneal osteomyelitis from a chronic plantar ulcer yielding Pseudomonas aeruginosa. By what molecular mechanism does the primary cytotoxin (Exotoxin A) of this organism induce host cell death?`,
+    clue: `This Pseudomonas toxin shares the exact intracellular mechanism of Corynebacterium diphtheriae toxin.`,
+    choices: [`ADP-ribosylation of elongation factor-2 (EF-2)`, `Cleavage of SNARE vesicle fusion proteins`, `Superantigen cross-linking of MHC-II and TCR`],
+    correctIndex: 0,
+    explanation: `Correct: Pseudomonas Exotoxin A inactivates elongation factor-2 (EF-2) via ADP-ribosylation, halting host ribosomal protein synthesis and causing cell death. Distractor exclusion: SNARE cleavage is the mechanism of Clostridium tetani and botulinum toxins, while superantigen cross-linking is mediated by S. aureus TSST-1 and S. pyogenes SpeA.`,
+    secondOrderClue: `Both Pseudomonas Exotoxin A and Diphtheria toxin inhibit protein synthesis by ADP-ribosylating EF-2.`,
+    phase1Pearl: `Pseudomonas also uses a polysaccharide capsule and elastase/phospholipase C to invade tissues in diabetic foot and IVDU osteomyelitis.`,
+    phase2Hallmark: `Obligate aerobe, non-lactose fermenter on MacConkey agar, oxidase-positive with characteristic sweet grape-like scent.`,
+    phase3Secret: `IV drug users and diabetics are classic high-risk populations for Pseudomonas osteomyelitis (especially sternoclavicular/vertebral in IVDU).`
+  },
+  {
+    id: `LO03-Q3`, lo: 3, loTitle: `LO 3: Pseudomonas & S. epidermidis Osteo`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `S. epidermidis biofilm + hardware removal`,
+    stem: `A 69-year-old man develops persistent dull pain and a draining sinus tract 6 months after tibial internal fixation with a titanium plate. Cultures grow catalase-positive, coagulase-negative, novobiocin-sensitive Gram-positive cocci in clusters. Why is hardware removal paired with vancomycin required?`,
+    clue: `Coagulase-negative, novobiocin-sensitive skin flora form a protective extracellular matrix on metallic implants.`,
+    choices: [`Extracellular glycocalyx biofilm shields bacteria`, `Intracellular sequestration inside osteoclasts`, `Formation of heat-resistant endospores`],
+    correctIndex: 0,
+    explanation: `Correct: Staphylococcus epidermidis synthesizes a dense polysaccharide glycocalyx biofilm that adheres to prosthetic hardware and blocks both host phagocytes and antibiotics, necessitating implant removal alongside Vancomycin. Distractor exclusion: S. epidermidis does not reside inside osteoclasts or form endospores.`,
+    secondOrderClue: `Coag-, Novobiocin-sensitive + orthopedic hardware = S. epidermidis glycocalyx biofilm (vs Novobiocin-resistant S. saprophyticus in UTIs).`,
+    phase1Pearl: `Urease positivity and glycocalyx slime allow S. epidermidis to colonize catheters, prosthetic joints, and orthopedic plates.`,
+    phase2Hallmark: `Gram-positive cocci in clusters, catalase-positive, coagulase-negative, novobiocin-sensitive.`,
+    phase3Secret: `Biofilm-associated hardware osteomyelitis cannot be cured by antibiotics alone; surgical removal/exchange plus Vancomycin is mandatory.`
+  },
+
+  // ENTITY 4: Neisseria gonorrhoeae DGI
+  {
+    id: `LO04-Q1`, lo: 4, loTitle: `LO 4: N. gonorrhoeae DGI & Arthritis`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Disseminated gonococcal infection`,
+    stem: `A 23-year-old sexually active woman presents with 4 days of fever, migratory asymmetric arthralgias of the wrists and ankles, tender swelling along the extensor tendon sheaths of her hand, and 5 painless hemorrhagic pustules on her distal extremities. Which diagnosis best explains her syndrome?`,
+    clue: `Notice the classic triad: migratory polyarthralgia, tenosynovitis, and distal pustular skin lesions.`,
+    choices: [`Disseminated gonococcal infection`, `Post-enteric reactive arthritis`, `Disseminated sporotrichosis`],
+    correctIndex: 0,
+    explanation: `Correct: Disseminated gonococcal infection (DGI) classically presents in sexually active young adults with the triad of migratory asymmetric polyarthralgia, tenosynovitis, and pustular/hemorrhagic dermatitis (or progresses to purulent monoarthritis). Distractor exclusion: Reactive arthritis presents with conjunctivitis/urethritis and keratoderma blennorrhagica rather than tenosynovitis with pustules, and sporotrichosis causes ascending lymphocutaneous nodules.`,
+    secondOrderClue: `Migratory polyarthralgia + tenosynovitis + distal pustules in a young adult = DGI (even without overt genital symptoms).`,
+    phase1Pearl: `Patients with terminal complement (C5-C9) membrane attack complex deficiencies have markedly increased risk for disseminated Neisseria.`,
+    phase2Hallmark: `Gram-negative kidney-bean diplococci located intracellularly within neutrophils; blood cultures are positive in ~50% of DGI cases.`,
+    phase3Secret: `In sexually active young adults, N. gonorrhoeae is a leading cause of infectious arthritis alongside S. aureus.`
+  },
+  {
+    id: `LO04-Q2`, lo: 4, loTitle: `LO 4: N. gonorrhoeae DGI & Arthritis`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Pili antigenic variation + IgA protease`,
+    stem: `A 25-year-old man has recurrent episodes of gonococcal urethritis and septic arthritis despite prior antibiotic-cured infections. Which virulence property of Neisseria gonorrhoeae primarily prevents lasting protective mucosal immunity and explains why no effective vaccine exists?`,
+    clue: `Think of the adherence organelle undergoing constant genetic recombination, paired with mucosal antibody cleavage.`,
+    choices: [`Antigenic variation of pilus proteins`, `Polysaccharide capsule serotyping`, `Poly-D-glutamate protein capsule`],
+    correctIndex: 0,
+    explanation: `Correct: N. gonorrhoeae undergoes rapid antigenic variation of its pilus proteins (which mediate mucosal attachment and inhibit phagocytosis) and secretes IgA protease, preventing durable immunity or vaccine development. Distractor exclusion: Unlike N. meningitidis, N. gonorrhoeae lacks a polysaccharide capsule; Bacillus anthracis has a poly-D-glutamate capsule.`,
+    secondOrderClue: `Gonococci have NO polysaccharide capsule (unlike Meningococci), relying instead on pilus antigenic variation and IgA protease.`,
+    phase1Pearl: `Gonococci also express outer membrane lipooligosaccharide (LOS) with strong endotoxin activity and invade PMNs facultatively.`,
+    phase2Hallmark: `Oxidase-positive Gram-negative diplococci that ferment glucose ONLY (meningococci ferment both maltose and glucose).`,
+    phase3Secret: `Screen patients with recurrent disseminated Neisseria bacteremia for C5-C9 terminal complement deficiency.`
+  },
+  {
+    id: `LO04-Q3`, lo: 4, loTitle: `LO 4: N. gonorrhoeae DGI & Arthritis`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Thayer-Martin agar + Ceftriaxone`,
+    stem: `Synovial fluid aspiration from a 24-year-old man with an acutely swollen knee shows Gram-negative diplococci inside PMNs. Which selective culture medium suppresses competing flora for confirmation, and what is the first-line antibiotic regimen if Chlamydia coinfection has not been ruled out?`,
+    clue: `Use chocolate agar laced with vancomycin, polymyxin, and nystatin (VPN), then cover both gonorrhea and chlamydia.`,
+    choices: [`Thayer-Martin agar; Ceftriaxone plus Doxycycline`, `MacConkey agar; Penicillin G monotherapy`, `Hektoen agar; TMP-SMX monotherapy`],
+    correctIndex: 0,
+    explanation: `Correct: N. gonorrhoeae is cultured on Thayer-Martin (VPN chocolate) agar and diagnosed rapidly by NAAT; treat with Ceftriaxone plus Doxycycline (or Azithromycin) when Chlamydia coinfection has not been excluded. Distractor exclusion: MacConkey and Hektoen select for enteric Gram-negative rods, and Penicillin G has high gonococcal resistance.`,
+    secondOrderClue: `Chocolate agar (lysed RBCs) + VPN antibiotics = Thayer-Martin medium; glucose-only fermentation confirms N. gonorrhoeae.`,
+    phase1Pearl: `NAAT on urine or mucosal swabs has higher sensitivity than synovial culture in DGI because joint fluid cultures can be negative early.`,
+    phase2Hallmark: `Thayer-Martin agar inhibits Gram-positive bacteria (Vancomycin), other Gram-negatives (Polymyxin/Colistin), and fungi (Nystatin).`,
+    phase3Secret: `Always treat sexual partners and screen for HIV/syphilis when diagnosing gonococcal arthritis.`
+  },
+
+  // ENTITY 5: Non-Gonococcal Acute Septic Arthritis
+  {
+    id: `LO05-Q1`, lo: 5, loTitle: `LO 5: Non-Gonococcal Septic Arthritis`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `S. aureus acute septic arthritis`,
+    stem: `A 67-year-old man with rheumatoid arthritis presents with 24 hours of fever, rigors, and an exquisitely painful, warm, swollen right knee held in slight flexion. Attempting passive range of motion triggers severe guarding. What is the single most likely causative organism?`,
+    clue: `Outside of young sexually active adults, one Gram-positive organism dominates acute monoarticular septic arthritis—especially in damaged joints.`,
+    choices: [`Staphylococcus aureus`, `Neisseria meningitidis`, `Borrelia burgdorferi`],
+    correctIndex: 0,
+    explanation: `Correct: Staphylococcus aureus is the #1 overall cause of non-gonococcal acute septic arthritis in older children and adults, especially those with pre-existing joint damage (e.g., rheumatoid arthritis). Distractor exclusion: N. meningitidis typically causes meningitis/meningococcemia, and B. burgdorferi causes subacute/chronic minimally warm knee effusion rather than hyperacute febrile toxicity.`,
+    secondOrderClue: `Damaged RA joint + acute hot, immobile monoarticular knee + fever = S. aureus septic arthritis until proven otherwise.`,
+    phase1Pearl: `Damaged synovium in rheumatoid arthritis lacks normal barrier integrity, facilitating hematogenous S. aureus adherence and proliferation.`,
+    phase2Hallmark: `Purulent synovial fluid with >50,000 WBCs/mm3, >75% neutrophils, and Gram-positive cocci in clusters.`,
+    phase3Secret: `Streptococcus pyogenes is the 2nd most common Gram-positive cause of non-gonococcal septic arthritis in adults.`
+  },
+  {
+    id: `LO05-Q2`, lo: 5, loTitle: `LO 5: Non-Gonococcal Septic Arthritis`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `PMN proteolysis destroys cartilage`,
+    stem: `A 58-year-old man with untreated acute S. aureus septic arthritis of the knee develops irreversible joint space narrowing within 1 week. Which pathophysiologic mechanism is primarily responsible for the rapid destruction of articular cartilage in this condition?`,
+    clue: `Massive neutrophil influx releases matrix-degrading enzymes into a closed joint space lacking basement membrane protection.`,
+    choices: [`Neutrophil lysosomal proteases and bacterial toxins`, `Monosodium urate crystal phagocytosis`, `Immune complex deposition in subsynovium`],
+    correctIndex: 0,
+    explanation: `Correct: Massive recruitment of PMNs (>75% of synovial WBCs) releases proteolytic lysosomal enzymes (collagenases, elastases) alongside bacterial toxins and elevated intra-articular pressure, rapidly digesting type II collagen and proteoglycans in articular cartilage. Distractor exclusion: MSU crystals drive gout, and immune complex deposition characterizes serum sickness or lupus.`,
+    secondOrderClue: `Closed joint cavity + >50,000 PMNs = enzymatic cartilage digestion, explaining why septic arthritis is an orthopedic emergency.`,
+    phase1Pearl: `Synovial membrane lacks a basement membrane, permitting rapid hematogenous bacterial entry and swift cytokine amplification (IL-1, TNF-alpha).`,
+    phase2Hallmark: `Synovial fluid glucose drops markedly (<40 mg/dL or <50% serum) due to consumption by bacteria and activated neutrophils.`,
+    phase3Secret: `Delay in joint drainage of even 48-72 hours risks permanent ankylosis or secondary osteoarthritis.`
+  },
+  {
+    id: `LO05-Q3`, lo: 5, loTitle: `LO 5: Non-Gonococcal Septic Arthritis`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `>50k WBC + urgent drainage + Vancomycin`,
+    stem: `Arthrocentesis of a 62-year-old woman's acutely warm, swollen knee yields turbid fluid with 82,000 WBCs/mm3 (91% neutrophils) and no crystals under polarized microscopy. What is the mandatory immediate management step alongside empiric IV Vancomycin?`,
+    clue: `Antibiotics alone cannot decompress a purulent joint cavity; remove the pus and proteolytic enzymes immediately.`,
+    choices: [`Urgent joint drainage via arthroscopy or needle`, `Oral NSAIDs and repeat tap in 1 week`, `Intra-articular triamcinolone injection`],
+    correctIndex: 0,
+    explanation: `Correct: Synovial fluid WBC >50,000/mm3 with >75% PMNs confirms acute septic arthritis; urgent joint drainage (serial needle aspiration or surgical/arthroscopic washout) PLUS empiric IV Vancomycin is mandatory to preserve cartilage. Distractor exclusion: NSAIDs alone fail to clear infection, and intra-articular steroids worsen bacterial proliferation.`,
+    secondOrderClue: `Synovial WBC >50,000 + >75% PMNs = septic arthritis -> urgent drainage + IV Vancomycin (never inject steroids into a hot septic tap).`,
+    phase1Pearl: `Obtain synovial fluid Gram stain, culture, cell count, and crystal analysis BEFORE starting antibiotics whenever feasible without delaying drainage.`,
+    phase2Hallmark: `Synovial fluid threshold: >50,000 WBC/mm3 with >75% PMNs; polarized microscopy excludes gout (needle-shaped negative birefringent) and pseudogout.`,
+    phase3Secret: `Tailor IV Vancomycin to Nafcillin/Cefazolin if cultures confirm MSSA, or Penicillin/Ceftriaxone if Group A Strep.`
+  },
+
+  // ENTITY 6: Prosthetic Joint Infections
+  {
+    id: `LO06-Q1`, lo: 6, loTitle: `LO 6: Prosthetic Joint Infections`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Delayed S. epidermidis PJI`,
+    stem: `A 73-year-old woman who underwent uncomplicated total hip arthroplasty 7 months ago presents with gradually worsening weight-bearing hip pain over 6 weeks. She is afebrile without overlying erythema, but ESR and CRP are elevated and X-ray shows periprosthetic lucency. Which organism is most likely?`,
+    clue: `Delayed prosthetic joint infections (3-12 months post-op) present indolently and are dominated by coagulase-negative skin flora.`,
+    choices: [`Staphylococcus epidermidis`, `Streptococcus pyogenes`, `Pasteurella multocida`],
+    correctIndex: 0,
+    explanation: `Correct: Delayed prosthetic joint infections (3-12 months post-op) are typically indolent, afebrile, and caused by low-virulence biofilm-forming Staphylococcus epidermidis. Distractor exclusion: S. pyogenes and virulent S. aureus/Gram-negatives dominate early (<3 months) acute toxic presentations, while P. multocida follows animal bites.`,
+    secondOrderClue: `Timeline rule: <3 months post-op = S. aureus / Gram-negatives; 3-12 months indolent loosening = S. epidermidis.`,
+    phase1Pearl: `Inoculation occurs during surgery; slow bacterial replication within a biofilm produces subtle chronic inflammation and prosthetic loosening.`,
+    phase2Hallmark: `Elevated ESR/CRP + periprosthetic bone resorption (lucency) on plain radiographs; synovial fluid WBCs may be modestly elevated (>3,000).`,
+    phase3Secret: `Always obtain preoperative hip/knee aspiration off antibiotics to confirm S. epidermidis before revision surgery.`
+  },
+  {
+    id: `LO06-Q2`, lo: 6, loTitle: `LO 6: Prosthetic Joint Infections`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Glycocalyx biofilm on inert implant`,
+    stem: `A 70-year-old man with a late-onset prosthetic knee infection caused by Staphylococcus epidermidis fails a 4-week course of oral antibiotics despite in vitro susceptibility. What bacterial structure most directly accounts for treatment failure on the metal-polyethylene interface?`,
+    clue: `This extracellular polysaccharide matrix creates a diffusion barrier and induces metabolically dormant persister cells.`,
+    choices: [`Extracellular polysaccharide glycocalyx biofilm`, `Sulfatide-mediated phagolysosome block`, `Hyaluronic acid antiphagocytic capsule`],
+    correctIndex: 0,
+    explanation: `Correct: S. epidermidis adheres to inert orthopedic implants and secretes an extracellular polysaccharide glycocalyx biofilm that prevents antibiotic penetration, impairs neutrophil phagocytosis, and shelters slow-growing persister bacteria. Distractor exclusion: Sulfatides belong to M. tuberculosis, and hyaluronic acid capsule belongs to S. pyogenes.`,
+    secondOrderClue: `In vitro antibiotic susceptibility fails in vivo on metal/plastic prostheses because of glycocalyx biofilm.`,
+    phase1Pearl: `Biofilm formation proceeds from initial hydrophobic attachment to irreversible polysaccharide matrix maturation on abiotic surfaces.`,
+    phase2Hallmark: `Gram-positive cocci in clusters, catalase-positive, coagulase-negative, urease-positive, and novobiocin-sensitive.`,
+    phase3Secret: `Rifampin has unique ability to penetrate staphylococcal biofilms, but MUST always be combined with another active agent (e.g., Vancomycin) to prevent rapid resistance.`
+  },
+  {
+    id: `LO06-Q3`, lo: 6, loTitle: `LO 6: Prosthetic Joint Infections`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Two-stage prosthesis exchange + Vancomycin`,
+    stem: `A 75-year-old man has a confirmed chronic prosthetic knee infection at 9 months post-arthroplasty with S. epidermidis biofilm on a loosened femoral component. Which management strategy offers the highest likelihood of eradicating the infection?`,
+    clue: `Once a mature biofilm coats a loosened prosthesis, antibiotics cannot sterilize the metal without removing the hardware.`,
+    choices: [`Prosthesis removal/replacement + IV Vancomycin`, `Oral Cephalexin suppression without surgery`, `Needle aspiration + intra-articular steroids`],
+    correctIndex: 0,
+    explanation: `Correct: Established prosthetic joint infection (especially delayed >3 months with biofilm or loosening) requires hardware removal and replacement (typically two-stage exchange with antibiotic-loaded cement spacer) plus targeted IV Vancomycin. Distractor exclusion: Oral cephalexin cannot penetrate biofilm or cover methicillin-resistant S. epidermidis, and steroids worsen infection.`,
+    secondOrderClue: `Prosthetic joint biofilm + loosening = surgical hardware exchange (two-stage) + IV Vancomycin.`,
+    phase1Pearl: `A two-stage revision removes all foreign biofilm surfaces, places an antibiotic-impregnated spacer during 6 weeks of IV therapy, then re-implants.`,
+    phase2Hallmark: `Microbiology confirms coagulase-negative staphylococci sensitive to novobiocin (distinguishing from S. saprophyticus).`,
+    phase3Secret: `Pre-operative Cefazolin prophylaxis targets skin flora to prevent initial surgical-site seeding during arthroplasty.`
+  },
+
+  // ENTITY 7: Chlamydia trachomatis Post-Venereal Reactive Arthritis
+  {
+    id: `LO07-Q1`, lo: 7, loTitle: `LO 7: Chlamydia Reactive Arthritis`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Chlamydia post-venereal reactive arthritis`,
+    stem: `A 24-year-old man develops asymmetric swelling of his left knee and right ankle along with bilateral conjunctival injection 2 weeks after an episode of mucoid dysuria. Synovial fluid has 18,000 WBCs/mm3 with negative Gram stain and sterile culture. Which organism most likely triggered his joint disease?`,
+    clue: `Sterile synovitis + conjunctivitis + recent nongonococcal urethritis points to a serovar D-K sexually transmitted pathogen.`,
+    choices: [`Chlamydia trachomatis (serovars D-K)`, `Neisseria gonorrhoeae`, `Staphylococcus saprophyticus`],
+    correctIndex: 0,
+    explanation: `Correct: Chlamydia trachomatis (serovars D-K) is the classic trigger of post-venereal reactive arthritis (urethritis, conjunctivitis, asymmetric oligoarthritis with sterile synovial fluid). Distractor exclusion: N. gonorrhoeae causes septic arthritis with positive NAAT/Gram-negative diplococci in purulent fluid, and S. saprophyticus causes cystitis without reactive arthritis.`,
+    secondOrderClue: `Urethritis + conjunctivitis + sterile oligoarthritis = Chlamydia trachomatis post-venereal reactive arthritis.`,
+    phase1Pearl: `Chlamydia D-K infects urethral/cervical mucosal epithelium; persistent antigens in macrophages traffic to synovium in HLA-B27+ hosts.`,
+    phase2Hallmark: `Synovial fluid is inflammatory (2,000-50,000 WBCs) yet Gram stain and bacterial culture remain completely sterile.`,
+    phase3Secret: `Always rule out septic gonococcal arthritis via arthrocentesis first before diagnosing reactive arthritis.`
+  },
+  {
+    id: `LO07-Q2`, lo: 7, loTitle: `LO 7: Chlamydia Reactive Arthritis`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Obligate intracellular + HLA-B27 mimicry`,
+    stem: `A 26-year-old man with Chlamydia-triggered reactive arthritis carries the HLA-B27 allele. Why does Chlamydia trachomatis stain poorly on standard Gram stain and fail to grow on routine cell-free blood agar, and how does it induce sterile joint inflammation?`,
+    clue: `Think of its missing cell wall polymer and biphasic intracellular cycle driving HLA-B27 T-cell cross-reactivity.`,
+    choices: [`Lacks muramic acid; HLA-B27 CD8+ cross-reactivity`, `Produces exotoxin A; direct synovial necrosis`, `Forms heat-stable spores; IgE degranulation`],
+    correctIndex: 0,
+    explanation: `Correct: Chlamydia trachomatis is an obligate intracellular bacterium whose cell wall lacks muramic acid (preventing Gram-stain visualization and cell-free growth); persistent chlamydial peptides presented on HLA-B27 trigger autoimmune CD8+ T-cell synovitis. Distractor exclusion: Exotoxin A is produced by Pseudomonas, and Chlamydia does not form spores or trigger IgE arthritis.`,
+    secondOrderClue: `No muramic acid in cell wall + obligate intracellular ("energy parasite" needing host ATP) = Chlamydia trachomatis.`,
+    phase1Pearl: `Infectious Elementary Body (EB) enters the cell via endocytosis, transforms into metabolically active Reticulate Body (RB) to divide, then reverts to EB.`,
+    phase2Hallmark: `Giemsa stain reveals characteristic intracytoplasmic inclusion bodies inside epithelial cells (diagnostic NAAT is preferred clinically).`,
+    phase3Secret: `HLA-B27 positivity increases both risk and chronicity of post-chlamydial spondyloarthropathy.`
+  },
+  {
+    id: `LO07-Q3`, lo: 7, loTitle: `LO 7: Chlamydia Reactive Arthritis`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `NAAT + Doxycycline + NSAIDs`,
+    stem: `Urine nucleic acid amplification testing (NAAT) confirms active Chlamydia trachomatis in a 22-year-old woman with post-venereal reactive arthritis and conjunctivitis. Which combination appropriately addresses both the triggering GU infection and the acute joint inflammation?`,
+    clue: `Eradicate the intracellular bacterium with a tetracycline or macrolide while suppressing sterile synovial prostaglandin inflammation.`,
+    choices: [`Doxycycline (or Azithromycin) plus NSAIDs`, `IV Vancomycin plus surgical joint washout`, `Penicillin G plus Probenecid`],
+    correctIndex: 0,
+    explanation: `Correct: Active Chlamydia trachomatis urethritis/cervicitis is treated with Doxycycline (or Azithromycin) alongside partner treatment, while NSAIDs are first-line therapy for the reactive arthritis. Distractor exclusion: Vancomycin and surgical washout are for purulent septic arthritis, and beta-lactams like Penicillin G are ineffective because Chlamydia lacks classic peptidoglycan/muramic acid.`,
+    secondOrderClue: `Beta-lactams fail against Chlamydia because it lacks muramic acid; use Doxycycline or Azithromycin + NSAIDs.`,
+    phase1Pearl: `Chlamydial cell wall relies on disulfide-bonded outer membrane proteins rather than muramic acid peptidoglycan.`,
+    phase2Hallmark: `Urine or endocervical NAAT is the gold-standard diagnostic test; cytoplasmic inclusions are seen on Giemsa stain.`,
+    phase3Secret: `Do not forget to treat all recent sexual partners to prevent reinfection and pelvic inflammatory disease (PID).`
+  },
+
+  // ENTITY 8: Post-Enteric Reactive Arthritis
+  {
+    id: `LO08-Q1`, lo: 8, loTitle: `LO 8: Post-Enteric Reactive Arthritis`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Post-enteric reactive arthritis`,
+    stem: `Three weeks after recovering from bloody diarrhea following an undercooked poultry meal, a 28-year-old man develops painful swelling of his right knee, diffuse swelling of his second right toe ("sausage digit"), heel pain at the Achilles insertion, and red eyes. What is the diagnosis?`,
+    clue: `Poultry bloody diarrhea points to Campylobacter jejuni, followed weeks later by dactylitis, enthesitis, and uveitis/conjunctivitis.`,
+    choices: [`Post-enteric reactive arthritis`, `Acute gouty podagra`, `Disseminated Lyme arthritis`],
+    correctIndex: 0,
+    explanation: `Correct: Post-enteric reactive arthritis (classic triggers: Campylobacter jejuni, Shigella, Salmonella, Yersinia) presents weeks after GI infection with asymmetric lower-extremity oligoarthritis, dactylitis ("sausage digits"), enthesitis (Achilles tendon/plantar fascia), and conjunctivitis/uveitis. Distractor exclusion: Gout presents acutely in the 1st MTP joint without preceding enteritis, and Lyme follows tick exposure.`,
+    secondOrderClue: `Bloody poultry diarrhea -> Campylobacter jejuni -> "can't see, can't pee, can't climb a tree" + dactylitis + enthesitis.`,
+    phase1Pearl: `All four classic enteric triggers (Campylobacter, Shigella, Salmonella, Yersinia) are invasive intracellular/mucosal Gram-negative rods.`,
+    phase2Hallmark: `Campylobacter jejuni is a curved/S-shaped Gram-negative rod that is oxidase-positive and grows best at 42C (thermophilic).`,
+    phase3Secret: `Note that dactylitis ("sausage digit") also occurs in psoriatic arthritis, another HLA-B27 seronegative spondyloarthropathy.`
+  },
+  {
+    id: `LO08-Q2`, lo: 8, loTitle: `LO 8: Post-Enteric Reactive Arthritis`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `HLA-B27 seronegative molecular mimicry`,
+    stem: `A 30-year-old man develops asymmetric oligoarthritis and Achilles enthesitis 2 weeks after Shigella flexneri dysentery. Rheumatoid factor and anti-CCP antibodies are negative, and synovial cultures show no growth. Which immunogenetic mechanism drives his enthesitis and sterile synovitis?`,
+    clue: `Think of the MHC Class I allele shared by all seronegative spondyloarthropathies.`,
+    choices: [`HLA-B27 molecular mimicry and T-cell activation`, `IgM autoantibody targeting IgG Fc (RF)`, `Deposition of IgA immune complexes in glomeruli`],
+    correctIndex: 0,
+    explanation: `Correct: Post-enteric reactive arthritis is an HLA-B27-associated seronegative spondyloarthropathy driven by molecular mimicry and CD8+ T-cell / IL-23-Th17 responses against enteric bacterial peptides at entheses and synovium. Distractor exclusion: IgM against IgG Fc defines rheumatoid factor (positive in RA, absent in seronegative spondyloarthropathies), and IgA nephropathy causes glomerular hematuria.`,
+    secondOrderClue: `Lack of rheumatoid factor + axial/enthesis involvement + HLA-B27 = seronegative spondyloarthropathy.`,
+    phase1Pearl: `HLA-B27 misfolding in the endoplasmic reticulum also activates unfolded protein stress responses, amplifying IL-23 and TNF-alpha release.`,
+    phase2Hallmark: `X-rays in chronic disease can reveal calcaneal spurs at the Achilles insertion or sacroiliitis.`,
+    phase3Secret: `Remember the 4 classic post-enteric bacteria: Campylobacter, Shigella, Salmonella, Yersinia (plus Chlamydia post-venereal).`
+  },
+  {
+    id: `LO08-Q3`, lo: 8, loTitle: `LO 8: Post-Enteric Reactive Arthritis`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `NSAIDs first-line (sterile joint)`,
+    stem: `A 31-year-old man has confirmed post-enteric reactive arthritis with knee effusion, dactylitis, and negative synovial fluid cultures 4 weeks after Yersinia enterocolitica enteritis. His diarrhea has completely resolved. What is the first-line pharmacologic management for his musculoskeletal symptoms?`,
+    clue: `Post-enteric reactive arthritis is sterile immune inflammation; antibiotics do not alter the joint course once GI symptoms have resolved.`,
+    choices: [`High-dose NSAIDs (e.g., indomethacin/naproxen)`, `Prolonged course of oral ciprofloxacin`, `Allopurinol plus colchicine`],
+    correctIndex: 0,
+    explanation: `Correct: First-line therapy for post-enteric reactive arthritis is high-dose NSAIDs (such as naproxen or indomethacin), with intra-articular steroids or DMARDs (sulfasalazine/methotrexate) reserved for refractory disease. Distractor exclusion: Antibiotics are ineffective once post-enteric reactive arthritis develops, and allopurinol/colchicine treat gout.`,
+    secondOrderClue: `Unlike active Chlamydia urethritis, resolved post-enteric diarrhea needs NSAIDs—NOT antibiotics—for joint symptoms.`,
+    phase1Pearl: `Most patients recover within 3-12 months, though ~15-30% of HLA-B27+ patients develop chronic recurrent arthritis or sacroiliitis.`,
+    phase2Hallmark: `Synovial fluid shows sterile inflammatory profile (WBC 2,000-50,000/mm3, negative Gram stain/culture, no crystals).`,
+    phase3Secret: `If refractory to NSAIDs, consider intra-articular glucocorticoid injection (once infection is excluded) or sulfasalazine.`
+  },
+
+  // ENTITY 9: Keratoderma Blennorrhagica & Circinate Balanitis
+  {
+    id: `LO09-Q1`, lo: 9, loTitle: `LO 9: Keratoderma & Circinate Balanitis`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Keratoderma blennorrhagica & circinate balanitis`,
+    stem: `A 27-year-old man evaluated for asymmetric knee arthritis and dysuria is found to have painless, shallow, serpiginous erythematous plaques with white borders on the glans penis, alongside waxy, hyperkeratotic pustular plaques on the soles of his feet. What are these two classic mucocutaneous findings?`,
+    clue: `Name the penile plaque lesion and the hyperkeratotic palmar-plantar rash characteristic of reactive arthritis.`,
+    choices: [`Circinate balanitis and keratoderma blennorrhagica`, `Erythema nodosum and Gottron papules`, `Chancre and condylomata lata`],
+    correctIndex: 0,
+    explanation: `Correct: Circinate balanitis (painless serpiginous plaques on the glans penis) and keratoderma blennorrhagica (waxy hyperkeratotic/pustular plaques on palms and soles) are classic mucocutaneous hallmarks of reactive arthritis. Distractor exclusion: Gottron papules occur in dermatomyositis, while chancre and condylomata lata represent primary and secondary syphilis.`,
+    secondOrderClue: `Painless glans plaques + waxy hyperkeratotic soles in a patient with oligoarthritis = reactive arthritis skin triad.`,
+    phase1Pearl: `Both lesions represent sterile psoriasiform neutrophilic inflammation driven by systemic HLA-B27 immune activation.`,
+    phase2Hallmark: `Histology of keratoderma blennorrhagica is virtually indistinguishable from pustular psoriasis (spongiform pustules, parakeratosis).`,
+    phase3Secret: `Do not confuse circinate balanitis with painful HSV vesicles or syphilitic chancre; check NAAT for Chlamydia and RPR to exclude syphilis.`
+  },
+  {
+    id: `LO09-Q2`, lo: 9, loTitle: `LO 9: Keratoderma & Circinate Balanitis`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `HLA-B27 Th17/CD8+ psoriasiform reaction`,
+    stem: `Biopsy of a waxy hyperkeratotic plantar plaque from a patient with post-chlamydial reactive arthritis shows parakeratosis, acanthosis, and intraepidermal neutrophilic microabscesses without organisms on stain. Which immunopathologic axis drives these mucocutaneous lesions?`,
+    clue: `This pathway bridges reactive arthritis and pustular psoriasis via HLA-B27 antigen presentation.`,
+    choices: [`HLA-B27-linked Th17 / CD8+ neutrophilic response`, `Type I IgE-mediated mast cell degranulation`, `Type IV contact hypersensitivity to latex`],
+    correctIndex: 0,
+    explanation: `Correct: Keratoderma blennorrhagica and circinate balanitis arise from an HLA-B27-associated Th17 (IL-17/IL-23) and CD8+ T-cell immune response that recruits neutrophils into the epidermis, mimicking pustular psoriasis. Distractor exclusion: They are not IgE-mediated allergy or exogenous latex contact dermatitis.`,
+    secondOrderClue: `Psoriasiform epidermal hyperplasia + sterile neutrophilic microabscesses = shared Th17 immunopathology with psoriasis.`,
+    phase1Pearl: `Severe or recalcitrant keratoderma blennorrhagica in a patient with reactive arthritis should prompt HIV screening, which exacerbates HLA-B27 skin flares.`,
+    phase2Hallmark: `Tissue biopsy reveals hyperkeratosis, parakeratosis, elongated rete ridges, and sterile subcorneal neutrophilic collections.`,
+    phase3Secret: `Topical corticosteroids and salicylic acid keratolytics calm local plaques while NSAIDs/DMARDs control systemic flares.`
+  },
+  {
+    id: `LO09-Q3`, lo: 9, loTitle: `LO 9: Keratoderma & Circinate Balanitis`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Topical steroids + NSAIDs (+ DMARD if severe)`,
+    stem: `A 29-year-old man with reactive arthritis following Campylobacter enteritis has persistent painful keratoderma blennorrhagica plaques on his soles and circinate balanitis despite 2 weeks of naproxen. Skin swabs are sterile. Which targeted dermatologic therapy should be added?`,
+    clue: `Use local anti-inflammatory and keratolytic therapy for sterile immune plaques, reserving methotrexate/TNF inhibitors for refractory cases.`,
+    choices: [`Topical corticosteroids and keratolytics`, `Oral acyclovir for 10 days`, `IM benzathine penicillin G`],
+    correctIndex: 0,
+    explanation: `Correct: Mild-to-moderate keratoderma blennorrhagica and circinate balanitis are treated with topical corticosteroids (and topical keratolytics for thick plantar hyperkeratosis), with systemic DMARDs (methotrexate, sulfasalazine) or biologics reserved for severe refractory cases. Distractor exclusion: Acyclovir treats HSV, and benzathine penicillin G treats syphilis.`,
+    secondOrderClue: `Sterile reactive arthritis mucocutaneous lesions respond to topical steroids—do not misdiagnose as fungal tinea or syphilis.`,
+    phase1Pearl: `Oral retinoids or methotrexate can be used when widespread keratoderma blennorrhagica mimics severe pustular psoriasis.`,
+    phase2Hallmark: `Negative KOH prep and negative Treponemal/RPR testing help exclude tinea pedis and secondary syphilis (palmoplantar rash).`,
+    phase3Secret: `Always distinguish keratoderma blennorrhagica from secondary syphilis palmoplantar maculopapular rash when a young adult has penile lesions.`
+  },
+
+  // ENTITY 10: Streptococcus pyogenes Necrotizing Fasciitis
+  {
+    id: `LO10-Q1`, lo: 10, loTitle: `LO 10: GAS Necrotizing Fasciitis`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `GAS necrotizing fasciitis`,
+    stem: `A 44-year-old previously healthy man sustains a minor shin laceration while hiking. Thirty-six hours later he presents in septic shock with fever, tachycardia, mild overlying erythema, dusky bullae, and excruciating calf pain FAR OUT OF PROPORTION to palpation. What is the most likely diagnosis?`,
+    clue: `Severe pain out of proportion to skin exam + rapid shock in a healthy host = deep fascial spread by "flesh-eating" Group A Strep.`,
+    choices: [`Streptococcus pyogenes necrotizing fasciitis`, `Pasteurella multocida superficial cellulitis`, `Sporothrix schenckii lymphangitis`],
+    correctIndex: 0,
+    explanation: `Correct: Streptococcus pyogenes (Group A Strep) is the classic monomicrobial cause of necrotizing fasciitis ("flesh-eating bacteria"), presenting with rapid deep fascial necrosis, violaceous bullae, systemic toxicity, and pain out of proportion to cutaneous exam. Distractor exclusion: P. multocida follows animal bites, and Sporothrix causes indolent lymphatic nodules.`,
+    secondOrderClue: `Pain out of proportion to skin findings + rapid shock = necrotizing fasciitis (surgical emergency—never wait for imaging if unstable).`,
+    phase1Pearl: `GAS spreads rapidly along avascular deep fascial planes, thrombosing perforating cutaneous vessels and causing ischemic skin anesthesia late.`,
+    phase2Hallmark: `Gram-positive cocci in chains, beta-hemolytic, catalase-negative, Bacitracin-sensitive, and PYR-positive.`,
+    phase3Secret: `Also remember polymicrobial (Type I) necrotizing fasciitis occurs in diabetics/perineal wounds (Fournier gangrene), whereas GAS is Type II monomicrobial.`
+  },
+  {
+    id: `LO10-Q2`, lo: 10, loTitle: `LO 10: GAS Necrotizing Fasciitis`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Pyrogenic exotoxins SpeA/B/C superantigen`,
+    stem: `A 39-year-old woman develops streptococcal toxic shock syndrome and necrotizing fasciitis from Streptococcus pyogenes. Which virulence mechanism explains the explosive systemic hypotension and multiorgan failure triggered by pyrogenic exotoxins SpeA, SpeB, and SpeC?`,
+    clue: `These exotoxins bypass normal antigen-specific peptide processing to activate up to 20% of host T cells simultaneously.`,
+    choices: [`Superantigen bridging MHC-II and TCR beta-chain`, `ADP-ribosylation of Gs alpha subunit`, `Inhibition of acetylcholine release at NMJ`],
+    correctIndex: 0,
+    explanation: `Correct: Streptococcal pyrogenic exotoxins (SpeA/B/C) act as superantigens that cross-link MHC Class II on APCs directly to the beta-chain of T-cell receptors outside the peptide groove, unleashing a massive IL-1, IL-2, IFN-gamma, and TNF-alpha cytokine storm. Distractor exclusion: Gs ADP-ribosylation is cholera toxin, and ACh blockade is botulinum toxin.`,
+    secondOrderClue: `GAS SpeA/B/C and S. aureus TSST-1 are classic superantigens bridging MHC-II to TCR beta-chain.`,
+    phase1Pearl: `GAS additionally uses M-protein (anti-phagocytic, binds factor H), hyaluronic acid capsule (mimics host connective tissue), and streptokinase/DNase to dissect fascia.`,
+    phase2Hallmark: `Surgical exploration reveals dull, gray, non-bleeding fascia that separates easily with blunt finger dissection and "dishwater" gray exudate.`,
+    phase3Secret: `Use Clindamycin specifically to shut down ribosomal synthesis of SpeA/B/C superantigens ("Eagle effect" immunity).`
+  },
+  {
+    id: `LO10-Q3`, lo: 10, loTitle: `LO 10: GAS Necrotizing Fasciitis`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Emergent debridement + Penicillin G + Clindamycin`,
+    stem: `A 51-year-old man is diagnosed clinically with Group A Streptococcal necrotizing fasciitis of the thigh with hypotension and lactate 5.8 mmol/L. Which immediate combined intervention is required to maximize survival?`,
+    clue: `Pair immediate operative source control with a bactericidal cell-wall agent AND a 50S ribosomal toxin-suppressing drug.`,
+    choices: [`Emergent surgical debridement + Penicillin G + Clindamycin`, `Outpatient oral cephalexin + warm compresses`, `MRI thigh prior to starting Vancomycin monotherapy`],
+    correctIndex: 0,
+    explanation: `Correct: Emergent surgical debridement of all necrotic fascia is the single most important determinant of survival, paired with IV Penicillin G (or broad-spectrum beta-lactam empirically) PLUS Clindamycin to inhibit bacterial exotoxin synthesis. Distractor exclusion: Oral antibiotics fail catastrophically, and delaying OR for MRI in an unstable patient increases mortality.`,
+    secondOrderClue: `Why add Clindamycin to Penicillin G in GAS NSTI? Penicillin kills slowly in stationary-phase high-inoculum tissue, while Clindamycin halts 50S toxin translation.`,
+    phase1Pearl: `Clindamycin maintains efficacy during stationary phase (bypassing the Eagle effect where PBPs are downregulated) and suppresses Spe exotoxins.`,
+    phase2Hallmark: `Lab clues (LRINEC) include marked leukocytosis, hyponatremia, elevated creatinine, high CRP, and elevated CK from adjacent myonecrosis.`,
+    phase3Secret: `Start empiric Vancomycin + Piperacillin-tazobactam + Clindamycin until cultures narrow to monomicrobial GAS (then Penicillin G + Clindamycin).`
+  },
+
+  // ENTITY 11: Clostridium perfringens Gas Gangrene
+  {
+    id: `LO11-Q1`, lo: 11, loTitle: `LO 11: C. perfringens Gas Gangrene`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Clostridium perfringens gas gangrene`,
+    stem: `A 32-year-old farmer suffers a deep, soil-contaminated crush injury to his calf from tractor machinery. Twenty-four hours later he develops severe thigh pain, bronze skin discoloration, foul-smelling thin serosanguinous drainage, shock, and palpable subcutaneous crepitus. What is the diagnosis?`,
+    clue: `Soil-contaminated deep trauma + bronze skin + palpable gas crepitus + shock within 24 hours points to clostridial myonecrosis.`,
+    choices: [`Clostridium perfringens gas gangrene`, `Staphylococcus aureus cellulitis`, `Mycobacterium tuberculosis cold abscess`],
+    correctIndex: 0,
+    explanation: `Correct: Clostridium perfringens causes clostridial myonecrosis (gas gangrene) following dirty soil/combat crush trauma, characterized by rapid muscle necrosis, bronze skin, shock, and subcutaneous gas crepitus. Distractor exclusion: S. aureus does not produce subcutaneous gas crepitus, and TB cold abscesses develop over months without acute crepitus.`,
+    secondOrderClue: `Dirty crush/combat wound + crepitus + bronze skin + rapid hemolysis/shock = C. perfringens gas gangrene.`,
+    phase1Pearl: `Ischemic, low-oxygen tissue in deep crush wounds allows dormant C. perfringens endospores from soil to germinate rapidly into vegetative rods.`,
+    phase2Hallmark: `Plain radiograph or CT demonstrates gas dissecting along muscle bundles (feathery intramuscular gas pattern).`,
+    phase3Secret: `Unlike GAS necrotizing fasciitis, C. perfringens directly invades and liquefies skeletal muscle (myonecrosis) and causes intravascular hemolysis.`
+  },
+  {
+    id: `LO11-Q2`, lo: 11, loTitle: `LO 11: C. perfringens Gas Gangrene`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Alpha-toxin lecithinase (phospholipase C)`,
+    stem: `A trauma patient with Clostridium perfringens myonecrosis develops rapid intravascular hemolysis, thrombocytopenia, and liquefactive muscle necrosis. Which specific exotoxin cleaves membrane phospholipids to cause this triad?`,
+    clue: `Think of the C. perfringens enzyme that hydrolyzes phosphatidylcholine (lecithin) in erythrocyte and myocyte membranes.`,
+    choices: [`Alpha-toxin (lecithinase / phospholipase C)`, `Streptolysin O (oxygen-labile hemolysin)`, `Tetanospasmin (glycine/GABA blocker)`],
+    correctIndex: 0,
+    explanation: `Correct: C. perfringens alpha-toxin is a lecithinase (phospholipase C) that hydrolyzes phosphatidylcholine in host cell membranes, destroying erythrocytes (hemolysis), platelets, leukocytes, and skeletal myocytes (myonecrosis). Distractor exclusion: Streptolysin O is produced by S. pyogenes, and tetanospasmin causes spastic paralysis in Clostridium tetani.`,
+    secondOrderClue: `Alpha-toxin = Lecithinase = Phospholipase C -> membrane lysis + double zone of hemolysis.`,
+    phase1Pearl: `Alpha-toxin also impairs neutrophil migration into necrotic muscle, explaining the paradoxically sparse PMNs seen on Gram stain of exudate.`,
+    phase2Hallmark: `Egg-yolk agar (Nagler reaction) shows an opaque lecithinase precipitate inhibited by anti-alpha-toxin antibody.`,
+    phase3Secret: `Monitor for massive hemoglobinuria and acute kidney injury secondary to alpha-toxin-induced intravascular hemolysis.`
+  },
+  {
+    id: `LO11-Q3`, lo: 11, loTitle: `LO 11: C. perfringens Gas Gangrene`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Double-zone hemolysis; debridement + Penicillin/Clinda`,
+    stem: `Anaerobic wound culture from a patient with gas gangrene reveals large, boxcar-shaped Gram-positive spore-forming rods producing a characteristic double zone of beta-hemolysis on blood agar. What is the mandatory emergent treatment?`,
+    clue: `Combine radical operative removal of necrotic muscle with high-dose Penicillin G plus a ribosomal toxin inhibitor.`,
+    choices: [`Emergent surgical debridement + Penicillin G + Clindamycin`, `Hyperbaric oxygen alone without surgery`, `Oral Metronidazole monotherapy`],
+    correctIndex: 0,
+    explanation: `Correct: C. perfringens shows a classic double zone of hemolysis on blood agar (alpha-toxin outer partial zone + theta-toxin inner clear zone); emergent surgical debridement (or amputation) PLUS high-dose IV Penicillin G and Clindamycin is mandatory. Distractor exclusion: Hyperbaric oxygen is only an adjunct and never replaces surgery, and oral metronidazole alone is inadequate.`,
+    secondOrderClue: `Double zone of hemolysis + boxcar Gram+ rods = C. perfringens -> emergent surgical debridement + IV Penicillin G + Clindamycin.`,
+    phase1Pearl: `Inner clear beta-hemolysis is caused by perfringolysin O (theta-toxin), while the outer hazy zone is caused by alpha-toxin (lecithinase).`,
+    phase2Hallmark: `Large boxcar-shaped Gram-positive rods (rarely showing spores on direct smear) + stormy fermentation in milk media.`,
+    phase3Secret: `Clindamycin shuts down alpha-toxin translation rapidly, improving survival when added to high-dose IV Penicillin G.`
+  },
+
+  // ENTITY 12: Pasteurella multocida & Cat/Dog Bite Infections
+  {
+    id: `LO12-Q1`, lo: 12, loTitle: `LO 12: Pasteurella Animal Bite Infections`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Pasteurella multocida infection`,
+    stem: `A 37-year-old woman is bitten on the dorsum of her hand by her indoor cat. Fourteen hours later, she develops rapidly worsening throbbing pain, tense erythema, swelling, and seropurulent drainage from the puncture sites. Which pathogen is most likely responsible?`,
+    clue: `Rapid onset (<24 hours) of painful cellulitis or tenosynovitis after a deep feline bite is classic for one oral flora coccobacillus.`,
+    choices: [`Pasteurella multocida`, `Bartonella henselae`, `Sporothrix schenckii`],
+    correctIndex: 0,
+    explanation: `Correct: Pasteurella multocida (normal oral flora of cats and dogs) causes rapidly progressive cellulitis, tenosynovitis, or osteomyelitis within <24 hours of a bite or deep scratch. Distractor exclusion: Bartonella henselae causes subacute regional lymphadenopathy (cat scratch disease) days to weeks later, and Sporothrix follows rose thorns/soil.`,
+    secondOrderClue: `Cat bite + cellulitis in <24 hours = Pasteurella multocida (deep narrow cat teeth inoculate periosteum/tendon sheaths).`,
+    phase1Pearl: `Feline teeth act like hypodermic needles, driving Pasteurella into flexor tendon sheaths or metacarpal periosteum to cause septic arthritis/osteomyelitis.`,
+    phase2Hallmark: `Small Gram-negative coccobacillus that is oxidase-positive, catalase-positive, and grows on blood/chocolate agar (not MacConkey).`,
+    phase3Secret: `Always assess neurovascular status, tendon gliding, and joint capsule involvement in hand bite wounds.`
+  },
+  {
+    id: `LO12-Q2`, lo: 12, loTitle: `LO 12: Pasteurella Animal Bite Infections`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Bipolar safety-pin staining + capsule/LPS`,
+    stem: `Gram and Giemsa staining of purulent aspirate from a cat-bite tenosynovitis reveals small Gram-negative coccobacilli with dark staining concentrated at both ends of the cell ("safety-pin" appearance). Which statement accurately describes this organism's laboratory and virulence profile?`,
+    clue: `Pair bipolar safety-pin staining with capsule/endotoxin virulence and failure to grow on MacConkey agar.`,
+    choices: [`Bipolar staining; capsule/LPS; oxidase+ and catalase+`, `Acid-fast bacilli; mycolic acid cord factor; urease+`, `Spirochete; antigenic variation; darkfield visible`],
+    correctIndex: 0,
+    explanation: `Correct: Pasteurella multocida exhibits characteristic bipolar ("safety-pin") staining, possesses an antiphagocytic capsule and LPS endotoxin, and is oxidase-positive and catalase-positive (note: Yersinia pestis also shows bipolar staining). Distractor exclusion: Acid-fast cord factor describes Mycobacterium tuberculosis, and spirochetes describe Borrelia/Treponema.`,
+    secondOrderClue: `Bipolar "safety-pin" staining in a cat/dog bite = Pasteurella multocida (vs plague flea bite = Yersinia pestis).`,
+    phase1Pearl: `Polysaccharide capsule resists complement-mediated phagocytosis while LPS triggers intense early neutrophilic inflammation within hours.`,
+    phase2Hallmark: `Grows on 5% sheep blood and chocolate agar with musty/mousy odor, but fails to grow on MacConkey agar.`,
+    phase3Secret: `Rapid onset (<24h) distinguishes Pasteurella from Staph/Strep cellulitis, which usually peaks at 24-72 hours.`
+  },
+  {
+    id: `LO12-Q3`, lo: 12, loTitle: `LO 12: Pasteurella Animal Bite Infections`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Amoxicillin-clavulanate; leave puncture open`,
+    stem: `A 45-year-old man presents 8 hours after a deep dog bite to his forearm with early erythema and tenderness. After copious high-volume normal saline irrigation, what is the first-line oral antibiotic regimen and wound closure plan?`,
+    clue: `Choose a beta-lactam/beta-lactamase inhibitor covering Pasteurella, anaerobes, and Staphylococcus/Streptococcus, and avoid trapping bacteria inside.`,
+    choices: [`Amoxicillin-clavulanate; leave puncture wounds open`, `Cephalexin monotherapy; suture tightly closed`, `Vancomycin PO; apply topical mupirocin`],
+    correctIndex: 0,
+    explanation: `Correct: Amoxicillin-clavulanate is first-line prophylaxis/treatment for cat and dog bites because it covers Pasteurella multocida, oral anaerobes, S. aureus, and streptococci; deep puncture wounds (especially cat bites and hand bites) must NOT be primarily sutured closed. Distractor exclusion: Cephalexin has poor activity against Pasteurella and anaerobes, and oral vancomycin is not absorbed systemically.`,
+    secondOrderClue: `First-generation cephalosporins (cephalexin/cefazolin) miss Pasteurella multocida—always use Amoxicillin-clavulanate.`,
+    phase1Pearl: `Closing a puncture bite seals aerobic/anaerobic oral flora inside low-oxygen tissue, precipitating abscess, tenosynovitis, or osteomyelitis.`,
+    phase2Hallmark: `Doxycycline (+ metronidazole/clindamycin for anaerobes) or Ceftriaxone are alternatives in penicillin-allergic or severe inpatient cases.`,
+    phase3Secret: `Verify tetanus immunization status (Tdap/Td) and assess rabies risk for every animal bite presentation.`
+  },
+
+  // ENTITY 13: Borrelia burgdorferi Lyme Arthritis
+  {
+    id: `LO13-Q1`, lo: 13, loTitle: `LO 13: Borrelia Lyme Arthritis`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Stage 3 Lyme arthritis`,
+    stem: `A 34-year-old avid hiker from Connecticut presents with recurrent, painless-to-moderately uncomfortable large effusion of his right knee lasting several weeks. He recalls a transient expanding targetoid rash on his thigh 6 months ago that resolved without treatment. His knee is swollen with minimal warmth or erythema. What is the diagnosis?`,
+    clue: `Late disseminated Stage 3 vector-borne spirochete infection classically produces large chronic knee effusions with surprisingly little heat.`,
+    choices: [`Borrelia burgdorferi Lyme arthritis (Stage 3)`, `Acute Staphylococcus aureus septic arthritis`, `Chlamydia post-venereal reactive arthritis`],
+    correctIndex: 0,
+    explanation: `Correct: Stage 3 (late disseminated) Lyme disease presents months after an untreated erythema migrans rash with chronic or intermittent asymmetric mono/oligoarthritis of large joints—classically the knee—with large effusions and minimal erythema/warmth. Distractor exclusion: Acute S. aureus septic arthritis is fiercely hot and toxic, and Chlamydia follows urethritis.`,
+    secondOrderClue: `Northeast hiker + prior erythema migrans + huge chronic "cool" knee effusion = Stage 3 Lyme arthritis.`,
+    phase1Pearl: `Transmitted by Ixodes scapularis (deer tick), which requires >24-36 hours of attachment to transmit Borrelia from tick midgut.`,
+    phase2Hallmark: `Synovial fluid WBCs typically range 10,000-25,000/mm3 (occasionally higher), but patient lacks systemic toxicity.`,
+    phase3Secret: `Other Lyme stages: Stage 1 = erythema migrans; Stage 2 = bilateral Bell palsy, AV block carditis, migratory arthralgias; Stage 3 = arthritis + encephalopathy.`
+  },
+  {
+    id: `LO13-Q2`, lo: 13, loTitle: `LO 13: Borrelia Lyme Arthritis`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Wright/Giemsa spirochete; 2-tier ELISA/WB`,
+    stem: `A patient with suspected Stage 3 Lyme arthritis has a synovial fluid sample sent for evaluation. Why does Borrelia burgdorferi fail to appear on routine Gram stain, which stain visualizes it directly, and how is diagnosis serologically confirmed?`,
+    clue: `Remember the mnemonic for Wright/Giemsa-staining organisms ("Borrelia, Plasmodium, Trypanosomes, Chlamydia") and the standard two-step serology.`,
+    choices: [`Too thin for Gram; Wright/Giemsa; ELISA + Western blot`, `Waxy mycolic wall; Ziehl-Neelsen; IGRA assay`, `No cell wall; darkfield only; cold agglutinins`],
+    correctIndex: 0,
+    explanation: `Correct: Borrelia burgdorferi is a large spirochete that is too narrow/poorly staining for standard Gram stain, is visualized via Wright or Giemsa stain (or darkfield), and is diagnosed clinically/serologically by 2-tier ELISA followed by Western blot. Distractor exclusion: Ziehl-Neelsen/IGRA is for M. tuberculosis, and cold agglutinins belong to Mycoplasma pneumoniae.`,
+    secondOrderClue: `Borrelia is the ONLY classic spirochete large enough to visualize well on standard Wright/Giemsa stain (culture uses BSK medium, rarely done).`,
+    phase1Pearl: `Outer surface protein (OspA/OspC) variation and linear plasmid recombination let Borrelia persist chronically inside synovial tissue.`,
+    phase2Hallmark: `Synovial biopsy shows chronic lymphoplasmacytic synovitis with onion-skinning obliterative endarteritis.`,
+    phase3Secret: `Synovial fluid PCR for Borrelia DNA is helpful in untreated Stage 3 Lyme knee effusions when serology alone needs confirmation.`
+  },
+  {
+    id: `LO13-Q3`, lo: 13, loTitle: `LO 13: Borrelia Lyme Arthritis`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Oral Doxycycline (IV Ceftriaxone if refractory)`,
+    stem: `A 41-year-old man has confirmed Stage 3 Lyme arthritis of the left knee without neurologic or cardiac involvement. What is the recommended first-line antibiotic regimen, and what agent is escalated to if joint swelling persists after initial therapy?`,
+    clue: `Start with a 28-day oral tetracycline (or amoxicillin in young children/pregnancy), escalating to a 3rd-gen parenteral cephalosporin if refractory.`,
+    choices: [`Oral Doxycycline; escalate to IV Ceftriaxone`, `Oral Itraconazole; escalate to Amphotericin B`, `IV Vancomycin; escalate to surgical arthrodesis`],
+    correctIndex: 0,
+    explanation: `Correct: Uncomplicated Stage 3 Lyme arthritis is treated first-line with oral Doxycycline (28 days) — or Amoxicillin/Cefuroxime — and escalates to IV Ceftriaxone if arthritis fails to improve or CNS/cardiac disease is present. Distractor exclusion: Itraconazole/Amphotericin treat dimorphic fungi, and Vancomycin targets Gram-positive cocci.`,
+    secondOrderClue: `Oral Doxycycline handles localized/early & uncomplicated Lyme arthritis; IV Ceftriaxone is reserved for CNS, severe AV block, or refractory arthritis.`,
+    phase1Pearl: `Even after bacterial eradication by antibiotics, a subset of patients experience transient post-infectious autoimmune synovitis ("antibiotic-refractory Lyme arthritis").`,
+    phase2Hallmark: `Two-tier testing requires positive/equivocal ELISA followed by IgG Western blot (positive >=5 of 10 bands in late Stage 3 disease).`,
+    phase3Secret: `Amoxicillin replaces Doxycycline in children <8 years or pregnant patients if Doxycycline is avoided.`
+  },
+
+  // ENTITY 14: Sporothrix schenckii
+  {
+    id: `LO14-Q1`, lo: 14, loTitle: `LO 14: Sporothrix schenckii`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Sporothrix schenckii lymphocutaneous disease`,
+    stem: `A 49-year-old landscape gardener develops a painless, indurated ulcer on his right index finger 3 weeks after pricking his hand while pruning rose bushes. Over the next month, a linear chain of tender erythematous subcutaneous nodules ascends proximally up his forearm. What is the diagnosis?`,
+    clue: `Rose thorn inoculation + ascending nodular lymphangitis along proximal lymphatic drainage = classic dimorphic fungal infection.`,
+    choices: [`Sporothrix schenckii (Rose Gardener's disease)`, `Staphylococcus aureus acute lymphangitis`, `Pasteurella multocida tenosynovitis`],
+    correctIndex: 0,
+    explanation: `Correct: Sporothrix schenckii (Rose Gardener's disease) is traumatically inoculated by rose thorns, splinters, or sphagnum moss and produces a local papule/ulcer followed by branching subcutaneous nodules ascending along lymphatic channels (nodular lymphangitis). Distractor exclusion: Acute bacterial lymphangitis shows rapid red streaks within hours-days with fever, and Pasteurella follows animal bites.`,
+    secondOrderClue: `Rose thorn prick + ascending subcutaneous nodules along forearm lymphatics = Sporothrix schenckii.`,
+    phase1Pearl: `Sporothrix can also cause chronic monoarticular fungal arthritis or osteomyelitis in immunocompromised/alcoholic patients.`,
+    phase2Hallmark: `Tissue biopsy (PAS/GMS stain) shows pleomorphic cigar-shaped budding yeasts and occasional eosinophilic asteroid bodies.`,
+    phase3Secret: `Always ask about gardening, roses, hay, or sphagnum moss when evaluating subacute nodular lymphangitis.`
+  },
+  {
+    id: `LO14-Q2`, lo: 14, loTitle: `LO 14: Sporothrix schenckii`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Thermally dimorphic cigar-shaped yeast`,
+    stem: `Punch biopsy of an ascending forearm nodule from a florist with Rose Gardener's disease is cultured at 25C and examined histopathologically at 37C. Which dimorphic fungal morphology pair confirms Sporothrix schenckii?`,
+    clue: `"Mold in the cold, yeast in the heat" — look for branching hyphae with flower-like conidia at 25C and elongated cigar shapes in tissue.`,
+    choices: [`Branching hyphae at 25C; cigar-shaped yeast at 37C`, `Broad-based budding yeast at 37C; spherules at 25C`, `Pseudohyphae at 37C; thick halo capsule on India ink`],
+    correctIndex: 0,
+    explanation: `Correct: Sporothrix schenckii is thermally dimorphic, growing as branching septate hyphae with rosette/daisy-like conidia at 25C (cold) and converting to elongated "cigar-shaped" budding yeasts at 37C (body heat). Distractor exclusion: Broad-based budding yeast is Blastomyces, spherules are Coccidioides at 37C, and thick halo on India ink is Cryptococcus.`,
+    secondOrderClue: `Dimorphic rule ("Mold in the cold, Yeast in the heat"): Sporothrix = cigar-shaped yeast at 37C.`,
+    phase1Pearl: `Thermal transition from environmental saprophytic mold to tissue-adapted yeast upregulates cell-wall melanin and adhesins that evade phagocytes.`,
+    phase2Hallmark: `Histopathology demonstrates cigar-shaped budding yeasts (often sparse, requiring PAS or silver stain) and Splendore-Hoeppli asteroid bodies.`,
+    phase3Secret: `Nocardia brasiliensis can mimic sporotrichoid nodular lymphangitis clinically, so biopsy/culture distinguishing weak acid-fast filamentous bacteria from cigar yeasts is key.`
+  },
+  {
+    id: `LO14-Q3`, lo: 14, loTitle: `LO 14: Sporothrix schenckii`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Oral Itraconazole (or Potassium iodide)`,
+    stem: `Biopsy confirms lymphocutaneous Sporothrix schenckii infection in an immunocompetent 52-year-old landscaper with no pulmonary or CNS involvement. Which oral antifungal agent is first-line therapy?`,
+    clue: `This triazole concentrates well in skin/soft tissue and is preferred over the older saturated potassium iodide (SSKI) regimen.`,
+    choices: [`Oral Itraconazole (or Potassium iodide)`, `Oral Fluconazole for 3 days`, `IV Vancomycin plus Rifampin`],
+    correctIndex: 0,
+    explanation: `Correct: Oral Itraconazole (for 3-6 months) is first-line treatment for lymphocutaneous sporotrichosis, with saturated solution of Potassium Iodide (SSKI) as the classic board-tested alternative; IV Amphotericin B is reserved for disseminated or osteoarticular/CNS disease. Distractor exclusion: Short-course fluconazole is inferior, and vancomycin/rifampin have no antifungal activity.`,
+    secondOrderClue: `Remember the classic mnemonic: "Plant a rose in the POT" -> Potassium iodide or Itraconazole for Sporothrix.`,
+    phase1Pearl: `Azoles inhibit fungal 14-alpha-demethylase, blocking ergosterol synthesis in the yeast cell membrane.`,
+    phase2Hallmark: `Monitor hepatic LFTs during prolonged Itraconazole therapy and avoid co-administration with PPIs (Itraconazole capsules require gastric acid for absorption).`,
+    phase3Secret: `Step up to IV liposomal Amphotericin B first in disseminated sporotrichosis before stepping down to oral Itraconazole.`
+  },
+
+  // ENTITY 15: Mycobacterium tuberculosis Osteomyelitis (Pott Disease)
+  {
+    id: `LO15-Q1`, lo: 15, loTitle: `LO 15: M. tuberculosis (Pott Disease)`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Pott disease (TB vertebral osteomyelitis)`,
+    stem: `A 38-year-old recent immigrant presents with 4 months of progressive mid-thoracic back pain, low-grade evening fevers, night sweats, 9-kg weight loss, and new thoracic kyphosis. MRI shows destruction of the T9-T10 vertebral bodies and a large paraspinal fluid collection tracking along the psoas muscle to the groin without overlying warmth. What is the diagnosis?`,
+    clue: `Subacute thoracic/lumbar vertebral destruction + kyphosis + painless "cold" psoas abscess = spinal tuberculosis.`,
+    choices: [`Pott disease (Mycobacterium tuberculosis)`, `Staphylococcus aureus acute vertebral osteo`, `Salmonella enterica osteomyelitis`],
+    correctIndex: 0,
+    explanation: `Correct: Pott disease is tuberculous osteomyelitis of the spine (most commonly lower thoracic and upper lumbar vertebrae), presenting indolently with constitutional symptoms, anterior vertebral collapse (kyphosis), and a "cold" psoas abscess lacking acute erythema/warmth. Distractor exclusion: S. aureus presents more acutely without caseating cold abscesses, and Salmonella favors long bones in SCD.`,
+    secondOrderClue: `Thoracic kyphosis + constitutional B symptoms + painless "cold" psoas abscess tracking below the inguinal ligament = Pott disease.`,
+    phase1Pearl: `Hematogenous spread via Batson paravertebral venous plexus or lymphatics seeds the anterior vertebral bodies and intervertebral disc space.`,
+    phase2Hallmark: `MRI shows anterior wedge collapse of adjacent vertebral bodies, gibbus kyphotic deformity, and rim-enhancing psoas abscess.`,
+    phase3Secret: `Always obtain chest X-ray, sputum/biopsy AFB culture, and HIV screening in patients diagnosed with extrapulmonary TB.`
+  },
+  {
+    id: `LO15-Q2`, lo: 15, loTitle: `LO 15: M. tuberculosis (Pott Disease)`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Mycolic acid + cord factor granulomas`,
+    stem: `CT-guided biopsy of a paraspinal cold abscess in a patient with Pott disease shows central acellular eosinophilic necrosis rimmed by epithelioid macrophages, Langhans multinucleated giant cells, and lymphocytes. Which mycobacterial virulence factors prevent phagolysosomal fusion and drive this granulomatous response?`,
+    clue: `Recall the waxy cell wall lipid that resists decolorization and the glycolipid responsible for serpentine growth and TNF-alpha release.`,
+    choices: [`Mycolic acid wall, sulfatides, and cord factor`, `Protein A and coagulase fibrin shield`, `Lecithinase phospholipase C membrane lysis`],
+    correctIndex: 0,
+    explanation: `Correct: M. tuberculosis possesses a lipid-rich mycolic acid cell wall, sulfatides that inhibit phagosome-lysosome fusion inside macrophages, and cord factor (trehalose dimycolate) that drives TNF-alpha release and Th1 caseating granuloma formation. Distractor exclusion: Protein A/coagulase belong to S. aureus, and lecithinase belongs to C. perfringens.`,
+    secondOrderClue: `Sulfatides block phagolysosome fusion; cord factor triggers TNF-alpha and caseating granulomas with Langhans giant cells.`,
+    phase1Pearl: `CD4+ Th1 cells secrete IFN-gamma to activate macrophages into epithelioid histiocytes that fuse into horseshoe-nucleated Langhans giant cells.`,
+    phase2Hallmark: `Ziehl-Neelsen stain highlights slender red acid-fast bacilli against a blue background due to mycolic acid retaining carbolfuchsin.`,
+    phase3Secret: `Starting TNF-alpha inhibitors (e.g., infliximab) without latent TB screening can reactivate dormant granulomas into disseminated or spinal TB.`
+  },
+  {
+    id: `LO15-Q3`, lo: 15, loTitle: `LO 15: M. tuberculosis (Pott Disease)`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Acid-fast rods; RIPE therapy`,
+    stem: `A 46-year-old man with T11-T12 Pott disease has biopsy-confirmed caseating granulomas containing Ziehl-Neelsen-positive rods and no neurologic deficits. What is the mandatory first-line antimycobacterial regimen?`,
+    clue: `Treat active extrapulmonary tuberculosis with the standard four-drug intensive regimen.`,
+    choices: [`RIPE (Rifampin, Isoniazid, Pyrazinamide, Ethambutol)`, `Isoniazid monotherapy for 9 months`, `IV Vancomycin plus Ceftriaxone for 6 weeks`],
+    correctIndex: 0,
+    explanation: `Correct: Active Pott disease (tuberculous vertebral osteomyelitis) requires full quadruple RIPE therapy (Rifampin, Isoniazid [with pyridoxine/B6], Pyrazinamide, Ethambutol), with surgical decompression reserved for spinal instability or neurologic deficits. Distractor exclusion: Isoniazid monotherapy is for latent TB only (never active disease), and Vancomycin/Ceftriaxone lack mycobacterial activity.`,
+    secondOrderClue: `Latent TB = Isoniazid (+ B6) or Rifampin; Active Pott disease = 4-drug RIPE regimen.`,
+    phase1Pearl: `Multi-drug therapy prevents selection of spontaneous chromosomal resistance mutations (e.g., rpoB for Rifampin, katG/inhA for Isoniazid).`,
+    phase2Hallmark: `Acid-fast bacilli grow slowly (weeks) on Lowenstein-Jensen agar; NAAT (Xpert MTB/RIF) rapidly detects M. tuberculosis DNA and Rifampin resistance.`,
+    phase3Secret: `Always supplement Isoniazid with Vitamin B6 (pyridoxine) to prevent peripheral neuropathy and sideroblastic anemia.`
+  }
+];
+
+// Build dossierBullets dynamically or keep explicit per question so Section 7 always renders rich, accurate bullets
+ALL_QUESTIONS.forEach((q) => {
+  const codexRow = CODEX_DATA.find((c) => c.lo === q.lo);
+  q.dossierBullets = {
+    p1: [
+      q.phase1Pearl,
+      codexRow ? codexRow.mechanism : q.secondOrderClue
+    ],
+    p2: [
+      q.phase2Hallmark,
+      codexRow ? codexRow.hallmarks : q.secondOrderClue
+    ],
+    p3: [
+      q.phase3Secret,
+      codexRow ? codexRow.management : q.shortAnswer
+    ]
+  };
+});
+
+// =========================================================
+// APPLICATION STATE & AUDIO ENGINE
+// =========================================================
+let deckQuestions = [];
+let currentDeckIndex = 0;
+let hp = GAME_CONFIG.baseHp;
+let xp = 0;
+let streak = 0;
+let steeredLane = 1;
+let isMenuOpen = false;
+let isHintsVisible = false;
+let isModalOpen = false;
+let isCodexOpen = false;
+let isTimerEnabled = true;
+let timeoutMode = `wrong`;
+let timerRemaining = GAME_CONFIG.timerSeconds;
+let timerIntervalId = null;
+let metaFadeTimeoutId = null;
+let currentShuffledChoices = [];
+let currentCorrectDisplayIdx = 0;
+let missedQuestionIds = new Set();
+let masteredLoCounts = {};
+let codexSectorFilter = `ALL`;
+
+let audioMasterOn = true;
+let audioSfxOn = true;
+let audioBgmOn = false;
+let bgmVolume = 0.35;
+let audioCtx = null;
+let bgmStepTimer = null;
+let bgmStepIndex = 0;
+let customAudioEl = null;
+let customAudioUrl = null;
+
+// =========================================================
+// INITIALIZATION & NOTEBOOK SHIM STATE PERSISTENCE
+// =========================================================
+async function initRunnerGame() {
+  initCanvasEngine();
+  populatePhaseMixPills();
+  renderSkillTree();
+  renderCodexTable();
+
+  await restoreAppState();
+
+  syncHintsUI();
+  syncTimerControlsUI();
+  syncAudioButtonsUI();
+
+  buildFilteredDeck(false);
+  loadCurrentGate();
+
+  if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === `function`) {
+    window.notebookAppApi.notifyAppReady();
+  }
+}
+
+async function restoreAppState() {
+  try {
+    if (!window.notebookAppApi || typeof window.notebookAppApi.getAppState !== `function`) return;
+    const saved = await window.notebookAppApi.getAppState();
+    if (!saved || typeof saved !== `object`) return;
+    if (typeof saved.hp === `number`) hp = saved.hp;
+    if (typeof saved.xp === `number`) xp = saved.xp;
+    if (typeof saved.streak === `number`) streak = saved.streak;
+    if (typeof saved.isHintsVisible === `boolean`) isHintsVisible = saved.isHintsVisible;
+    if (typeof saved.isTimerEnabled === `boolean`) isTimerEnabled = saved.isTimerEnabled;
+    if (typeof saved.timeoutMode === `string`) timeoutMode = saved.timeoutMode;
+    if (typeof saved.audioMasterOn === `boolean`) audioMasterOn = saved.audioMasterOn;
+    if (typeof saved.audioSfxOn === `boolean`) audioSfxOn = saved.audioSfxOn;
+    if (typeof saved.bgmVolume === `number`) bgmVolume = saved.bgmVolume;
+    if (Array.isArray(saved.missedQuestionIds)) missedQuestionIds = new Set(saved.missedQuestionIds);
+    if (saved.masteredLoCounts && typeof saved.masteredLoCounts === `object`) {
+      masteredLoCounts = saved.masteredLoCounts;
+    }
+    const timeoutSel = document.getElementById(`timeout-mode-select`);
+    if (timeoutSel) timeoutSel.value = timeoutMode;
+    const volSlider = document.getElementById(`bgm-volume-slider`);
+    if (volSlider) volSlider.value = String(Math.round(bgmVolume * 100));
+    const volReadout = document.getElementById(`bgm-volume-readout`);
+    if (volReadout) volReadout.textContent = `${Math.round(bgmVolume * 100)}%`;
+  } catch (err) {
+    // Gracefully continue with default state
+  }
+}
+
+function persistAppState() {
+  try {
+    if (!window.notebookAppApi || typeof window.notebookAppApi.setAppState !== `function`) return;
+    const payload = {
+      hp,
+      xp,
+      streak,
+      isHintsVisible,
+      isTimerEnabled,
+      timeoutMode,
+      audioMasterOn,
+      audioSfxOn,
+      bgmVolume,
+      missedQuestionIds: Array.from(missedQuestionIds),
+      masteredLoCounts
+    };
+    window.notebookAppApi.setAppState(payload);
+  } catch (err) {
+    // Ignore persistence errors in non-host environments
+  }
+}
+
+// =========================================================
+// DECK FILTERING & GATE LOADING
+// =========================================================
+function buildFilteredDeck(shouldShuffle) {
+  const sectorEl = document.getElementById(`sector-filter-select`);
+  const angleEl = document.getElementById(`angle-filter-select`);
+  const sectorVal = sectorEl ? sectorEl.value : `ALL`;
+  const angleVal = angleEl ? angleEl.value : `ALL`;
+
+  let filtered = ALL_QUESTIONS.filter((q) => {
+    if (sectorVal === `MISSED`) {
+      if (!missedQuestionIds.has(q.id)) return false;
+    } else if (sectorVal !== `ALL`) {
+      const codex = CODEX_DATA.find((c) => c.lo === q.lo);
+      if (!codex || codex.sector !== sectorVal) return false;
+    }
+    if (angleVal !== `ALL` && q.angle !== angleVal) return false;
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    const toast = document.getElementById(`menu-status-toast`);
+    if (toast) {
+      toast.textContent = sectorVal === `MISSED`
+        ? `No missed gates recorded yet — showing all 45 gates.`
+        : `No gates match filter — showing all 45 gates.`;
+    }
+    filtered = [...ALL_QUESTIONS];
+  } else {
+    const toast = document.getElementById(`menu-status-toast`);
+    if (toast) toast.textContent = `Active Deck: ${filtered.length} Gates`;
+  }
+
+  deckQuestions = [...filtered];
+  if (shouldShuffle) {
+    for (let i = deckQuestions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = deckQuestions[i];
+      deckQuestions[i] = deckQuestions[j];
+      deckQuestions[j] = tmp;
+    }
+  }
+  currentDeckIndex = 0;
+}
+
+function applyDeckFilters() {
+  buildFilteredDeck(false);
+  loadCurrentGate();
+  playSfx(`steer`);
+}
+
+function restartOrderedDeck() {
+  const sectorEl = document.getElementById(`sector-filter-select`);
+  const angleEl = document.getElementById(`angle-filter-select`);
+  if (sectorEl) sectorEl.value = `ALL`;
+  if (angleEl) angleEl.value = `ALL`;
+  buildFilteredDeck(false);
+  loadCurrentGate();
+  if (isMenuOpen) toggleMenuDrawer();
+  playSfx(`steer`);
+}
+
+function shuffleDeckFromMenu() {
+  buildFilteredDeck(true);
+  loadCurrentGate();
+  if (isMenuOpen) toggleMenuDrawer();
+  playSfx(`steer`);
+}
+
+function jumpToEntity(loNumber) {
+  const sectorEl = document.getElementById(`sector-filter-select`);
+  const angleEl = document.getElementById(`angle-filter-select`);
+  if (sectorEl) sectorEl.value = `ALL`;
+  if (angleEl) angleEl.value = `ALL`;
+  buildFilteredDeck(false);
+  const targetIdx = deckQuestions.findIndex((q) => q.lo === loNumber);
+  if (targetIdx >= 0) currentDeckIndex = targetIdx;
+  loadCurrentGate();
+  if (isMenuOpen) toggleMenuDrawer();
+  if (isCodexOpen) closeCodex();
+  playSfx(`steer`);
+}
+
+function loadCurrentGate() {
+  if (!deckQuestions.length) buildFilteredDeck(false);
+  const q = deckQuestions[currentDeckIndex];
+  if (!q) return;
+
+  const theme = LO_VISUAL_THEMES[q.lo] || LO_VISUAL_THEMES[1];
+
+  // Band 2: Metadata + 3s Auto-Hide
+  const metaRow = document.getElementById(`q-meta-row`);
+  const loBadge = document.getElementById(`q-lo-badge`);
+  const angleBadge = document.getElementById(`q-angle-badge`);
+  const phaseBadge = document.getElementById(`q-phase-badge`);
+  const corridorBadge = document.getElementById(`q-corridor-badge`);
+  const stemEl = document.getElementById(`q-stem-text`);
+  const clueEl = document.getElementById(`q-clue-text`);
+
+  if (loBadge) loBadge.textContent = q.loTitle;
+  if (angleBadge) angleBadge.textContent = q.angle;
+  if (phaseBadge) phaseBadge.textContent = q.phaseFocus;
+  if (corridorBadge) corridorBadge.textContent = theme.corridor;
+  if (stemEl) stemEl.textContent = q.stem;
+  if (clueEl) clueEl.textContent = q.clue;
+
+  if (metaRow) {
+    metaRow.classList.remove(`is-faded`);
+    clearTimeout(metaFadeTimeoutId);
+    metaFadeTimeoutId = setTimeout(() => {
+      metaRow.classList.add(`is-faded`);
+    }, GAME_CONFIG.metaFadeMs);
+  }
+
+  // Shuffle 3 symmetric choices at runtime while tracking correctIndex
+  const tagged = q.choices.map((text, idx) => ({ text, isCorrect: idx === q.correctIndex }));
+  for (let i = tagged.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = tagged[i];
+    tagged[i] = tagged[j];
+    tagged[j] = t;
+  }
+  currentShuffledChoices = tagged;
+  currentCorrectDisplayIdx = tagged.findIndex((c) => c.isCorrect);
+
+  for (let lane = 0; lane < 3; lane++) {
+    const textEl = document.getElementById(`lane-${lane}-text`);
+    if (textEl && tagged[lane]) textEl.textContent = tagged[lane].text;
+  }
+
+  steeredLane = 1;
+  syncSteeredLaneUI();
+  updateTelemetryUI();
+  renderSkillTree();
+  resetGateTimer();
+  portalApproachProgress = 0.08;
+}
+
+// =========================================================
+// TELEMETRY, TIMER & HINTS
+// =========================================================
+function updateTelemetryUI() {
+  const hpEl = document.getElementById(`hud-hp`);
+  const xpEl = document.getElementById(`hud-xp`);
+  const streakEl = document.getElementById(`hud-streak`);
+  const gateEl = document.getElementById(`hud-gate`);
+
+  if (hpEl) hpEl.textContent = String(hp);
+  if (xpEl) xpEl.textContent = String(xp);
+  if (streakEl) streakEl.textContent = String(streak);
+  if (gateEl) gateEl.textContent = `${currentDeckIndex + 1}/${deckQuestions.length}`;
+}
+
+function resetGateTimer() {
+  clearInterval(timerIntervalId);
+  timerRemaining = GAME_CONFIG.timerSeconds;
+  renderTimerUI();
+  if (!isTimerEnabled || isModalOpen || isCodexOpen) return;
+  timerIntervalId = setInterval(() => {
+    if (isModalOpen || isCodexOpen || isMenuOpen) return;
+    timerRemaining = Math.max(0, timerRemaining - 1);
+    renderTimerUI();
+    if (timerRemaining === 0) {
+      clearInterval(timerIntervalId);
+      if (timeoutMode === `wrong`) {
+        resolveGateSelection(-1, true);
+      }
+    }
+  }, 1000);
+}
+
+function renderTimerUI() {
+  const timerEl = document.getElementById(`hud-timer`);
+  const chipEl = document.getElementById(`hud-timer-chip`);
+  if (timerEl) {
+    timerEl.textContent = isTimerEnabled ? `${timerRemaining}s` : `OFF`;
+  }
+  if (chipEl) {
+    chipEl.classList.toggle(`is-urgent`, isTimerEnabled && timerRemaining <= 10);
+  }
+}
+
+function toggleTimerEnabled() {
+  isTimerEnabled = !isTimerEnabled;
+  syncTimerControlsUI();
+  if (isTimerEnabled) resetGateTimer();
+  else {
+    clearInterval(timerIntervalId);
+    renderTimerUI();
+  }
+  playSfx(`steer`);
+  persistAppState();
+}
+
+function startTimedRunFromMenu() {
+  isTimerEnabled = true;
+  timeoutMode = `wrong`;
+  const sel = document.getElementById(`timeout-mode-select`);
+  if (sel) sel.value = `wrong`;
+  syncTimerControlsUI();
+  hp = GAME_CONFIG.baseHp;
+  xp = 0;
+  streak = 0;
+  buildFilteredDeck(true);
+  loadCurrentGate();
+  if (isMenuOpen) toggleMenuDrawer();
+  playSfx(`correct`);
+  persistAppState();
+}
+
+function setTimeoutMode(val) {
+  timeoutMode = val === `hold` ? `hold` : `wrong`;
+  persistAppState();
+}
+
+function syncTimerControlsUI() {
+  const btn = document.getElementById(`menu-timer-btn`);
+  if (btn) {
+    btn.textContent = isTimerEnabled ? `⏱ 50s Timer: ON [T]` : `⏱ 50s Timer: OFF [T]`;
+    btn.classList.toggle(`is-active`, isTimerEnabled);
+  }
+  renderTimerUI();
+}
+
+function syncHintsUI() {
+  const app = document.getElementById(`xr-app`);
+  const menuBtn = document.getElementById(`menu-hints-btn`);
+  if (app) {
+    app.classList.toggle(`hints-visible`, isHintsVisible);
+    app.classList.toggle(`hints-hidden`, !isHintsVisible);
+  }
+  if (menuBtn) {
+    menuBtn.textContent = isHintsVisible ? `💡 Hints: ON [H]` : `💡 Hints: OFF [H]`;
+    menuBtn.classList.toggle(`is-active`, isHintsVisible);
+  }
+}
+
+function toggleHintsBar() {
+  isHintsVisible = !isHintsVisible;
+  syncHintsUI();
+  resizeCanvas();
+  playSfx(`steer`);
+  persistAppState();
+}
+
+function syncSteeredLaneUI() {
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`lane-${i}-card`);
+    if (card) card.classList.toggle(`is-steered`, i === steeredLane);
+  }
+}
+
+// =========================================================
+// ANSWER RESOLUTION & 7-PART OUTCOME DOSSIER MODAL
+// =========================================================
+function handleLaneSelect(laneIdx) {
+  if (isModalOpen || isCodexOpen) return;
+  steeredLane = laneIdx;
+  syncSteeredLaneUI();
+  resolveGateSelection(laneIdx, false);
+}
+
+function resolveGateSelection(selectedLaneIdx, isTimeout) {
+  clearInterval(timerIntervalId);
+  const q = deckQuestions[currentDeckIndex];
+  if (!q) return;
+
+  const isCorrect = !isTimeout && selectedLaneIdx === currentCorrectDisplayIdx;
+  const chosenText = isTimeout
+    ? `No selection (Timer expired)`
+    : (currentShuffledChoices[selectedLaneIdx] ? currentShuffledChoices[selectedLaneIdx].text : `—`);
+  const correctText = currentShuffledChoices[currentCorrectDisplayIdx]
+    ? currentShuffledChoices[currentCorrectDisplayIdx].text
+    : q.choices[q.correctIndex];
+
+  let xpDelta = 0;
+  let hpDelta = 0;
+
+  if (isCorrect) {
+    xpDelta = GAME_CONFIG.xpCorrect;
+    xp += xpDelta;
+    streak += 1;
+    missedQuestionIds.delete(q.id);
+    masteredLoCounts[q.id] = true;
+
+    if (streak > 0 && streak % GAME_CONFIG.streakBonusStep === 0) {
+      hpDelta = GAME_CONFIG.streakHpBonus;
+      hp = Math.min(100, hp + hpDelta);
+      triggerHealToast();
+    }
+    triggerVignette(`correct`);
+    playSfx(`correct`);
+  } else {
+    streak = 0;
+    hpDelta = -GAME_CONFIG.wrongHpPenalty;
+    hp = Math.max(0, hp - GAME_CONFIG.wrongHpPenalty);
+    missedQuestionIds.add(q.id);
+    triggerVignette(`wrong`);
+    playSfx(`wrong`);
+  }
+
+  updateTelemetryUI();
+  renderSkillTree();
+  persistAppState();
+  openOutcomeModal(q, isCorrect, isTimeout, chosenText, correctText, xpDelta, hpDelta);
+}
+
+function renderDossierBullets(containerEl, items) {
+  if (!containerEl) return;
+  const list = Array.isArray(items) ? items : [String(items || ``)];
+  containerEl.innerHTML = ``;
+  list.forEach((rawLine) => {
+    const clean = String(rawLine || ``).trim().replace(/^[•\-\*]\s*/, ``);
+    if (!clean) return;
+    const div = document.createElement(`div`);
+    div.className = `dossier-line amboss-scan-target`;
+    div.textContent = `• ${clean}`;
+    containerEl.appendChild(div);
+  });
+}
+
+function openOutcomeModal(q, isCorrect, isTimeout, chosenText, correctText, xpDelta, hpDelta) {
+  isModalOpen = true;
+
+  const verdictEl = document.getElementById(`outcome-verdict`);
+  const xpEl = document.getElementById(`outcome-xp-delta`);
+  const hpEl = document.getElementById(`outcome-hp-delta`);
+  const loRefEl = document.getElementById(`outcome-lo-ref`);
+  const qTextEl = document.getElementById(`outcome-question-text`);
+  const yourChoiceEl = document.getElementById(`outcome-your-choice`);
+  const correctChoiceEl = document.getElementById(`outcome-correct-choice`);
+  const yourBox = document.getElementById(`your-choice-box`);
+
+  if (verdictEl) {
+    verdictEl.classList.remove(`is-wrong`, `is-timeout`);
+    if (isTimeout) {
+      verdictEl.textContent = `⏱ TIME'S UP — ${q.shortAnswer}`;
+      verdictEl.classList.add(`is-timeout`);
+    } else if (isCorrect) {
+      verdictEl.textContent = `✔ CORRECT — ${q.shortAnswer}`;
+    } else {
+      verdictEl.textContent = `✖ INCORRECT — ${q.shortAnswer}`;
+      verdictEl.classList.add(`is-wrong`);
+    }
+  }
+
+  if (xpEl) xpEl.textContent = xpDelta > 0 ? `+${xpDelta} XP` : `+0 XP`;
+  if (hpEl) hpEl.textContent = hpDelta >= 0 ? `+${hpDelta} HP` : `${hpDelta} HP`;
+  if (loRefEl) loRefEl.textContent = `${q.loTitle} · ${q.angle} · ${q.phaseFocus}`;
+  if (qTextEl) qTextEl.textContent = q.stem;
+  if (yourChoiceEl) yourChoiceEl.textContent = chosenText;
+  if (correctChoiceEl) correctChoiceEl.textContent = correctText;
+  if (yourBox) {
+    yourBox.classList.remove(`is-correct-box`, `is-wrong-box`);
+    yourBox.classList.add(isCorrect ? `is-correct-box` : `is-wrong-box`);
+  }
+
+  // Split "Correct: ... Distractor exclusion: ..." into two crisp bullet points
+  const expParts = q.explanation.split(/Distractor exclusion:/i);
+  const bulletExp = expParts.length === 2
+    ? [expParts[0].trim(), `Distractor exclusion: ${expParts[1].trim()}`]
+    : [q.explanation];
+
+  renderDossierBullets(document.getElementById(`dossier-explanation`), bulletExp);
+  renderDossierBullets(document.getElementById(`dossier-second-order`), [q.secondOrderClue]);
+  renderDossierBullets(document.getElementById(`dossier-phase1`), [q.phase1Pearl]);
+  renderDossierBullets(document.getElementById(`dossier-phase2`), [q.phase2Hallmark]);
+  renderDossierBullets(document.getElementById(`dossier-phase3`), [q.phase3Secret]);
+
+  renderDossierBullets(document.getElementById(`dossier-angle-1`), q.dossierBullets.p1);
+  renderDossierBullets(document.getElementById(`dossier-angle-2`), q.dossierBullets.p2);
+  renderDossierBullets(document.getElementById(`dossier-angle-3`), q.dossierBullets.p3);
+
+  const scrollBody = document.getElementById(`outcome-scroll-body`);
+  if (scrollBody) scrollBody.scrollTop = 0;
+
+  const backdrop = document.getElementById(`outcome-backdrop`);
+  if (backdrop) backdrop.classList.add(`is-open`);
+}
+
+function scrollOutcomeBody(deltaY) {
+  const body = document.getElementById(`outcome-scroll-body`);
+  if (!body) return;
+  if (typeof body.scrollBy === `function`) {
+    body.scrollBy({ top: deltaY, behavior: `smooth` });
+  } else {
+    body.scrollTop += deltaY;
+  }
+}
+
+function continueToNextGate() {
+  const backdrop = document.getElementById(`outcome-backdrop`);
+  if (backdrop) backdrop.classList.remove(`is-open`);
+  isModalOpen = false;
+  if (hp <= 0) {
+    hp = GAME_CONFIG.baseHp;
+    streak = 0;
+  }
+  currentDeckIndex = (currentDeckIndex + 1) % deckQuestions.length;
+  loadCurrentGate();
+  playSfx(`steer`);
+}
+
+function skipCurrentQuestion() {
+  if (isModalOpen || isCodexOpen) return;
+  currentDeckIndex = (currentDeckIndex + 1) % deckQuestions.length;
+  loadCurrentGate();
+  playSfx(`steer`);
+}
+
+function triggerVignette(kind) {
+  const v = document.getElementById(`vignette-overlay`);
+  if (!v) return;
+  v.classList.remove(`is-hit-correct`, `is-hit-wrong`);
+  void v.offsetWidth;
+  v.classList.add(kind === `correct` ? `is-hit-correct` : `is-hit-wrong`);
+  setTimeout(() => {
+    v.classList.remove(`is-hit-correct`, `is-hit-wrong`);
+  }, 420);
+}
+
+function triggerHealToast() {
+  const toast = document.getElementById(`heal-toast`);
+  if (!toast) return;
+  toast.classList.add(`is-visible`);
+  setTimeout(() => {
+    toast.classList.remove(`is-visible`);
+  }, 2200);
+}
+
+// =========================================================
+// MENU DRAWER, SKILL TREE, PHASE MIX & 2-TAP RESET
+// =========================================================
+function toggleMenuDrawer() {
+  isMenuOpen = !isMenuOpen;
+  const drawer = document.getElementById(`top-menu-drawer`);
+  const backdrop = document.getElementById(`drawer-backdrop`);
+  const btn = document.getElementById(`menu-toggle-btn`);
+  if (drawer) {
+    drawer.classList.toggle(`is-open`, isMenuOpen);
+    drawer.setAttribute(`aria-hidden`, String(!isMenuOpen));
+  }
+  if (backdrop) backdrop.classList.toggle(`is-open`, isMenuOpen);
+  if (btn) btn.setAttribute(`aria-expanded`, String(isMenuOpen));
+}
+
+function openCodexFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  openCodex();
+}
+
+function skipFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  skipCurrentQuestion();
+}
+
+function handleResetMastery(btn) {
+  if (!btn) return;
+  if (btn.dataset.armed !== `true`) {
+    btn.dataset.armed = `true`;
+    btn.textContent = `⚠ Tap Again to Confirm`;
+    setTimeout(() => {
+      if (btn.dataset.armed === `true`) {
+        btn.dataset.armed = `false`;
+        btn.textContent = `🗑 Reset Mastery`;
+      }
+    }, 3500);
+    return;
+  }
+  btn.dataset.armed = `false`;
+  btn.textContent = `🗑 Reset Mastery`;
+  hp = GAME_CONFIG.baseHp;
+  xp = 0;
+  streak = 0;
+  missedQuestionIds.clear();
+  masteredLoCounts = {};
+  updateTelemetryUI();
+  renderSkillTree();
+  persistAppState();
+  const toast = document.getElementById(`menu-status-toast`);
+  if (toast) toast.textContent = `Mastery, XP, and Missed Gates reset.`;
+  playSfx(`steer`);
+}
+
+function populatePhaseMixPills() {
+  const container = document.getElementById(`phase-mix-pills`);
+  if (!container) return;
+  const total = ALL_QUESTIONS.length || 1;
+  const p1 = ALL_QUESTIONS.filter((q) => q.phaseFocus.startsWith(`Phase 1`)).length;
+  const p2 = ALL_QUESTIONS.filter((q) => q.phaseFocus.startsWith(`Phase 2`)).length;
+  const p3 = ALL_QUESTIONS.filter((q) => q.phaseFocus.startsWith(`Phase 3`)).length;
+  container.innerHTML = `
+    <span class="phase-pill">P1 Pathogenesis: ${Math.round((p1 / total) * 100)}% (${p1})</span>
+    <span class="phase-pill">P2 Structure/Labs: ${Math.round((p2 / total) * 100)}% (${p2})</span>
+    <span class="phase-pill">P3 Clinical/Mgmt: ${Math.round((p3 / total) * 100)}% (${p3})</span>
+  `;
+}
+
+function renderSkillTree() {
+  const grid = document.getElementById(`skill-tree-grid`);
+  if (!grid) return;
+  const activeLo = deckQuestions[currentDeckIndex] ? deckQuestions[currentDeckIndex].lo : -1;
+  grid.innerHTML = ``;
+  CODEX_DATA.forEach((row) => {
+    const loQs = ALL_QUESTIONS.filter((q) => q.lo === row.lo);
+    const doneCount = loQs.filter((q) => Boolean(masteredLoCounts[q.id])).length;
+    const btn = document.createElement(`button`);
+    btn.type = `button`;
+    btn.className = `skill-node-btn`;
+    if (doneCount === loQs.length && loQs.length > 0) btn.classList.add(`is-mastered`);
+    if (row.lo === activeLo) btn.classList.add(`is-active-lo`);
+    btn.onclick = () => jumpToEntity(row.lo);
+    btn.innerHTML = `
+      <span class="skill-node-title">${row.lo}. ${row.entity}</span>
+      <span class="skill-node-meta">${row.sectorLabel} · Mastery ${doneCount}/${loQs.length}</span>
+    `;
+    grid.appendChild(btn);
+  });
+}
+
+// =========================================================
+// 6-COLUMN LOOT CODEX MODAL
+// =========================================================
+function openCodex() {
+  isCodexOpen = true;
+  renderCodexTable();
+  const backdrop = document.getElementById(`codex-backdrop`);
+  if (backdrop) backdrop.classList.add(`is-open`);
+}
+
+function closeCodex() {
+  isCodexOpen = false;
+  const backdrop = document.getElementById(`codex-backdrop`);
+  if (backdrop) backdrop.classList.remove(`is-open`);
+}
+
+function setCodexSectorFilter(sectorKey, btnEl) {
+  codexSectorFilter = sectorKey;
+  const pills = document.querySelectorAll(`#codex-sector-pills button`);
+  pills.forEach((p) => p.classList.remove(`is-active`));
+  if (btnEl) btnEl.classList.add(`is-active`);
+  renderCodexTable();
+}
+
+function renderCodexTable() {
+  const tbody = document.getElementById(`codex-tbody`);
+  if (!tbody) return;
+  const searchEl = document.getElementById(`codex-search-input`);
+  const query = searchEl ? searchEl.value.trim().toLowerCase() : ``;
+
+  const rows = CODEX_DATA.filter((row) => {
+    if (codexSectorFilter !== `ALL` && row.sector !== codexSectorFilter) return false;
+    if (!query) return true;
+    const blob = `${row.entity} ${row.sectorLabel} ${row.presentation} ${row.mechanism} ${row.hallmarks} ${row.management} ${row.clues}`.toLowerCase();
+    return blob.includes(query);
+  });
+
+  tbody.innerHTML = ``;
+  rows.forEach((row) => {
+    const tr = document.createElement(`tr`);
+    tr.innerHTML = `
+      <td class="amboss-scan-target">
+        <strong>${row.lo}. ${row.entity}</strong><br>
+        <span style="color:var(--secondary); font-family:var(--font-label); font-size:0.68rem;">${row.sectorLabel}</span><br>
+        <button type="button" class="btn-neon is-cyan codex-jump-btn" onclick="jumpToEntity(${row.lo})">▶ Run Gates</button>
+      </td>
+      <td class="amboss-scan-target">${row.presentation}</td>
+      <td class="amboss-scan-target">${row.mechanism}</td>
+      <td class="amboss-scan-target">${row.hallmarks}</td>
+      <td class="amboss-scan-target">${row.management}</td>
+      <td class="amboss-scan-target">${row.clues}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// =========================================================
+// AUDIO ENGINE (SFX + ZOMBIES PROCEDURAL BGM + CUSTOM FILE)
+// =========================================================
+function ensureAudioContext() {
+  if (!audioCtx) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (Ctx) audioCtx = new Ctx();
+  }
+  if (audioCtx && audioCtx.state === `suspended`) {
+    audioCtx.resume().catch(() => {});
+  }
+}
+
+function playSfx(type) {
+  if (!audioMasterOn || !audioSfxOn) return;
+  ensureAudioContext();
+  if (!audioCtx) return;
+
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  if (type === `correct`) {
+    osc.type = `triangle`;
+    osc.frequency.setValueAtTime(523.25, now);
+    osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.12);
+    gain.gain.setValueAtTime(0.14, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+    osc.start(now);
+    osc.stop(now + 0.3);
+  } else if (type === `wrong`) {
+    osc.type = `sawtooth`;
+    osc.frequency.setValueAtTime(210, now);
+    osc.frequency.exponentialRampToValueAtTime(95, now + 0.25);
+    gain.gain.setValueAtTime(0.14, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+    osc.start(now);
+    osc.stop(now + 0.3);
+  } else {
+    osc.type = `sine`;
+    osc.frequency.setValueAtTime(420, now);
+    osc.frequency.exponentialRampToValueAtTime(560, now + 0.06);
+    gain.gain.setValueAtTime(0.07, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+    osc.start(now);
+    osc.stop(now + 0.09);
+  }
+}
+
+function toggleMasterAudio() {
+  audioMasterOn = !audioMasterOn;
+  if (!audioMasterOn) {
+    stopProceduralBgmLoop();
+    if (customAudioEl) customAudioEl.pause();
+  } else if (audioBgmOn) {
+    startProceduralBgmLoop();
+  }
+  syncAudioButtonsUI();
+  persistAppState();
+}
+
+function toggleSfxAudio() {
+  audioSfxOn = !audioSfxOn;
+  syncAudioButtonsUI();
+  persistAppState();
+}
+
+function toggleProceduralBgm() {
+  audioBgmOn = !audioBgmOn;
+  if (audioBgmOn && audioMasterOn) {
+    stopCustomAudio();
+    startProceduralBgmLoop();
+  } else {
+    stopProceduralBgmLoop();
+  }
+  syncAudioButtonsUI();
+}
+
+function startProceduralBgmLoop() {
+  ensureAudioContext();
+  stopProceduralBgmLoop();
+  const notes = [110, 110, 146.83, 130.81, 98, 110, 164.81, 146.83];
+  bgmStepTimer = setInterval(() => {
+    if (!audioMasterOn || !audioBgmOn || !audioCtx) return;
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = `sawtooth`;
+    osc.frequency.setValueAtTime(notes[bgmStepIndex % notes.length], now);
+    gain.gain.setValueAtTime(0.06 * bgmVolume, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + 0.24);
+    bgmStepIndex += 1;
+  }, 260);
+}
+
+function stopProceduralBgmLoop() {
+  clearInterval(bgmStepTimer);
+  bgmStepTimer = null;
+}
+
+function handleBgmVolumeChange(val) {
+  bgmVolume = Math.max(0, Math.min(1, Number(val) / 100));
+  const readout = document.getElementById(`bgm-volume-readout`);
+  if (readout) readout.textContent = `${Math.round(bgmVolume * 100)}%`;
+  if (customAudioEl) customAudioEl.volume = bgmVolume;
+  persistAppState();
+}
+
+function loadCustomAudioFile(inputEl) {
+  if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
+  const file = inputEl.files[0];
+  stopCustomAudio();
+  audioBgmOn = false;
+  stopProceduralBgmLoop();
+  syncAudioButtonsUI();
+
+  customAudioUrl = URL.createObjectURL(file);
+  customAudioEl = new Audio(customAudioUrl);
+  customAudioEl.loop = true;
+  customAudioEl.volume = bgmVolume;
+  if (audioMasterOn) customAudioEl.play().catch(() => {});
+  const toast = document.getElementById(`menu-status-toast`);
+  if (toast) toast.textContent = `Custom Track Loaded: ${file.name}`;
+}
+
+function stopCustomAudio() {
+  if (customAudioEl) {
+    customAudioEl.pause();
+    customAudioEl = null;
+  }
+  if (customAudioUrl) {
+    URL.revokeObjectURL(customAudioUrl);
+    customAudioUrl = null;
+  }
+}
+
+function syncAudioButtonsUI() {
+  const mBtn = document.getElementById(`audio-master-btn`);
+  const sBtn = document.getElementById(`audio-sfx-btn`);
+  const bBtn = document.getElementById(`audio-bgm-btn`);
+  if (mBtn) {
+    mBtn.textContent = audioMasterOn ? `🔊 Master Sound: ON` : `🔇 Master Sound: OFF`;
+    mBtn.classList.toggle(`is-active`, audioMasterOn);
+  }
+  if (sBtn) {
+    sBtn.textContent = audioSfxOn ? `🎛 SFX: ON` : `🎛 SFX: OFF`;
+    sBtn.classList.toggle(`is-active`, audioSfxOn);
+  }
+  if (bBtn) {
+    bBtn.textContent = audioBgmOn ? `🎵 Zombies BGM: ON` : `🎵 Zombies BGM: OFF`;
+    bBtn.classList.toggle(`is-active`, audioBgmOn);
+  }
+}
+
+// =========================================================
+// BAND 3: 3D SYNTHWAVE CANVAS + 150 SQUARE PIXEL DUST + 1:1 PORTAL FUSION
+// =========================================================
+let canvasEl = null;
+let canvasCtx = null;
+let canvasAnimId = null;
+let gridScrollOffset = 0;
+let portalApproachProgress = 0.1;
+let craftXRatio = 0.5;
+const pixelDustParticles = [];
+
+function initCanvasEngine() {
+  canvasEl = document.getElementById(`xr-canvas`);
+  if (!canvasEl) return;
+  canvasCtx = canvasEl.getContext(`2d`);
+
+  pixelDustParticles.length = 0;
+  for (let idx = 0; idx < 150; idx++) {
+    const theta = idx * 2.399963229728653;
+    const radiusBias = 0.08 + Math.sqrt((idx * 0.754877666) % 1) * 1.15;
+    pixelDustParticles.push({
+      dx: Math.cos(theta) * radiusBias,
+      dy: Math.sin(theta) * radiusBias * 0.72 - 0.16,
+      z: 0.04 + ((idx + 0.5) / 150) * 0.96,
+      speed: 0.085 + (idx % 7) * 0.018,
+      baseSize: 1.4 + (idx % 4) * 1.25
+    });
+  }
+
+  resizeCanvas();
+  window.addEventListener(`resize`, resizeCanvas);
+  cancelAnimationFrame(canvasAnimId);
+  renderCanvasFrame();
+}
+
+function resizeCanvas() {
+  if (!canvasEl) return;
+  const parent = canvasEl.parentElement;
+  if (!parent) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = parent.clientWidth;
+  const h = parent.clientHeight;
+  canvasEl.width = Math.max(1, Math.floor(w * dpr));
+  canvasEl.height = Math.max(1, Math.floor(h * dpr));
+  if (canvasCtx) canvasCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function renderCanvasFrame() {
+  if (!canvasEl || !canvasCtx) return;
+  const parent = canvasEl.parentElement;
+  const w = parent ? parent.clientWidth : (canvasEl.clientWidth || 1);
+  const h = parent ? parent.clientHeight : (canvasEl.clientHeight || 1);
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const targetW = Math.max(1, Math.floor(w * dpr));
+  const targetH = Math.max(1, Math.floor(h * dpr));
+  if (canvasEl.width !== targetW || canvasEl.height !== targetH) {
+    canvasEl.width = targetW;
+    canvasEl.height = targetH;
+  }
+  canvasCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const q = deckQuestions[currentDeckIndex] || ALL_QUESTIONS[0];
+  const theme = LO_VISUAL_THEMES[q.lo] || LO_VISUAL_THEMES[1];
+  const horizonY = h * 0.34;
+  const vanishX = w * 0.5;
+
+  // 1. Deep Midnight-Navy Void
+  canvasCtx.fillStyle = `#0a0a12`;
+  canvasCtx.fillRect(0, 0, w, h);
+
+  // Subtle horizon glow
+  const grad = canvasCtx.createRadialGradient(vanishX, horizonY, 4, vanishX, horizonY, Math.max(w, h) * 0.55);
+  grad.addColorStop(0, `rgba(${theme.gridRgb}, 0.22)`);
+  grad.addColorStop(0.55, `rgba(${theme.gridRgb}, 0.06)`);
+  grad.addColorStop(1, `rgba(10, 10, 18, 0)`);
+  canvasCtx.fillStyle = grad;
+  canvasCtx.fillRect(0, 0, w, h);
+
+  // 2. 150 Crisp 3D Square Pixel-Dust Particles streaming across the void
+  canvasCtx.save();
+  canvasCtx.fillStyle = theme.dustColor;
+  const spreadX = w * 0.58;
+  const spreadY = h * 0.64;
+  for (let i = 0; i < pixelDustParticles.length; i++) {
+    const p = pixelDustParticles[i];
+    p.z -= p.speed * 0.016;
+    if (p.z <= 0.03) p.z = 1.0;
+    const invZ = 1 / (p.z + 0.14);
+    const normDepth = 1 - p.z;
+    const sx = vanishX + p.dx * spreadX * (invZ * 0.22);
+    const sy = horizonY + p.dy * spreadY * (invZ * 0.24);
+    if (sx < -16 || sx > w + 16 || sy < -16 || sy > h + 16) continue;
+    const sq = Math.min(8.5, Math.max(1.2, p.baseSize * (0.28 + Math.pow(normDepth, 2.2) * 1.9)));
+    canvasCtx.globalAlpha = Math.min(0.88, Math.pow(normDepth, 0.7) * 0.85 + 0.08);
+    canvasCtx.fillRect(Math.round(sx - sq * 0.5), Math.round(sy - sq * 0.5), sq, sq);
+  }
+  canvasCtx.restore();
+
+  // 3. Infinite Full-Width Perspective Wireframe Floor
+  gridScrollOffset = (gridScrollOffset + 0.018) % 1;
+  canvasCtx.strokeStyle = `rgba(${theme.gridRgb}, 0.26)`;
+  canvasCtx.lineWidth = 1;
+
+  // Longitudinal floor lines
+  const colCount = 18;
+  for (let c = -colCount; c <= colCount; c++) {
+    const xBottom = vanishX + (c / colCount) * w * 1.85;
+    canvasCtx.beginPath();
+    canvasCtx.moveTo(vanishX, horizonY);
+    canvasCtx.lineTo(xBottom, h);
+    canvasCtx.stroke();
+  }
+
+  // Horizontal perspective floor lines
+  const rowCount = 14;
+  for (let r = 0; r < rowCount; r++) {
+    const t = ((r + gridScrollOffset) / rowCount);
+    const y = horizonY + Math.pow(t, 2.25) * (h - horizonY);
+    canvasCtx.beginPath();
+    canvasCtx.moveTo(0, y);
+    canvasCtx.lineTo(w, y);
+    canvasCtx.stroke();
+  }
+
+  // 4. Three Teal Perspective Track Rails aligned to live card centers
+  const railTargets = [0.22, 0.5, 0.78];
+  const canvasRect = canvasEl.getBoundingClientRect();
+  for (let lane = 0; lane < 3; lane++) {
+    const card = document.getElementById(`lane-${lane}-card`);
+    if (card) {
+      const r = card.getBoundingClientRect();
+      if (r.width > 0) {
+        railTargets[lane] = ((r.left + r.width * 0.5) - canvasRect.left) / Math.max(1, canvasRect.width);
+      }
+    }
+    const targetX = railTargets[lane] * w;
+    canvasCtx.strokeStyle = lane === steeredLane ? `rgba(0, 255, 204, 0.9)` : `rgba(0, 255, 204, 0.35)`;
+    canvasCtx.lineWidth = lane === steeredLane ? 2.2 : 1.2;
+    canvasCtx.beginPath();
+    canvasCtx.moveTo(vanishX + (lane - 1) * 14, horizonY);
+    canvasCtx.lineTo(targetX, h);
+    canvasCtx.stroke();
+  }
+
+  // 5. Live 1:1 Portal Fusion onto the 3 Centered Answer Cards
+  portalApproachProgress = Math.min(1, portalApproachProgress + 0.032);
+  const easeProgress = 1 - Math.pow(1 - portalApproachProgress, 2.2);
+  const laneColors = [`#ff2d78`, `#00ffcc`, `#ffe04a`];
+
+  for (let lane = 0; lane < 3; lane++) {
+    const card = document.getElementById(`lane-${lane}-card`);
+    if (!card) continue;
+    const rect = card.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) continue;
+
+    const cx = (rect.left - canvasRect.left) + rect.width * 0.5;
+    const cy = (rect.top - canvasRect.top) + rect.height * 0.5;
+    const cw = rect.width;
+    const ch = rect.height;
+
+    const startX = vanishX + (lane - 1) * 26;
+    const startY = horizonY + 12;
+
+    const px = startX + (cx - startX) * easeProgress;
+    const py = startY + (cy - startY) * easeProgress;
+    const fusePad = easeProgress * 2.5;
+    const pw = (18 + (cw - 18) * easeProgress) + fusePad * 2;
+    const ph = (12 + (ch - 12) * easeProgress) + fusePad * 2;
+
+    canvasCtx.save();
+    canvasCtx.strokeStyle = laneColors[lane];
+    canvasCtx.lineWidth = lane === steeredLane ? 3 : 2;
+    canvasCtx.shadowColor = laneColors[lane];
+    canvasCtx.shadowBlur = lane === steeredLane ? 18 : 10;
+    if (typeof canvasCtx.roundRect === `function`) {
+      canvasCtx.beginPath();
+      canvasCtx.roundRect(px - pw * 0.5, py - ph * 0.5, pw, ph, 4);
+      canvasCtx.stroke();
+    } else {
+      canvasCtx.strokeRect(px - pw * 0.5, py - ph * 0.5, pw, ph);
+    }
+    canvasCtx.restore();
+  }
+
+  // 6. Solid Geometric Teal Diamond Player Craft
+  const targetCraftX = railTargets[steeredLane] || 0.5;
+  craftXRatio += (targetCraftX - craftXRatio) * 0.22;
+  const craftX = craftXRatio * w;
+  const craftY = h - Math.max(18, h * 0.055);
+  const craftSize = Math.max(11, Math.min(18, w * 0.018));
+
+  canvasCtx.save();
+  canvasCtx.fillStyle = `#00ffcc`;
+  canvasCtx.strokeStyle = `#e8e0f0`;
+  canvasCtx.lineWidth = 1.5;
+  canvasCtx.shadowColor = `#00ffcc`;
+  canvasCtx.shadowBlur = 14;
+  canvasCtx.beginPath();
+  canvasCtx.moveTo(craftX, craftY - craftSize * 1.15);
+  canvasCtx.lineTo(craftX + craftSize, craftY);
+  canvasCtx.lineTo(craftX, craftY + craftSize * 0.75);
+  canvasCtx.lineTo(craftX - craftSize, craftY);
+  canvasCtx.closePath();
+  canvasCtx.fill();
+  canvasCtx.stroke();
+  canvasCtx.restore();
+
+  canvasAnimId = requestAnimationFrame(renderCanvasFrame);
+}
+
+// =========================================================
+// KEYBOARD HOTKEYS
+// =========================================================
+document.addEventListener(`keydown`, (e) => {
+  if (e.target && (e.target.tagName === `INPUT` || e.target.tagName === `SELECT` || e.target.tagName === `TEXTAREA`)) {
+    if (e.key === `Escape` && isCodexOpen) closeCodex();
+    return;
+  }
+
+  if (isModalOpen) {
+    if (e.key === `ArrowUp`) {
+      e.preventDefault();
+      scrollOutcomeBody(-180);
+    } else if (e.key === `ArrowDown`) {
+      e.preventDefault();
+      scrollOutcomeBody(180);
+    } else if (e.key === ` ` || e.key === `Enter`) {
+      e.preventDefault();
+      continueToNextGate();
+    }
+    return;
+  }
+
+  if (isCodexOpen) {
+    if (e.key === `Escape` || e.key.toLowerCase() === `c`) {
+      e.preventDefault();
+      closeCodex();
+    }
+    return;
+  }
+
+  const key = e.key.toLowerCase();
+  if ((e.key === `Enter` || e.key === ` `) && e.target && e.target.classList && e.target.classList.contains(`lane-dom-card`)) {
+    const laneAttr = Number(e.target.dataset.lane);
+    if (!Number.isNaN(laneAttr)) {
+      e.preventDefault();
+      handleLaneSelect(laneAttr);
+      return;
+    }
+  }
+  if (key === `1` || key === `a` || e.key === `ArrowLeft`) {
+    e.preventDefault();
+    handleLaneSelect(0);
+  } else if (key === `2` || key === `w` || e.key === `ArrowUp`) {
+    e.preventDefault();
+    handleLaneSelect(1);
+  } else if (key === `3` || key === `d` || e.key === `ArrowRight`) {
+    e.preventDefault();
+    handleLaneSelect(2);
+  } else if (key === `h`) {
+    e.preventDefault();
+    toggleHintsBar();
+  } else if (key === `s`) {
+    e.preventDefault();
+    skipCurrentQuestion();
+  } else if (key === `t`) {
+    e.preventDefault();
+    toggleTimerEnabled();
+  } else if (key === `m`) {
+    e.preventDefault();
+    toggleMenuDrawer();
+  } else if (key === `c`) {
+    e.preventDefault();
+    openCodex();
+  } else if (e.key === `Escape` && isMenuOpen) {
+    e.preventDefault();
+    toggleMenuDrawer();
+  }
+});
+
+if (document.readyState === `loading`) {
+  window.addEventListener(`DOMContentLoaded`, initRunnerGame);
+} else {
+  initRunnerGame();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,2743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="artifact-type" content="tool">
+<meta name="design-style" content="neon_noir">
+<title>Respiratory Microbiology XR 3-Lane Diagnostic Runner</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@100;200;300;400;500;600;700;800&family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --background: #0a0a12;
+  --surface-container-low: #111118;
+  --surface-container: #141422;
+  --surface-container-high: #1e1e30;
+  --on-surface: #e8e0f0;
+  --on-surface-bright: #f5f1fa;
+  --on-surface-variant: #a098b0;
+  --outline: #5a5068;
+  --outline-variant: #302840;
+  --primary: #ff2d78;
+  --on-primary: #1a0010;
+  --primary-container: #b3004e;
+  --on-primary-container: #ffe0ec;
+  --secondary: #00ffcc;
+  --tertiary: #ffe04a;
+  --error: #ff4444;
+  --on-error: #1a0000;
+  --positive: #00ffcc;
+  --warning: #ffe04a;
+  --focus: #ff2d78;
+  --data-1: #ff2d78;
+  --data-2: #00ffcc;
+  --data-3: #ffe04a;
+  --data-4: #b388ff;
+  --data-context: #6e6680;
+  --font-headline: 'Sora', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-label: 'Space Mono', monospace;
+  --rounded: 0.125rem;
+  --rounded-lg: 0.25rem;
+  --rounded-full: 0.75rem;
+  --glow-text: 0 0 8px currentColor;
+  --glow-primary: 0 0 16px color-mix(in srgb, var(--primary) 40%, transparent);
+  --glow-secondary: 0 0 16px color-mix(in srgb, var(--secondary) 35%, transparent);
+  --glow-tertiary: 0 0 16px color-mix(in srgb, var(--tertiary) 35%, transparent);
+  --neon-border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 50%, transparent);
+  --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+  --glow-line: drop-shadow(0 0 4px currentColor);
+  --scanlines: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in srgb, var(--on-surface) 3%, transparent) 3px 4px);
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+  --game-stem-size: clamp(0.95rem, 0.88rem + 0.38vw, 1.18rem);
+  --game-body-size: clamp(0.88rem, 0.84rem + 0.18vw, 0.98rem);
+  --game-micro-size: 0.68rem;
+  --card-min-h: 158px;
+  --card-pad-y: 1.25rem;
+  --card-pad-x: 1.2rem;
+  --card-font: clamp(1.06rem, 1.0rem + 0.24vw, 1.24rem);
+  --card-gap: 1rem;
+  --stem-pad-y: 0.62rem;
+  --stem-pad-x: 1.1rem;
+  --modal-display-size: clamp(1.25rem, 1.1rem + 0.7vw, 1.75rem);
+  --modal-headline-size: clamp(1rem, 0.94rem + 0.3vw, 1.22rem);
+}
+#xr-app.hints-visible {
+  --game-stem-size: clamp(0.86rem, 0.82rem + 0.26vw, 1.04rem);
+  --card-min-h: 112px;
+  --card-pad-y: 0.75rem;
+  --card-pad-x: 0.9rem;
+  --card-font: clamp(0.92rem, 0.88rem + 0.18vw, 1.06rem);
+  --card-gap: 0.75rem;
+  --stem-pad-y: 0.42rem;
+  --stem-pad-x: 0.9rem;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; width: 100%; height: 100dvh;
+  overflow: hidden; overflow-x: clip;
+  background-color: var(--background); color: var(--on-surface);
+  font-family: var(--font-body); font-size: var(--game-body-size);
+  line-height: 1.45; -webkit-text-size-adjust: 100%;
+}
+button, input, select { font-family: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+#xr-app {
+  position: relative; display: flex; flex-direction: column;
+  width: 100%; height: 100dvh; overflow: hidden;
+  background: var(--background);
+}
+/* BAND 1: ULTRA-SLIM TOP MINI BAR */
+.top-mini-bar {
+  flex-shrink: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-sm); padding: 0.3rem 0.75rem;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+}
+.menu-mini-btn {
+  min-height: 36px; padding: 0.25rem 0.72rem;
+  background: var(--surface-container); color: var(--primary);
+  border: var(--neon-border-lit); border-radius: var(--rounded);
+  font-family: var(--font-label); font-size: 0.76rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
+  transition: box-shadow var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
+}
+.menu-mini-btn:hover { border-color: var(--primary); box-shadow: var(--glow-primary); text-shadow: var(--glow-text); }
+.mini-telemetry {
+  display: flex; flex-wrap: nowrap; align-items: center; gap: 0.42rem;
+  font-family: var(--font-label); font-size: 0.74rem; font-weight: 700;
+  overflow-x: auto; scrollbar-width: none;
+}
+.mini-telemetry::-webkit-scrollbar { display: none; }
+.tele-chip {
+  padding: 0.18rem 0.5rem; border-radius: var(--rounded);
+  background: var(--surface-container); border: 1px solid var(--outline-variant);
+  white-space: nowrap; color: var(--on-surface);
+}
+.tele-chip.is-hp { border-color: color-mix(in srgb, var(--primary) 45%, transparent); color: var(--primary); }
+.tele-chip.is-xp { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+.tele-chip.is-streak { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+.tele-chip.is-timer { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+.tele-chip.is-timer.is-urgent { border-color: var(--error); color: var(--error); box-shadow: 0 0 10px color-mix(in srgb, var(--error) 40%, transparent); }
+/* BAND 2: TOP QUESTION + 3s AUTO-HIDING METADATA */
+.question-stage {
+  flex-shrink: 0; z-index: 12;
+  background: linear-gradient(180deg, rgba(17, 17, 24, 0.96) 0%, rgba(10, 10, 18, 0.84) 100%);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 0.4rem 0.85rem 0.48rem; text-align: center;
+  transition: padding var(--dur-short) var(--ease-out);
+}
+#xr-app.hints-visible .question-stage { padding: 0.28rem 0.75rem 0.34rem; }
+.question-container { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; }
+.question-meta-row {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: 0.3rem; max-height: 92px; opacity: 1; margin-bottom: 0.34rem; overflow: hidden;
+  transition: opacity 400ms var(--ease-out), max-height 400ms var(--ease-out), margin-bottom 400ms var(--ease-out);
+}
+.question-meta-row.is-faded { opacity: 0; max-height: 0; margin-bottom: 0; pointer-events: none; }
+.meta-badge {
+  font-family: var(--font-label); font-size: var(--game-micro-size); font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em; padding: 0.14rem 0.45rem;
+  border-radius: var(--rounded); border: 1px solid var(--outline);
+  background: var(--surface-container-low); color: var(--on-surface-variant);
+}
+.meta-badge.is-pink { border-color: color-mix(in srgb, var(--primary) 55%, transparent); color: var(--primary); }
+.meta-badge.is-cyan { border-color: color-mix(in srgb, var(--secondary) 55%, transparent); color: var(--secondary); }
+.meta-badge.is-yellow { border-color: color-mix(in srgb, var(--tertiary) 55%, transparent); color: var(--tertiary); }
+.question-stem-box {
+  width: 100%; background: var(--surface-container);
+  border: 1px solid var(--outline-variant); border-radius: var(--rounded-lg);
+  padding: var(--stem-pad-y) var(--stem-pad-x);
+  max-height: 30dvh; overflow-y: auto; text-align: center;
+  transition: padding var(--dur-short) var(--ease-out);
+}
+#xr-app.hints-visible .question-stem-box { max-height: 23dvh; }
+.question-stem, #q-stem-text {
+  margin: 0 auto; font-family: var(--font-body); font-size: var(--game-stem-size);
+  font-weight: 600; color: var(--on-surface-bright); text-align: center; line-height: 1.4;
+  transition: font-size var(--dur-short) var(--ease-out);
+}
+/* BAND 3: CENTER 3D XR VIEWPORT + COLOR-CODED GLASS CARDS */
+.xr-viewport-stage {
+  position: relative; flex: 1 1 auto; min-height: 0; width: 100%; overflow: hidden;
+  background: radial-gradient(circle at 50% 35%, #16162a 0%, #0a0a12 72%);
+}
+#xr-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: pointer; }
+.lane-overlay-container {
+  position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%);
+  width: min(1080px, calc(100% - 2rem)); z-index: 8;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--card-gap);
+  pointer-events: none;
+}
+.lane-dom-card {
+  pointer-events: auto; position: relative;
+  min-height: var(--card-min-h); padding: var(--card-pad-y) var(--card-pad-x);
+  background: rgba(14, 14, 24, 0.78); backdrop-filter: blur(8px);
+  border-radius: var(--rounded-lg); cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; width: 100%;
+  transition: transform var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+}
+.lane-dom-card[data-lane="0"] { border: 1.5px solid color-mix(in srgb, var(--primary) 65%, transparent); box-shadow: inset 0 0 18px color-mix(in srgb, var(--primary) 16%, transparent); }
+.lane-dom-card[data-lane="1"] { border: 1.5px solid color-mix(in srgb, var(--secondary) 65%, transparent); box-shadow: inset 0 0 18px color-mix(in srgb, var(--secondary) 16%, transparent); }
+.lane-dom-card[data-lane="2"] { border: 1.5px solid color-mix(in srgb, var(--tertiary) 65%, transparent); box-shadow: inset 0 0 18px color-mix(in srgb, var(--tertiary) 16%, transparent); }
+.lane-dom-card.is-hovered, .lane-dom-card:hover { transform: translateY(-3px) scale(1.015); background: rgba(24, 24, 42, 0.9); }
+.lane-dom-card[data-lane="0"]:hover, .lane-dom-card[data-lane="0"].is-hovered { border-color: var(--primary); box-shadow: var(--glow-primary); }
+.lane-dom-card[data-lane="1"]:hover, .lane-dom-card[data-lane="1"].is-hovered { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.lane-dom-card[data-lane="2"]:hover, .lane-dom-card[data-lane="2"].is-hovered { border-color: var(--tertiary); box-shadow: var(--glow-tertiary); }
+.lane-card-head {
+  display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+  margin-bottom: 0.38rem; width: 100%;
+}
+.lane-key-label {
+  font-family: var(--font-label); font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 0.1rem 0.42rem; border-radius: var(--rounded); border: 1px solid currentColor;
+}
+.lane-dom-card[data-lane="0"] .lane-key-label { color: var(--primary); }
+.lane-dom-card[data-lane="1"] .lane-key-label { color: var(--secondary); }
+.lane-dom-card[data-lane="2"] .lane-key-label { color: var(--tertiary); }
+.lane-choice-body {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; width: 100%; flex: 1 1 auto;
+}
+.lane-card-text, .lane-choice-body span {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; width: 100%;
+  font-family: var(--font-body); font-size: var(--card-font); font-weight: 700;
+  color: var(--on-surface-bright); line-height: 1.32;
+}
+.fusion-lock-tag {
+  margin-top: 0.45rem; font-family: var(--font-label); font-size: 0.6rem;
+  letter-spacing: 0.1em; color: var(--on-surface-variant); opacity: 0.72; text-align: center;
+}
+.vignette-overlay {
+  position: absolute; inset: 0; pointer-events: none; z-index: 9; opacity: 0;
+  transition: opacity 260ms var(--ease-out);
+}
+.vignette-overlay.is-correct { opacity: 1; box-shadow: inset 0 0 90px color-mix(in srgb, var(--secondary) 45%, transparent); }
+.vignette-overlay.is-wrong { opacity: 1; box-shadow: inset 0 0 90px color-mix(in srgb, var(--error) 55%, transparent); }
+.heal-toast {
+  position: absolute; top: 1rem; left: 50%; transform: translateX(-50%) translateY(-10px);
+  z-index: 14; pointer-events: none; opacity: 0;
+  padding: 0.35rem 0.85rem; border-radius: var(--rounded);
+  background: var(--surface-container-high); border: 1px solid var(--secondary);
+  color: var(--secondary); font-family: var(--font-label); font-size: 0.75rem; font-weight: 700;
+  box-shadow: var(--glow-secondary);
+  transition: opacity var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out);
+}
+.heal-toast.is-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+/* BAND 4: BOTTOM HINTS BAR */
+#hints-bar {
+  flex-shrink: 0; z-index: 15;
+  background: var(--surface-container);
+  border-top: 2px solid color-mix(in srgb, var(--tertiary) 55%, transparent);
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.45);
+  padding: 0.48rem 0.85rem; max-height: 22dvh; overflow-y: auto; text-align: center;
+}
+#xr-app.hints-hidden #hints-bar { display: none; }
+.hints-inner { max-width: 980px; margin: 0 auto; text-align: center; }
+.hints-header-row { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 0.2rem; }
+.hints-tag { font-family: var(--font-label); font-size: 0.7rem; font-weight: 700; color: var(--tertiary); text-transform: uppercase; letter-spacing: 0.08em; }
+.hints-subtag { font-family: var(--font-label); font-size: 0.68rem; color: var(--on-surface-variant); }
+.hints-text, #q-clue-text { margin: 0 auto; font-size: 0.9rem; color: var(--on-surface); text-align: center; line-height: 1.38; }
+/* MENU DRAWER & MODALS */
+.menu-backdrop, .modal-backdrop {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(6, 6, 12, 0.82); backdrop-filter: blur(6px);
+  display: none; align-items: center; justify-content: center; padding: 1rem;
+}
+.menu-backdrop.is-open, .modal-backdrop.is-open { display: flex; }
+#top-menu-drawer {
+  width: min(940px, 100%); max-height: calc(100dvh - 2rem); overflow-y: auto;
+  background: var(--surface-container); border: var(--neon-border-lit);
+  border-radius: var(--rounded-lg); box-shadow: var(--glow-primary); padding: 1.15rem;
+  display: flex; flex-direction: column; gap: 0.85rem;
+}
+.drawer-header {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem;
+  border-bottom: 1px solid var(--outline-variant); padding-bottom: 0.7rem;
+}
+.kicker {
+  font-family: var(--font-label); font-size: 0.72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em; color: var(--secondary); text-shadow: var(--glow-text);
+}
+.drawer-title {
+  margin: 0.2rem 0 0; font-family: var(--font-headline); font-size: var(--modal-display-size);
+  font-weight: 800; color: var(--on-surface-bright); line-height: 1.15;
+}
+.btn-neon {
+  min-height: 44px; padding: 0.42rem 0.85rem;
+  background: var(--surface-container-low); color: var(--primary);
+  border: var(--neon-border-lit); border-radius: var(--rounded);
+  font-family: var(--font-label); font-size: 0.74rem; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer;
+  transition: box-shadow var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+}
+.btn-neon:hover { border-color: var(--primary); box-shadow: var(--glow-primary); text-shadow: var(--glow-text); }
+.btn-neon.is-cyan { color: var(--secondary); border-color: color-mix(in srgb, var(--secondary) 55%, transparent); }
+.btn-neon.is-cyan:hover { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.btn-neon.is-yellow { color: var(--tertiary); border-color: color-mix(in srgb, var(--tertiary) 55%, transparent); }
+.btn-neon.is-yellow:hover { border-color: var(--tertiary); box-shadow: var(--glow-tertiary); }
+.btn-neon.is-active { background: var(--surface-container-high); box-shadow: var(--glow-secondary); }
+.menu-actions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.45rem; }
+.menu-section-box {
+  background: var(--surface-container-low); border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg); padding: 0.75rem;
+  display: flex; flex-direction: column; gap: 0.55rem;
+}
+.menu-section-label {
+  font-family: var(--font-label); font-size: 0.72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em; color: var(--secondary);
+}
+.menu-controls-row {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.6rem; align-items: end;
+}
+.control-field { display: flex; flex-direction: column; gap: 0.25rem; }
+.control-field label { font-family: var(--font-label); font-size: 0.68rem; color: var(--on-surface-variant); text-transform: uppercase; }
+.neon-select, .neon-input {
+  min-height: 40px; padding: 0.35rem 0.6rem; background: var(--surface-container);
+  color: var(--on-surface); border: 1px solid var(--outline); border-radius: var(--rounded);
+  font-size: 0.8rem;
+}
+.phase-pills-row { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.phase-pill {
+  font-family: var(--font-label); font-size: 0.68rem; padding: 0.22rem 0.55rem;
+  border-radius: var(--rounded); border: 1px solid var(--outline); background: var(--surface-container);
+}
+.skill-tree-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.45rem; }
+.skill-node-btn {
+  min-height: 54px; padding: 0.45rem 0.6rem; text-align: left;
+  background: var(--surface-container); border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded); cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; gap: 0.2rem;
+}
+.skill-node-btn:hover { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.skill-node-btn.is-mastered { border-color: var(--secondary); background: color-mix(in srgb, var(--secondary) 10%, var(--surface-container)); }
+.skill-node-title { font-size: 0.82rem; font-weight: 600; color: var(--on-surface); line-height: 1.3; }
+.skill-node-meta { font-family: var(--font-label); font-size: 0.64rem; color: var(--on-surface-variant); }
+.hotkey-guide {
+  font-family: var(--font-label); font-size: 0.7rem; color: var(--on-surface-variant);
+  background: var(--surface-container-low); border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded); padding: 0.45rem 0.65rem; line-height: 1.5;
+}
+.inline-toast { font-family: var(--font-label); font-size: 0.72rem; color: var(--tertiary); min-height: 1rem; }
+/* OUTCOME, CODEX, SUMMARY MODALS */
+#outcome-popup-modal, #codex-modal, #run-summary-modal {
+  width: min(980px, 94vw); height: min(88dvh, 840px); max-height: 90dvh;
+  background: var(--surface-container); border: var(--neon-border-lit);
+  border-radius: var(--rounded-lg); box-shadow: var(--glow-primary);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.popup-header {
+  flex-shrink: 0; padding: 0.75rem 1rem; background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+}
+.popup-header-centered { justify-content: center !important; flex-wrap: wrap; text-align: center !important; }
+.popup-verdict { margin: 0; font-family: var(--font-headline); font-size: var(--modal-headline-size); font-weight: 800; text-align: center !important; }
+.popup-verdict.is-correct { color: var(--positive); }
+.popup-verdict.is-wrong { color: var(--error); }
+.popup-verdict.is-cyan { color: var(--secondary); }
+.popup-question-pin {
+  flex-shrink: 0; background: var(--surface-container-low); border-bottom: 1px solid var(--outline-variant);
+  padding: 0.55rem 1rem; text-align: center !important;
+}
+.popup-question-pin-label { font-family: var(--font-label); font-size: 0.68rem; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.08em; display: block; text-align: center !important; }
+.popup-question-pin-text { margin: 0.25rem auto 0; font-size: 0.9rem; font-weight: 600; color: var(--on-surface-bright); text-align: center !important; }
+.popup-scroll-body {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 0.9rem 1rem;
+  display: flex; flex-direction: column; gap: 0.75rem; text-align: center !important;
+}
+#outcome-popup-modal, #outcome-popup-modal .popup-header, #outcome-popup-modal .popup-header-centered,
+#outcome-popup-modal .popup-verdict, #outcome-popup-modal .popup-question-pin,
+#outcome-popup-modal .popup-question-pin-text, #outcome-popup-modal .popup-scroll-body,
+#outcome-popup-modal .dossier-block, #outcome-popup-modal .dossier-block-title,
+#outcome-popup-modal .dossier-line, #outcome-popup-modal .choice-box,
+#outcome-popup-modal .choice-box p, #outcome-popup-modal .angle-mini-card,
+#outcome-popup-modal .angle-mini-title {
+  text-align: center !important;
+}
+.dossier-block {
+  background: var(--surface-container-low); border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg); padding: 0.72rem 0.85rem;
+  display: flex; flex-direction: column; align-items: center;
+}
+.dossier-block.is-highlight { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); }
+.dossier-block-title {
+  margin: 0 0 0.4rem; font-family: var(--font-label); font-size: 0.74rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em; color: var(--tertiary);
+}
+.dossier-line { margin: 0.22rem auto; font-size: 0.9rem; color: var(--on-surface); line-height: 1.45; max-width: 72ch; }
+.choice-compare-grid { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }
+.choice-box {
+  padding: 0.6rem; border-radius: var(--rounded); background: var(--surface-container);
+  border: 1px solid var(--outline-variant); display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.choice-box.is-yours.is-wrong { border-color: var(--error); }
+.choice-box.is-yours.is-correct, .choice-box.is-right { border-color: var(--positive); }
+.choice-box-label { font-family: var(--font-label); font-size: 0.66rem; text-transform: uppercase; color: var(--on-surface-variant); margin-bottom: 0.2rem; }
+.choice-box p { margin: 0; font-weight: 700; font-size: 0.92rem; color: var(--on-surface-bright); }
+.angle-cards-grid { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.65rem; }
+.angle-mini-card {
+  background: var(--surface-container); border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded); padding: 0.65rem;
+  display: flex; flex-direction: column; align-items: center;
+}
+.angle-mini-title { font-family: var(--font-label); font-size: 0.7rem; font-weight: 700; color: var(--secondary); margin: 0 0 0.35rem; text-transform: uppercase; }
+.popup-footer {
+  flex-shrink: 0; padding: 0.65rem 1rem; background: var(--surface-container-low);
+  border-top: 1px solid var(--outline-variant);
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.5rem;
+}
+/* CODEX TABLE */
+.codex-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; padding: 0.65rem 1rem; border-bottom: 1px solid var(--outline-variant); }
+.codex-table-wrap { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 0.6rem 1rem; }
+.codex-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.codex-table th, .codex-table td { border: 1px solid var(--outline-variant); padding: 0.5rem 0.6rem; text-align: left; vertical-align: top; }
+.codex-table th { background: var(--surface-container-low); font-family: var(--font-label); font-size: 0.68rem; text-transform: uppercase; color: var(--secondary); position: sticky; top: 0; }
+.codex-table tr:nth-child(even) td { background: rgba(17, 17, 24, 0.55); }
+/* SUMMARY MODAL */
+.summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.6rem; }
+.summary-tile { background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: var(--rounded); padding: 0.7rem; text-align: center; }
+.summary-tile-val { display: block; font-family: var(--font-headline); font-size: 1.35rem; font-weight: 800; color: var(--secondary); }
+.summary-tile-label { font-family: var(--font-label); font-size: 0.66rem; color: var(--on-surface-variant); text-transform: uppercase; }
+.missed-review-list { display: flex; flex-direction: column; gap: 0.45rem; }
+.missed-item { background: var(--surface-container-low); border: 1px solid color-mix(in srgb, var(--error) 45%, transparent); border-radius: var(--rounded); padding: 0.55rem 0.75rem; font-size: 0.84rem; }
+@media (max-width: 760px) {
+  .choice-compare-grid, .angle-cards-grid, .summary-grid { grid-template-columns: 1fr; }
+}
+/* =========================================================
+   VERBATIM v3.8 PHONE MEDIA QUERIES (TABLETS UNCHANGED)
+   ========================================================= */
+@media (max-width: 600px) {
+  :root {
+    --game-stem-size: 0.94rem;
+    --card-min-h: 72px;
+    --card-pad-y: 0.55rem;
+    --card-pad-x: 0.8rem;
+    --card-font: 0.92rem;
+    --card-gap: 0.52rem;
+    --stem-pad-y: 0.42rem;
+    --stem-pad-x: 0.75rem;
+  }
+  #xr-app.hints-visible {
+    --game-stem-size: 0.88rem;
+    --card-min-h: 60px;
+    --card-pad-y: 0.44rem;
+    --card-pad-x: 0.75rem;
+    --card-font: 0.88rem;
+    --card-gap: 0.42rem;
+    --stem-pad-y: 0.34rem;
+    --stem-pad-x: 0.65rem;
+  }
+  .top-mini-bar { padding: 0.24rem 0.45rem; }
+  .menu-mini-btn { min-height: 34px; padding: 0.2rem 0.55rem; font-size: 0.72rem; }
+  .mini-telemetry { gap: 0.3rem; font-size: 0.68rem; }
+  .tele-chip.is-xp { display: none; }
+  .question-stage { padding: 0.34rem 0.5rem 0.4rem; }
+  .question-stem-box { max-height: 30dvh; }
+  #xr-app.hints-visible .question-stem-box { max-height: 22dvh; }
+  .lane-overlay-container {
+    top: 44%;
+    width: calc(100% - 1rem);
+    grid-template-columns: 1fr;
+  }
+  .lane-card-head, .lane-key-label { display: none; }
+  #hints-bar { padding: 0.4rem 0.65rem; max-height: 22dvh; }
+  .hints-text { font-size: 0.84rem; line-height: 1.35; }
+  .menu-backdrop { padding: 0.35rem; }
+  #top-menu-drawer { max-height: calc(100dvh - 0.7rem); padding: 0.8rem; }
+  .menu-actions-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #outcome-popup-modal, #codex-modal, #run-summary-modal { width: 96vw; height: 92dvh; max-height: 92dvh; }
+}
+@media (max-height: 500px) and (pointer: coarse) {
+  :root {
+    --game-stem-size: 0.82rem;
+    --card-min-h: 60px;
+    --card-pad-y: 0.34rem;
+    --card-pad-x: 0.55rem;
+    --card-font: 0.8rem;
+    --card-gap: 0.45rem;
+    --stem-pad-y: 0.24rem;
+    --stem-pad-x: 0.6rem;
+  }
+  .top-mini-bar { padding: 0.16rem 0.5rem; }
+  .menu-mini-btn { min-height: 28px; padding: 0.14rem 0.5rem; font-size: 0.68rem; }
+  .question-stage { padding: 0.2rem 0.55rem; }
+  .question-stem-box { max-height: 25dvh; }
+  #xr-app.hints-visible .question-stem-box { max-height: 20dvh; }
+  .lane-overlay-container {
+    top: 46%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: calc(100% - 1rem);
+  }
+  .lane-card-head, .lane-key-label { display: none; }
+  #hints-bar { padding: 0.26rem 0.6rem; max-height: 20dvh; }
+  .hints-text { font-size: 0.78rem; line-height: 1.3; }
+  #outcome-popup-modal, #codex-modal, #run-summary-modal { width: 96vw; height: 94dvh; max-height: 94dvh; }
+}
+@media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+  html { font-size: 200%; }
+  .lane-overlay-container { grid-template-columns: 1fr; width: calc(100% - 1rem); }
+  .lane-card-head, .lane-key-label { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+</style>
+</head>
+<body>
+<div id="xr-app" class="hints-hidden">
+  <!-- BAND 1: ULTRA-SLIM TOP BAR (MENU BUTTON + READ-ONLY TELEMETRY ONLY) -->
+  <div class="top-mini-bar">
+    <button type="button" class="menu-mini-btn" id="menu-toggle-btn" onclick="toggleMenuDrawer()" aria-expanded="false" aria-controls="top-menu-drawer">☰ MENU</button>
+    <div class="mini-telemetry" aria-label="Game Status">
+      <span class="tele-chip is-hp" id="hp-chip">HP <span id="hp-text">100</span></span>
+      <span class="tele-chip is-xp">XP <span id="xp-text">0</span></span>
+      <span class="tele-chip is-streak">⚡<span id="streak-text">0</span></span>
+      <span class="tele-chip">Gate <span id="gate-text">1/45</span></span>
+      <span class="tele-chip is-timer" id="timer-chip">⏱ <span id="timer-text">50s</span></span>
+    </div>
+  </div>
+  <!-- BAND 2: TOP QUESTION + 3s AUTO-HIDING METADATA -->
+  <section class="question-stage" aria-label="Clinical Vignette">
+    <div class="question-container">
+      <div class="question-meta-row" id="question-meta-row">
+        <span class="meta-badge is-pink" id="badge-lo">LO 1</span>
+        <span class="meta-badge is-cyan" id="badge-angle">Presentation -&gt; Diagnosis</span>
+        <span class="meta-badge is-yellow" id="badge-phase">Phase 3: Clinical &amp; Management</span>
+        <span class="meta-badge" id="badge-corridor">CORRIDOR: CAPSULAR ALVEOLAR VAULT</span>
+      </div>
+      <div class="question-stem-box">
+        <p class="question-stem amboss-scan-target" id="q-stem-text">Initializing Respiratory Microbiology Raid…</p>
+      </div>
+    </div>
+  </section>
+  <!-- BAND 3: 3D SYNTHWAVE VOID + 1:1 PORTAL FUSION -->
+  <main class="xr-viewport-stage" id="xr-viewport-stage">
+    <canvas id="xr-canvas"></canvas>
+    <div class="lane-overlay-container" id="lane-overlay-container">
+      <button type="button" class="lane-dom-card" data-lane="0" id="lane-card-0" onclick="selectLane(0)" onmouseenter="setHoveredLane(0)" onmouseleave="setHoveredLane(-1)">
+        <div class="lane-card-head"><span class="lane-key-label">[1 / A / ←]</span></div>
+        <div class="lane-choice-body"><span id="lane-0-text" class="lane-card-text amboss-scan-target">Option A</span></div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </button>
+      <button type="button" class="lane-dom-card" data-lane="1" id="lane-card-1" onclick="selectLane(1)" onmouseenter="setHoveredLane(1)" onmouseleave="setHoveredLane(-1)">
+        <div class="lane-card-head"><span class="lane-key-label">[2 / W / ↑]</span></div>
+        <div class="lane-choice-body"><span id="lane-1-text" class="lane-card-text amboss-scan-target">Option B</span></div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </button>
+      <button type="button" class="lane-dom-card" data-lane="2" id="lane-card-2" onclick="selectLane(2)" onmouseenter="setHoveredLane(2)" onmouseleave="setHoveredLane(-1)">
+        <div class="lane-card-head"><span class="lane-key-label">[3 / D / →]</span></div>
+        <div class="lane-choice-body"><span id="lane-2-text" class="lane-card-text amboss-scan-target">Option C</span></div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </button>
+    </div>
+    <div class="vignette-overlay" id="vignette-overlay"></div>
+    <div class="heal-toast" id="heal-toast">✚ STREAK BONUS +25 HP</div>
+  </main>
+  <!-- BAND 4: BOTTOM HINTS BAR ([H]) -->
+  <div id="hints-bar" aria-live="polite">
+    <div class="hints-inner">
+      <div class="hints-header-row">
+        <span class="hints-tag">💡 HINT [H]</span>
+        <span class="hints-subtag" id="hints-meta-ref">LO 1 • Phase 3</span>
+      </div>
+      <p class="hints-text amboss-scan-target" id="q-clue-text">—</p>
+    </div>
+  </div>
+</div>
+
+<!-- COLLAPSIBLE MENU & SKILL TREE DRAWER -->
+<div class="menu-backdrop" id="menu-backdrop" onclick="if(event.target===this)toggleMenuDrawer()">
+  <div id="top-menu-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+    <div class="drawer-header">
+      <div>
+        <div class="kicker">RESPIRATORY MICROBIOLOGY • COMLEX-USA / USMLE XR RAID (v3.8)</div>
+        <h1 class="drawer-title" id="drawer-title">Respiratory Microbiology — 3-Lane Diagnostic Runner</h1>
+      </div>
+      <button type="button" class="btn-neon" onclick="toggleMenuDrawer()">✕ Close [M]</button>
+    </div>
+    <div class="menu-actions-grid">
+      <button type="button" class="btn-neon is-yellow" id="menu-hints-btn" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+      <button type="button" class="btn-neon is-cyan" onclick="openCodexFromMenu()">📖 Loot Codex [C]</button>
+      <button type="button" class="btn-neon" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+      <button type="button" class="btn-neon is-cyan" id="timer-toggle-btn" onclick="toggleTimerEnabled()">⏱ 50s Timer: ON [T]</button>
+      <button type="button" class="btn-neon is-yellow" onclick="startTimedRun()">⚡ Start 50s Timed Run</button>
+      <button type="button" class="btn-neon is-cyan" onclick="restartDeck(false)">↺ Restart Ordered</button>
+      <button type="button" class="btn-neon" onclick="restartDeck(true)">🔀 Shuffle Deck</button>
+      <button type="button" class="btn-neon" id="reset-mastery-btn" onclick="resetMastery(this)">🗑 Reset Mastery</button>
+    </div>
+    <div class="menu-section-box">
+      <span class="menu-section-label">Dungeon Filters &amp; Phase Distribution (30% / 35% / 35%)</span>
+      <div class="menu-controls-row">
+        <div class="control-field">
+          <label for="sector-filter">Sector / Entity Filter</label>
+          <select id="sector-filter" class="neon-select" onchange="applyDeckFilters()">
+            <option value="all">All 15 Entities (45 Gates)</option>
+            <option value="missed">🎯 Missed Gates Only</option>
+            <option value="sector-1">Sector I: Typical CAP Bacteria (LO 1–3)</option>
+            <option value="sector-2">Sector II: Nosocomial &amp; Aspiration (LO 4–6)</option>
+            <option value="sector-3">Sector III: Atypical 'Walking' Pneumonias (LO 7–9)</option>
+            <option value="sector-4">Sector IV: Mycobacteria &amp; Granulomas (LO 10–12)</option>
+            <option value="sector-5">Sector V: Endemic Fungi &amp; PCP (LO 13–15)</option>
+            <option value="1">LO 1: Streptococcus pneumoniae</option>
+            <option value="2">LO 2: Staphylococcus aureus</option>
+            <option value="3">LO 3: Haemophilus influenzae</option>
+            <option value="4">LO 4: Pseudomonas aeruginosa</option>
+            <option value="5">LO 5: Klebsiella pneumoniae</option>
+            <option value="6">LO 6: Oral Anaerobes / B. fragilis</option>
+            <option value="7">LO 7: Mycoplasma pneumoniae</option>
+            <option value="8">LO 8: Legionella pneumophila</option>
+            <option value="9">LO 9: Chlamydia pneumoniae &amp; psittaci</option>
+            <option value="10">LO 10: Mycobacterium tuberculosis</option>
+            <option value="11">LO 11: Mycobacterium avium complex</option>
+            <option value="12">LO 12: Nocardia vs Actinomyces</option>
+            <option value="13">LO 13: Histoplasma capsulatum</option>
+            <option value="14">LO 14: Coccidioides immitis</option>
+            <option value="15">LO 15: Pneumocystis jirovecii</option>
+          </select>
+        </div>
+        <div class="control-field">
+          <label for="angle-filter">Question Angle</label>
+          <select id="angle-filter" class="neon-select" onchange="applyDeckFilters()">
+            <option value="all">All 3 Diagnostic Angles</option>
+            <option value="Presentation -> Diagnosis">Presentation -&gt; Diagnosis</option>
+            <option value="Mechanism -> Pathophysiology">Mechanism -&gt; Pathophysiology</option>
+            <option value="Hallmarks -> Management">Hallmarks -&gt; Management</option>
+          </select>
+        </div>
+        <div class="control-field">
+          <label for="timeout-mode">Time's Up Mode</label>
+          <select id="timeout-mode" class="neon-select" onchange="updateTimeoutMode(this.value)">
+            <option value="review">Time's Up = Wrong -&gt; Review</option>
+            <option value="hold">Hold at 0s (Practice)</option>
+          </select>
+        </div>
+      </div>
+      <div class="phase-pills-row" id="phase-mix-pills"></div>
+      <div class="inline-toast" id="menu-inline-msg"></div>
+    </div>
+    <div class="menu-section-box">
+      <span class="menu-section-label">Audio &amp; Zombies Synthwave BGM Suite</span>
+      <div class="menu-actions-grid">
+        <button type="button" class="btn-neon is-cyan" id="master-sound-btn" onclick="toggleMasterSound()">🔊 Master Sound: ON</button>
+        <button type="button" class="btn-neon is-cyan" id="sfx-btn" onclick="toggleSfx()">🎹 SFX: ON</button>
+        <button type="button" class="btn-neon" id="bgm-btn" onclick="toggleProceduralBgm()">🎵 Zombies BGM: OFF</button>
+      </div>
+      <div class="menu-controls-row">
+        <div class="control-field">
+          <label for="bgm-volume">BGM Volume</label>
+          <input type="range" id="bgm-volume" min="0" max="1" step="0.05" value="0.35" oninput="setBgmVolume(this.value)">
+        </div>
+        <div class="control-field">
+          <label for="custom-bgm-file">Custom MP3 / WAV Loader</label>
+          <input type="file" id="custom-bgm-file" class="neon-input" accept="audio/*" onchange="loadCustomBgmFile(this)">
+        </div>
+      </div>
+    </div>
+    <div class="menu-section-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.4rem;">
+        <span class="menu-section-label">15-Entity Respiratory Skill Tree</span>
+        <span style="font-family:var(--font-label);font-size:0.7rem;color:var(--on-surface-variant);" id="mastery-summary">Mastered: 0 / 15 LOs • Accuracy: --%</span>
+      </div>
+      <div class="skill-tree-grid" id="skill-tree-grid"></div>
+    </div>
+    <div class="hotkey-guide">
+      <strong>Keyboard Shortcuts:</strong> [1 / 2 / 3] or [A / W / D] or [← / ↑ / →] Select Portal • [H] Toggle Bottom Hints • [M] Menu • [C] Loot Codex • [S] Skip • [T] Toggle 50s Timer • [Space / Enter] Continue Review • [↑ / ↓] Scroll Review
+    </div>
+  </div>
+</div>
+
+<!-- 7-PART OUTCOME DOSSIER MODAL -->
+<div class="modal-backdrop" id="outcome-backdrop" role="dialog" aria-modal="true" aria-labelledby="outcome-verdict">
+  <div id="outcome-popup-modal">
+    <div class="popup-header popup-header-centered">
+      <h2 class="popup-verdict" id="outcome-verdict">✔ CORRECT — Answer</h2>
+      <span class="meta-badge is-cyan" id="outcome-xp-delta">+100 XP</span>
+      <span class="meta-badge is-pink" id="outcome-hp-delta">HP 100</span>
+    </div>
+    <div class="popup-question-pin">
+      <span class="popup-question-pin-label" id="outcome-lo-ref">Original Board Vignette</span>
+      <p class="popup-question-pin-text amboss-scan-target" id="outcome-question-text"></p>
+    </div>
+    <div class="popup-scroll-body" id="outcome-scroll-body">
+      <div class="dossier-block is-highlight">
+        <h3 class="dossier-block-title">1. Your Choice vs. Correct Answer</h3>
+        <div class="choice-compare-grid">
+          <div class="choice-box is-yours" id="your-choice-box">
+            <span class="choice-box-label">Your Portal Choice</span>
+            <p id="your-choice-text" class="amboss-scan-target">—</p>
+          </div>
+          <div class="choice-box is-right">
+            <span class="choice-box-label">Correct Portal</span>
+            <p id="correct-choice-text" class="amboss-scan-target">—</p>
+          </div>
+        </div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">2. Rationale &amp; Distractor Exclusion</h3>
+        <div id="dossier-rationale" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">3. Second-Order Board Logic Clue</h3>
+        <div id="dossier-second-order" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">4. Phase 1: Pathogenesis Pearl</h3>
+        <div id="dossier-phase-1" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">5. Phase 2: Histology &amp; Lab Hallmark</h3>
+        <div id="dossier-phase-2" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">6. Phase 3: Clinical &amp; Guild Master's Secret</h3>
+        <div id="dossier-phase-3" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">7. 3-Angle Entity Synthesis</h3>
+        <div class="angle-cards-grid">
+          <div class="angle-mini-card">
+            <h4 class="angle-mini-title">Phase 1: Pathogenesis</h4>
+            <div id="dossier-angle-1" class="amboss-scan-target"></div>
+          </div>
+          <div class="angle-mini-card">
+            <h4 class="angle-mini-title">Phase 2: Structure / Lab</h4>
+            <div id="dossier-angle-2" class="amboss-scan-target"></div>
+          </div>
+          <div class="angle-mini-card">
+            <h4 class="angle-mini-title">Phase 3: Clinical &amp; Tx</h4>
+            <div id="dossier-angle-3" class="amboss-scan-target"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="popup-footer">
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(-180)">▲ Up</button>
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(180)">▼ Down</button>
+      <button type="button" class="btn-neon" id="continue-runner-btn" onclick="continueToNextGate()">▶ Continue Runner [Space / Enter]</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6-COLUMN LOOT CODEX MODAL -->
+<div class="modal-backdrop" id="codex-backdrop" role="dialog" aria-modal="true" aria-labelledby="codex-title">
+  <div id="codex-modal">
+    <div class="popup-header">
+      <h2 class="popup-verdict is-cyan" id="codex-title">📖 Respiratory Microbiology Loot Codex (15 Entities)</h2>
+      <button type="button" class="btn-neon" onclick="closeCodex()">✕ Close [C]</button>
+    </div>
+    <div class="codex-toolbar">
+      <button type="button" class="btn-neon is-cyan" onclick="filterCodex('all', this)">All Sectors</button>
+      <button type="button" class="btn-neon" onclick="filterCodex('1', this)">I: Typical CAP</button>
+      <button type="button" class="btn-neon" onclick="filterCodex('2', this)">II: Nosocomial/Asp</button>
+      <button type="button" class="btn-neon" onclick="filterCodex('3', this)">III: Atypical</button>
+      <button type="button" class="btn-neon" onclick="filterCodex('4', this)">IV: Mycobacteria</button>
+      <button type="button" class="btn-neon" onclick="filterCodex('5', this)">V: Fungi/PCP</button>
+      <input type="text" id="codex-search" class="neon-input" style="margin-left:auto;min-width:190px;" placeholder="Filter organism or pearl…" oninput="renderCodexTable()">
+    </div>
+    <div class="codex-table-wrap">
+      <table class="codex-table">
+        <thead>
+          <tr>
+            <th>LO &amp; Entity / Boss</th>
+            <th>Etiology / Trigger</th>
+            <th>Pathogenesis Cascade</th>
+            <th>Gross &amp; Histology Hallmarks</th>
+            <th>Clinical Presentation</th>
+            <th>Management &amp; Guild Secret</th>
+          </tr>
+        </thead>
+        <tbody id="codex-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- END-OF-RUN SUMMARY MODAL -->
+<div class="modal-backdrop" id="summary-backdrop" role="dialog" aria-modal="true" aria-labelledby="summary-title">
+  <div id="run-summary-modal">
+    <div class="popup-header popup-header-centered">
+      <h2 class="popup-verdict is-cyan" id="summary-title">🏁 Raid Sector Debrief</h2>
+    </div>
+    <div class="popup-scroll-body">
+      <div class="summary-grid">
+        <div class="summary-tile"><span class="summary-tile-val" id="sum-xp">0</span><span class="summary-tile-label">Total XP</span></div>
+        <div class="summary-tile"><span class="summary-tile-val" id="sum-acc">0%</span><span class="summary-tile-label">Accuracy</span></div>
+        <div class="summary-tile"><span class="summary-tile-val" id="sum-streak">0</span><span class="summary-tile-label">Best Streak</span></div>
+        <div class="summary-tile"><span class="summary-tile-val" id="sum-hp">100</span><span class="summary-tile-label">Final HP</span></div>
+      </div>
+      <div class="dossier-block" style="width:100%;">
+        <h3 class="dossier-block-title">Missed Gates Review</h3>
+        <div class="missed-review-list" id="missed-review-list" style="width:100%;"></div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:0.5rem;">
+        <button type="button" class="btn-neon is-yellow" id="retry-missed-btn" onclick="retryMissedOnly()">🎯 Retry Missed Gates</button>
+        <button type="button" class="btn-neon is-cyan" onclick="closeSummaryAndRestart(false)">↺ Restart Ordered</button>
+        <button type="button" class="btn-neon" onclick="closeSummaryAndRestart(true)">🔀 Shuffle Full Raid</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<api-shim></api-shim>
+<script>
+const GAME_CONFIG = {
+  title: `Respiratory Microbiology XR 3-Lane Diagnostic Runner`,
+  metaFadeMs: 3000,
+  timerSeconds: 50,
+  streakHealEvery: 4,
+  streakHealAmount: 25
+};
+
+const LO_VISUAL_THEMES = {
+  1:  { corridor: `CAPSULAR ALVEOLAR VAULT`, dustRgb: `0,255,204`, gridRgb: `0,210,180` },
+  2:  { corridor: `NECROTIZING CAVERN WARD`, dustRgb: `255,45,120`, gridRgb: `215,40,110` },
+  3:  { corridor: `CHOCOLATE FACTOR MATRIX`, dustRgb: `255,224,74`, gridRgb: `210,180,60` },
+  4:  { corridor: `BIOFILM PYOCYANIN GRID`, dustRgb: `0,255,204`, gridRgb: `20,220,170` },
+  5:  { corridor: `MUCOID CURRANT NEXUS`, dustRgb: `255,45,120`, gridRgb: `200,35,95` },
+  6:  { corridor: `ANAEROBIC ABSCESS TRENCH`, dustRgb: `179,136,255`, gridRgb: `135,95,215` },
+  7:  { corridor: `COLD AGGLUTININ LABYRINTH`, dustRgb: `0,255,204`, gridRgb: `70,210,235` },
+  8:  { corridor: `SILVER CHARCOAL CONDENSER`, dustRgb: `255,224,74`, gridRgb: `195,165,65` },
+  9:  { corridor: `OBLIGATE INTRACELLULAR NODE`, dustRgb: `179,136,255`, gridRgb: `145,105,220` },
+  10: { corridor: `CASEATING GHON CITADEL`, dustRgb: `255,45,120`, gridRgb: `225,55,115` },
+  11: { corridor: `CD4-50 MYCOBACTERIAL RIFT`, dustRgb: `255,224,74`, gridRgb: `220,175,55` },
+  12: { corridor: `FILAMENTOUS BRANCH CORRIDOR`, dustRgb: `0,255,204`, gridRgb: `35,215,185` },
+  13: { corridor: `MACROPHAGE YEAST CAVE`, dustRgb: `179,136,255`, gridRgb: `150,115,235` },
+  14: { corridor: `DESERT SPHERULE CANYON`, dustRgb: `255,224,74`, gridRgb: `230,170,60` },
+  15: { corridor: `GROUND-GLASS SILVER VAULT`, dustRgb: `0,255,204`, gridRgb: `45,225,210` }
+};
+
+const CODEX_DATA = [
+  { lo: 1, sector: 1, title: `Streptococcus pneumoniae`, etiology: `Gram+ lancet-shaped diplococci; alpha-hemolytic; respiratory droplet spread.`, pathogenesis: `Polysaccharide capsule blocks opsonophagocytosis; IgA protease cleaves mucosal IgA; higher risk in asplenia/sickle cell.`, hallmarks: `Optochin-sensitive, bile-soluble; Quellung positive; rusty sputum; lobar consolidation with intra-alveolar exudate.`, clinical: `Abrupt fever, rigors, pleuritic chest pain, rusty sputum; #1 cause of CAP, meningitis, otitis media, sinusitis.`, management: `Macrolide or respiratory fluoroquinolone / ceftriaxone; PCV13/15/20 & PPSV23 vaccines.` },
+  { lo: 2, sector: 1, title: `Staphylococcus aureus`, etiology: `Gram+ cocci in clusters; catalase+, coagulase+; post-influenza viral superinfection.`, pathogenesis: `Protein A binds Fc of IgG blocking phagocytosis; cytotoxins/proteases drive hemorrhagic parenchymal necrosis.`, hallmarks: `Golden beta-hemolytic colonies; patchy bronchopneumonia with abscess/pneumatocele formation and empyema.`, clinical: `Severe necrotizing pneumonia after influenza (fever, hemoptysis, rapid respiratory decline).`, management: `Vancomycin (for MRSA) or nafcillin/oxacillin (MSSA); add linezolid/clindamycin if toxin concern.` },
+  { lo: 3, sector: 1, title: `Haemophilus influenzae`, etiology: `Small Gram- pleomorphic coccobacillus; non-typeable in COPD, type B encapsulated.`, pathogenesis: `Type B PRP polysaccharide capsule resists phagocytosis; IgA protease degrades respiratory IgA.`, hallmarks: `Grows on chocolate agar requiring Factor X (hematin) and Factor V (NAD+); satellite phenomenon near S. aureus.`, clinical: `COPD acute exacerbation, otitis media, sinusitis, pneumonia; epiglottitis/meningitis in unvaccinated children.`, management: `Amoxicillin-clavulanate (non-severe) or ceftriaxone; rifampin prophylaxis for close contacts; Hib vaccine (2–18 mo).` },
+  { lo: 4, sector: 2, title: `Pseudomonas aeruginosa`, etiology: `Aerobic Gram- rod, obligate aerobe, non-lactose fermenter; water/ventilator reservoirs.`, pathogenesis: `Exotoxin A inactivates EF-2 halting protein synthesis; mucoid alginate biofilm in CF; endotoxin causes shock.`, hallmarks: `Oxidase+, grape-like odor, blue-green pyocyanin/pyoverdin pigments on agar.`, clinical: `Nosocomial/ventilator-associated pneumonia, chronic CF lung infection, ecthyma gangrenosum in neutropenia.`, management: `Antipseudomonal beta-lactam (piperacillin-tazobactam, cefepime, meropenem) or ciprofloxacin.` },
+  { lo: 5, sector: 2, title: `Klebsiella pneumoniae`, etiology: `Encapsulated, immotile Gram- rod; colonizes GI/oropharynx; aspiration in alcohol use/diabetes.`, pathogenesis: `Thick mucoid polysaccharide capsule prevents phagocytosis and generates thick necrotic lobar exudate.`, hallmarks: `Lactose-fermenting pink colonies on MacConkey agar; urease+; "currant-jelly" mucoid bloody sputum; bulging fissure sign.`, clinical: `Severe necrotizing lobar pneumonia with abscess formation in patients with alcohol use disorder or diabetes.`, management: `3rd-generation cephalosporin (ceftriaxone) or carbapenem; watch for MDR strains.` },
+  { lo: 6, sector: 2, title: `Oral Anaerobes / Bacteroides fragilis`, etiology: `Polymicrobial oral flora (Peptostreptococcus, Fusobacterium, Prevotella) + Bacteroides fragilis.`, pathogenesis: `Aspiration of oropharyngeal contents during impaired consciousness (seizures, alcohol, dysphagia) -> liquefactive necrosis.`, hallmarks: `Foul-smelling (putrid) sputum; dependent lung cavity with air-fluid level on CXR/CT (right lower/posterior upper lobe).`, clinical: `Subacute fever, weight loss, productive foul-smelling sputum after aspiration risk event.`, management: `Clindamycin or beta-lactam/beta-lactamase inhibitor (ampicillin-sulbactam, piperacillin-tazobactam); metronidazole.` },
+  { lo: 7, sector: 3, title: `Mycoplasma pneumoniae`, etiology: `Cell wall-less pleomorphic bacteria; membrane contains sterols; outbreaks in barracks/dorms (<30 yr).`, pathogenesis: `P1 adhesin attaches to respiratory cilia causing ciliostasis; triggers IgM cold agglutinins against RBC I antigen.`, hallmarks: `No Gram stain visibility; grows on Eaton agar ("fried-egg" colonies); high cold agglutinins (IgM); patchy interstitial CXR worse than exam.`, clinical: `Insidious "walking" pneumonia, nonproductive cough, headache, myringitis, erythema multiforme.`, management: `Macrolides (azithromycin), doxycycline, or respiratory fluoroquinolone; beta-lactams are ineffective (no cell wall).` },
+  { lo: 8, sector: 3, title: `Legionella pneumophila`, etiology: `Weakly Gram- rod; aerosolized from contaminated AC cooling towers, hot water tanks, cruise ships.`, pathogenesis: `Facultative intracellular pathogen replicating inside alveolar macrophages by inhibiting phagolysosome fusion.`, hallmarks: `Visualized by silver stain; grows on BCYE agar with iron and cysteine; oxidase+; rapid urine antigen test; hyponatremia.`, clinical: `High fever, severe unilateral lobar pneumonia, watery diarrhea, confusion/neurologic symptoms (Legionnaires disease) vs Pontiac fever.`, management: `Macrolide (azithromycin) or respiratory fluoroquinolone (levofloxacin); no person-to-person spread.` },
+  { lo: 9, sector: 3, title: `Chlamydia pneumoniae & C. psittaci`, etiology: `Obligate intracellular bacteria lacking muramic acid in cell wall; C. psittaci from parrot/bird droppings.`, pathogenesis: `Elementary body (infectious) enters host cell -> reticulate body divides inside inclusion using host ATP ("energy parasite").`, hallmarks: `Giemsa stain reveals intracytoplasmic inclusions; poorly seen on Gram stain; patchy interstitial infiltrate.`, clinical: `C. pneumoniae: atypical walking pneumonia (older adults); C. psittaci: fever, headache, pneumonia + bird exposure.`, management: `Doxycycline (1st line for psittacosis/pneumonia) or macrolide (azithromycin).` },
+  { lo: 10, sector: 4, title: `Mycobacterium tuberculosis`, etiology: `Obligate aerobic acid-fast bacillus; respiratory droplet transmission.`, pathogenesis: `Cord factor (trehalose dimycolate) induces granulomas & TNF-alpha; sulfatides inhibit phagolysosome fusion; Th1/IFN-gamma containment.`, hallmarks: `Acid-fast pink rods (Ziehl-Neelsen/carbol fuchsin); Lowenstein-Jensen agar; caseating granulomas; Ghon complex; upper-lobe cavities in reactivation.`, clinical: `Primary TB (asymptomatic/middle-lower lobe) vs reactivation (fever, night sweats, weight loss, hemoptysis); Pott disease.`, management: `Latent: INH (with B6) or rifampin. Active: RIPE (Rifampin, Isoniazid, Pyrazinamide, Ethambutol) x 2 mo, then RI x 4 mo.` },
+  { lo: 11, sector: 4, title: `Mycobacterium avium complex (MAC)`, etiology: `Non-tuberculous environmental mycobacterium; opportunistic dissemination in AIDS when CD4 < 50/mm3.`, pathogenesis: `Ingested/inhaled organisms survive inside macrophages in profoundly CD4-depleted hosts without forming tight granulomas.`, hallmarks: `Acid-fast bacilli within foamy macrophages on biopsy/blood culture; elevated alkaline phosphatase.`, clinical: `Persistent fever, night sweats, weight loss, watery diarrhea, hepatosplenomegaly, lymphadenopathy in AIDS (CD4 < 50).`, management: `Treatment: macrolide (clarithromycin/azithromycin) + ethambutol (+/- rifabutin). Prophylaxis not routine if on effective ART.` },
+  { lo: 12, sector: 4, title: `Nocardia asteroides vs Actinomyces israelii`, etiology: `Nocardia: aerobic soil saprophyte; Actinomyces: anaerobic normal oral/GI flora after mucosal trauma.`, pathogenesis: `Nocardia causes suppurative granulomatous infection in immunocompromised; Actinomyces forms draining sinus tracts.`, hallmarks: `Nocardia: Gram+, weakly acid-fast branching filaments, urease+. Actinomyces: Gram+, NOT acid-fast branching filaments, yellow "sulfur granules".`, clinical: `Nocardia: cavitary pneumonia + CNS brain abscesses. Actinomyces: cervicofacial/thoracic abscesses with sulfur granules.`, management: `Nocardia: TMP-SMX ("Nocardia = sulfonamides"). Actinomyces: Penicillin G / ampicillin.` },
+  { lo: 13, sector: 5, title: `Histoplasma capsulatum`, etiology: `Dimorphic fungus endemic to Ohio/Mississippi River valleys; bird or bat droppings (caves, chicken coops).`, pathogenesis: `Inhaled microconidia convert to yeast at 37°C and survive inside alveolar macrophages forming granulomas.`, hallmarks: `Oval budding yeasts smaller than RBCs packed inside macrophages; KOH/silver stain; urine/serum antigen test; calcified granulomas mimicking TB.`, clinical: `Immunocompetent: mild/asymptomatic pneumonia; AIDS (CD4 < 200): disseminated pancytopenia, hepatosplenomegaly, palatal ulcers.`, management: `Mild: itraconazole; severe/disseminated: IV amphotericin B followed by itraconazole.` },
+  { lo: 14, sector: 5, title: `Coccidioides immitis`, etiology: `Dimorphic fungus endemic to Southwestern US deserts (Arizona, California San Joaquin Valley); dust/earthquakes.`, pathogenesis: `Inhaled arthroconidia transform into large thick-walled spherules filled with endospores in lung tissue.`, hallmarks: `Large spherules (much larger than RBCs) packed with endospores on biopsy/silver stain; eosinophilia.`, clinical: `Valley fever (fever, cough, arthralgias/"desert rheumatism", erythema nodosum); thin-walled lung cavities or meningitis in immunocompromised.`, management: `Mild: supportive or fluconazole/itraconazole; severe/meningitis: amphotericin B or high-dose fluconazole.` },
+  { lo: 15, sector: 5, title: `Pneumocystis jirovecii`, etiology: `Opportunistic yeast-like fungus; inhaled by most in childhood, reactivates when CD4 < 200/mm3.`, pathogenesis: `Trophic forms attach to type I pneumocytes causing diffuse alveolar damage and surfactant-rich foamy exudate.`, hallmarks: `Methenamine silver stain shows disc/cup-shaped cysts; BAL diagnostic; bilateral diffuse ground-glass opacities & pneumatoceles; elevated LDH.`, clinical: `Subacute progressive dyspnea, nonproductive cough, fever, severe hypoxemia in HIV/AIDS with CD4 < 200.`, management: `High-dose TMP-SMX (+ corticosteroids if PaO2 < 70 mmHg or A-a gradient >= 35); TMP-SMX prophylaxis at CD4 < 200.` }
+];
+
+const ALL_QUESTIONS = [
+  // LO 1: Streptococcus pneumoniae
+  {
+    id: `LO01-Q1`, lo: 1, loTitle: `LO 1: Streptococcus pneumoniae`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Streptococcus pneumoniae`,
+    stem: `A 68-year-old man with functional asplenia presents with abrupt high fever, rigors, right-sided pleuritic chest pain, and productive cough yielding rusty blood-tinged sputum. Chest radiograph shows right lower lobe consolidation. Which pathogen is the most likely cause?`,
+    clue: `Functional asplenia plus abrupt lobar pneumonia with "rusty" sputum points to an encapsulated lancet-shaped diplococcus.`,
+    choices: [`Streptococcus pneumoniae`, `Mycoplasma pneumoniae`, `Klebsiella pneumoniae`],
+    correctIndex: 0,
+    explanation: `Correct: S. pneumoniae is the leading cause of community-acquired lobar pneumonia with rusty sputum and disproportionately causes overwhelming infection in asplenic patients. Distractor exclusion: Mycoplasma causes insidious interstitial "walking" pneumonia without rusty lobar consolidation, while Klebsiella classically produces mucoid "currant-jelly" sputum in alcohol use disorder.`,
+    secondOrderClue: `Asplenia (anatomic or functional, e.g., sickle cell disease) impairs clearance of encapsulated bacteria -> rapid S. pneumoniae sepsis.`,
+    phase1Pearl: `Polysaccharide capsule prevents opsonization; IgA protease cleaves secretory IgA.`,
+    phase2Hallmark: `Gram-positive, alpha-hemolytic, lancet-shaped diplococci; optochin-sensitive and bile-soluble.`,
+    phase3Secret: `Vaccinate asplenic patients with pneumococcal conjugate (PCV13/15/20) and polysaccharide (PPSV23) vaccines.`,
+    dossierBullets: {
+      p1: [`Polysaccharide capsule resists C3b opsonization and phagocytosis`, `Secretes IgA protease to colonize nasopharyngeal mucosa`],
+      p2: [`Lancet-shaped Gram+ diplococci, alpha-hemolytic`, `Optochin sensitive and bile soluble (unlike Viridans strep)`],
+      p3: [`#1 cause of CAP, meningitis, and otitis media`, `Treat severe CAP with ceftriaxone + macrolide or respiratory fluoroquinolone`]
+    }
+  },
+  {
+    id: `LO01-Q2`, lo: 1, loTitle: `LO 1: Streptococcus pneumoniae`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Antiphagocytic polysaccharide capsule`,
+    stem: `A 54-year-old splenectomized patient develops fulminant lobar pneumonia and bacteremia from Streptococcus pneumoniae. Which structural component of this organism is directly essential for its virulence and survival in the bloodstream?`,
+    clue: `Without this outer carbohydrate layer, the organism loses virulence and is rapidly cleared by host phagocytes.`,
+    choices: [`Polysaccharide capsule`, `M protein`, `Mycolic acid cell wall`],
+    correctIndex: 0,
+    explanation: `Correct: S. pneumoniae has no virulence without its polysaccharide capsule, which inhibits C3b-mediated opsonophagocytosis; antibodies against the capsule restore clearance. Distractor exclusion: M protein is a virulence factor of Streptococcus pyogenes (Group A), and mycolic acid is characteristic of Mycobacterium tuberculosis.`,
+    secondOrderClue: `Polysaccharide capsule -> requires splenic macrophages and opsonizing anticapsular IgG for clearance.`,
+    phase1Pearl: `No capsule = no virulence in S. pneumoniae; Quellung reaction demonstrates capsular swelling.`,
+    phase2Hallmark: `Bile-soluble, optochin-sensitive alpha-hemolytic diplococci.`,
+    phase3Secret: `Conjugated vaccines (PCV) link capsular polysaccharide to a protein carrier to induce T-cell dependent memory.`,
+    dossierBullets: {
+      p1: [`Polysaccharide capsule blocks complement C3b binding`, `Splenic marginal zone macrophages clear opsonized encapsulated bacteria`],
+      p2: [`Quellung positive with type-specific antisera`, `Lobar pneumonia progresses through congestion, red/gray hepatization, resolution`],
+      p3: [`PPSV23 triggers T-independent IgM; PCV15/20 triggers T-dependent IgG`, `Hyposplenic patients require vaccination + meningococcal/Hib coverage`]
+    }
+  },
+  {
+    id: `LO01-Q3`, lo: 1, loTitle: `LO 1: Streptococcus pneumoniae`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Optochin-sensitive & bile-soluble`,
+    stem: `Sputum culture from a patient with rusty-sputum lobar pneumonia yields alpha-hemolytic Gram-positive cocci in pairs. Which laboratory profile confirms Streptococcus pneumoniae over oral Viridans streptococci?`,
+    clue: `Remember the mnemonic: Viridans is not afraid of the "chin" (optochin resistant), whereas pneumococcus is lysed by bile.`,
+    choices: [`Optochin sensitive and bile soluble`, `Optochin resistant and bile insoluble`, `Bacitracin sensitive and PYR positive`],
+    correctIndex: 0,
+    explanation: `Correct: S. pneumoniae is optochin-sensitive (growth inhibited around a P disc) and bile-soluble (lysed by deoxycholate). Distractor exclusion: Viridans streptococci are optochin-resistant and bile-insoluble; Group A Streptococcus pyogenes is beta-hemolytic, bacitracin-sensitive, and PYR-positive.`,
+    secondOrderClue: `Alpha-hemolytic Gram+ cocci -> optochin sensitivity separates S. pneumoniae from Viridans group.`,
+    phase1Pearl: `Autolysin activation in bile salts causes rapid lysis of S. pneumoniae.`,
+    phase2Hallmark: `Greenish alpha-hemolysis on blood agar + zone of inhibition around optochin disc.`,
+    phase3Secret: `Add vancomycin empirically to ceftriaxone if pneumococcal meningitis is suspected due to penicillin-resistant PBPs.`,
+    dossierBullets: {
+      p1: [`Altered penicillin-binding proteins (PBPs) mediate beta-lactam resistance`, `IgA protease aids respiratory tract invasion`],
+      p2: [`Optochin sensitive + bile soluble = S. pneumoniae`, `Viridans strep = optochin resistant + bile insoluble`],
+      p3: [`Outpatient CAP: amoxicillin or doxycycline/macrolide`, `Inpatient CAP: ceftriaxone + azithromycin or levofloxacin`]
+    }
+  },
+  // LO 2: Staphylococcus aureus
+  {
+    id: `LO02-Q1`, lo: 2, loTitle: `LO 2: Staphylococcus aureus`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Staphylococcus aureus superinfection`,
+    stem: `A 72-year-old nursing home resident recovers briefly from influenza A before suddenly developing high fever, purulent hemoptysis, and rapid respiratory failure. Chest CT shows bilateral patchy necrotizing infiltrates with early cavitations. Which organism is most likely responsible?`,
+    clue: `Post-influenza bacterial superinfection causing rapid necrotizing cavitary bronchopneumonia points to a catalase-positive Gram+ cluster.`,
+    choices: [`Staphylococcus aureus`, `Mycoplasma pneumoniae`, `Chlamydia pneumoniae`],
+    correctIndex: 0,
+    explanation: `Correct: Influenza damages the mucociliary escalator, predisposing patients to fatal bacterial superinfection, classically necrotizing cavitary pneumonia due to S. aureus (alongside S. pneumoniae and H. influenzae). Distractor exclusion: Mycoplasma and Chlamydia cause mild insidious atypical pneumonia rather than post-viral necrotizing cavitations.`,
+    secondOrderClue: `Influenza recovery -> sudden biphasic worsening with necrotizing cavities = S. aureus superinfection.`,
+    phase1Pearl: `Viral neuraminidase and epithelial denudation expose basement membrane binding sites for S. aureus.`,
+    phase2Hallmark: `Gram-positive cocci in grape-like clusters; catalase-positive and coagulase-positive.`,
+    phase3Secret: `Empiric post-influenza necrotizing pneumonia therapy MUST include MRSA coverage (vancomycin or linezolid).`,
+    dossierBullets: {
+      p1: [`Influenza impairs mucociliary clearance and alveolar macrophages`, `S. aureus cytotoxins cause rapid parenchymal necrosis`],
+      p2: [`Patchy bronchopneumonia with abscesses, pneumatoceles, and empyema`, `Beta-hemolytic golden colonies; catalase+ and coagulase+`],
+      p3: [`Treat influenza early with oseltamivir to reduce complications`, `Treat MRSA necrotizing pneumonia with IV vancomycin or linezolid`]
+    }
+  },
+  {
+    id: `LO02-Q2`, lo: 2, loTitle: `LO 2: Staphylococcus aureus`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Protein A binds IgG Fc`,
+    stem: `A patient develops severe hospital-acquired Staphylococcus aureus pneumonia with empyema. Which bacterial surface virulence factor enables S. aureus to evade complement activation and opsonophagocytosis by binding host immunoglobulins in the wrong orientation?`,
+    clue: `This cell wall protein binds the constant Fc region of IgG, preventing macrophage Fc-receptor engagement.`,
+    choices: [`Protein A binding Fc region of IgG`, `Hyaluronic acid capsule`, `Exotoxin A inhibiting EF-2`],
+    correctIndex: 0,
+    explanation: `Correct: S. aureus Protein A is anchored in the peptidoglycan cell wall and binds the Fc domain of IgG, blocking opsonization and complement fixation. Distractor exclusion: Hyaluronic acid capsule belongs to S. pyogenes; Exotoxin A inhibiting elongation factor-2 belongs to Pseudomonas aeruginosa.`,
+    secondOrderClue: `Protein A -> binds IgG Fc -> prevents phagocytosis without relying on a thick capsule.`,
+    phase1Pearl: `Coagulase converts fibrinogen to fibrin, walling off abscesses; catalase neutralizes H2O2 in neutrophils.`,
+    phase2Hallmark: `Catalase+ (distinguishes Staph from Strep) and coagulase+ (distinguishes S. aureus from S. epidermidis).`,
+    phase3Secret: `MRSA acquires mecA gene encoding altered PBP2a, conferring resistance to all beta-lactams except ceftaroline.`,
+    dossierBullets: {
+      p1: [`Protein A binds IgG Fc region, blocking complement fixation`, `Catalase degrades H2O2, enabling survival inside chronic granulomatous disease phagocytes`],
+      p2: [`Coagulase+ golden colonies on mannitol salt agar`, `Tissue biopsy shows neutrophilic abscesses and necrosis`],
+      p3: [`MSSA: nafcillin/oxacillin or cefazolin`, `MRSA: vancomycin, linezolid (lung penetration), or ceftaroline; avoid daptomycin in pneumonia (inactivated by surfactant)`]
+    }
+  },
+  {
+    id: `LO02-Q3`, lo: 2, loTitle: `LO 2: Staphylococcus aureus`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Vancomycin or linezolid`,
+    stem: `A 44-year-old man with post-influenza necrotizing pneumonia has sputum Gram stain showing Gram-positive cocci in clusters, later confirmed as methicillin-resistant Staphylococcus aureus (MRSA). Why should daptomycin be avoided in favor of vancomycin or linezolid for this pulmonary infection?`,
+    clue: `Alveolar surfactant inactivates one lipopeptide antibiotic, making it ineffective for pneumonia despite strong MRSA bloodstream activity.`,
+    choices: [`Daptomycin is inactivated by pulmonary surfactant`, `Daptomycin requires Factor V for activation`, `Daptomycin only covers Gram-negative rods`],
+    correctIndex: 0,
+    explanation: `Correct: Vancomycin or linezolid are first-line for MRSA pneumonia because daptomycin binds to and is inactivated by pulmonary surfactant in the alveoli. Distractor exclusion: Factor V is a growth requirement for Haemophilus influenzae, not an antibiotic cofactor, and daptomycin specifically targets Gram-positive organisms.`,
+    secondOrderClue: `MRSA pneumonia -> use vancomycin or linezolid (never daptomycin due to surfactant inactivation).`,
+    phase1Pearl: `mecA-encoded PBP2a has low affinity for beta-lactams, causing methicillin/nafcillin resistance.`,
+    phase2Hallmark: `Pneumatoceles (thin-walled air cysts) and empyema on chest imaging.`,
+    phase3Secret: `Linezolid achieves high epithelial lining fluid levels and inhibits ribosomal toxin synthesis.`,
+    dossierBullets: {
+      p1: [`mecA gene on SCCmec cassette encodes PBP2a`, `Cytolytic toxins drive alveolar wall destruction`],
+      p2: [`Gram+ clusters, catalase+, coagulase+`, `Cavitary bronchopneumonia with pneumatoceles`],
+      p3: [`Vancomycin or linezolid for MRSA pneumonia`, `Never use daptomycin for lung parenchymal infections`]
+    }
+  },
+  // LO 3: Haemophilus influenzae
+  {
+    id: `LO03-Q1`, lo: 3, loTitle: `LO 3: Haemophilus influenzae`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Haemophilus influenzae`,
+    stem: `A 64-year-old man with severe COPD develops worsening dyspnea, purulent sputum, and fever. Sputum Gram stain shows abundant small pleomorphic Gram-negative coccobacilli. Which organism is the most common bacterial trigger of his acute COPD exacerbation?`,
+    clue: `Non-typeable strains of this small Gram-negative coccobacillus frequently trigger mucosal COPD exacerbations and otitis media.`,
+    choices: [`Haemophilus influenzae`, `Legionella pneumophila`, `Pseudomonas aeruginosa`],
+    correctIndex: 0,
+    explanation: `Correct: Non-typeable (unencapsulated) Haemophilus influenzae is a classic small Gram-negative coccobacillus causing acute exacerbations of COPD, otitis media, and sinusitis. Distractor exclusion: Legionella stains poorly on Gram stain and causes waterborne lobar pneumonia with GI/neurologic features; Pseudomonas presents as slender rods in CF or ventilated patients.`,
+    secondOrderClue: `COPD exacerbation + small Gram-negative coccobacilli = non-typeable Haemophilus influenzae.`,
+    phase1Pearl: `IgA protease cleaves mucosal IgA, enabling colonization of damaged COPD airways.`,
+    phase2Hallmark: `Requires Chocolate agar containing Factor X (hematin) and Factor V (NAD+).`,
+    phase3Secret: `Hib vaccine covers only type B capsular strains; it does NOT prevent non-typeable H. influenzae COPD flares.`,
+    dossierBullets: {
+      p1: [`Non-typeable strains lack capsule and cause mucosal disease`, `IgA protease disrupts airway mucosal defense`],
+      p2: [`Small Gram-negative pleomorphic coccobacilli`, `Grows on chocolate agar (heated blood releases Factors X and V)`],
+      p3: [`Treat mucosal infection with amoxicillin-clavulanate`, `Treat invasive/meningitis type B disease with ceftriaxone`]
+    }
+  },
+  {
+    id: `LO03-Q2`, lo: 3, loTitle: `LO 3: Haemophilus influenzae`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Factors X (hematin) and V (NAD+)`,
+    stem: `A clinical microbiology lab plates a bronchoalveolar lavage specimen containing Haemophilus influenzae onto standard sheep blood agar alongside a streak of Staphylococcus aureus. Colonies of H. influenzae grow only immediately adjacent to the S. aureus streak. What explains this satellite growth?`,
+    clue: `S. aureus hemolyzes RBCs and secretes a nicotinamide cofactor needed by this fastidious coccobacillus.`,
+    choices: [`S. aureus supplies Factor V (NAD+) and lyses RBCs for Factor X`, `S. aureus produces cysteine and iron for H. influenzae`, `S. aureus neutralizes bile salts in the agar`],
+    correctIndex: 0,
+    explanation: `Correct: H. influenzae requires Factor X (hematin) and Factor V (NAD+) for growth; S. aureus beta-hemolysis releases hematin and S. aureus secretes NAD+, allowing satellite colonies. Distractor exclusion: Cysteine and iron are required by Legionella on BCYE agar; bile salt resistance applies to Enterococcus.`,
+    secondOrderClue: `Satellite phenomenon around S. aureus -> dependency on Factor X (hematin) and Factor V (NAD+).`,
+    phase1Pearl: `H. influenzae cannot synthesize protoporphyrin (hematin) or NAD+ independently.`,
+    phase2Hallmark: `Chocolate agar (lysed RBCs) supplies both Factor X and Factor V without requiring S. aureus.`,
+    phase3Secret: `Type B PRP capsule is conjugated to diphtheria toxoid in the Hib vaccine given at 2–18 months.`,
+    dossierBullets: {
+      p1: [`Obligate requirement for Factor X (hemin) and Factor V (NAD+)`, `Type B capsule (polyribosylribitol phosphate) drives invasive sepsis`],
+      p2: [`Satellite growth around S. aureus on blood agar`, `Plump Gram-negative coccobacilli on chocolate agar`],
+      p3: [`Vaccinate infants at 2–18 months with conjugated Hib vaccine`, `Give rifampin prophylaxis to unvaccinated close household contacts`]
+    }
+  },
+  {
+    id: `LO03-Q3`, lo: 3, loTitle: `LO 3: Haemophilus influenzae`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Ceftriaxone + rifampin contacts`,
+    stem: `An unvaccinated 2-year-old boy develops high fever, inspiratory stridor, drooling, and a "thumbprint" sign on lateral neck radiograph due to encapsulated Haemophilus influenzae type B. After securing the airway and starting IV ceftriaxone, what is indicated for his unvaccinated 3-year-old sibling at home?`,
+    clue: `A single oral antibiotic eradicates nasopharyngeal carriage in close contacts of invasive Hib disease.`,
+    choices: [`Rifampin prophylaxis`, `Isoniazid monotherapy`, `TMP-SMX prophylaxis`],
+    correctIndex: 0,
+    explanation: `Correct: Invasive H. influenzae type B (epiglottitis, meningitis) is treated with ceftriaxone, and close contacts (especially unvaccinated young children) receive rifampin prophylaxis to eliminate carriage. Distractor exclusion: Isoniazid is used for latent tuberculosis; TMP-SMX is used for Pneumocystis or Nocardia.`,
+    secondOrderClue: `Invasive Hib (thumbprint epiglottitis) -> IV ceftriaxone for patient, rifampin for close contacts.`,
+    phase1Pearl: `Type B polyribosylribitol phosphate capsule resists phagocytosis until anticapsular antibodies form.`,
+    phase2Hallmark: `Lateral neck film shows swollen epiglottis ("thumbprint" sign); chocolate agar growth.`,
+    phase3Secret: `Never examine the throat with a tongue depressor in suspected epiglottitis before airway control.`,
+    dossierBullets: {
+      p1: [`Type B capsule enables bacteremia and epiglottic invasion`, `IgA protease impairs mucosal clearance`],
+      p2: [`"Thumbprint" sign on lateral neck radiograph`, `Gram-negative coccobacilli requiring Factors X and V`],
+      p3: [`Treat invasive Hib with ceftriaxone`, `Give rifampin prophylaxis to close household/daycare contacts`]
+    }
+  },
+  // LO 4: Pseudomonas aeruginosa
+  {
+    id: `LO04-Q1`, lo: 4, loTitle: `LO 4: Pseudomonas aeruginosa`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Pseudomonas aeruginosa`,
+    stem: `A 21-year-old woman with cystic fibrosis is admitted with worsening cough, thick greenish sputum, and declining FEV1. Sputum culture grows an obligate aerobic, oxidase-positive, non-lactose-fermenting Gram-negative rod with a sweet grape-like odor. Which pathogen is responsible?`,
+    clue: `Cystic fibrosis chronic mucoid pneumonia + blue-green pigment + oxidase-positive Gram-negative rod.`,
+    choices: [`Pseudomonas aeruginosa`, `Burkholderia cepacia`, `Klebsiella pneumoniae`],
+    correctIndex: 0,
+    explanation: `Correct: Pseudomonas aeruginosa is the hallmark cause of chronic pneumonia in cystic fibrosis (and ventilator-associated pneumonia), characterized by oxidase positivity, obligate aerobic metabolism, and blue-green pyocyanin pigment with a grape-like odor. Distractor exclusion: Klebsiella is a lactose-fermenting mucoid rod producing currant-jelly sputum; Burkholderia cepacia is MDR in CF but lacks pyocyanin and grape odor.`,
+    secondOrderClue: `CF lung disease + oxidase+ non-lactose fermenter + grape odor = Pseudomonas aeruginosa.`,
+    phase1Pearl: `CFTR dysfunction creates dehydrated viscous mucus where Pseudomonas forms alginate biofilms.`,
+    phase2Hallmark: `Oxidase-positive Gram-negative rod; blue-green pyocyanin and pyoverdin pigments.`,
+    phase3Secret: `Ciprofloxacin is the only reliable oral antibiotic with antipseudomonal activity.`,
+    dossierBullets: {
+      p1: [`Produces mucoid alginate biofilm inside thick CF airway secretions`, `Obligate aerobe thriving in aquatic/ventilator reservoirs`],
+      p2: [`Oxidase-positive, non-lactose fermenter on MacConkey agar`, `Blue-green pyocyanin pigment and sweet grape-like odor`],
+      p3: [`Major cause of CF exacerbations and ventilator-associated pneumonia`, `Treat with piperacillin-tazobactam, cefepime, meropenem, or ciprofloxacin`]
+    }
+  },
+  {
+    id: `LO04-Q2`, lo: 4, loTitle: `LO 4: Pseudomonas aeruginosa`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Exotoxin A inhibits EF-2`,
+    stem: `A mechanically ventilated ICU patient develops Pseudomonas aeruginosa pneumonia complicated by necrotic black skin lesions (ecthyma gangrenosum). Which molecular mechanism mediates cell death induced by Pseudomonas Exotoxin A?`,
+    clue: `This exotoxin shares the exact same molecular target as Corynebacterium diphtheriae toxin.`,
+    choices: [`Inactivation of elongation factor-2 (EF-2)`, `Activation of adenylyl cyclase raising cAMP`, `Cleavage of SNARE proteins blocking ACh`],
+    correctIndex: 0,
+    explanation: `Correct: Pseudomonas Exotoxin A ADP-ribosylates elongation factor-2 (EF-2), halting host protein synthesis and causing cell death. Distractor exclusion: Raising intracellular cAMP via adenylyl cyclase is mediated by Bacillus anthracis edema factor or Vibrio cholerae; SNARE cleavage is mediated by botulinum and tetanus toxins.`,
+    secondOrderClue: `Pseudomonas Exotoxin A = Diphtheria toxin mechanism -> ADP-ribosylation of EF-2.`,
+    phase1Pearl: `Exotoxin A halts protein synthesis; endotoxin (lipid A) drives septic shock; elastase destroys vascular walls (ecthyma gangrenosum).`,
+    phase2Hallmark: `Perivascular bacterial invasion and hemorrhagic necrosis in ecthyma gangrenosum.`,
+    phase3Secret: `Severe nosocomial Pseudomonas pneumonia often receives dual empiric antipseudomonal coverage initially.`,
+    dossierBullets: {
+      p1: [`Exotoxin A inactivates EF-2 via ADP-ribosylation`, `Endotoxin triggers systemic inflammation and shock`],
+      p2: [`Ecthyma gangrenosum: rapidly progressing black necrotic cutaneous ulcers`, `Non-lactose fermenting, oxidase+ Gram-negative rods`],
+      p3: [`Antipseudomonal beta-lactams: cefepime, ceftazidime, piperacillin-tazobactam, meropenem`, `Avoid plain ceftriaxone (lacks Pseudomonas coverage)`]
+    }
+  },
+  {
+    id: `LO04-Q3`, lo: 4, loTitle: `LO 4: Pseudomonas aeruginosa`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Piperacillin-tazobactam or cefepime`,
+    stem: `A 67-year-old man on mechanical ventilation for 8 days develops fever, purulent tracheal secretions, and a new lobar infiltrate. Bronchoalveolar lavage grows blue-green oxidase-positive Gram-negative rods. Which IV antibiotic provides reliable first-line antipseudomonal coverage?`,
+    clue: `Choose a 4th-generation cephalosporin or ureidopenicillin/beta-lactamase inhibitor, not a standard community-acquired cephalosporin.`,
+    choices: [`Piperacillin-tazobactam`, `Ceftriaxone`, `Azithromycin`],
+    correctIndex: 0,
+    explanation: `Correct: Antipseudomonal penicillins (piperacillin-tazobactam), 4th-generation cephalosporins (cefepime), ceftazidime, carbapenems (meropenem/imipenem), or fluoroquinolones (ciprofloxacin) cover P. aeruginosa. Distractor exclusion: Ceftriaxone (3rd gen, unlike ceftazidime) and azithromycin lack activity against Pseudomonas.`,
+    secondOrderClue: `Ventilator-associated pneumonia -> cover Pseudomonas with piperacillin-tazobactam, cefepime, or meropenem.`,
+    phase1Pearl: `Chromosomal AmpC beta-lactamase and efflux pumps drive rapid multidrug resistance.`,
+    phase2Hallmark: `Oxidase-positive green-pigmented colonies on nutrient agar.`,
+    phase3Secret: `Add vancomycin to antipseudomonal therapy in VAP to cover concurrent MRSA.`,
+    dossierBullets: {
+      p1: [`Efflux pumps and porin loss confer intrinsic resistance to many drugs`, `Biofilm matrix shields bacteria on endotracheal tubes`],
+      p2: [`Oxidase-positive Gram-negative rods; pyocyanin pigment`, `Clear colonies (lactose negative) on MacConkey agar`],
+      p3: [`Active beta-lactams: piperacillin-tazobactam, cefepime, ceftazidime, meropenem`, `Oral option: ciprofloxacin (higher antipseudomonal activity than levofloxacin)`]
+    }
+  },
+  // LO 5: Klebsiella pneumoniae
+  {
+    id: `LO05-Q1`, lo: 5, loTitle: `LO 5: Klebsiella pneumoniae`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Klebsiella pneumoniae`,
+    stem: `A 59-year-old man with chronic alcohol use disorder and poorly controlled diabetes presents with fever, pleuritic pain, and thick, gelatinous, dark-red "currant-jelly" sputum. Chest radiograph shows a dense right upper lobe consolidation with a downward-bowing horizontal fissure. What is the causative organism?`,
+    clue: `Alcohol use disorder + "currant-jelly" mucoid sputum + bulging fissure sign in the upper lobe.`,
+    choices: [`Klebsiella pneumoniae`, `Streptococcus pneumoniae`, `Mycobacterium tuberculosis`],
+    correctIndex: 0,
+    explanation: `Correct: Klebsiella pneumoniae classically causes aspiration-related necrotizing lobar pneumonia in patients with alcohol use disorder or diabetes, producing bloody mucoid "currant-jelly" sputum and a bulging fissure sign. Distractor exclusion: S. pneumoniae produces watery rusty sputum rather than thick gelatinous currant-jelly sputum; TB causes chronic subacute cavitary disease rather than acute bulging-fissure lobar consolidation.`,
+    secondOrderClue: `Alcohol use + upper lobe bulging fissure + currant-jelly sputum = Klebsiella pneumoniae.`,
+    phase1Pearl: `Massive mucoid polysaccharide capsule resists phagocytosis and thickens alveolar exudate.`,
+    phase2Hallmark: `Immotile, lactose-fermenting Gram-negative rod; urease-positive; mucoid pink colonies on MacConkey.`,
+    phase3Secret: `Often causes lung abscesses and carries high mortality without prompt 3rd-gen cephalosporin or carbapenem therapy.`,
+    dossierBullets: {
+      p1: [`Thick mucoid polysaccharide capsule prevents phagocytosis`, `Aspiration in alcohol use/diabetes seeds posterior upper lobes`],
+      p2: [`"Currant-jelly" thick bloody mucoid sputum`, `Bulging interlobar fissure on chest radiograph`],
+      p3: [`Treat with 3rd-generation cephalosporin or carbapenem`, `Monitor for carbapenemase-producing (KPC) multidrug-resistant strains`]
+    }
+  },
+  {
+    id: `LO05-Q2`, lo: 5, loTitle: `LO 5: Klebsiella pneumoniae`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Immotile lactose-fermenting urease+ rod`,
+    stem: `A diabetic patient with necrotizing right upper lobe pneumonia has sputum plated on MacConkey agar, yielding large, mucoid, bright pink colonies. Which biochemical profile distinguishes Klebsiella pneumoniae from Enterobacter and Serratia?`,
+    clue: `Unlike motile Enterobacter and red-pigmented Serratia, this encapsulated lactose fermenter is immotile and hydrolyzes urea.`,
+    choices: [`Immotile, lactose fermenting, urease positive`, `Motile, non-lactose fermenting, oxidase positive`, `Motile, lactose fermenting, red pigment`],
+    correctIndex: 0,
+    explanation: `Correct: Klebsiella pneumoniae is an immotile, encapsulated, urease-positive, lactose-fermenting (pink on MacConkey) Gram-negative rod. Distractor exclusion: Pseudomonas is motile, oxidase-positive, and non-lactose-fermenting; Serratia marcescens is motile and produces a red pigment.`,
+    secondOrderClue: `Mucoid pink colonies on MacConkey + immotile + urease+ = Klebsiella pneumoniae.`,
+    phase1Pearl: `Capsule prevents complement deposition and macrophage engulfment.`,
+    phase2Hallmark: `Mucoid pink colonies on MacConkey agar due to lactose fermentation.`,
+    phase3Secret: `Klebsiella is also a major cause of nosocomial UTIs, especially in catheterized patients.`,
+    dossierBullets: {
+      p1: [`Polysaccharide capsule drives exuberant mucoid exudate`, `Endotoxin triggers intense neutrophilic necrosis`],
+      p2: [`Immotile Gram-negative rod (unlike motile Enterobacter/Serratia)`, `Ferments lactose (pink on MacConkey) and is urease-positive`],
+      p3: [`High risk of cavitation and empyema`, `Carbapenems reserved for ESBL-producing Klebsiella`]
+    }
+  },
+  {
+    id: `LO05-Q3`, lo: 5, loTitle: `LO 5: Klebsiella pneumoniae`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Carbapenem (ESBL Klebsiella)`,
+    stem: `A 65-year-old ICU patient with Klebsiella pneumoniae pneumonia fails to improve on ceftriaxone, and susceptibility testing confirms an extended-spectrum beta-lactamase (ESBL)-producing strain. Which antibiotic class is the preferred definitive treatment?`,
+    clue: `ESBL hydrolyzes 3rd-generation cephalosporins; use a beta-lactam stable against ESBLs.`,
+    choices: [`Carbapenem (meropenem)`, `Amoxicillin`, `Ceftriaxone high-dose`],
+    correctIndex: 0,
+    explanation: `Correct: Carbapenems (meropenem, imipenem, ertapenem) are stable against ESBL enzymes and are first-line for serious ESBL-producing Klebsiella infections. Distractor exclusion: Amoxicillin and ceftriaxone are hydrolyzed by ESBLs.`,
+    secondOrderClue: `ESBL-producing Gram-negative rod -> step up to a carbapenem.`,
+    phase1Pearl: `Plasmid-encoded ESBLs hydrolyze penicillins and extended-spectrum cephalosporins.`,
+    phase2Hallmark: `Thick mucoid colonies on MacConkey; cavitary necrosis on chest CT.`,
+    phase3Secret: `Carbapenem resistance (KPC) requires newer beta-lactamase inhibitor combinations or polymyxins.`,
+    dossierBullets: {
+      p1: [`Plasmid-mediated beta-lactamases drive hospital resistance`, `Mucoid capsule impairs host clearance`],
+      p2: [`Currant-jelly sputum and bulging fissure sign`, `Urease+, lactose+, immotile Gram-negative rod`],
+      p3: [`Susceptible strains: 3rd-gen cephalosporin`, `ESBL strains: carbapenem (meropenem)`]
+    }
+  },
+  // LO 6: Oral Anaerobes / Bacteroides fragilis
+  {
+    id: `LO06-Q1`, lo: 6, loTitle: `LO 6: Oral Anaerobes / B. fragilis`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Polymicrobial anaerobic lung abscess`,
+    stem: `A 49-year-old man with poorly controlled tonic-clonic seizures and severe periodontal disease presents with 3 weeks of fever, night sweats, weight loss, and cough productive of foul-smelling sputum. Chest CT shows a 4-cm cavity with an air-fluid level in the superior segment of the right lower lobe. What is the diagnosis?`,
+    clue: `Seizure aspiration + bad dentition + putrid sputum + dependent lung cavity with air-fluid level.`,
+    choices: [`Anaerobic aspiration lung abscess`, `Tuberculosis reactivation`, `Mycoplasma atypical pneumonia`],
+    correctIndex: 0,
+    explanation: `Correct: Impaired consciousness (seizure, alcohol, stroke) plus periodontal disease leads to aspiration of oral anaerobes into dependent lung segments (superior segment of right lower lobe or posterior segment of upper lobe), causing a cavitary lung abscess with putrid sputum. Distractor exclusion: TB causes apical cavities without foul-smelling sputum or acute air-fluid levels; Mycoplasma does not cavitate.`,
+    secondOrderClue: `Aspiration risk + foul-smelling sputum + air-fluid cavity in dependent segment = anaerobic lung abscess.`,
+    phase1Pearl: `Polymicrobial oral anaerobes (Peptostreptococcus, Fusobacterium, Prevotella) synergize to cause liquefactive necrosis.`,
+    phase2Hallmark: `Thick-walled cavity with air-fluid level in dependent pulmonary segments; mixed Gram morphology.`,
+    phase3Secret: `Right mainstem bronchus is wider and more vertical, making right lower lobe dependent segments the #1 site.`,
+    dossierBullets: {
+      p1: [`Aspiration during depressed gag/cough reflex seeds oral flora`, `Polymicrobial anaerobes cause liquefactive parenchymal necrosis`],
+      p2: [`Air-fluid level inside a dependent lung cavity`, `Foul-smelling (putrid) sputum with mixed flora on Gram stain`],
+      p3: [`Locations: posterior upper lobes (supine) or superior RLL (upright/supine)`, `Treat with clindamycin or ampicillin-sulbactam`]
+    }
+  },
+  {
+    id: `LO06-Q2`, lo: 6, loTitle: `LO 6: Oral Anaerobes / B. fragilis`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Lack catalase and superoxide dismutase`,
+    stem: `Routine aerobic sputum cultures from a patient with a putrid aspiration lung abscess show no dominant pathogen growth despite abundant bacteria on Gram stain. Which physiologic property explains why obligate anaerobes fail to survive exposure to room air?`,
+    clue: `Anaerobes lack the protective enzymes needed to detoxify reactive oxygen species.`,
+    choices: [`Deficiency of catalase and superoxide dismutase`, `Absence of peptidoglycan cell wall`, `Obligate requirement for Factor V`],
+    correctIndex: 0,
+    explanation: `Correct: Obligate anaerobes (e.g., Bacteroides, Fusobacterium, Peptostreptococcus) cannot tolerate oxygen because they lack catalase and/or superoxide dismutase to neutralize toxic oxygen radicals. Distractor exclusion: Absence of a cell wall applies to Mycoplasma; Factor V requirement applies to H. influenzae.`,
+    secondOrderClue: `Abundant organisms on Gram stain + negative aerobic culture + putrid odor = obligate anaerobes.`,
+    phase1Pearl: `Anaerobic bacteria produce volatile short-chain fatty acids responsible for foul-smelling sputum.`,
+    phase2Hallmark: `Mixed Gram-positive and Gram-negative flora on stain with sterile routine aerobic plates.`,
+    phase3Secret: `Bacteroides fragilis possesses a polysaccharide capsule and beta-lactamase, requiring metronidazole or beta-lactamase inhibitors.`,
+    dossierBullets: {
+      p1: [`Lack superoxide dismutase/catalase -> killed by O2 radicals`, `Short-chain fatty acid metabolites produce putrid odor`],
+      p2: [`Polymicrobial Gram stain with negative standard aerobic culture`, `Liquefactive necrosis creating cavitary air-fluid levels`],
+      p3: [`B. fragilis resists plain penicillin via beta-lactamases`, `Oral anaerobes above the diaphragm respond well to clindamycin or ampicillin-sulbactam`]
+    }
+  },
+  {
+    id: `LO06-Q3`, lo: 6, loTitle: `LO 6: Oral Anaerobes / B. fragilis`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Ampicillin-sulbactam or clindamycin`,
+    stem: `A 56-year-old man with dysphagia after a stroke develops an aspiration pneumonia progressing to a foul-smelling right lower lobe lung abscess. Which empiric regimen provides optimal coverage against both oral anaerobes and beta-lactamase-producing Bacteroides species?`,
+    clue: `Pair an aminopenicillin with a beta-lactamase inhibitor, or select the classic "above the diaphragm" anaerobe drug.`,
+    choices: [`Ampicillin-sulbactam`, `Gentamicin monotherapy`, `Aztreonam monotherapy`],
+    correctIndex: 0,
+    explanation: `Correct: Ampicillin-sulbactam (or clindamycin, piperacillin-tazobactam) covers oral anaerobes, beta-lactamase-producing Bacteroides, and streptococci involved in aspiration lung abscess. Distractor exclusion: Aminoglycosides (gentamicin) require O2-dependent transport and are completely ineffective against anaerobes; aztreonam covers only aerobic Gram-negative rods.`,
+    secondOrderClue: `Aspiration lung abscess -> ampicillin-sulbactam or clindamycin (never aminoglycosides for anaerobes).`,
+    phase1Pearl: `Aminoglycosides cannot enter anaerobic bacteria because entry requires oxygen-dependent active transport.`,
+    phase2Hallmark: `Cavitary lesion with air-fluid level and foul sputum.`,
+    phase3Secret: `Metronidazole covers anaerobes well ("below the diaphragm") but must be paired with a beta-lactam in lung abscess to cover microaerophilic streptococci.`,
+    dossierBullets: {
+      p1: [`Beta-lactamase inhibitors (sulbactam, clavulanate) protect penicillins from Bacteroides enzymes`, `Aminoglycosides are inactive against anaerobes`],
+      p2: [`Air-fluid level cavity in dependent lung lobe`, `No growth on routine aerobic cultures`],
+      p3: [`First-line: ampicillin-sulbactam or clindamycin`, `Drainage reserved only for refractory/massive abscesses or empyema`]
+    }
+  },
+  // LO 7: Mycoplasma pneumoniae
+  {
+    id: `LO07-Q1`, lo: 7, loTitle: `LO 7: Mycoplasma pneumoniae`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Mycoplasma pneumoniae`,
+    stem: `A 20-year-old college sophomore living in a crowded dormitory presents with 10 days of low-grade fever, headache, sore throat, and a persistent nonproductive cough. He feels well enough to attend class, yet chest radiograph reveals surprisingly extensive bilateral patchy interstitial infiltrates. Which organism is most likely responsible?`,
+    clue: `Young adult in barracks/dorm + "walking" pneumonia + CXR looking much worse than physical exam.`,
+    choices: [`Mycoplasma pneumoniae`, `Streptococcus pneumoniae`, `Chlamydia psittaci`],
+    correctIndex: 0,
+    explanation: `Correct: Mycoplasma pneumoniae is the classic cause of atypical "walking" pneumonia in young adults (<30 years, military recruits, college dorms), where chest radiographs appear more severe than clinical presentation. Distractor exclusion: S. pneumoniae causes abrupt toxic lobar pneumonia; C. psittaci is associated with bird/parrot exposure.`,
+    secondOrderClue: `Young adult (<30) + dorm/military outbreak + CXR worse than patient exam = Mycoplasma pneumoniae.`,
+    phase1Pearl: `Attaches to respiratory ciliated epithelium via P1 adhesin, causing ciliostasis and mucosal inflammation.`,
+    phase2Hallmark: `Reticulonodular or patchy interstitial infiltrates on CXR; high titer of IgM cold agglutinins.`,
+    phase3Secret: `Bullous myringitis (painful tympanic membrane vesicles) and erythema multiforme are classic extrapulmonary clues.`,
+    dossierBullets: {
+      p1: [`Lacks cell wall; membrane stabilized by sterols/cholesterol`, `P1 adhesin induces ciliostasis and dry hacking cough`],
+      p2: [`CXR appears worse than clinical symptoms ("walking pneumonia")`, `Cold agglutinins (IgM) clump RBCs at 4°C`],
+      p3: [`Outbreaks in <30 yr olds (dorms, military barracks, prisons)`, `Associated with erythema multiforme and Stevens-Johnson syndrome`]
+    }
+  },
+  {
+    id: `LO07-Q2`, lo: 7, loTitle: `LO 7: Mycoplasma pneumoniae`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `IgM cold agglutinins`,
+    stem: `A 22-year-old military recruit with atypical "walking" pneumonia and targetoid skin lesions (erythema multiforme) develops mild hemolytic anemia with peripheral blood clumping when the sample cools to 4°C. Which antibody class mediates this laboratory finding?`,
+    clue: `"Mycoplasma gets cold without a coat" — large pentameric antibodies cross-link RBC I antigens in cool peripheral capillaries.`,
+    choices: [`IgM cold agglutinins`, `IgE-mediated mast cell degranulation`, `IgA mucosal immune complexes`],
+    correctIndex: 0,
+    explanation: `Correct: Mycoplasma pneumoniae induces high titers of IgM cold agglutinins directed against RBC surface I antigens, agglutinating and lysing RBCs at low temperatures (~4°C). Distractor exclusion: IgE mediates anaphylaxis/allergy, and IgA immune complexes mediate IgA nephropathy/vasculitis.`,
+    secondOrderClue: `Mycoplasma + hemolytic anemia / RBC clumping at 4°C = IgM cold agglutinins.`,
+    phase1Pearl: `Antigenic mimicry between Mycoplasma glycolipids and host RBC I-antigen triggers IgM cold agglutinins.`,
+    phase2Hallmark: `Not visible on Gram stain (no cell wall); grows slowly on Eaton agar containing cholesterol.`,
+    phase3Secret: `Warm the blood tube to 37°C to reverse RBC agglutination and obtain accurate MCV/CBC values.`,
+    dossierBullets: {
+      p1: [`IgM antibodies cross-react with RBC I antigen`, `Complement fixation causes extravascular/intravascular hemolysis in cold extremities`],
+      p2: [`Pleomorphic organism invisible on Gram stain`, `Requires Eaton agar with cholesterol for culture`],
+      p3: [`Erythema multiforme target lesions may accompany infection`, `Direct Coombs test positive for C3`]
+    }
+  },
+  {
+    id: `LO07-Q3`, lo: 7, loTitle: `LO 7: Mycoplasma pneumoniae`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Azithromycin (no cell wall)`,
+    stem: `A 19-year-old college student with atypical "walking" pneumonia fails to improve after 5 days of oral amoxicillin. Why did beta-lactam therapy fail, and which antibiotic is appropriate first-line treatment?`,
+    clue: `Target protein synthesis (30S or 50S) instead of peptidoglycan synthesis, which this organism completely lacks.`,
+    choices: [`Lacks peptidoglycan cell wall; treat with azithromycin`, `Produces beta-lactamase; switch to piperacillin`, `Forms endospores; switch to metronidazole`],
+    correctIndex: 0,
+    explanation: `Correct: Mycoplasma pneumoniae has no cell wall (containing sterols in its plasma membrane instead), rendering all beta-lactams (penicillins, cephalosporins) completely ineffective; treat with macrolides (azithromycin), doxycycline, or a respiratory fluoroquinolone. Distractor exclusion: Mycoplasma neither produces beta-lactamase nor forms endospores.`,
+    secondOrderClue: `Amoxicillin failure in young adult walking pneumonia -> Mycoplasma (no cell wall) -> switch to macrolide/doxycycline.`,
+    phase1Pearl: `Absence of peptidoglycan confers intrinsic resistance to all beta-lactams and vancomycin.`,
+    phase2Hallmark: `Eaton agar colonies ("mulberry" or "fried-egg" morphology); elevated IgM cold agglutinins.`,
+    phase3Secret: `Macrolides (azithromycin) bind the 50S ribosomal subunit; doxycycline binds the 30S subunit.`,
+    dossierBullets: {
+      p1: [`No peptidoglycan cell wall -> beta-lactams have no target`, `Sterol-rich cell membrane`],
+      p2: [`Negative Gram stain despite clinical pneumonia`, `Patchy interstitial infiltrate on CXR`],
+      p3: [`First-line: macrolide (azithromycin) or doxycycline`, `Alternative: respiratory fluoroquinolone (levofloxacin)`]
+    }
+  },
+  // LO 8: Legionella pneumophila
+  {
+    id: `LO08-Q1`, lo: 8, loTitle: `LO 8: Legionella pneumophila`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Legionella pneumophila`,
+    stem: `Four days after returning from a cruise ship vacation, a 66-year-old heavy smoker develops a fever of 40°C, relative bradycardia, watery diarrhea, confusion, and a unilateral lobar infiltrate on chest radiograph. Serum sodium is 126 mEq/L and transaminases are elevated. Which pathogen is most likely?`,
+    clue: `Cruise ship / water aerosol exposure + lobar pneumonia + hyponatremia + diarrhea + CNS confusion.`,
+    choices: [`Legionella pneumophila`, `Streptococcus pneumoniae`, `Mycoplasma pneumoniae`],
+    correctIndex: 0,
+    explanation: `Correct: Legionnaires disease (Legionella pneumophila) presents as severe lobar pneumonia with GI symptoms (watery diarrhea), CNS dysfunction (confusion/headache), hyponatremia, and elevated transaminases following aerosol exposure from AC units, hot water tanks, or cruise ships. Distractor exclusion: S. pneumoniae and Mycoplasma do not classically pair severe lobar pneumonia with hyponatremia, watery diarrhea, and water-tank outbreaks.`,
+    secondOrderClue: `Smoker + cruise ship/hotel AC + pneumonia + diarrhea + hyponatremia = Legionella pneumophila.`,
+    phase1Pearl: `Transmitted via environmental water aerosols (no person-to-person spread); replicates inside alveolar macrophages.`,
+    phase2Hallmark: `Weakly Gram-negative rod requiring silver stain; grows on buffered charcoal yeast extract (BCYE) agar with iron and cysteine.`,
+    phase3Secret: `Pontiac fever is the mild, self-limited flu-like form of Legionella infection without pneumonia.`,
+    dossierBullets: {
+      p1: [`Aerosolized from contaminated water systems (AC towers, hot water tanks)`, `No human-to-human transmission`],
+      p2: [`Hyponatremia (<130 mEq/L) + elevated transaminases`, `Unilateral lobar pneumonia on CXR`],
+      p3: [`Legionnaires disease (severe pneumonia + GI/CNS) vs Pontiac fever (mild flu-like)`, `Risk factors: older age, smoking, chronic lung disease`]
+    }
+  },
+  {
+    id: `LO08-Q2`, lo: 8, loTitle: `LO 8: Legionella pneumophila`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `BCYE agar with iron & cysteine`,
+    stem: `A 63-year-old smoker hospitalized with pneumonia, watery diarrhea, and hyponatremia has a negative routine sputum Gram stain and blood agar culture. Which specialized stain and culture medium are required to visualize and grow the causative organism?`,
+    clue: `Think of the French legionnaire with his silver helmet around a charcoal campfire with an iron dagger missing his sister (cysteine).`,
+    choices: [`Silver stain and BCYE agar with iron and cysteine`, `India ink stain and Sabouraud agar`, `Acid-fast stain and Lowenstein-Jensen agar`],
+    correctIndex: 0,
+    explanation: `Correct: Legionella pneumophila Gram stains poorly, so silver stain is used to visualize it, and it requires buffered charcoal yeast extract (BCYE) agar supplemented with iron and cysteine for growth. Distractor exclusion: India ink/Sabouraud identifies Cryptococcus; acid-fast/Lowenstein-Jensen identifies Mycobacterium tuberculosis.`,
+    secondOrderClue: `Negative routine Gram stain + hyponatremia/diarrhea -> silver stain + BCYE agar (iron + cysteine).`,
+    phase1Pearl: `Legionella is an oxidase-positive intracellular rod dependent on L-cysteine and iron.`,
+    phase2Hallmark: `Rapid urinary antigen test detects Legionella serogroup 1 quickly in clinical practice.`,
+    phase3Secret: `Because routine sputum culture misses Legionella, always order a urine Legionella antigen test in severe CAP.`,
+    dossierBullets: {
+      p1: [`Intracellular growth inside alveolar macrophages`, `Obligate need for cysteine and iron`],
+      p2: [`Silver stain required for microscopy (poor Gram stain)`, `Buffered charcoal yeast extract (BCYE) agar with cysteine + iron`],
+      p3: [`Rapid urine antigen test is the fastest diagnostic confirmation`, `Oxidase-positive weakly Gram-negative rod`]
+    }
+  },
+  {
+    id: `LO08-Q3`, lo: 8, loTitle: `LO 8: Legionella pneumophila`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Azithromycin or levofloxacin`,
+    stem: `A 70-year-old man with pneumonia, confusion, diarrhea, and sodium of 127 mEq/L has a positive rapid urine Legionella antigen test. Which intracellular-penetrating antibiotic should be administered?`,
+    clue: `Because Legionella replicates inside alveolar macrophages, choose an antibiotic that concentrates intracellularly (macrolide or fluoroquinolone).`,
+    choices: [`Azithromycin or levofloxacin`, `Ceftriaxone monotherapy`, `Vancomycin monotherapy`],
+    correctIndex: 0,
+    explanation: `Correct: Macrolides (azithromycin) or respiratory fluoroquinolones (levofloxacin) penetrate alveolar macrophages to eradicate intracellular Legionella pneumophila. Distractor exclusion: Beta-lactams (ceftriaxone) and vancomycin have poor intracellular macrophage penetration and are ineffective against Legionella.`,
+    secondOrderClue: `Positive urine Legionella antigen -> macrolide or fluoroquinolone (never beta-lactam monotherapy).`,
+    phase1Pearl: `Inhibits phagolysosome fusion inside alveolar macrophages, sheltering it from extracellular beta-lactams.`,
+    phase2Hallmark: `Positive urine antigen test; hyponatremia and transaminitis.`,
+    phase3Secret: `No isolation room is needed because Legionella has no person-to-person transmission.`,
+    dossierBullets: {
+      p1: [`Facultative intracellular survival in macrophages`, `Escapes extracellular antibiotics like beta-lactams`],
+      p2: [`Rapid urine antigen test confirms serogroup 1`, `Silver stain + BCYE agar with iron and cysteine`],
+      p3: [`First-line: azithromycin or fluoroquinolone (levofloxacin)`, `Inspect hospital/hotel water systems during outbreaks`]
+    }
+  },
+  // LO 9: Chlamydia pneumoniae & C. psittaci
+  {
+    id: `LO09-Q1`, lo: 9, loTitle: `LO 9: Chlamydia pneumoniae & psittaci`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Chlamydia psittaci`,
+    stem: `A 41-year-old pet store employee who cleans parrot cages develops fever, severe headache, myalgias, hepatosplenomegaly, and an atypical interstitial pneumonia. Gram stain of sputum reveals no bacteria, and cold agglutinins are negative. Which organism is the most likely cause?`,
+    clue: `Atypical pneumonia + negative cold agglutinins + avian/parrot dropping exposure.`,
+    choices: [`Chlamydia psittaci`, `Mycoplasma pneumoniae`, `Coxiella burnetii`],
+    correctIndex: 0,
+    explanation: `Correct: Chlamydia (Chlamydophila) psittaci causes psittacosis, an atypical pneumonia transmitted via aerosolized bird/parrot droppings. Distractor exclusion: Mycoplasma is associated with positive cold agglutinins and young-adult crowded living rather than birds; Coxiella burnetii (Q fever) is acquired from cattle/sheep/goat amniotic fluid.`,
+    secondOrderClue: `Parrot/bird droppings + atypical pneumonia + negative Gram stain = Chlamydia psittaci.`,
+    phase1Pearl: `Obligate intracellular bacterium lacking muramic acid in its cell wall.`,
+    phase2Hallmark: `Poorly staining on Gram stain; Giemsa stain shows intracytoplasmic inclusions.`,
+    phase3Secret: `C. pneumoniae causes walking pneumonia more commonly in older adults (opposite Mycoplasma), whereas C. psittaci follows bird exposure.`,
+    dossierBullets: {
+      p1: [`Obligate intracellular pathogen ("energy parasite" relying on host ATP)`, `Transmitted via dried bird/parrot droppings (psittacosis)`],
+      p2: [`Giemsa stain reveals intracytoplasmic reticulate-body inclusions`, `No peptidoglycan muramic acid -> poorly visible on Gram stain`],
+      p3: [`Treat with doxycycline (1st line) or macrolide`, `C. pneumoniae favors older adults; Mycoplasma favors <30 yr olds`]
+    }
+  },
+  {
+    id: `LO09-Q2`, lo: 9, loTitle: `LO 9: Chlamydia pneumoniae & psittaci`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Elementary vs reticulate body`,
+    stem: `A 68-year-old man develops a subacute atypical pneumonia caused by Chlamydia pneumoniae. During its biphasic intracellular developmental cycle, which form is metabolically inert and infects new respiratory epithelial cells, and which form replicates intracellularly?`,
+    clue: `Think "E" for Entering/Infectious and "R" for Replicating inside the host cell.`,
+    choices: [`Elementary body infects; reticulate body replicates`, `Reticulate body infects; elementary body replicates`, `Endospore infects; trophozoite replicates`],
+    correctIndex: 0,
+    explanation: `Correct: The small, hardy elementary body (EB) is the extracellular infectious form that enters host cells by endocytosis, where it converts into the larger, metabolically active reticulate body (RB) that divides by binary fission. Distractor exclusion: The reverse order is incorrect, and Chlamydia does not form endospores or trophozoites.`,
+    secondOrderClue: `Elementary body = Enters cell (infectious); Reticulate body = Replicates inside inclusion.`,
+    phase1Pearl: `Cannot synthesize its own ATP ("energy parasite") and lacks muramic acid in its outer membrane.`,
+    phase2Hallmark: `Cytoplasmic inclusions seen on Giemsa stain; negative Gram stain.`,
+    phase3Secret: `Lack of muramic acid renders beta-lactams ineffective against Chlamydia species.`,
+    dossierBullets: {
+      p1: [`Biphasic cycle: Elementary body (infectious) <-> Reticulate body (replicating)`, `Obligate intracellular ATP dependence`],
+      p2: [`Cell wall lacks classic muramic acid peptidoglycan`, `Giemsa stain demonstrates basophilic intracytoplasmic inclusions`],
+      p3: [`Doxycycline is 1st line for C. pneumoniae and C. psittaci`, `Macrolides are effective alternatives`]
+    }
+  },
+  {
+    id: `LO09-Q3`, lo: 9, loTitle: `LO 9: Chlamydia pneumoniae & psittaci`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Giemsa inclusions; doxycycline`,
+    stem: `A 64-year-old woman with subacute cough and bilateral patchy infiltrates has negative sputum Gram stain, negative urine Legionella antigen, and negative cold agglutinins. Respiratory epithelial scrapings stained with Giemsa show intracytoplasmic inclusions. Which antibiotic is first-line therapy?`,
+    clue: `Tetracyclines are first-line for Chlamydophila pneumonia and psittacosis.`,
+    choices: [`Doxycycline`, `Ceftriaxone`, `Vancomycin`],
+    correctIndex: 0,
+    explanation: `Correct: Doxycycline (tetracycline) is first-line therapy for Chlamydia pneumoniae and C. psittaci, with macrolides as second-line. Distractor exclusion: Ceftriaxone and vancomycin target cell-wall peptidoglycan and fail against obligate intracellular Chlamydia lacking muramic acid.`,
+    secondOrderClue: `Older adult + atypical pneumonia + Giemsa intracytoplasmic inclusions = C. pneumoniae -> doxycycline.`,
+    phase1Pearl: `Doxycycline penetrates host cells and binds the 30S ribosomal subunit of replicating reticulate bodies.`,
+    phase2Hallmark: `Giemsa-positive intracytoplasmic inclusions; poorly staining on Gram stain.`,
+    phase3Secret: `Unlike Mycoplasma (<30 yr) and Legionella (hyponatremia/diarrhea), C. pneumoniae classically affects older adults with mild-to-moderate atypical pneumonia.`,
+    dossierBullets: {
+      p1: [`30S ribosomal inhibition by doxycycline halts reticulate body replication`, `Lacks muramic acid -> resistant to cell-wall drugs`],
+      p2: [`Giemsa stain identifies intracytoplasmic inclusions`, `Negative routine Gram stain and negative cold agglutinins`],
+      p3: [`Tetracycline (doxycycline) 1st line; macrolide 2nd line`, `Always screen for avian exposure (psittacosis)`]
+    }
+  },
+  // LO 10: Mycobacterium tuberculosis
+  {
+    id: `LO10-Q1`, lo: 10, loTitle: `LO 10: Mycobacterium tuberculosis`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Reactivation pulmonary tuberculosis`,
+    stem: `A 52-year-old man who immigrated from an endemic region presents with 3 months of night sweats, 8-kg weight loss, low-grade evening fever, and hemoptysis. Chest radiograph reveals a thick-walled cavitary lesion in the right upper lobe apex. Which process explains the apical localization of his disease?`,
+    clue: `This obligate aerobe thrives in the region of the lung with the highest ventilation-perfusion ratio and alveolar PO2.`,
+    choices: [`Obligate aerobe thriving in high apical O2 tension`, `Preferential aspiration into dependent bronchi`, `Hematogenous spread restricted to lower zones`],
+    correctIndex: 0,
+    explanation: `Correct: Mycobacterium tuberculosis is an obligate aerobe that preferentially reactivates in the lung apices because the apices have the highest V/Q ratio and highest alveolar oxygen tension. Distractor exclusion: Aspiration abscesses localize to dependent lower/posterior segments, and primary TB classically forms a Ghon focus in the middle/lower lobes.`,
+    secondOrderClue: `Night sweats + weight loss + hemoptysis + apical cavity = reactivation TB (obligate aerobe -> high apical PO2).`,
+    phase1Pearl: `Primary TB forms a Ghon complex (subpleural middle/lower lobe focus + hilar lymphadenopathy); reactivation hits apices.`,
+    phase2Hallmark: `Caseating granulomas with Langhans giant cells; acid-fast pink rods on Ziehl-Neelsen stain.`,
+    phase3Secret: `Miliary TB occurs via hematogenous dissemination when cell-mediated immunity fails.`,
+    dossierBullets: {
+      p1: [`Obligate aerobe -> reactivation favors high PO2 of lung apices`, `Cord factor (trehalose dimycolate) induces granuloma formation and TNF-alpha`],
+      p2: [`Primary: Ghon complex (middle/lower lobe + hilar node); Reactivation: apical cavities`, `Acid-fast bacilli (carbol fuchsin); Lowenstein-Jensen agar`],
+      p3: [`Active TB symptoms: fever, night sweats, weight loss, hemoptysis`, `Isolate in negative-pressure airborne room`]
+    }
+  },
+  {
+    id: `LO10-Q2`, lo: 10, loTitle: `LO 10: Mycobacterium tuberculosis`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Sulfatides block phagolysosome fusion`,
+    stem: `After Mycobacterium tuberculosis is inhaled and phagocytosed by alveolar macrophages, it survives and proliferates inside macrophage phagosomes. Which bacterial cell wall lipid directly prevents phagolysosome fusion, and which lipid causes serpentine clumping and TNF-alpha release?`,
+    clue: `Separate the surface glycolipids: one blocks lysosome fusion, while "cord factor" causes cording and macrophage activation.`,
+    choices: [`Sulfatides block fusion; cord factor drives cording/TNF-alpha`, `Mycolic acid blocks fusion; LPS drives endotoxic shock`, `Lipoteichoic acid blocks fusion; Protein A binds IgG`],
+    correctIndex: 0,
+    explanation: `Correct: M. tuberculosis sulfatides (sulfolipids) inhibit phagolysosome fusion inside macrophages, whereas cord factor (trehalose dimycolate) causes serpentine clumping ("cording"), stimulates TNF-alpha release, and drives granuloma formation. Distractor exclusion: M. tuberculosis has no LPS or Protein A/lipoteichoic acid.`,
+    secondOrderClue: `TB macrophage survival -> sulfatides inhibit phagolysosome fusion; cord factor triggers TNF-alpha & granulomas.`,
+    phase1Pearl: `Mycolic acid cell wall confers acid-fastness (carbol fuchsin pink retention) and resistance to desiccation.`,
+    phase2Hallmark: `Caseating granulomas driven by Th1 CD4+ T cells secreting IFN-gamma and TNF-alpha.`,
+    phase3Secret: `TNF-alpha inhibitors (e.g., infliximab) disrupt granulomas and can precipitate latent TB reactivation -> screen with PPD/IGRA first.`,
+    dossierBullets: {
+      p1: [`Sulfatides inhibit phagolysosome fusion inside macrophages`, `Cord factor (trehalose dimycolate) mediates serpentine cording and TNF-alpha release`],
+      p2: [`Mycolic acids retain carbol fuchsin dye (acid-fast pink rods)`, `Caseating necrosis surrounded by epithelioid histiocytes and Langhans giant cells`],
+      p3: [`Screen for latent TB (PPD or IFN-gamma release assay) before starting anti-TNF therapy`, `IFN-gamma from Th1 cells activates macrophage killing`]
+    }
+  },
+  {
+    id: `LO10-Q3`, lo: 10, loTitle: `LO 10: Mycobacterium tuberculosis`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `RIPE x 2 mo then RI x 4 mo`,
+    stem: `A 38-year-old man is diagnosed with active sputum-smear-positive pulmonary tuberculosis and begins RIPE therapy (rifampin, isoniazid, pyrazinamide, ethambutol) for 2 months followed by isoniazid and rifampin for 4 months. Which vitamin must be co-administered with isoniazid to prevent peripheral neuropathy, and which RIPE drug causes optic neuropathy?`,
+    clue: `INH depletes a B-vitamin cofactor; "E" is for Eyes (red-green color blindness).`,
+    choices: [`Pyridoxine (vitamin B6); ethambutol causes optic neuropathy`, `Thiamine (vitamin B1); rifampin causes optic neuropathy`, `Folate (vitamin B9); pyrazinamide causes optic neuropathy`],
+    correctIndex: 0,
+    explanation: `Correct: Isoniazid (INH) precipitates vitamin B6 (pyridoxine) deficiency causing peripheral neuropathy and sideroblastic anemia, so B6 is co-administered; ethambutol ("E for Eyes") causes dose-dependent optic neuropathy (red-green color loss). Distractor exclusion: Rifampin causes red-orange body fluids and CYP450 induction, while pyrazinamide causes hyperuricemia/gout and hepatotoxicity.`,
+    secondOrderClue: `RIPE toxicities: INH -> B6 deficiency neuropathy; Ethambutol -> Eyes (optic neuritis); Rifampin -> Red fluids/CYP450; Pyrazinamide -> hyperuricemia.`,
+    phase1Pearl: `INH inhibits mycolic acid synthesis (requires bacterial KatG catalase-peroxidase activation); ethambutol inhibits arabinosyltransferase.`,
+    phase2Hallmark: `Red-green color discrimination testing monitors ethambutol toxicity; LFTs monitor RIPE hepatotoxicity.`,
+    phase3Secret: `Latent TB is treated with isoniazid monotherapy (plus B6) for 9 months (or rifampin/rifapentine regimens); active TB requires 4 drugs upfront to prevent resistance.`,
+    dossierBullets: {
+      p1: [`INH inhibits mycolic acid synthesis; rifampin inhibits DNA-dependent RNA polymerase`, `Ethambutol blocks arabinogalactan synthesis via arabinosyltransferase`],
+      p2: [`Acid-fast bacilli on Ziehl-Neelsen stain; Lowenstein-Jensen culture`, `Monitor baseline visual acuity/color vision and LFTs`],
+      p3: [`Active TB: RIPE x 2 mo, then INH + Rifampin x 4 mo`, `Co-administer vitamin B6 with INH; warn about red-orange secretions on rifampin`]
+    }
+  },
+  // LO 11: Mycobacterium avium complex
+  {
+    id: `LO11-Q1`, lo: 11, loTitle: `LO 11: Mycobacterium avium complex`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Mycobacterium avium complex`,
+    stem: `A 34-year-old man with untreated HIV and a CD4+ T-cell count of 28/mm3 presents with 6 weeks of high fevers, drenching night sweats, profound weight loss, watery diarrhea, hepatosplenomegaly, and elevated alkaline phosphatase. Acid-fast bacilli are isolated from blood cultures. What is the most likely diagnosis?`,
+    clue: `AIDS with CD4 < 50/mm3 + disseminated fever, weight loss, diarrhea, high alk phos, and acid-fast bacteremia.`,
+    choices: [`Mycobacterium avium complex (MAC)`, `Mycobacterium tuberculosis`, `Pneumocystis jirovecii`],
+    correctIndex: 0,
+    explanation: `Correct: Mycobacterium avium complex (MAC / M. avium-intracellulare) causes disseminated nonspecific systemic illness (fever, night sweats, weight loss, diarrhea, hepatosplenomegaly, lymphadenitis) classically when CD4+ count falls below 50/mm3. Distractor exclusion: TB reactivates even when CD4 < 500 and typically presents with pulmonary cavitary disease; Pneumocystis causes ground-glass pneumonia at CD4 < 200 without diarrhea or disseminated acid-fast bacteremia.`,
+    secondOrderClue: `AIDS CD4 < 50/mm3 + fever + diarrhea + hepatosplenomegaly + AFB in blood = MAC.`,
+    phase1Pearl: `Acquired from environmental water/soil; macrophage survival without intact Th1 CD4 help allows hematogenous spread.`,
+    phase2Hallmark: `Foamy macrophages stuffed with acid-fast bacilli in bone marrow, liver, or intestinal lamina propria.`,
+    phase3Secret: `CD4 thresholds in HIV: <500 (TB, thrush, Kaposi), <200 (PCP, Histoplasma, JC virus), <100 (Toxo, CMV, Cryptococcus), <50 (MAC).`,
+    dossierBullets: {
+      p1: [`Environmental non-tuberculous mycobacterium`, `Disseminates freely when CD4+ T cells drop below 50/mm3`],
+      p2: [`Acid-fast bacilli packed inside foamy macrophages`, `Poorly formed granulomas due to severe CD4 depletion`],
+      p3: [`Fever, night sweats, weight loss, diarrhea, elevated alk phos`, `Blood cultures or lymph node biopsy confirm MAC`]
+    }
+  },
+  {
+    id: `LO11-Q2`, lo: 11, loTitle: `LO 11: Mycobacterium avium complex`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Foamy macrophages with acid-fast bacilli`,
+    stem: `A duodenal biopsy is performed in an AIDS patient (CD4 count 22/mm3) with chronic watery diarrhea, wasting, and fever. PAS and acid-fast staining reveal lamina propria expanded by sheets of macrophages filled with intracellular rod-shaped bacilli, closely mimicking Whipple disease on H&E. Which mechanism explains the absence of well-formed caseating granulomas?`,
+    clue: `Granuloma assembly depends on CD4+ Th1 cells secreting IFN-gamma to activate macrophages.`,
+    choices: [`Profound CD4+ Th1 cell depletion impairs IFN-gamma activation`, `Absence of cord factor in all mycobacteria`, `Excess IgE blocking macrophage chemotaxis`],
+    correctIndex: 0,
+    explanation: `Correct: Severe CD4+ T-cell depletion (<50/mm3) abolishes Th1 IFN-gamma signaling, preventing macrophages from forming tight epithelioid granulomas and allowing unchecked intracellular MAC proliferation. Distractor exclusion: MAC does not trigger IgE blockade, and mycobacteria possess mycolic cell-wall lipids.`,
+    secondOrderClue: `CD4 < 50 -> no IFN-gamma granuloma containment -> sheets of AFB-stuffed foamy macrophages.`,
+    phase1Pearl: `Loss of IL-12/IFN-gamma axis permits intracellular mycobacterial replication inside macrophages.`,
+    phase2Hallmark: `Acid-fast positive macrophages in GI mucosa mimic Whipple disease (Tropheryma whipplei is PAS+ but acid-fast NEGATIVE).`,
+    phase3Secret: `Always check acid-fast stain on PAS+ duodenal macrophages in AIDS patients to distinguish MAC from Whipple disease.`,
+    dossierBullets: {
+      p1: [`Depleted CD4+ cells fail to secrete IFN-gamma`, `Macrophages ingest bacilli but cannot kill them`],
+      p2: [`PAS+ and acid-fast+ foamy macrophages (vs Whipple: PAS+ only, AFB-)`, `Absent or poorly formed granulomas`],
+      p3: [`Diagnose via mycobacterial blood cultures or tissue biopsy`, `Initiating ART restores CD4 counts and reduces MAC risk`]
+    }
+  },
+  {
+    id: `LO11-Q3`, lo: 11, loTitle: `LO 11: Mycobacterium avium complex`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Clarithromycin/azithromycin + ethambutol`,
+    stem: `An AIDS patient with a CD4 count of 30/mm3 is diagnosed with disseminated Mycobacterium avium complex (MAC) infection after blood cultures grow acid-fast bacilli. Unlike active pulmonary M. tuberculosis, which combination forms the cornerstone of MAC treatment?`,
+    clue: `MAC is intrinsically resistant to isoniazid and pyrazinamide; anchor therapy with a macrolide plus ethambutol.`,
+    choices: [`Macrolide (azithromycin or clarithromycin) + ethambutol`, `Isoniazid monotherapy + vitamin B6`, `Pyrazinamide + streptomycin`],
+    correctIndex: 0,
+    explanation: `Correct: Disseminated MAC is treated with a macrolide (azithromycin or clarithromycin) plus ethambutol (often with rifabutin added in severe cases). Distractor exclusion: Isoniazid and pyrazinamide are ineffective against MAC, and INH monotherapy is used only for latent M. tuberculosis.`,
+    secondOrderClue: `Disseminated MAC treatment = macrolide + ethambutol (NOT RIPE).`,
+    phase1Pearl: `Macrolides inhibit the 50S ribosomal subunit; ethambutol inhibits cell wall arabinosyltransferase.`,
+    phase2Hallmark: `MAC grows slowly and is acid-fast positive; blood culture yields diagnosis in 1–2 weeks.`,
+    phase3Secret: `Rifabutin is preferred over rifampin when combined with antiretroviral protease inhibitors due to fewer CYP3A4 interactions.`,
+    dossierBullets: {
+      p1: [`MAC resists standard anti-TB agents (INH, pyrazinamide)`, `Dual/triple therapy prevents macrolide resistance`],
+      p2: [`Acid-fast bacilli in blood/bone marrow/GI biopsy`, `Monitor visual acuity on long-term ethambutol`],
+      p3: [`Treat active MAC with clarithromycin or azithromycin + ethambutol (+/- rifabutin)`, `Start/optimize antiretroviral therapy (ART)`]
+    }
+  },
+  // LO 12: Nocardia asteroides vs Actinomyces israelii
+  {
+    id: `LO12-Q1`, lo: 12, loTitle: `LO 12: Nocardia vs Actinomyces`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Nocardia asteroides`,
+    stem: `A 51-year-old kidney transplant recipient on chronic corticosteroids develops fever, productive cough with cavitary pulmonary nodules, and new focal seizures. Brain MRI reveals multiple ring-enhancing abscesses, and BAL shows Gram-positive, weakly acid-fast, beaded branching filaments. What is the causative pathogen?`,
+    clue: `Immunocompromised host + cavitary lung lesion + brain abscess + aerobic weakly acid-fast branching filaments.`,
+    choices: [`Nocardia asteroides`, `Actinomyces israelii`, `Mycobacterium tuberculosis`],
+    correctIndex: 0,
+    explanation: `Correct: Nocardia asteroides is an aerobic, urease-positive, weakly acid-fast branching filamentous Gram-positive bacterium found in soil that causes cavitary pneumonia and brain abscesses in immunocompromised patients. Distractor exclusion: Actinomyces is anaerobic, NOT acid-fast, and forms sulfur granules in oral/pelvic sinus tracts; TB forms non-branching rods rather than branching filaments.`,
+    secondOrderClue: `Immunocompromised + lung cavity + brain abscess + weakly acid-fast branching filaments = Nocardia.`,
+    phase1Pearl: `Cell wall contains mycolic acids of shorter chain length, making it partially/weakly acid-fast.`,
+    phase2Hallmark: `Gram-positive beaded branching filaments that retain carbol fuchsin on modified acid-fast stain; urease-positive.`,
+    phase3Secret: `Remember the contrast: Nocardia = aerobic, weakly acid-fast, TMP-SMX; Actinomyces = anaerobic, NOT acid-fast, penicillin.`,
+    dossierBullets: {
+      p1: [`Obligate aerobe acquired via inhalation from soil`, `Catalase+ and urease+ filamentous bacterium`],
+      p2: [`Weakly acid-fast branching Gram-positive filaments`, `Cavitary lung nodules + CNS ring-enhancing abscesses`],
+      p3: [`First-line treatment: TMP-SMX ("Nocardia = sulfonamides")`, `Check brain MRI in all patients with pulmonary nocardiosis`]
+    }
+  },
+  {
+    id: `LO12-Q2`, lo: 12, loTitle: `LO 12: Nocardia vs Actinomyces`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Actinomyces israelii (sulfur granules)`,
+    stem: `A 46-year-old man develops a firm, painless jaw and anterior chest wall mass with draining sinus tracts discharging yellow "sulfur granules" 3 weeks after a molar extraction. Gram stain shows filamentous branching Gram-positive rods that fail to stain acid-fast. Which organism and treatment match this presentation?`,
+    clue: `Dental trauma + draining yellow "sulfur granules" + anaerobic non-acid-fast branching filaments.`,
+    choices: [`Actinomyces israelii; treat with penicillin G`, `Nocardia asteroides; treat with TMP-SMX`, `Actinomyces israelii; treat with TMP-SMX`],
+    correctIndex: 0,
+    explanation: `Correct: Actinomyces israelii is an anaerobic normal inhabitant of the oral mucosa that invades after dental trauma (or IUD use), producing draining sinus tracts with yellow "sulfur granules" and non-acid-fast branching filaments; treat with penicillin G or ampicillin. Distractor exclusion: Nocardia is aerobic, weakly acid-fast, and treated with TMP-SMX.`,
+    secondOrderClue: `Dental procedure + yellow sulfur granules + non-acid-fast branching filaments = Actinomyces -> Penicillin.`,
+    phase1Pearl: `Anaerobic normal flora of oral/GI/female genital tracts requiring mucosal disruption to invade.`,
+    phase2Hallmark: `Macroscopic yellow "sulfur granules" (tangled bacterial colonies); Gram+ branching filaments, acid-fast NEGATIVE.`,
+    phase3Secret: `Mnemonic: "Snap" — Sulfonamides for Nocardia, Actinomyces gets Penicillin.`,
+    dossierBullets: {
+      p1: [`Anaerobic commensal invading across damaged oral or thoracic mucosa`, `Does NOT contain mycolic acids -> negative acid-fast stain`],
+      p2: [`Yellow "sulfur granules" in purulent sinus drainage`, `Branching Gram-positive filaments growing anaerobically`],
+      p3: [`Treat with prolonged high-dose penicillin G or amoxicillin`, `Consider thoracic actinomycosis after dental aspiration`]
+    }
+  },
+  {
+    id: `LO12-Q3`, lo: 12, loTitle: `LO 12: Nocardia vs Actinomyces`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `TMP-SMX for Nocardia`,
+    stem: `A 58-year-old patient with pemphigus vulgaris on high-dose prednisone develops pulmonary nodules and a cerebellar abscess from Nocardia asteroides. What is the first-line antimicrobial therapy for this infection?`,
+    clue: `Sulfonamides penetrate the blood-brain barrier effectively for CNS and pulmonary Nocardia.`,
+    choices: [`Trimethoprim-sulfamethoxazole (TMP-SMX)`, `Penicillin G monotherapy`, `Vancomycin monotherapy`],
+    correctIndex: 0,
+    explanation: `Correct: Trimethoprim-sulfamethoxazole (TMP-SMX) is first-line therapy for pulmonary and disseminated/CNS Nocardia asteroides infections due to potent bactericidal synergy and high CSF penetration. Distractor exclusion: Penicillin G treats Actinomyces, not Nocardia; vancomycin lacks activity against Nocardia.`,
+    secondOrderClue: `Pulmonary + CNS Nocardia -> high-dose TMP-SMX.`,
+    phase1Pearl: `TMP and SMX sequentially block bacterial folate synthesis (dihydropteroate synthase and DHFR).`,
+    phase2Hallmark: `Beaded, branching, weakly acid-fast filaments.`,
+    phase3Secret: `Severe CNS nocardiosis often adds imipenem or amikacin initially alongside TMP-SMX.`,
+    dossierBullets: {
+      p1: [`Sequential folate pathway blockade (SMX + TMP)`, `High CNS penetration clears Nocardia brain abscesses`],
+      p2: [`Modified Ziehl-Neelsen stain highlights weakly acid-fast filaments`, `Aerobic growth on routine/buffered media`],
+      p3: [`First-line: TMP-SMX ("Snap": Sulfonamides = Nocardia, Actinomyces = Penicillin)`, `Prolonged course (6–12 months) to prevent relapse`]
+    }
+  },
+  // LO 13: Histoplasma capsulatum
+  {
+    id: `LO13-Q1`, lo: 13, loTitle: `LO 13: Histoplasma capsulatum`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Histoplasma capsulatum`,
+    stem: `A 29-year-old spelunker from Kentucky develops fever, nonproductive cough, fatigue, and mediastinal lymphadenopathy 2 weeks after exploring a bat-infested cave. Chest radiograph resembles tuberculosis with hilar calcifications, and biopsy shows macrophages filled with tiny oval yeast cells smaller than RBCs. Which fungus is responsible?`,
+    clue: `Ohio/Mississippi River valley + bat cave/bird droppings + tiny intracellular yeasts inside macrophages.`,
+    choices: [`Histoplasma capsulatum`, `Coccidioides immitis`, `Pneumocystis jirovecii`],
+    correctIndex: 0,
+    explanation: `Correct: Histoplasma capsulatum is endemic to the Ohio and Mississippi River valleys, linked to bird and bat droppings, and appears histologically as tiny oval yeast cells (smaller than RBCs) packed inside macrophages. Distractor exclusion: Coccidioides is endemic to the Southwestern US desert and forms huge spherules larger than RBCs; Pneumocystis forms extracellular disc-shaped cysts.`,
+    secondOrderClue: `Ohio/Mississippi River valley + bat cave + oval yeasts inside macrophages = Histoplasma capsulatum.`,
+    phase1Pearl: `Dimorphic fungus: "mold in the cold (25°C), yeast in the heat (37°C)" — inhaled microconidia convert to intracellular yeast.`,
+    phase2Hallmark: `Tiny oval yeasts (much smaller than RBCs) inside alveolar/tissue macrophages; calcified granulomas mimicking TB.`,
+    phase3Secret: `In AIDS (CD4 < 200), causes disseminated pancytopenia, hepatosplenomegaly, and palatal/tongue ulcers.`,
+    dossierBullets: {
+      p1: [`Thermally dimorphic: mold at 25°C -> intracellular yeast at 37°C`, `Endemic to Ohio & Mississippi River valleys (bird/bat guano)`],
+      p2: [`Tiny oval budding yeasts smaller than RBCs inside macrophages`, `Hilar/mediastinal calcified granulomas mimicking TB`],
+      p3: [`Diagnose via urine/serum Histoplasma antigen or KOH/fungal culture`, `Mild: itraconazole; severe/disseminated: amphotericin B then itraconazole`]
+    }
+  },
+  {
+    id: `LO13-Q2`, lo: 13, loTitle: `LO 13: Histoplasma capsulatum`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Tiny yeasts inside macrophages`,
+    stem: `A 36-year-old man with HIV (CD4 count 110/mm3) from Ohio presents with fever, weight loss, pancytopenia, hepatosplenomegaly, and painless oral ulcers. Bone marrow aspirate reveals macrophages packed with multiple small oval intracellular organisms. Which fungal structure and diagnostic test confirm this infection?`,
+    clue: `"Histo hides inside macrophages" — tiny oval yeasts detected rapidly via urine or serum antigen.`,
+    choices: [`Intracellular oval yeasts (< RBC); urine/serum antigen test`, `Thick-walled spherules with endospores; biopsy only`, `Pseudohyphae and germ tubes; blood culture`],
+    correctIndex: 0,
+    explanation: `Correct: Histoplasma capsulatum survives inside macrophages as tiny oval budding yeasts smaller than RBCs; rapid diagnosis is achieved with urine or serum Histoplasma antigen testing (alongside fungal stains). Distractor exclusion: Large spherules with endospores describe Coccidioides immitis; pseudohyphae and germ tubes describe Candida albicans.`,
+    secondOrderClue: `HIV CD4 < 200 + Ohio/Midwest + pancytopenia/oral ulcers + yeasts inside macrophages = Histoplasma -> urine antigen.`,
+    phase1Pearl: `Disseminates reticuloendothelially (liver, spleen, bone marrow, lymph nodes) when cellular immunity fails.`,
+    phase2Hallmark: `Oval yeasts inside macrophages (despite its name, Histoplasma has NO true capsule; clear halo is shrinkage artifact).`,
+    phase3Secret: `Urine Histoplasma antigen is positive in >90% of disseminated AIDS cases.`,
+    dossierBullets: {
+      p1: [`Histoplasma survives inside macrophage phagolysosomes`, `Spreads to reticuloendothelial system (marrow, liver, spleen) in AIDS`],
+      p2: [`Multiple tiny ovoid yeasts inside macrophages`, `Rapid serum or urine Histoplasma antigen test`],
+      p3: [`Disseminated disease mimics miliary TB or visceral leishmaniasis`, `Always check CD4 count (<200 risk threshold)`]
+    }
+  },
+  {
+    id: `LO13-Q3`, lo: 13, loTitle: `LO 13: Histoplasma capsulatum`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Amphotericin B then itraconazole`,
+    stem: `A 40-year-old poultry farmer from Indiana with HIV (CD4 count 95/mm3) is admitted with severe disseminated histoplasmosis, hypotension, and pancytopenia. What is the recommended initial antifungal induction therapy before stepping down to an oral azole?`,
+    clue: `Use a polyene that binds ergosterol to form membrane pores for severe/disseminated disease, then transition to itraconazole.`,
+    choices: [`IV amphotericin B followed by oral itraconazole`, `Oral fluconazole monotherapy`, `Oral terbinafine`],
+    correctIndex: 0,
+    explanation: `Correct: Severe or disseminated histoplasmosis requires initial IV liposomal amphotericin B induction followed by prolonged oral itraconazole step-down therapy. Distractor exclusion: Fluconazole is less effective than itraconazole for histoplasmosis (fluconazole is preferred for Coccidioides meningitis and Cryptococcus consolidation), and terbinafine treats dermatophytes.`,
+    secondOrderClue: `Severe/disseminated Histoplasma -> IV amphotericin B -> oral itraconazole.`,
+    phase1Pearl: `Amphotericin B binds fungal membrane ergosterol forming pores that leak ions; azoles inhibit 14-alpha-demethylase.`,
+    phase2Hallmark: `Intracellular yeasts in bone marrow macrophages; positive urine Histoplasma antigen.`,
+    phase3Secret: `Pre-hydrate with normal saline before amphotericin B to reduce nephrotoxicity ("ampho-terrible").`,
+    dossierBullets: {
+      p1: [`Amphotericin B creates membrane pores by binding ergosterol`, `Itraconazole blocks ergosterol synthesis via lanosterol 14-alpha-demethylase`],
+      p2: [`Monitor serum creatinine, potassium, and magnesium during amphotericin B`, `Track urine Histoplasma antigen levels for response`],
+      p3: [`Mild localized disease: itraconazole`, `Severe/disseminated disease: IV amphotericin B -> oral itraconazole`]
+    }
+  },
+  // LO 14: Coccidioides immitis
+  {
+    id: `LO14-Q1`, lo: 14, loTitle: `LO 14: Coccidioides immitis`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Coccidioides immitis`,
+    stem: `Two weeks after a dust storm near Bakersfield, California, a 33-year-old construction worker develops fever, dry cough, arthralgias, and tender erythematous nodules on both shins (erythema nodosum). Chest radiograph shows a thin-walled cavitary lesion and hilar adenopathy, with peripheral eosinophilia. Which pathogen is most likely?`,
+    clue: `Southwestern US desert / San Joaquin Valley dust + "desert rheumatism" + erythema nodosum + eosinophilia.`,
+    choices: [`Coccidioides immitis`, `Histoplasma capsulatum`, `Mycobacterium tuberculosis`],
+    correctIndex: 0,
+    explanation: `Correct: Coccidioides immitis ("Valley fever") is endemic to the Southwestern US (Arizona, California, New Mexico) and spikes after dust storms or earthquakes, presenting with pulmonary symptoms, arthralgias ("desert rheumatism"), erythema nodosum, and eosinophilia. Distractor exclusion: Histoplasma is endemic to the Midwest river valleys; TB does not typically cause acute post-dust-storm eosinophilia.`,
+    secondOrderClue: `SW desert / dust storm + arthralgias + erythema nodosum + thin-walled cavity = Coccidioides immitis.`,
+    phase1Pearl: `Inhaled arthroconidia transform into giant thick-walled spherules filled with endospores at 37°C.`,
+    phase2Hallmark: `Large spherules (much larger than RBCs) packed with endospores on tissue biopsy/silver stain.`,
+    phase3Secret: `Erythema nodosum in Valley fever reflects a vigorous cell-mediated immune response and predicts a favorable prognosis.`,
+    dossierBullets: {
+      p1: [`Endemic to Southwestern US deserts (San Joaquin Valley, Arizona)`, `Dust storms/earthquakes aerosolize infectious arthroconidia`],
+      p2: [`Large spherules filled with endospores (larger than RBCs)`, `Peripheral eosinophilia and thin-walled lung cavities`],
+      p3: [`"Valley fever" triad: pulmonary infiltrates, arthralgias, erythema nodosum`, `High risk of dissemination/meningitis in immunocompromised or pregnancy`]
+    }
+  },
+  {
+    id: `LO14-Q2`, lo: 14, loTitle: `LO 14: Coccidioides immitis`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Spherules packed with endospores`,
+    stem: `A lung biopsy from an Arizona resident with a persistent pulmonary nodule reveals large, thick-walled spherical structures measuring 30–60 micrometers in diameter (several times larger than nearby erythrocytes) containing numerous small internal round bodies. Which organism and developmental form are shown?`,
+    clue: `Unlike tiny intracellular Histoplasma yeasts, this Southwestern dimorphic fungus forms giant endospore-filled tissue spheres.`,
+    choices: [`Coccidioides immitis spherules with endospores`, `Histoplasma capsulatum intracellular yeasts`, `Pneumocystis jirovecii disc-shaped cysts`],
+    correctIndex: 0,
+    explanation: `Correct: In human tissue at 37°C, Coccidioides immitis uniquely forms large, thick-walled spherules packed with hundreds of endospores, which rupture to propagate infection. Distractor exclusion: Histoplasma forms tiny intracellular yeasts smaller than RBCs; Pneumocystis forms 5–8 micrometer disc/cup-shaped cysts.`,
+    secondOrderClue: `Giant thick-walled spheres (>RBC) packed with endospores = Coccidioides immitis.`,
+    phase1Pearl: `Dimorphic exception: forms mold with arthroconidia in soil (25°C) and endospore-filled spherules (not budding yeast) in tissue (37°C).`,
+    phase2Hallmark: `Spherules visible on KOH prep, H&E, or methenamine silver stain.`,
+    phase3Secret: `Do NOT confuse Coccidioides spherules (packed with endospores) with Histoplasma (tiny intracellular yeasts).`,
+    dossierBullets: {
+      p1: [`Soil mold forms barrel-shaped arthroconidia`, `Inhaled arthroconidia round up into giant endospore-filled spherules`],
+      p2: [`Spherules dwarf RBCs and macrophages`, `Ruptured spherules release endospores triggering granulomatous inflammation`],
+      p3: [`Tissue biopsy or serology confirms Valley fever`, `Laboratory cultures of Coccidioides mold are a biohazard (highly infectious arthroconidia)`]
+    }
+  },
+  {
+    id: `LO14-Q3`, lo: 14, loTitle: `LO 14: Coccidioides immitis`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Fluconazole (lifelong if meningitis)`,
+    stem: `A 45-year-old immunocompromised man from Phoenix with Valley fever develops subacute headache, photophobia, and basilar meningitis. CSF shows lymphocytic pleocytosis, low glucose, high protein, and positive Coccidioides antibodies. Which oral azole is first-line therapy because of its superior CSF penetration?`,
+    clue: `For coccidioidal meningitis, choose the triazole with the highest CNS penetration (unlike itraconazole).`,
+    choices: [`High-dose fluconazole`, `Itraconazole`, `Caspofungin`],
+    correctIndex: 0,
+    explanation: `Correct: High-dose fluconazole achieves excellent CSF penetration and is the treatment of choice for Coccidioides meningitis (often lifelong to prevent relapse). Distractor exclusion: Itraconazole has poor CSF penetration; echinocandins (caspofungin) do not reliably penetrate the CNS or cover dimorphic endemic fungi.`,
+    secondOrderClue: `Coccidioides meningitis -> high-dose fluconazole (excellent CSF penetration).`,
+    phase1Pearl: `Azoles inhibit fungal 14-alpha-demethylase, blocking ergosterol synthesis.`,
+    phase2Hallmark: `CSF eosinophilic or lymphocytic pleocytosis with low glucose and basilar meningeal enhancement.`,
+    phase3Secret: `Mild acute Valley fever in healthy hosts often resolves without antifungals; treat severe pulmonary disease with amphotericin B or fluconazole/itraconazole.`,
+    dossierBullets: {
+      p1: [`CNS dissemination causes chronic basilar meningitis and hydrocephalus`, `Fluconazole penetrates the blood-brain barrier cleanly`],
+      p2: [`CSF shows low glucose, elevated protein, and Coccidioides complement-fixing IgG`, `Tissue shows spherules with endospores`],
+      p3: [`Fluconazole is first-line for coccidioidal meningitis (lifelong suppressive therapy)`, `Amphotericin B used for severe non-CNS disease or pregnancy (azoles teratogenic)`]
+    }
+  },
+  // LO 15: Pneumocystis jirovecii
+  {
+    id: `LO15-Q1`, lo: 15, loTitle: `LO 15: Pneumocystis jirovecii`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Pneumocystis jirovecii pneumonia`,
+    stem: `A 32-year-old man with untreated HIV (CD4+ count 85/mm3) presents with 3 weeks of progressive exertional dyspnea, nonproductive cough, and fever. Oxygen saturation drops from 93% at rest to 81% with ambulation. Serum LDH is markedly elevated, and chest CT reveals bilateral diffuse ground-glass opacities with pneumatoceles. Which pathogen is most likely?`,
+    clue: `HIV with CD4 < 200/mm3 + exertional desaturation + high LDH + bilateral ground-glass opacities.`,
+    choices: [`Pneumocystis jirovecii`, `Mycoplasma pneumoniae`, `Mycobacterium avium complex`],
+    correctIndex: 0,
+    explanation: `Correct: Pneumocystis jirovecii causes Pneumocystis pneumonia (PCP) in immunocompromised patients (AIDS with CD4 < 200/mm3), presenting with subacute dyspnea, dry cough, exertional hypoxemia, elevated LDH, and bilateral diffuse ground-glass opacities. Distractor exclusion: Mycoplasma occurs in immunocompetent young adults without CD4 < 200; MAC presents at CD4 < 50 with disseminated fever/diarrhea rather than ground-glass pneumonia.`,
+    secondOrderClue: `HIV CD4 < 200 + dry cough + exertional desaturation + ground-glass CT + high LDH = Pneumocystis jirovecii.`,
+    phase1Pearl: `Yeast-like fungus that cannot be cultured routinely; attaches to type I alveolar pneumocytes.`,
+    phase2Hallmark: `Bilateral diffuse ground-glass opacities and pneumatoceles; intra-alveolar pink foamy exudate on H&E.`,
+    phase3Secret: `Exertional desaturation and elevated LDH are classic early screening clues for PCP even before CT.`,
+    dossierBullets: {
+      p1: [`Opportunistic yeast-like fungus reactivating when CD4 < 200/mm3`, `Trophic forms bind type I pneumocytes causing alveolar-capillary leak`],
+      p2: [`Bilateral diffuse ground-glass opacities + pneumatoceles on imaging`, `Elevated serum LDH reflecting alveolar cell injury`],
+      p3: [`Diagnose via bronchoalveolar lavage (BAL) or induced sputum`, `Pneumatoceles predispose to spontaneous pneumothorax`]
+    }
+  },
+  {
+    id: `LO15-Q2`, lo: 15, loTitle: `LO 15: Pneumocystis jirovecii`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Methenamine silver stain disc-shaped yeast`,
+    stem: `Bronchoalveolar lavage (BAL) fluid from an AIDS patient (CD4 count 60/mm3) with bilateral ground-glass opacities is examined. H&E shows acellular foamy intra-alveolar exudates, and a special stain reveals crushed, disc/cup-shaped cysts. Which stain is diagnostic?`,
+    clue: `Think of the black-staining fungal wall stain that outlines "crushed ping-pong balls" in BAL fluid.`,
+    choices: [`Methenamine silver stain`, `Ziehl-Neelsen acid-fast stain`, `India ink stain`],
+    correctIndex: 0,
+    explanation: `Correct: Pneumocystis jirovecii is diagnosed on BAL or lung biopsy using methenamine silver stain (or fluorescent antibody), which highlights disc-shaped/crushed ping-pong ball yeast cysts. Distractor exclusion: Ziehl-Neelsen highlights mycobacteria; India ink highlights the wide capsule of Cryptococcus neoformans.`,
+    secondOrderClue: `BAL fluid + foamy alveolar exudate + disc-shaped cysts = methenamine silver stain for PCP.`,
+    phase1Pearl: `Contains cholesterol rather than ergosterol in its membrane, explaining why azoles and amphotericin B fail against PCP.`,
+    phase2Hallmark: `Disc-shaped ("crushed ping-pong ball") cysts on Gomori methenamine silver (GMS) stain.`,
+    phase3Secret: `Because Pneumocystis lacks ergosterol, standard antifungals (fluconazole, amphotericin B) are ineffective.`,
+    dossierBullets: {
+      p1: [`Cholesterol-containing membrane (lacks ergosterol -> resistant to azoles/amphotericin)`, `Not culturable on standard fungal media`],
+      p2: [`Methenamine silver stain reveals disc-shaped cysts`, `H&E shows pink foamy "honeycomb" intra-alveolar exudate`],
+      p3: [`BAL has >90% diagnostic sensitivity`, `Fluorescent monoclonal antibody stain is an approved rapid alternative`]
+    }
+  },
+  {
+    id: `LO15-Q3`, lo: 15, loTitle: `LO 15: Pneumocystis jirovecii`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `TMP-SMX + steroids if hypoxemic`,
+    stem: `A 35-year-old man with AIDS (CD4 count 70/mm3) has BAL-confirmed Pneumocystis jirovecii pneumonia. Room-air ABG shows PaO2 of 61 mmHg (A-a gradient 42 mmHg). In addition to high-dose IV trimethoprim-sulfamethoxazole (TMP-SMX), what adjunctive therapy is indicated to reduce mortality?`,
+    clue: `When PaO2 < 70 mmHg or A-a gradient >= 35 mmHg, dampen the inflammatory surge triggered by dying organisms.`,
+    choices: [`Systemic corticosteroids (prednisone)`, `IV amphotericin B`, `Inhaled ribavirin`],
+    correctIndex: 0,
+    explanation: `Correct: High-dose TMP-SMX is first-line treatment (and prophylaxis when CD4 < 200/mm3); add systemic corticosteroids (prednisone) whenever PaO2 < 70 mmHg or the A-a gradient is >= 35 mmHg to prevent paradoxical inflammatory respiratory failure as organisms lyse. Distractor exclusion: Amphotericin B and ribavirin have no role in PCP.`,
+    secondOrderClue: `PCP with PaO2 < 70 or A-a >= 35 -> TMP-SMX + corticosteroids (prophylax at CD4 < 200).`,
+    phase1Pearl: `Organism lysis releases cell-wall beta-glucans that worsen alveolar inflammation unless blunted by steroids.`,
+    phase2Hallmark: `ABG hypoxemia (PaO2 < 70 mmHg) or A-a gradient >= 35 mmHg guides steroid addition.`,
+    phase3Secret: `Initiate primary prophylaxis with TMP-SMX whenever CD4 < 200/mm3 (alternatives: atovaquone, dapsone after G6PD check, or aerosolized pentamidine).`,
+    dossierBullets: {
+      p1: [`TMP-SMX blocks folate metabolism in Pneumocystis`, `Steroids blunt inflammatory alveolar injury during organism lysis`],
+      p2: [`Criteria for steroids: PaO2 < 70 mmHg or A-a gradient >= 35 mmHg`, `Silver stain disc-shaped cysts on BAL`],
+      p3: [`Treatment: high-dose TMP-SMX (+/- prednisone); alternative: pentamidine or atovaquone`, `Prophylaxis: TMP-SMX when CD4+ < 200/mm3`]
+    }
+  }
+];
+
+/* STATE */
+let activeDeck = [];
+let currentIndex = 0;
+let playerHp = 100;
+let playerXp = 0;
+let streak = 0;
+let bestStreak = 0;
+let answeredCount = 0;
+let correctCount = 0;
+let missedQuestionIds = new Set();
+let masteredLos = new Set();
+let isHintsVisible = false;
+let isMenuOpen = false;
+let isModalOpen = false;
+let isRunFinished = false;
+let timerEnabled = true;
+let timeoutMode = 'review';
+let timeRemaining = GAME_CONFIG.timerSeconds;
+let timerIntervalId = null;
+let metaFadeTimerId = null;
+let currentChoicesShuffled = [];
+let currentCorrectLane = 0;
+
+/* AUDIO ENGINE */
+let audioCtx = null;
+let masterSoundOn = true;
+let sfxOn = true;
+let bgmOn = false;
+let bgmVolume = 0.35;
+let bgmIntervalId = null;
+let customAudioEl = null;
+
+function ensureAudioCtx() {
+  if (!audioCtx && (window.AudioContext || window.webkitAudioContext)) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new Ctx();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+}
+
+function playSfx(type) {
+  if (!masterSoundOn || !sfxOn) return;
+  try {
+    ensureAudioCtx();
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    if (type === 'steer') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(520, now);
+      osc.frequency.exponentialRampToValueAtTime(760, now + 0.06);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc.start(now); osc.stop(now + 0.08);
+    } else if (type === 'correct') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, now);
+      osc.frequency.setValueAtTime(659.25, now + 0.07);
+      osc.frequency.setValueAtTime(783.99, now + 0.14);
+      gain.gain.setValueAtTime(0.14, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+      osc.start(now); osc.stop(now + 0.28);
+    } else if (type === 'wrong') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(190, now);
+      osc.frequency.exponentialRampToValueAtTime(95, now + 0.24);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.26);
+      osc.start(now); osc.stop(now + 0.26);
+    } else if (type === 'heal') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, now);
+      osc.frequency.setValueAtTime(880, now + 0.09);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.26);
+      osc.start(now); osc.stop(now + 0.26);
+    }
+  } catch (e) {}
+}
+
+const ZOMBIES_NOTES = [110, 130.81, 146.83, 164.81, 196, 164.81, 146.83, 130.81];
+let bgmStep = 0;
+function startProceduralBgmLoop() {
+  stopBgmLoop();
+  if (!masterSoundOn || !bgmOn) return;
+  if (customAudioEl && customAudioEl.src) {
+    customAudioEl.volume = bgmVolume;
+    customAudioEl.play().catch(() => {});
+    return;
+  }
+  ensureAudioCtx();
+  bgmIntervalId = setInterval(() => {
+    if (!masterSoundOn || !bgmOn || !audioCtx) return;
+    try {
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(ZOMBIES_NOTES[bgmStep % ZOMBIES_NOTES.length], now);
+      gain.gain.setValueAtTime(0.06 * bgmVolume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now); osc.stop(now + 0.25);
+      bgmStep++;
+    } catch (e) {}
+  }, 260);
+}
+function stopBgmLoop() {
+  if (bgmIntervalId) { clearInterval(bgmIntervalId); bgmIntervalId = null; }
+  if (customAudioEl) customAudioEl.pause();
+}
+function toggleMasterSound() {
+  masterSoundOn = !masterSoundOn;
+  const btn = document.getElementById('master-sound-btn');
+  if (btn) btn.textContent = masterSoundOn ? `🔊 Master Sound: ON` : `🔇 Master Sound: OFF`;
+  if (!masterSoundOn) stopBgmLoop();
+  else if (bgmOn) startProceduralBgmLoop();
+  persistAppState();
+}
+function toggleSfx() {
+  sfxOn = !sfxOn;
+  const btn = document.getElementById('sfx-btn');
+  if (btn) btn.textContent = sfxOn ? `🎹 SFX: ON` : `🎹 SFX: OFF`;
+  persistAppState();
+}
+function toggleProceduralBgm() {
+  bgmOn = !bgmOn;
+  const btn = document.getElementById('bgm-btn');
+  if (btn) {
+    btn.textContent = bgmOn ? `🎵 Zombies BGM: ON` : `🎵 Zombies BGM: OFF`;
+    btn.classList.toggle('is-active', bgmOn);
+  }
+  if (bgmOn) startProceduralBgmLoop();
+  else stopBgmLoop();
+  persistAppState();
+}
+function setBgmVolume(val) {
+  bgmVolume = parseFloat(val) || 0.35;
+  if (customAudioEl) customAudioEl.volume = bgmVolume;
+  persistAppState();
+}
+function loadCustomBgmFile(input) {
+  const file = input && input.files && input.files[0];
+  if (!file) return;
+  if (!customAudioEl) {
+    customAudioEl = new Audio();
+    customAudioEl.loop = true;
+  }
+  customAudioEl.src = URL.createObjectURL(file);
+  bgmOn = true;
+  const btn = document.getElementById('bgm-btn');
+  if (btn) { btn.textContent = `🎵 Custom BGM: ON`; btn.classList.add('is-active'); }
+  startProceduralBgmLoop();
+}
+
+/* 3D SYNTHWAVE CANVAS + 150 SQUARE PIXEL DUST + 1:1 PORTAL FUSION */
+const LANE_COLORS = ['#ff2d78', '#00ffcc', '#ffe04a'];
+const PIXEL_DUST = Array.from({ length: 150 }, (_, i) => ({
+  x: ((i * 73) % 200) - 100,
+  y: ((i * 41) % 80) - 45,
+  z: (i * 0.67) % 100 + 2,
+  size: (i % 3) + 2,
+  speed: 0.28 + (i % 5) * 0.08
+}));
+let canvasRafId = null;
+let floorOffset = 0;
+let craftLaneTarget = 1;
+let craftLaneCurrent = 1;
+let hoveredLane = -1;
+let portalApproach = 0;
+let currentTheme = LO_VISUAL_THEMES[1];
+
+function setHoveredLane(laneIdx) {
+  hoveredLane = laneIdx;
+  if (laneIdx >= 0) craftLaneTarget = laneIdx;
+  for (let i = 0; i < 3; i++) {
+    const c = document.getElementById(`lane-card-${i}`);
+    if (c) c.classList.toggle('is-hovered', i === laneIdx);
+  }
+}
+
+function startCanvasLoop() {
+  if (canvasRafId) cancelAnimationFrame(canvasRafId);
+  const renderFrame = () => {
+    drawXrScene();
+    canvasRafId = requestAnimationFrame(renderFrame);
+  };
+  canvasRafId = requestAnimationFrame(renderFrame);
+}
+
+function drawXrScene() {
+  const canvas = document.getElementById('xr-canvas');
+  const stage = document.getElementById('xr-viewport-stage');
+  if (!canvas || !stage) return;
+  const rect = stage.getBoundingClientRect();
+  const w = Math.max(1, Math.floor(rect.width));
+  const h = Math.max(1, Math.floor(rect.height));
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width = w;
+    canvas.height = h;
+  }
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  ctx.clearRect(0, 0, w, h);
+  const horizonY = h * 0.34;
+  const vanishX = w * 0.5;
+
+  // Deep midnight-navy sky & floor glow
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
+  skyGrad.addColorStop(0, '#07070f');
+  skyGrad.addColorStop(1, '#131328');
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, w, horizonY);
+
+  const floorGrad = ctx.createLinearGradient(0, horizonY, 0, h);
+  floorGrad.addColorStop(0, '#101022');
+  floorGrad.addColorStop(1, '#07070e');
+  ctx.fillStyle = floorGrad;
+  ctx.fillRect(0, horizonY, w, h - horizonY);
+
+  // 150 crisp 3D square pixel-dust particles
+  ctx.fillStyle = `rgba(${currentTheme.dustRgb}, 0.72)`;
+  for (let i = 0; i < PIXEL_DUST.length; i++) {
+    const p = PIXEL_DUST[i];
+    p.z -= p.speed;
+    if (p.z <= 1) p.z = 100;
+    const scale = 28 / p.z;
+    const sx = vanishX + p.x * scale * (w / 140);
+    const sy = horizonY + p.y * scale * (h / 140);
+    const sz = Math.max(1.5, p.size * (1 - p.z / 110) * 2.2);
+    if (sx >= 0 && sx <= w && sy >= 0 && sy <= h) {
+      ctx.fillRect(Math.round(sx), Math.round(sy), sz, sz);
+    }
+  }
+
+  // Infinite perspective wireframe floor
+  floorOffset = (floorOffset + 0.025) % 1;
+  ctx.strokeStyle = `rgba(${currentTheme.gridRgb}, 0.28)`;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  const cols = 14;
+  for (let i = -cols; i <= cols; i++) {
+    const bx = vanishX + (i / cols) * w * 1.45;
+    ctx.moveTo(vanishX + i * 6, horizonY);
+    ctx.lineTo(bx, h);
+  }
+  const rows = 14;
+  for (let r = 1; r <= rows; r++) {
+    const t = Math.pow((r - floorOffset) / rows, 2.1);
+    const y = horizonY + t * (h - horizonY);
+    if (y >= horizonY && y <= h) {
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+    }
+  }
+  ctx.stroke();
+
+  // 3 teal perspective track rails aligned to the 3 centered card columns
+  const cardCenters = [];
+  for (let lane = 0; lane < 3; lane++) {
+    const card = document.getElementById(`lane-card-${lane}`);
+    if (card) {
+      const cr = card.getBoundingClientRect();
+      cardCenters.push({
+        x: cr.left - rect.left + cr.width / 2,
+        y: cr.top - rect.top + cr.height / 2,
+        w: cr.width,
+        h: cr.height
+      });
+    } else {
+      cardCenters.push({ x: w * (0.25 + lane * 0.25), y: h * 0.45, w: 180, h: 140 });
+    }
+  }
+
+  ctx.strokeStyle = 'rgba(0, 255, 204, 0.55)';
+  ctx.lineWidth = 2;
+  for (let lane = 0; lane < 3; lane++) {
+    const c = cardCenters[lane];
+    const bottomX = vanishX + (c.x - vanishX) * 1.35;
+    ctx.beginPath();
+    ctx.moveTo(vanishX + (lane - 1) * 16, horizonY);
+    ctx.lineTo(bottomX, h);
+    ctx.stroke();
+  }
+
+  // 1:1 Live Portal Fusion frames wrapping the 3 centered DOM cards
+  if (!isModalOpen && !isRunFinished) {
+    portalApproach = Math.min(1, portalApproach + 0.03);
+  }
+  for (let lane = 0; lane < 3; lane++) {
+    const c = cardCenters[lane];
+    const col = LANE_COLORS[lane];
+    const scale = 0.72 + 0.28 * portalApproach;
+    const pw = c.w * scale;
+    const ph = c.h * scale;
+    const px = c.x - pw / 2;
+    const py = c.y - ph / 2;
+    ctx.save();
+    ctx.strokeStyle = col;
+    ctx.lineWidth = lane === hoveredLane ? 3.5 : 2;
+    ctx.shadowColor = col;
+    ctx.shadowBlur = lane === hoveredLane ? 22 : 12;
+    ctx.strokeRect(px, py, pw, ph);
+    ctx.restore();
+  }
+
+  // Solid geometric teal diamond player craft near bottom rail
+  craftLaneCurrent += (craftLaneTarget - craftLaneCurrent) * 0.16;
+  const idxFloor = Math.max(0, Math.min(1, Math.floor(craftLaneCurrent)));
+  const frac = craftLaneCurrent - idxFloor;
+  const c0 = cardCenters[idxFloor] || cardCenters[1];
+  const c1 = cardCenters[Math.min(2, idxFloor + 1)] || cardCenters[1];
+  const targetCardX = c0.x + (c1.x - c0.x) * frac;
+  const craftX = vanishX + (targetCardX - vanishX) * 1.15;
+  const craftY = h - Math.max(26, h * 0.08);
+  ctx.save();
+  ctx.fillStyle = '#00ffcc';
+  ctx.strokeStyle = '#e8e0f0';
+  ctx.lineWidth = 1.5;
+  ctx.shadowColor = '#00ffcc';
+  ctx.shadowBlur = 16;
+  ctx.beginPath();
+  ctx.moveTo(craftX, craftY - 14);
+  ctx.lineTo(craftX + 18, craftY + 2);
+  ctx.lineTo(craftX, craftY + 12);
+  ctx.lineTo(craftX - 18, craftY + 2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+
+function handleCanvasPointer(evt) {
+  if (isModalOpen || isMenuOpen || isRunFinished) return;
+  const canvas = document.getElementById('xr-canvas');
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const x = evt.clientX - rect.left;
+  const third = rect.width / 3;
+  const lane = Math.max(0, Math.min(2, Math.floor(x / third)));
+  selectLane(lane);
+}
+
+/* GAMEPLAY LOGIC */
+function shuffleArray(arr) {
+  const copy = arr.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function updateTelemetryUI() {
+  const hpEl = document.getElementById('hp-text');
+  const xpEl = document.getElementById('xp-text');
+  const stEl = document.getElementById('streak-text');
+  const gtEl = document.getElementById('gate-text');
+  if (hpEl) hpEl.textContent = String(playerHp);
+  if (xpEl) xpEl.textContent = String(playerXp);
+  if (stEl) stEl.textContent = String(streak);
+  if (gtEl) gtEl.textContent = `${Math.min(currentIndex + 1, activeDeck.length)}/${activeDeck.length}`;
+}
+
+function syncTimerControlsUI() {
+  const btn = document.getElementById('timer-toggle-btn');
+  const chip = document.getElementById('timer-chip');
+  const txt = document.getElementById('timer-text');
+  if (btn) {
+    btn.textContent = timerEnabled ? `⏱ 50s Timer: ON [T]` : `⏱ 50s Timer: OFF [T]`;
+    btn.classList.toggle('is-active', timerEnabled);
+  }
+  if (txt) txt.textContent = timerEnabled ? `${timeRemaining}s` : `∞`;
+  if (chip) chip.classList.toggle('is-urgent', timerEnabled && timeRemaining <= 10);
+}
+
+function startQuestionTimer() {
+  if (timerIntervalId) clearInterval(timerIntervalId);
+  timeRemaining = GAME_CONFIG.timerSeconds;
+  syncTimerControlsUI();
+  if (!timerEnabled || isModalOpen || isRunFinished) return;
+  timerIntervalId = setInterval(() => {
+    if (isModalOpen || isMenuOpen || isRunFinished) return;
+    timeRemaining--;
+    syncTimerControlsUI();
+    if (timeRemaining <= 0) {
+      clearInterval(timerIntervalId);
+      timerIntervalId = null;
+      if (timeoutMode === 'review') {
+        handleTimeoutReview();
+      } else {
+        timeRemaining = 0;
+        syncTimerControlsUI();
+      }
+    }
+  }, 1000);
+}
+
+function handleTimeoutReview() {
+  const q = activeDeck[currentIndex];
+  if (!q) return;
+  isModalOpen = true;
+  answeredCount++;
+  streak = 0;
+  playerHp = Math.max(0, playerHp - 15);
+  missedQuestionIds.add(q.id);
+  playSfx('wrong');
+  flashVignette(false);
+  updateTelemetryUI();
+  populateOutcomeModal(q, -1, false, `+0 XP`, `-15 HP`, true);
+  persistAppState();
+}
+
+function flashVignette(isSuccess) {
+  const v = document.getElementById('vignette-overlay');
+  if (!v) return;
+  v.classList.remove('is-correct', 'is-wrong');
+  v.classList.add(isSuccess ? 'is-correct' : 'is-wrong');
+  setTimeout(() => v.classList.remove('is-correct', 'is-wrong'), 450);
+}
+
+function showStreakBonusToast() {
+  const t = document.getElementById('heal-toast');
+  if (!t) return;
+  t.classList.add('is-visible');
+  setTimeout(() => t.classList.remove('is-visible'), 1700);
+}
+
+function prepareNextGate() {
+  if (activeDeck.length === 0) {
+    const stem = document.getElementById('q-stem-text');
+    if (stem) stem.textContent = `No gates match this filter. Open Menu [M] to select All 15 Entities.`;
+    return;
+  }
+  if (currentIndex >= activeDeck.length) {
+    openSummaryModal();
+    return;
+  }
+  const q = activeDeck[currentIndex];
+  currentTheme = LO_VISUAL_THEMES[q.lo] || LO_VISUAL_THEMES[1];
+  portalApproach = 0.15;
+
+  const metaRow = document.getElementById('question-meta-row');
+  if (metaRow) {
+    metaRow.classList.remove('is-faded');
+    if (metaFadeTimerId) clearTimeout(metaFadeTimerId);
+    metaFadeTimerId = setTimeout(() => {
+      metaRow.classList.add('is-faded');
+    }, GAME_CONFIG.metaFadeMs);
+  }
+
+  const bLo = document.getElementById('badge-lo');
+  const bAng = document.getElementById('badge-angle');
+  const bPh = document.getElementById('badge-phase');
+  const bCor = document.getElementById('badge-corridor');
+  if (bLo) bLo.textContent = q.loTitle;
+  if (bAng) bAng.textContent = q.angle;
+  if (bPh) bPh.textContent = q.phaseFocus;
+  if (bCor) bCor.textContent = `CORRIDOR: ${currentTheme.corridor}`;
+
+  const stemEl = document.getElementById('q-stem-text');
+  const clueEl = document.getElementById('q-clue-text');
+  const clueRef = document.getElementById('hints-meta-ref');
+  if (stemEl) stemEl.textContent = q.stem;
+  if (clueEl) clueEl.textContent = q.clue;
+  if (clueRef) clueRef.textContent = `${q.loTitle} • ${q.phaseFocus}`;
+
+  // Shuffle 3 portal choices at runtime while tracking correctIndex
+  const tagged = q.choices.map((txt, idx) => ({ txt, isCorrect: idx === q.correctIndex }));
+  currentChoicesShuffled = shuffleArray(tagged);
+  currentCorrectLane = currentChoicesShuffled.findIndex((c) => c.isCorrect);
+
+  for (let i = 0; i < 3; i++) {
+    const span = document.getElementById(`lane-${i}-text`);
+    if (span) span.textContent = currentChoicesShuffled[i] ? currentChoicesShuffled[i].txt : '';
+  }
+
+  updateTelemetryUI();
+  startQuestionTimer();
+}
+
+function selectLane(chosenLane) {
+  if (isModalOpen || isMenuOpen || isRunFinished || activeDeck.length === 0) return;
+  const q = activeDeck[currentIndex];
+  if (!q) return;
+  if (timerIntervalId) { clearInterval(timerIntervalId); timerIntervalId = null; }
+  craftLaneTarget = chosenLane;
+  isModalOpen = true;
+  answeredCount++;
+
+  const isCorrect = chosenLane === currentCorrectLane;
+  let xpDelta = `+0 XP`;
+  let hpDeltaLabel = `HP ${playerHp}`;
+
+  if (isCorrect) {
+    correctCount++;
+    streak++;
+    if (streak > bestStreak) bestStreak = streak;
+    const pts = 100 + Math.min(50, (streak - 1) * 10);
+    playerXp += pts;
+    xpDelta = `+${pts} XP`;
+    missedQuestionIds.delete(q.id);
+    // Check if all gates for this LO are answered without miss
+    const loGates = ALL_QUESTIONS.filter((item) => item.lo === q.lo);
+    if (loGates.every((item) => !missedQuestionIds.has(item.id))) {
+      masteredLos.add(q.lo);
+    }
+    if (streak > 0 && streak % GAME_CONFIG.streakHealEvery === 0) {
+      playerHp = Math.min(100, playerHp + GAME_CONFIG.streakHealAmount);
+      hpDeltaLabel = `+${GAME_CONFIG.streakHealAmount} HP (4-Streak)`;
+      playSfx('heal');
+      showStreakBonusToast();
+    } else {
+      playSfx('correct');
+    }
+    flashVignette(true);
+  } else {
+    streak = 0;
+    playerHp = Math.max(0, playerHp - 15);
+    hpDeltaLabel = `-15 HP`;
+    missedQuestionIds.add(q.id);
+    masteredLos.delete(q.lo);
+    playSfx('wrong');
+    flashVignette(false);
+  }
+
+  updateTelemetryUI();
+  renderSkillTree();
+  populateOutcomeModal(q, chosenLane, isCorrect, xpDelta, hpDeltaLabel, false);
+  persistAppState();
+}
+
+function renderDossierBullets(el, lines) {
+  if (!el) return;
+  const items = (Array.isArray(lines) ? lines : [lines])
+    .flatMap((line) => String(line || '').split(/\n|<br\s*\/?>/i))
+    .map((line) => line.replace(/^\s*[•\-\*]\s*/, '').trim())
+    .filter(Boolean);
+  el.innerHTML = items.map((line) => `<p class="dossier-line">• ${line}</p>`).join('');
+}
+
+function populateOutcomeModal(q, chosenLane, isCorrect, xpDelta, hpDeltaLabel, isTimesUp) {
+  const verdict = document.getElementById('outcome-verdict');
+  const xpBadge = document.getElementById('outcome-xp-delta');
+  const hpBadge = document.getElementById('outcome-hp-delta');
+  const loRef = document.getElementById('outcome-lo-ref');
+  const qText = document.getElementById('outcome-question-text');
+  const yourBox = document.getElementById('your-choice-box');
+  const yourText = document.getElementById('your-choice-text');
+  const rightText = document.getElementById('correct-choice-text');
+  const scrollBody = document.getElementById('outcome-scroll-body');
+  const contBtn = document.getElementById('continue-runner-btn');
+  const backdrop = document.getElementById('outcome-backdrop');
+
+  if (verdict) {
+    verdict.classList.remove('is-correct', 'is-wrong');
+    if (isTimesUp) {
+      verdict.textContent = `⏱ TIME'S UP — ${q.shortAnswer}`;
+      verdict.classList.add('is-wrong');
+    } else if (isCorrect) {
+      verdict.textContent = `✔ CORRECT — ${q.shortAnswer}`;
+      verdict.classList.add('is-correct');
+    } else {
+      verdict.textContent = `✖ INCORRECT — ${q.shortAnswer}`;
+      verdict.classList.add('is-wrong');
+    }
+  }
+  if (xpBadge) xpBadge.textContent = xpDelta;
+  if (hpBadge) hpBadge.textContent = hpDeltaLabel;
+  if (loRef) loRef.textContent = `${q.loTitle} • ${q.angle} • ${q.phaseFocus}`;
+  if (qText) qText.textContent = q.stem;
+
+  if (yourBox) {
+    yourBox.classList.remove('is-correct', 'is-wrong');
+    yourBox.classList.add(isCorrect ? 'is-correct' : 'is-wrong');
+  }
+  if (yourText) {
+    yourText.textContent = chosenLane >= 0 && currentChoicesShuffled[chosenLane]
+      ? currentChoicesShuffled[chosenLane].txt
+      : `No portal selected (Time expired)`;
+  }
+  if (rightText) {
+    rightText.textContent = q.choices[q.correctIndex];
+  }
+
+  renderDossierBullets(document.getElementById('dossier-rationale'), q.explanation);
+  renderDossierBullets(document.getElementById('dossier-second-order'), q.secondOrderClue);
+  renderDossierBullets(document.getElementById('dossier-phase-1'), q.phase1Pearl);
+  renderDossierBullets(document.getElementById('dossier-phase-2'), q.phase2Hallmark);
+  renderDossierBullets(document.getElementById('dossier-phase-3'), q.phase3Secret);
+  renderDossierBullets(document.getElementById('dossier-angle-1'), q.dossierBullets ? q.dossierBullets.p1 : [q.phase1Pearl]);
+  renderDossierBullets(document.getElementById('dossier-angle-2'), q.dossierBullets ? q.dossierBullets.p2 : [q.phase2Hallmark]);
+  renderDossierBullets(document.getElementById('dossier-angle-3'), q.dossierBullets ? q.dossierBullets.p3 : [q.phase3Secret]);
+
+  if (contBtn) {
+    if (playerHp <= 0) contBtn.textContent = `⚠ HP DEPLETED — VIEW SUMMARY`;
+    else if (currentIndex + 1 >= activeDeck.length) contBtn.textContent = `🏁 FINISH RUN — VIEW SUMMARY`;
+    else contBtn.textContent = `▶ Continue Runner [Space / Enter]`;
+  }
+  if (scrollBody) scrollBody.scrollTop = 0;
+  if (backdrop) backdrop.classList.add('is-open');
+}
+
+function scrollOutcomeBody(deltaY) {
+  const body = document.getElementById('outcome-scroll-body');
+  if (body) {
+    if (typeof body.scrollBy === 'function') {
+      body.scrollBy({ top: deltaY, behavior: 'smooth' });
+    } else {
+      body.scrollTop += deltaY;
+    }
+  }
+}
+
+function continueToNextGate() {
+  const backdrop = document.getElementById('outcome-backdrop');
+  if (backdrop) backdrop.classList.remove('is-open');
+  isModalOpen = false;
+  if (playerHp <= 0 || currentIndex + 1 >= activeDeck.length) {
+    openSummaryModal();
+    return;
+  }
+  currentIndex++;
+  prepareNextGate();
+}
+
+function skipCurrentQuestion() {
+  if (isModalOpen || isRunFinished || activeDeck.length === 0) return;
+  if (timerIntervalId) { clearInterval(timerIntervalId); timerIntervalId = null; }
+  playSfx('steer');
+  currentIndex = (currentIndex + 1) % activeDeck.length;
+  prepareNextGate();
+}
+
+/* MENU, FILTERS, SKILL TREE, CODEX, SUMMARY */
+function toggleMenuDrawer() {
+  isMenuOpen = !isMenuOpen;
+  const mb = document.getElementById('menu-backdrop');
+  const btn = document.getElementById('menu-toggle-btn');
+  if (mb) mb.classList.toggle('is-open', isMenuOpen);
+  if (btn) btn.setAttribute('aria-expanded', String(isMenuOpen));
+  if (isMenuOpen) renderSkillTree();
+}
+
+function syncHintsUI() {
+  const app = document.getElementById('xr-app');
+  const menuBtn = document.getElementById('menu-hints-btn');
+  if (app) {
+    app.classList.toggle('hints-visible', isHintsVisible);
+    app.classList.toggle('hints-hidden', !isHintsVisible);
+  }
+  if (menuBtn) {
+    menuBtn.textContent = isHintsVisible ? `💡 Hints: ON [H]` : `💡 Hints: OFF [H]`;
+    menuBtn.classList.toggle('is-active', isHintsVisible);
+  }
+}
+
+function toggleHintsBar() {
+  isHintsVisible = !isHintsVisible;
+  syncHintsUI();
+  playSfx('steer');
+  persistAppState();
+}
+
+function openCodexFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  openCodex();
+}
+
+function skipFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  skipCurrentQuestion();
+}
+
+function toggleTimerEnabled() {
+  timerEnabled = !timerEnabled;
+  if (timerEnabled) startQuestionTimer();
+  else {
+    if (timerIntervalId) { clearInterval(timerIntervalId); timerIntervalId = null; }
+    syncTimerControlsUI();
+  }
+  persistAppState();
+}
+
+function startTimedRun() {
+  timerEnabled = true;
+  timeoutMode = 'review';
+  const sel = document.getElementById('timeout-mode');
+  if (sel) sel.value = 'review';
+  if (isMenuOpen) toggleMenuDrawer();
+  restartDeck(true);
+}
+
+function updateTimeoutMode(val) {
+  timeoutMode = val === 'hold' ? 'hold' : 'review';
+  persistAppState();
+}
+
+function applyDeckFilters(doShuffle = false) {
+  const secVal = document.getElementById('sector-filter')?.value || 'all';
+  const angVal = document.getElementById('angle-filter')?.value || 'all';
+  const msgEl = document.getElementById('menu-inline-msg');
+
+  let filtered = ALL_QUESTIONS.filter((q) => {
+    if (secVal === 'missed') {
+      if (!missedQuestionIds.has(q.id)) return false;
+    } else if (secVal.startsWith('sector-')) {
+      const sNum = parseInt(secVal.split('-')[1], 10);
+      const codex = CODEX_DATA.find((c) => c.lo === q.lo);
+      if (!codex || codex.sector !== sNum) return false;
+    } else if (secVal !== 'all') {
+      if (q.lo !== parseInt(secVal, 10)) return false;
+    }
+    if (angVal !== 'all' && q.angle !== angVal) return false;
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    if (msgEl) msgEl.textContent = secVal === 'missed' ? `No missed gates recorded yet — showing full raid.` : `No gates matched that filter — showing full raid.`;
+    filtered = ALL_QUESTIONS.slice();
+    const secEl = document.getElementById('sector-filter');
+    if (secEl) secEl.value = 'all';
+  } else if (msgEl) {
+    msgEl.textContent = `Active deck: ${filtered.length} gates loaded.`;
+  }
+
+  activeDeck = doShuffle ? shuffleArray(filtered) : filtered;
+  currentIndex = 0;
+  isRunFinished = false;
+  renderPhaseMixPills();
+  prepareNextGate();
+}
+
+function restartDeck(doShuffle) {
+  playerHp = 100;
+  streak = 0;
+  isRunFinished = false;
+  isModalOpen = false;
+  if (isMenuOpen) toggleMenuDrawer();
+  applyDeckFilters(doShuffle);
+  persistAppState();
+}
+
+function resetMastery(btn) {
+  if (!btn) return;
+  if (btn.dataset.armed !== 'true') {
+    btn.dataset.armed = 'true';
+    btn.textContent = `⚠ Confirm Reset Mastery`;
+    setTimeout(() => {
+      if (btn.dataset.armed === 'true') {
+        btn.dataset.armed = 'false';
+        btn.textContent = `🗑 Reset Mastery`;
+      }
+    }, 3500);
+    return;
+  }
+  btn.dataset.armed = 'false';
+  btn.textContent = `🗑 Reset Mastery`;
+  masteredLos.clear();
+  missedQuestionIds.clear();
+  playerXp = 0;
+  playerHp = 100;
+  streak = 0;
+  bestStreak = 0;
+  answeredCount = 0;
+  correctCount = 0;
+  const msgEl = document.getElementById('menu-inline-msg');
+  if (msgEl) msgEl.textContent = `Mastery, XP, and missed gates reset.`;
+  updateTelemetryUI();
+  renderSkillTree();
+  persistAppState();
+}
+
+function renderPhaseMixPills() {
+  const container = document.getElementById('phase-mix-pills');
+  if (!container) return;
+  const total = ALL_QUESTIONS.length || 1;
+  const p1 = ALL_QUESTIONS.filter((q) => q.phaseFocus.startsWith('Phase 1')).length;
+  const p2 = ALL_QUESTIONS.filter((q) => q.phaseFocus.startsWith('Phase 2')).length;
+  const p3 = ALL_QUESTIONS.filter((q) => q.phaseFocus.startsWith('Phase 3')).length;
+  container.innerHTML = `
+    <span class="phase-pill">Phase 1 Pathogenesis: ${p1}/${total} (${Math.round((p1 / total) * 100)}%)</span>
+    <span class="phase-pill">Phase 2 Histology/Lab: ${p2}/${total} (${Math.round((p2 / total) * 100)}%)</span>
+    <span class="phase-pill">Phase 3 Clinical/Tx: ${p3}/${total} (${Math.round((p3 / total) * 100)}%)</span>
+  `;
+}
+
+function renderSkillTree() {
+  const grid = document.getElementById('skill-tree-grid');
+  if (grid) {
+    grid.innerHTML = CODEX_DATA.map((item) => {
+      const isMastered = masteredLos.has(item.lo);
+      return `<button type="button" class="skill-node-btn ${isMastered ? 'is-mastered' : ''}" onclick="selectSectorFromTree(${item.lo})">
+        <div class="skill-node-title">LO ${item.lo}: ${item.title}</div>
+        <div class="skill-node-meta">${isMastered ? '✔ MASTERED' : 'TAP TO DEPLOY'}</div>
+      </button>`;
+    }).join('');
+  }
+  const sumEl = document.getElementById('mastery-summary');
+  const acc = answeredCount > 0 ? `${Math.round((correctCount / answeredCount) * 100)}%` : '--%';
+  if (sumEl) sumEl.textContent = `Mastered: ${masteredLos.size} / ${CODEX_DATA.length} LOs • Accuracy: ${acc}`;
+}
+
+function selectSectorFromTree(loNum) {
+  const sel = document.getElementById('sector-filter');
+  if (sel) sel.value = String(loNum);
+  if (isMenuOpen) toggleMenuDrawer();
+  applyDeckFilters(false);
+}
+
+let activeCodexSector = 'all';
+function openCodex() {
+  const cb = document.getElementById('codex-backdrop');
+  if (cb) cb.classList.add('is-open');
+  renderCodexTable();
+}
+function closeCodex() {
+  const cb = document.getElementById('codex-backdrop');
+  if (cb) cb.classList.remove('is-open');
+}
+function filterCodex(sector, btn) {
+  activeCodexSector = sector;
+  const toolbar = btn && btn.parentElement;
+  if (toolbar) {
+    toolbar.querySelectorAll('button').forEach((b) => b.classList.remove('is-cyan'));
+  }
+  if (btn) btn.classList.add('is-cyan');
+  renderCodexTable();
+}
+function renderCodexTable() {
+  const tbody = document.getElementById('codex-tbody');
+  if (!tbody) return;
+  const q = (document.getElementById('codex-search')?.value || '').trim().toLowerCase();
+  const rows = CODEX_DATA.filter((r) => {
+    if (activeCodexSector !== 'all' && String(r.sector) !== activeCodexSector) return false;
+    if (!q) return true;
+    return [r.title, r.etiology, r.pathogenesis, r.hallmarks, r.clinical, r.management]
+      .some((f) => f.toLowerCase().includes(q));
+  });
+  tbody.innerHTML = rows.map((r) => `<tr>
+    <td class="amboss-scan-target"><strong>LO ${r.lo}: ${r.title}</strong></td>
+    <td class="amboss-scan-target">${r.etiology}</td>
+    <td class="amboss-scan-target">${r.pathogenesis}</td>
+    <td class="amboss-scan-target">${r.hallmarks}</td>
+    <td class="amboss-scan-target">${r.clinical}</td>
+    <td class="amboss-scan-target">${r.management}</td>
+  </tr>`).join('');
+}
+
+function openSummaryModal() {
+  isRunFinished = true;
+  if (timerIntervalId) { clearInterval(timerIntervalId); timerIntervalId = null; }
+  const sb = document.getElementById('summary-backdrop');
+  const acc = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
+  const sumXp = document.getElementById('sum-xp');
+  const sumAcc = document.getElementById('sum-acc');
+  const sumStr = document.getElementById('sum-streak');
+  const sumHp = document.getElementById('sum-hp');
+  if (sumXp) sumXp.textContent = String(playerXp);
+  if (sumAcc) sumAcc.textContent = `${acc}%`;
+  if (sumStr) sumStr.textContent = String(bestStreak);
+  if (sumHp) sumHp.textContent = String(playerHp);
+
+  const missedEl = document.getElementById('missed-review-list');
+  const retryBtn = document.getElementById('retry-missed-btn');
+  const missedQs = ALL_QUESTIONS.filter((q) => missedQuestionIds.has(q.id));
+  if (missedEl) {
+    if (missedQs.length === 0) {
+      missedEl.innerHTML = `<div class="missed-item" style="border-color:var(--secondary);">✔ Zero missed gates in this raid!</div>`;
+    } else {
+      missedEl.innerHTML = missedQs.map((m) => `<div class="missed-item"><strong>${m.id} (${m.loTitle}):</strong> ${m.shortAnswer} — ${m.secondOrderClue}</div>`).join('');
+    }
+  }
+  if (retryBtn) retryBtn.style.display = missedQs.length > 0 ? 'inline-flex' : 'none';
+  if (sb) sb.classList.add('is-open');
+}
+
+function retryMissedOnly() {
+  const sb = document.getElementById('summary-backdrop');
+  if (sb) sb.classList.remove('is-open');
+  const sel = document.getElementById('sector-filter');
+  if (sel) sel.value = 'missed';
+  playerHp = 100;
+  streak = 0;
+  isRunFinished = false;
+  applyDeckFilters(false);
+}
+
+function closeSummaryAndRestart(doShuffle) {
+  const sb = document.getElementById('summary-backdrop');
+  if (sb) sb.classList.remove('is-open');
+  const sel = document.getElementById('sector-filter');
+  if (sel) sel.value = 'all';
+  restartDeck(doShuffle);
+}
+
+/* KEYBOARD CONTROLS */
+function handleKeydown(evt) {
+  const key = evt.key.toLowerCase();
+  const codexOpen = document.getElementById('codex-backdrop')?.classList.contains('is-open');
+  const outcomeOpen = document.getElementById('outcome-backdrop')?.classList.contains('is-open');
+  const summaryOpen = document.getElementById('summary-backdrop')?.classList.contains('is-open');
+
+  if (evt.key === 'Escape') {
+    if (codexOpen) { closeCodex(); return; }
+    if (isMenuOpen) { toggleMenuDrawer(); return; }
+  }
+  if (codexOpen) {
+    if (key === 'c') { evt.preventDefault(); closeCodex(); }
+    return;
+  }
+  if (outcomeOpen) {
+    if (key === ' ' || key === 'enter') {
+      evt.preventDefault();
+      continueToNextGate();
+    } else if (evt.key === 'ArrowDown') {
+      evt.preventDefault();
+      scrollOutcomeBody(140);
+    } else if (evt.key === 'ArrowUp') {
+      evt.preventDefault();
+      scrollOutcomeBody(-140);
+    }
+    return;
+  }
+  if (summaryOpen) return;
+  if (evt.target && ['INPUT', 'SELECT', 'TEXTAREA'].includes(evt.target.tagName)) return;
+
+  if (key === 'm') { evt.preventDefault(); toggleMenuDrawer(); return; }
+  if (isMenuOpen) return;
+
+  if (key === 'h') { evt.preventDefault(); toggleHintsBar(); }
+  else if (key === 'c') { evt.preventDefault(); openCodex(); }
+  else if (key === 's') { evt.preventDefault(); skipCurrentQuestion(); }
+  else if (key === 't') { evt.preventDefault(); toggleTimerEnabled(); }
+  else if (key === '1' || key === 'a' || evt.key === 'ArrowLeft') { evt.preventDefault(); selectLane(0); }
+  else if (key === '2' || key === 'w' || evt.key === 'ArrowUp') { evt.preventDefault(); selectLane(1); }
+  else if (key === '3' || key === 'd' || evt.key === 'ArrowRight') { evt.preventDefault(); selectLane(2); }
+}
+
+/* PERSISTENCE VIA NOTEBOOK APP API */
+async function persistAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.setAppState !== 'function') return;
+  try {
+    await window.notebookAppApi.setAppState({
+      playerHp,
+      playerXp,
+      streak,
+      bestStreak,
+      answeredCount,
+      correctCount,
+      missedQuestionIds: Array.from(missedQuestionIds),
+      masteredLos: Array.from(masteredLos),
+      isHintsVisible,
+      timerEnabled,
+      timeoutMode,
+      masterSoundOn,
+      sfxOn,
+      bgmVolume
+    });
+  } catch (e) {}
+}
+
+function restoreFromState(st) {
+  if (!st || typeof st !== 'object') return;
+  if (typeof st.playerHp === 'number') playerHp = st.playerHp;
+  if (typeof st.playerXp === 'number') playerXp = st.playerXp;
+  if (typeof st.streak === 'number') streak = st.streak;
+  if (typeof st.bestStreak === 'number') bestStreak = st.bestStreak;
+  if (typeof st.answeredCount === 'number') answeredCount = st.answeredCount;
+  if (typeof st.correctCount === 'number') correctCount = st.correctCount;
+  if (Array.isArray(st.missedQuestionIds)) missedQuestionIds = new Set(st.missedQuestionIds);
+  if (Array.isArray(st.masteredLos)) masteredLos = new Set(st.masteredLos);
+  if (typeof st.isHintsVisible === 'boolean') isHintsVisible = st.isHintsVisible;
+  if (typeof st.timerEnabled === 'boolean') timerEnabled = st.timerEnabled;
+  if (st.timeoutMode === 'hold' || st.timeoutMode === 'review') {
+    timeoutMode = st.timeoutMode;
+    const tm = document.getElementById('timeout-mode');
+    if (tm) tm.value = timeoutMode;
+  }
+  if (typeof st.masterSoundOn === 'boolean') {
+    masterSoundOn = st.masterSoundOn;
+    const msb = document.getElementById('master-sound-btn');
+    if (msb) msb.textContent = masterSoundOn ? `🔊 Master Sound: ON` : `🔇 Master Sound: OFF`;
+  }
+  if (typeof st.sfxOn === 'boolean') {
+    sfxOn = st.sfxOn;
+    const sb = document.getElementById('sfx-btn');
+    if (sb) sb.textContent = sfxOn ? `🎹 SFX: ON` : `🎹 SFX: OFF`;
+  }
+  if (typeof st.bgmVolume === 'number') {
+    bgmVolume = st.bgmVolume;
+    const bv = document.getElementById('bgm-volume');
+    if (bv) bv.value = String(bgmVolume);
+  }
+}
+
+async function initApp() {
+  if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === 'function') {
+    try {
+      const saved = await window.notebookAppApi.getAppState();
+      if (saved) restoreFromState(saved);
+    } catch (e) {}
+  }
+  const canvas = document.getElementById('xr-canvas');
+  if (canvas) canvas.addEventListener('click', handleCanvasPointer);
+  document.addEventListener('keydown', handleKeydown);
+
+  syncHintsUI();
+  syncTimerControlsUI();
+  renderPhaseMixPills();
+  renderSkillTree();
+  applyDeckFilters(false);
+  startCanvasLoop();
+
+  if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === 'function') {
+    window.notebookAppApi.notifyAppReady();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', initApp);
+</script>
+</body>
+</html>

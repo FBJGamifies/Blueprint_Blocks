@@ -1,0 +1,3628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="artifact-type" content="tool">
+  <meta name="design-style" content="neon_noir">
+  <title>Cardio Microbiology — COMLEX-USA XR Raid (v3.8)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@100;200;300;400;500;600;700;800&family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+
+      /* Page and surfaces */
+      --background: #0a0a12;
+      --surface-container-low: #111118;
+      --surface-container: #141422;
+      --surface-container-high: #1e1e30;
+      --glass-surface: rgba(14, 16, 30, 0.78);
+      --glass-surface-strong: rgba(16, 18, 34, 0.92);
+      --backdrop-scrim: rgba(6, 7, 15, 0.84);
+
+      /* Text */
+      --on-surface: #e8e0f0;
+      --on-surface-variant: #a098b0;
+
+      /* Lines */
+      --outline: #5a5068;
+      --outline-variant: #302840;
+
+      /* Neon accents */
+      --primary: #ff2d78;
+      --on-primary: #1a0010;
+      --primary-container: #b3004e;
+      --on-primary-container: #ffe0ec;
+      --secondary: #00ffcc;
+      --tertiary: #ffe04a;
+      --error: #ff4444;
+      --on-error: #1a0000;
+
+      /* Semantic */
+      --positive: #00ffcc;
+      --warning: #ffe04a;
+      --focus: #ff2d78;
+
+      /* Data & portal colors */
+      --data-1: #ff2d78;
+      --data-2: #00ffcc;
+      --data-3: #ffe04a;
+      --data-4: #b388ff;
+      --data-context: #6e6680;
+
+      /* Fonts */
+      --font-headline: 'Sora', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --font-label: 'Space Mono', monospace;
+
+      /* Type scale */
+      --display-size: clamp(1.4rem, 1.1rem + 1vw, 1.9rem);
+      --headline-size: clamp(1.1rem, 1rem + 0.45vw, 1.4rem);
+      --subhead-size: clamp(0.95rem, 0.9rem + 0.25vw, 1.125rem);
+      --body-size: clamp(0.9rem, 0.86rem + 0.16vw, 1rem);
+      --label-size: 0.75rem;
+
+      /* Spacing scale */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+      --space-2xl: 4rem;
+      --space-3xl: 6rem;
+
+      /* Shape */
+      --rounded: 0.125rem;
+      --rounded-lg: 0.25rem;
+      --rounded-full: 0.75rem;
+
+      /* Style effects */
+      --glow-text: 0 0 8px currentColor;
+      --glow-primary: 0 0 16px color-mix(in srgb, var(--primary) 40%, transparent);
+      --glow-secondary: 0 0 16px color-mix(in srgb, var(--secondary) 35%, transparent);
+      --glow-tertiary: 0 0 16px color-mix(in srgb, var(--tertiary) 35%, transparent);
+      --neon-border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+      --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 55%, transparent);
+      --cyan-border: 1px solid color-mix(in srgb, var(--secondary) 35%, transparent);
+      --yellow-border: 1px solid color-mix(in srgb, var(--tertiary) 38%, transparent);
+      --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+      --cyan-inset: inset 0 0 12px color-mix(in srgb, var(--secondary) 10%, transparent);
+      --yellow-inset: inset 0 0 12px color-mix(in srgb, var(--tertiary) 10%, transparent);
+      --glow-line: drop-shadow(0 0 4px currentColor);
+      --scanlines: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in srgb, var(--on-surface) 3%, transparent) 3px 4px);
+
+      /* Motion */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+      --dur-long: 420ms;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      overflow-x: clip;
+      overflow-y: hidden;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100dvh;
+      background-color: var(--background);
+      color: var(--on-surface);
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+
+    header { position: static !important; }
+
+    button, input, select, textarea {
+      font-family: inherit;
+      color: inherit;
+    }
+
+    button:focus-visible,
+    select:focus-visible,
+    input:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    /* Main 4-Band Cockpit Shell */
+    #xr-app {
+      position: relative;
+      width: 100%;
+      height: 100dvh;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr) auto;
+      overflow: hidden;
+      background-color: var(--background);
+      background-image: var(--scanlines);
+    }
+
+    /* Fullscreen 3D Viewport Canvas */
+    #three-viewport-layer {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+    #three-viewport-layer canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* BAND 1 — Ultra-Slim Top Bar (Small Menu Button + Read-Only Telemetry Only) */
+    #top-mini-bar {
+      position: relative;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      padding: var(--space-xs) var(--space-md);
+      background: var(--glass-surface-strong);
+      border-bottom: 1px solid var(--outline-variant);
+      backdrop-filter: blur(8px);
+      min-height: 44px;
+    }
+
+    #menu-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+      min-height: 36px;
+      padding: 0.35rem 0.75rem;
+      background: var(--surface-container);
+      color: var(--secondary);
+      border: var(--cyan-border);
+      border-radius: var(--rounded);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: box-shadow var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
+    }
+    #menu-toggle-btn:hover {
+      border-color: var(--secondary);
+      box-shadow: var(--glow-secondary);
+      text-shadow: var(--glow-text);
+    }
+
+    .telemetry-strip {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+    }
+
+    .tele-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.25rem 0.55rem;
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      font-family: var(--font-label);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--on-surface);
+      white-space: nowrap;
+    }
+    .tele-chip.is-hp { border-color: color-mix(in srgb, var(--primary) 40%, transparent); color: var(--primary); }
+    .tele-chip.is-xp { border-color: color-mix(in srgb, var(--secondary) 40%, transparent); color: var(--secondary); }
+    .tele-chip.is-streak { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+    .tele-chip.is-gate { border-color: var(--outline); color: var(--on-surface); }
+    .tele-chip.is-timer { border-color: color-mix(in srgb, var(--secondary) 35%, transparent); color: var(--secondary); }
+    .tele-chip.is-timer.is-urgent {
+      border-color: var(--error);
+      color: var(--error);
+      box-shadow: var(--glow-primary);
+    }
+
+    /* BAND 2 — Top Question + 3-Second Auto-Hiding Metadata */
+    #question-stage {
+      position: relative;
+      z-index: 15;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-sm) var(--space-md) var(--space-xs);
+      pointer-events: none;
+    }
+
+    .question-card {
+      width: min(980px, 100%);
+      background: var(--glass-surface);
+      border: var(--cyan-border);
+      box-shadow: var(--cyan-inset);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-sm) var(--space-lg);
+      backdrop-filter: blur(10px);
+      pointer-events: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      transition: padding var(--dur-short) var(--ease-out);
+    }
+
+    #q-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+      margin-bottom: var(--space-xs);
+      max-height: 4.5rem;
+      opacity: 1;
+      overflow: hidden;
+      transition: opacity var(--dur-long) var(--ease-out),
+                  max-height var(--dur-long) var(--ease-out),
+                  margin-bottom var(--dur-long) var(--ease-out);
+    }
+    #q-meta-row.is-faded {
+      opacity: 0;
+      max-height: 0;
+      margin-bottom: 0;
+      pointer-events: none;
+    }
+
+    .meta-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.15rem 0.5rem;
+      border-radius: var(--rounded);
+      border: 1px solid var(--outline);
+      background: var(--surface-container-low);
+      font-family: var(--font-label);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--on-surface-variant);
+    }
+    .meta-badge.is-sector { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+    .meta-badge.is-angle { border-color: color-mix(in srgb, var(--primary) 45%, transparent); color: var(--primary); }
+    .meta-badge.is-phase { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+    .meta-badge.is-corridor { border-color: color-mix(in srgb, var(--data-4) 50%, transparent); color: var(--data-4); }
+
+    #q-stem-text,
+    .question-stem {
+      text-align: center;
+      margin: 0 auto;
+      font-family: var(--font-body);
+      font-size: clamp(0.9rem, 0.82rem + 0.35vw, 1.08rem);
+      font-weight: 500;
+      line-height: 1.45;
+      color: var(--on-surface);
+      max-width: 78ch;
+      transition: font-size var(--dur-short) var(--ease-out);
+    }
+
+    /* BAND 3 — Interactive 3D Viewport & 3 Centered Answer Cards */
+    #viewport-stage {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-sm) var(--space-md);
+      min-height: 0;
+    }
+
+    #lane-cards-grid {
+      width: min(1140px, 100%);
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-md);
+      align-items: stretch;
+      justify-content: center;
+      margin: 0 auto;
+    }
+
+    .lane-dom-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      width: 100%;
+      min-height: 165px;
+      padding: var(--space-md) var(--space-md);
+      background: var(--glass-surface);
+      border-radius: var(--rounded-lg);
+      backdrop-filter: blur(12px);
+      cursor: pointer;
+      transition: transform var(--dur-micro) var(--ease-out),
+                  box-shadow var(--dur-short) var(--ease-out),
+                  border-color var(--dur-short) var(--ease-out),
+                  background-color var(--dur-short) var(--ease-out);
+    }
+
+    .lane-dom-card[data-lane="0"] {
+      border: var(--neon-border-lit);
+      box-shadow: var(--neon-inset);
+    }
+    .lane-dom-card[data-lane="1"] {
+      border: var(--cyan-border);
+      box-shadow: var(--cyan-inset);
+    }
+    .lane-dom-card[data-lane="2"] {
+      border: var(--yellow-border);
+      box-shadow: var(--yellow-inset);
+    }
+
+    .lane-dom-card.is-targeted[data-lane="0"],
+    .lane-dom-card:hover[data-lane="0"] {
+      border-color: var(--primary);
+      box-shadow: var(--glow-primary), var(--neon-inset);
+      transform: translateY(-2px);
+    }
+    .lane-dom-card.is-targeted[data-lane="1"],
+    .lane-dom-card:hover[data-lane="1"] {
+      border-color: var(--secondary);
+      box-shadow: var(--glow-secondary), var(--cyan-inset);
+      transform: translateY(-2px);
+    }
+    .lane-dom-card.is-targeted[data-lane="2"],
+    .lane-dom-card:hover[data-lane="2"] {
+      border-color: var(--tertiary);
+      box-shadow: var(--glow-tertiary), var(--yellow-inset);
+      transform: translateY(-2px);
+    }
+
+    .lane-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+      margin-bottom: var(--space-xs);
+      width: 100%;
+    }
+
+    .lane-key-label {
+      font-family: var(--font-label);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.14rem 0.45rem;
+      border-radius: var(--rounded);
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline);
+    }
+    .lane-dom-card[data-lane="0"] .lane-key-label { color: var(--primary); border-color: color-mix(in srgb, var(--primary) 55%, transparent); }
+    .lane-dom-card[data-lane="1"] .lane-key-label { color: var(--secondary); border-color: color-mix(in srgb, var(--secondary) 55%, transparent); }
+    .lane-dom-card[data-lane="2"] .lane-key-label { color: var(--tertiary); border-color: color-mix(in srgb, var(--tertiary) 55%, transparent); }
+
+    .lane-choice-body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      width: 100%;
+      flex: 1 1 auto;
+    }
+
+    .lane-card-text,
+    .lane-card-text span {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      width: 100%;
+      font-family: var(--font-body);
+      font-size: clamp(0.86rem, 0.8rem + 0.25vw, 0.98rem);
+      font-weight: 500;
+      line-height: 1.4;
+      color: var(--on-surface);
+    }
+
+    /* BAND 4 — Bottom Hints Bar ([H]) with Proportional Auto-Resizing */
+    #hints-bar {
+      position: relative;
+      z-index: 15;
+      width: 100%;
+      padding: 0 var(--space-md) var(--space-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      transition: max-height var(--dur-short) var(--ease-out), opacity var(--dur-short) var(--ease-out), padding var(--dur-short) var(--ease-out);
+    }
+
+    #xr-app.hints-hidden #hints-bar {
+      max-height: 0;
+      opacity: 0;
+      padding: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    #xr-app.hints-visible #hints-bar {
+      max-height: 110px;
+      opacity: 1;
+    }
+
+    #xr-app.hints-visible .question-card {
+      padding: var(--space-xs) var(--space-md);
+    }
+    #xr-app.hints-visible #q-stem-text {
+      font-size: clamp(0.84rem, 0.78rem + 0.25vw, 0.98rem);
+      line-height: 1.38;
+    }
+    #xr-app.hints-visible .lane-dom-card {
+      min-height: 122px;
+      padding: var(--space-sm) var(--space-md);
+    }
+
+    .hints-inner {
+      width: min(980px, 100%);
+      background: var(--glass-surface-strong);
+      border: var(--yellow-border);
+      box-shadow: var(--yellow-inset);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-xs) var(--space-md);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hints-label {
+      font-family: var(--font-label);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--tertiary);
+      text-shadow: var(--glow-text);
+      margin-bottom: 0.15rem;
+    }
+
+    #q-clue-text {
+      text-align: center;
+      margin: 0 auto;
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      color: var(--on-surface);
+      line-height: 1.38;
+    }
+
+    /* Inline Toast Notification */
+    .inline-toast {
+      position: fixed;
+      bottom: var(--space-md);
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      z-index: 90;
+      background: var(--surface-container-high);
+      border: var(--cyan-border);
+      box-shadow: var(--glow-secondary);
+      color: var(--secondary);
+      font-family: var(--font-label);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      padding: 0.45rem 0.9rem;
+      border-radius: var(--rounded);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out);
+    }
+    .inline-toast.is-visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* MENU DRAWER (#top-menu-drawer) */
+    #menu-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      background: var(--backdrop-scrim);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--dur-short) var(--ease-out);
+    }
+    #menu-backdrop.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #top-menu-drawer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: min(460px, 94vw);
+      z-index: 50;
+      background: var(--surface-container);
+      border-right: var(--cyan-border);
+      box-shadow: var(--glow-secondary);
+      transform: translateX(-105%);
+      transition: transform var(--dur-short) var(--ease-out);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #top-menu-drawer.is-open {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      padding: var(--space-md);
+      background: var(--surface-container-low);
+      border-bottom: 1px solid var(--outline-variant);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+    .drawer-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+    .drawer-kicker {
+      font-family: var(--font-label);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--secondary);
+      text-shadow: var(--glow-text);
+    }
+    .drawer-title {
+      margin: 0;
+      font-family: var(--font-headline);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--on-surface);
+      line-height: 1.2;
+    }
+
+    .drawer-scroll {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .menu-section {
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-sm) var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+    .menu-section-title {
+      font-family: var(--font-label);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--primary);
+    }
+
+    .menu-btn-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-xs);
+    }
+
+    .btn-neon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+      min-height: 44px;
+      padding: 0.45rem 0.75rem;
+      background: var(--surface-container);
+      color: var(--primary);
+      border: var(--neon-border-lit);
+      border-radius: var(--rounded);
+      font-family: var(--font-label);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-align: center;
+      transition: box-shadow var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+    }
+    .btn-neon:hover {
+      border-color: var(--primary);
+      box-shadow: var(--glow-primary);
+      text-shadow: var(--glow-text);
+    }
+    .btn-neon.is-cyan {
+      color: var(--secondary);
+      border-color: color-mix(in srgb, var(--secondary) 45%, transparent);
+    }
+    .btn-neon.is-cyan:hover {
+      border-color: var(--secondary);
+      box-shadow: var(--glow-secondary);
+    }
+    .btn-neon.is-yellow {
+      color: var(--tertiary);
+      border-color: color-mix(in srgb, var(--tertiary) 45%, transparent);
+    }
+    .btn-neon.is-yellow:hover {
+      border-color: var(--tertiary);
+      box-shadow: var(--glow-tertiary);
+    }
+    .btn-neon.is-active {
+      background: var(--surface-container-high);
+      border-color: var(--secondary);
+      color: var(--secondary);
+      box-shadow: var(--glow-secondary);
+    }
+    .btn-neon.is-danger {
+      color: var(--error);
+      border-color: color-mix(in srgb, var(--error) 45%, transparent);
+    }
+    .btn-neon.is-danger:hover {
+      border-color: var(--error);
+      box-shadow: var(--glow-primary);
+    }
+
+    .menu-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .menu-label {
+      font-family: var(--font-label);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--on-surface-variant);
+    }
+    .menu-select,
+    .menu-input {
+      width: 100%;
+      min-height: 40px;
+      padding: 0.4rem 1.75rem 0.4rem 0.65rem;
+      background: var(--surface-container);
+      border: 1px solid var(--outline);
+      border-bottom: 2px solid var(--secondary);
+      border-radius: var(--rounded);
+      color: var(--on-surface);
+      font-size: 0.82rem;
+    }
+
+    .phase-pills-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+    }
+    .phase-pill {
+      flex: 1 1 auto;
+      min-height: 36px;
+      padding: 0.3rem 0.5rem;
+      background: var(--surface-container);
+      border: 1px solid var(--outline);
+      border-radius: var(--rounded);
+      font-family: var(--font-label);
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--on-surface-variant);
+      cursor: pointer;
+    }
+    .phase-pill.is-active {
+      border-color: var(--tertiary);
+      color: var(--tertiary);
+      background: var(--surface-container-high);
+      box-shadow: var(--yellow-inset);
+    }
+
+    .volume-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    .volume-row input[type="range"] {
+      flex: 1 1 auto;
+      accent-color: var(--secondary);
+    }
+
+    /* 15-Entity Skill Tree Grid */
+    .skill-tree-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-xs);
+    }
+    .skill-node-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.15rem;
+      width: 100%;
+      padding: 0.5rem 0.65rem;
+      background: var(--surface-container);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      text-align: left;
+      cursor: pointer;
+      transition: border-color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+    }
+    .skill-node-btn:hover {
+      border-color: var(--secondary);
+      background: var(--surface-container-high);
+    }
+    .skill-node-btn.is-mastered {
+      border-color: color-mix(in srgb, var(--secondary) 55%, transparent);
+    }
+    .skill-node-title {
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--on-surface);
+      line-height: 1.3;
+    }
+    .skill-node-meta {
+      font-family: var(--font-label);
+      font-size: 0.64rem;
+      color: var(--on-surface-variant);
+    }
+
+    .hotkey-guide {
+      font-family: var(--font-label);
+      font-size: 0.7rem;
+      color: var(--on-surface-variant);
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      padding: 0.45rem 0.65rem;
+      line-height: 1.5;
+    }
+
+    /* MODALS (Outcome Dossier & Master Loot Codex) */
+    .xr-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 70;
+      background: var(--backdrop-scrim);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-md);
+    }
+    .xr-modal-backdrop.is-open {
+      display: flex;
+    }
+
+    .xr-modal-shell {
+      width: min(920px, 95vw);
+      max-height: 90dvh;
+      background: var(--surface-container);
+      border: var(--cyan-border);
+      box-shadow: var(--glow-secondary);
+      border-radius: var(--rounded-lg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .xr-modal-shell.is-codex {
+      width: min(1140px, 96vw);
+    }
+
+    /* COMPLETE REVIEW MODAL TEXT-CENTERING ENFORCEMENT */
+    #outcome-popup-modal,
+    .popup-header,
+    .popup-question-pin,
+    .popup-question-pin-text,
+    .popup-scroll-body,
+    .dossier-block,
+    .dossier-block-title,
+    .dossier-line,
+    .choice-box,
+    .choice-box p,
+    .angle-mini-card,
+    .angle-mini-title {
+      text-align: center !important;
+    }
+
+    .popup-header {
+      padding: var(--space-sm) var(--space-md);
+      background: var(--surface-container-low);
+      border-bottom: 1px solid var(--outline-variant);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25rem;
+    }
+
+    .verdict-banner {
+      font-family: var(--font-headline);
+      font-size: clamp(1rem, 0.92rem + 0.45vw, 1.32rem);
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-align: center;
+    }
+    .verdict-banner.is-correct { color: var(--positive); text-shadow: var(--glow-text); }
+    .verdict-banner.is-wrong { color: var(--error); text-shadow: var(--glow-text); }
+    .verdict-banner.is-timeout { color: var(--tertiary); text-shadow: var(--glow-text); }
+
+    .popup-submeta {
+      font-family: var(--font-label);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--on-surface-variant);
+    }
+
+    .popup-question-pin {
+      padding: var(--space-xs) var(--space-md);
+      background: var(--surface-container-high);
+      border-bottom: 1px solid var(--outline-variant);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .popup-question-pin-text {
+      margin: 0 auto;
+      font-size: 0.88rem;
+      color: var(--on-surface);
+      max-width: 78ch;
+    }
+
+    .popup-scroll-body {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-md);
+    }
+
+    .choice-compare-row {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-sm);
+    }
+
+    .choice-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--rounded);
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline);
+      width: 100%;
+    }
+    .choice-box.is-correct {
+      border-color: var(--positive);
+      box-shadow: var(--cyan-inset);
+    }
+    .choice-box.is-wrong {
+      border-color: var(--error);
+      box-shadow: var(--neon-inset);
+    }
+    .choice-box-label {
+      font-family: var(--font-label);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--on-surface-variant);
+      margin-bottom: 0.2rem;
+    }
+    .choice-box p {
+      margin: 0;
+      font-size: 0.88rem;
+      color: var(--on-surface);
+    }
+
+    .dossier-block {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      padding: var(--space-sm) var(--space-md);
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded-lg);
+    }
+    .dossier-block-title {
+      font-family: var(--font-label);
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--secondary);
+      text-shadow: var(--glow-text);
+      margin: 0 0 0.2rem;
+    }
+    .dossier-line {
+      margin: 0;
+      font-size: 0.88rem;
+      line-height: 1.52;
+      color: var(--on-surface);
+      max-width: 72ch;
+    }
+
+    .angles-matrix-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-sm);
+    }
+    .angle-mini-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25rem;
+      padding: var(--space-sm);
+      background: var(--surface-container);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+    }
+    .angle-mini-card.is-current {
+      border-color: var(--tertiary);
+      box-shadow: var(--yellow-inset);
+    }
+    .angle-mini-title {
+      font-family: var(--font-label);
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--tertiary);
+    }
+
+    .popup-footer {
+      padding: var(--space-sm) var(--space-md);
+      background: var(--surface-container-low);
+      border-top: 1px solid var(--outline-variant);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-sm);
+    }
+
+    /* Codex Modal */
+    .codex-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-md);
+      background: var(--surface-container-low);
+      border-bottom: 1px solid var(--outline-variant);
+    }
+    .codex-filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      flex: 1 1 200px;
+    }
+    .codex-table-wrap {
+      flex: 1 1 auto;
+      overflow: auto;
+      padding: var(--space-sm) var(--space-md);
+    }
+    .codex-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+    .codex-table th {
+      position: sticky;
+      top: 0;
+      background: var(--surface-container-high);
+      color: var(--secondary);
+      font-family: var(--font-label);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.6rem 0.55rem;
+      border-bottom: 1px solid var(--outline);
+      text-align: left;
+    }
+    .codex-table td {
+      padding: 0.6rem 0.55rem;
+      border-bottom: 1px solid var(--outline-variant);
+      vertical-align: top;
+      color: var(--on-surface);
+      line-height: 1.45;
+    }
+    .codex-table tr:nth-child(even) td {
+      background: var(--surface-container-low);
+    }
+
+    @media (max-width: 640px) {
+      .choice-compare-row,
+      .angles-matrix-grid {
+        grid-template-columns: 1fr;
+      }
+      .menu-btn-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* =====================================================================
+       v3.8 PHONE MEDIA QUERIES (VERBATIM PORTRAIT, LANDSCAPE & TALL-PHONE)
+       ===================================================================== */
+    @media (max-width: 600px) {
+      #top-mini-bar {
+        padding: 0.25rem 0.45rem;
+        gap: 0.3rem;
+      }
+      .tele-chip.is-xp {
+        display: none;
+      }
+      #question-stage {
+        padding: 0.3rem 0.45rem 0.15rem;
+      }
+      .question-card {
+        padding: 0.45rem 0.6rem;
+      }
+      #q-stem-text {
+        font-size: 0.84rem;
+        line-height: 1.35;
+      }
+      #lane-cards-grid {
+        grid-template-columns: 1fr;
+        gap: 0.4rem;
+      }
+      .lane-dom-card {
+        min-height: 68px;
+        padding: 0.45rem 0.65rem;
+        text-align: center;
+      }
+      .lane-card-head,
+      .lane-key-label {
+        display: none;
+      }
+      .lane-card-text,
+      .lane-card-text span {
+        font-size: 0.82rem;
+        text-align: center;
+      }
+      #xr-app.hints-visible #q-stem-text {
+        font-size: 0.78rem;
+      }
+      #xr-app.hints-visible .lane-dom-card {
+        min-height: 54px;
+        padding: 0.35rem 0.5rem;
+      }
+      .xr-modal-shell,
+      .xr-modal-shell.is-codex {
+        width: 96vw;
+        max-height: 92dvh;
+      }
+    }
+
+    @media (max-height: 500px) and (pointer: coarse) {
+      #top-mini-bar {
+        min-height: 34px;
+        padding: 0.15rem 0.45rem;
+      }
+      #question-stage {
+        padding: 0.2rem 0.45rem 0.1rem;
+      }
+      .question-card {
+        padding: 0.3rem 0.55rem;
+      }
+      #q-stem-text {
+        font-size: 0.78rem;
+        line-height: 1.28;
+      }
+      #lane-cards-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.35rem;
+      }
+      .lane-dom-card {
+        min-height: 82px;
+        padding: 0.35rem 0.45rem;
+      }
+      .lane-card-text,
+      .lane-card-text span {
+        font-size: 0.76rem;
+        line-height: 1.25;
+      }
+      #xr-app.hints-visible .lane-dom-card {
+        min-height: 66px;
+      }
+    }
+
+    @media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+      html {
+        font-size: 200%;
+      }
+      #lane-cards-grid {
+        grid-template-columns: 1fr;
+        gap: 0.45rem;
+      }
+      .lane-dom-card {
+        min-height: 76px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="xr-app" class="hints-hidden">
+    <!-- BAND 3 BACKDROP: 3D Synthwave Void / Fallback Canvas -->
+    <div id="three-viewport-layer" aria-hidden="true"></div>
+
+    <!-- BAND 1: Ultra-Slim Top Bar (Compact Menu Button + Read-Only Telemetry Only) -->
+    <header id="top-mini-bar">
+      <button type="button" id="menu-toggle-btn" onclick="toggleMenuDrawer()" aria-expanded="false" aria-controls="top-menu-drawer">☰ MENU</button>
+      <div class="telemetry-strip" aria-label="Runner Telemetry">
+        <span class="tele-chip is-hp" id="stat-hp">♥ 100 HP</span>
+        <span class="tele-chip is-xp" id="stat-xp">★ 0 XP</span>
+        <span class="tele-chip is-streak" id="stat-streak">⚡ 0</span>
+        <span class="tele-chip is-gate" id="stat-gate">GATE 1/45</span>
+        <span class="tele-chip is-timer" id="stat-timer">⏱ OFF</span>
+      </div>
+    </header>
+
+    <!-- BAND 2: Question Stage + 3-Second Auto-Hiding Metadata -->
+    <section id="question-stage" aria-live="polite">
+      <div class="question-card">
+        <div id="q-meta-row">
+          <span class="meta-badge is-sector" id="badge-sector">Sector I</span>
+          <span class="meta-badge is-angle" id="badge-angle">Angle 1: Presentation → Diagnosis</span>
+          <span class="meta-badge is-phase" id="badge-phase">Phase 2</span>
+          <span class="meta-badge is-corridor" id="badge-corridor">CORRIDOR // VALVULAR NEXUS</span>
+        </div>
+        <p id="q-stem-text" class="question-stem amboss-scan-target">Initializing Cardiovascular Microbiology XR Raid…</p>
+      </div>
+    </section>
+
+    <!-- BAND 3: Interactive 3-Lane Answer Cards (1:1 Portal Fusion Targets) -->
+    <main id="viewport-stage">
+      <div id="lane-cards-grid" role="group" aria-label="Diagnostic Lanes">
+        <button type="button" class="lane-dom-card is-targeted" id="lane-card-0" data-lane="0" onclick="handleLaneCardClick(0)">
+          <div class="lane-card-head">
+            <span class="lane-key-label">[1] PINK PORTAL</span>
+          </div>
+          <div class="lane-choice-body">
+            <span class="lane-card-text amboss-scan-target" id="lane-0-text">Loading Lane 1…</span>
+          </div>
+        </button>
+
+        <button type="button" class="lane-dom-card" id="lane-card-1" data-lane="1" onclick="handleLaneCardClick(1)">
+          <div class="lane-card-head">
+            <span class="lane-key-label">[2] CYAN PORTAL</span>
+          </div>
+          <div class="lane-choice-body">
+            <span class="lane-card-text amboss-scan-target" id="lane-1-text">Loading Lane 2…</span>
+          </div>
+        </button>
+
+        <button type="button" class="lane-dom-card" id="lane-card-2" data-lane="2" onclick="handleLaneCardClick(2)">
+          <div class="lane-card-head">
+            <span class="lane-key-label">[3] YELLOW PORTAL</span>
+          </div>
+          <div class="lane-choice-body">
+            <span class="lane-card-text amboss-scan-target" id="lane-2-text">Loading Lane 3…</span>
+          </div>
+        </button>
+      </div>
+    </main>
+
+    <!-- BAND 4: Bottom Hints Bar ([H]) -->
+    <aside id="hints-bar" aria-live="polite">
+      <div class="hints-inner">
+        <span class="hints-label">⚡ Tactical Diagnostic Clue [H]</span>
+        <p id="q-clue-text" class="amboss-scan-target">Press [H] or use the Menu to toggle diagnostic hints.</p>
+      </div>
+    </aside>
+  </div>
+
+  <!-- SLIDE-OUT MENU DRAWER (Houses Title, Kicker & All Controls) -->
+  <div id="menu-backdrop" onclick="toggleMenuDrawer()"></div>
+  <aside id="top-menu-drawer" aria-label="Mission Control Drawer">
+    <div class="drawer-header">
+      <div class="drawer-title-group">
+        <span class="drawer-kicker">CARDIOLOGY COMLEX-USA · XR RAID v3.8</span>
+        <h1 class="drawer-title">Cardio Microbiology Runner</h1>
+      </div>
+      <button type="button" class="btn-neon is-cyan" onclick="toggleMenuDrawer()" aria-label="Close Menu">✕ Close</button>
+    </div>
+
+    <div class="drawer-scroll">
+      <!-- Primary Deck & Run Actions -->
+      <div class="menu-section">
+        <span class="menu-section-title">Cockpit &amp; Run Controls</span>
+        <div class="menu-btn-grid">
+          <button type="button" class="btn-neon is-yellow" id="menu-hints-btn" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+          <button type="button" class="btn-neon is-cyan" onclick="openCodexFromMenu()">📖 Loot Codex [C]</button>
+          <button type="button" class="btn-neon" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+          <button type="button" class="btn-neon is-cyan" id="menu-timer-toggle-btn" onclick="toggleTimedMode()">⏱ 50s Timer: OFF [T]</button>
+          <button type="button" class="btn-neon is-yellow" onclick="startTimedRunFromMenu()">▶ Start 50s Timed Run</button>
+          <button type="button" class="btn-neon is-cyan" onclick="restartOrderedFromMenu()">↻ Restart Ordered</button>
+          <button type="button" class="btn-neon" onclick="shuffleDeckFromMenu()">🔀 Shuffle Deck</button>
+          <button type="button" class="btn-neon is-danger" id="reset-mastery-btn" onclick="handleResetMastery(this)">🗑 Reset Mastery</button>
+        </div>
+      </div>
+
+      <!-- Audio Suite -->
+      <div class="menu-section">
+        <span class="menu-section-title">Audio &amp; Zombies Synthwave Suite</span>
+        <div class="menu-btn-grid">
+          <button type="button" class="btn-neon is-active" id="menu-master-audio-btn" onclick="toggleMasterSound()">🔊 Sound: ON</button>
+          <button type="button" class="btn-neon is-active" id="menu-sfx-btn" onclick="toggleSfxSound()">🎛 SFX: ON</button>
+          <button type="button" class="btn-neon is-cyan" id="menu-bgm-btn" onclick="toggleProceduralBgm()">🎵 Zombies BGM: OFF</button>
+          <label class="btn-neon is-yellow" for="custom-audio-file" style="cursor:pointer;">📂 Load MP3/WAV</label>
+          <input type="file" id="custom-audio-file" accept="audio/*" onchange="handleCustomAudioUpload(this)" style="display:none;">
+        </div>
+        <div class="menu-field">
+          <label class="menu-label" for="bgm-volume-slider">BGM Volume (<span id="bgm-vol-readout">45%</span>)</label>
+          <div class="volume-row">
+            <input type="range" id="bgm-volume-slider" min="0" max="100" value="45" oninput="setBgmVolume(this.value)">
+          </div>
+        </div>
+      </div>
+
+      <!-- Sector & Phase Filtering -->
+      <div class="menu-section">
+        <span class="menu-section-title">Sector &amp; Phase Filtering</span>
+        <div class="menu-field">
+          <label class="menu-label" for="sector-filter-select">Dungeon Sector</label>
+          <select id="sector-filter-select" class="menu-select" onchange="applySectorFilter(this.value)">
+            <option value="all">All 5 Sectors (45 Gates)</option>
+            <option value="missed">🎯 Missed Gates Only</option>
+            <option value="1">Sector I — Acute &amp; Subacute Native IE</option>
+            <option value="2">Sector II — Prosthetic &amp; Healthcare IE</option>
+            <option value="3">Sector III — Post-Infectious &amp; Pericardial</option>
+            <option value="4">Sector IV — Zoonotic &amp; Vector-Borne</option>
+            <option value="5">Sector V — Opportunistic &amp; Fungal</option>
+          </select>
+        </div>
+
+        <div class="menu-field">
+          <label class="menu-label" for="entity-jump-select">Cardiology Skill Tree Entity</label>
+          <select id="entity-jump-select" class="menu-select" onchange="jumpToEntityFromSelect(this.value)">
+            <option value="">Jump to Entity (1–15)…</option>
+          </select>
+        </div>
+
+        <div class="menu-field">
+          <span class="menu-label">Phase Mix Filter</span>
+          <div class="phase-pills-row">
+            <button type="button" class="phase-pill is-active" data-phase="all" onclick="setPhaseFilter('all')">All</button>
+            <button type="button" class="phase-pill" data-phase="1" onclick="setPhaseFilter('1')">Phase 1</button>
+            <button type="button" class="phase-pill" data-phase="2" onclick="setPhaseFilter('2')">Phase 2</button>
+            <button type="button" class="phase-pill" data-phase="3" onclick="setPhaseFilter('3')">Phase 3</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 15-Entity Skill Tree Grid -->
+      <div class="menu-section">
+        <span class="menu-section-title">15-Entity Cardiology Skill Tree</span>
+        <div id="skill-tree-grid" class="skill-tree-grid"></div>
+      </div>
+
+      <!-- Hotkey Reference -->
+      <div class="hotkey-guide">
+        HOTKEYS: [1/2/3] or [←/↓/→] Steer &amp; Lock · [Space/Enter] Fire/Continue · [H] Hints · [C] Codex · [S] Skip · [T] 50s Timer · [M] Menu · [↑/↓] Scroll Review
+      </div>
+    </div>
+  </aside>
+
+  <!-- OUTCOME DOSSIER MODAL -->
+  <div id="outcome-popup-modal" class="xr-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="outcome-verdict-banner">
+    <div class="xr-modal-shell">
+      <div class="popup-header">
+        <div id="outcome-verdict-banner" class="verdict-banner is-correct">✔ CORRECT</div>
+        <div id="outcome-submeta" class="popup-submeta">Sector I · Entity 1 · Angle 1</div>
+      </div>
+
+      <div class="popup-question-pin">
+        <p id="outcome-q-pin" class="popup-question-pin-text amboss-scan-target"></p>
+      </div>
+
+      <div id="outcome-scroll-body" class="popup-scroll-body"></div>
+
+      <div class="popup-footer">
+        <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(-180)">▲ Up</button>
+        <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(180)">▼ Down</button>
+        <button type="button" class="btn-neon" id="continue-runner-btn" onclick="continueToNextGate()">▶ Continue Runner [Space / Enter]</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MASTER LOOT CODEX MODAL (6-Column Table) -->
+  <div id="codex-modal" class="xr-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="codex-modal-title">
+    <div class="xr-modal-shell is-codex">
+      <div class="codex-toolbar">
+        <div class="drawer-title-group">
+          <span class="drawer-kicker">MASTER LOOT CODEX · 15 HIGH-YIELD ENTITIES</span>
+          <h2 id="codex-modal-title" class="drawer-title">Cardiovascular Microbiology Reference Matrix</h2>
+        </div>
+        <div class="codex-filter-group">
+          <label class="menu-label" for="codex-search-input">Filter Codex</label>
+          <input type="text" id="codex-search-input" class="menu-input" placeholder="Search bug, toxin, stain, drug…" oninput="renderCodexTable(this.value)">
+        </div>
+        <button type="button" class="btn-neon is-cyan" onclick="closeCodex()">✕ Close [Esc]</button>
+      </div>
+      <div class="codex-table-wrap">
+        <table class="codex-table">
+          <thead>
+            <tr>
+              <th>Entity / LO</th>
+              <th>Etiology</th>
+              <th>Pathogenesis</th>
+              <th>Hallmarks</th>
+              <th>Clinical</th>
+              <th>Management / Guild Secret</th>
+            </tr>
+          </thead>
+          <tbody id="codex-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="inline-toast" class="inline-toast" role="status" aria-live="polite"></div>
+
+  <api-shim></api-shim>
+
+  <script>
+    // =========================================================================
+    // 1. LO VISUAL THEMES (Keys 1-15: Corridor tags, dust tint, floor gridRgb)
+    // =========================================================================
+    const LO_VISUAL_THEMES = {
+      1:  { corridor: `CORRIDOR 01 // TRICUSPID STORM`, dustHex: 0xff2d78, gridRgb: `255,45,120` },
+      2:  { corridor: `CORRIDOR 02 // DEXTRAN NIDUS`, dustHex: 0x00ffcc, gridRgb: `0,255,204` },
+      3:  { corridor: `CORRIDOR 03 // COLONIC PORTAL`, dustHex: 0xffe04a, gridRgb: `255,224,74` },
+      4:  { corridor: `CORRIDOR 04 // BIOFILM MATRIX`, dustHex: 0x00d9ff, gridRgb: `0,217,255` },
+      5:  { corridor: `CORRIDOR 05 // HALOPHILIC GATE`, dustHex: 0xff5e99, gridRgb: `255,94,153` },
+      6:  { corridor: `CORRIDOR 06 // CAPNOPHILIC VAULT`, dustHex: 0xb388ff, gridRgb: `179,136,255` },
+      7:  { corridor: `CORRIDOR 07 // ASCHOFF SANCTUM`, dustHex: 0xff2d78, gridRgb: `255,45,120` },
+      8:  { corridor: `CORRIDOR 08 // PICORNA SURGE`, dustHex: 0x00ffcc, gridRgb: `0,255,204` },
+      9:  { corridor: `CORRIDOR 09 // CALCIFIC ARMOR`, dustHex: 0xffe04a, gridRgb: `255,224,74` },
+      10: { corridor: `CORRIDOR 10 // NODAL SPIROCHETE`, dustHex: 0x00ffcc, gridRgb: `0,255,204` },
+      11: { corridor: `CORRIDOR 11 // PSEUDOCYST APEX`, dustHex: 0xff2d78, gridRgb: `255,45,120` },
+      12: { corridor: `CORRIDOR 12 // PHASE I REACTOR`, dustHex: 0xb388ff, gridRgb: `179,136,255` },
+      13: { corridor: `CORRIDOR 13 // GERM TUBE NEXUS`, dustHex: 0xffe04a, gridRgb: `255,224,74` },
+      14: { corridor: `CORRIDOR 14 // ELASTASE BREACH`, dustHex: 0xff4444, gridRgb: `255,68,68` },
+      15: { corridor: `CORRIDOR 15 // SILVER MATRIX`, dustHex: 0x00ffcc, gridRgb: `0,255,204` }
+    };
+
+    // =========================================================================
+    // 2. MASTER LOOT CODEX DATA (15 Cardiovascular Microbiology Entities)
+    // =========================================================================
+    const CODEX_DATA = [
+      {
+        id: 1,
+        sector: 1,
+        sectorLabel: `Sector I: Native Valve IE`,
+        entity: `1. Staphylococcus aureus (Acute Native & IVDU IE)`,
+        etiology: `Gram-positive cocci in grape-like clusters; catalase-positive, coagulase-positive, β-hemolytic, mannitol-fermenting (yellow colonies).`,
+        pathogenesis: `Protein A binds Fc region of IgG (blocks complement/phagocytosis); coagulase forms protective fibrin shield; invades normal undamaged valves—especially tricuspid in IVDU.`,
+        hallmarks: `Large, friable, destructive valve vegetations; acute ring abscess; septic pulmonary emboli (cavitary nodules) with Carvallo sign (TR murmur ↑ on inspiration).`,
+        clinical: `Rapid-onset high fever, chills, dyspnea, pleuritic chest pain, Janeway lesions (painless palmar/plantar macules), Osler nodes, Roth spots.`,
+        management: `Empiric IV vancomycin (covers MRSA via mecA-altered PBP2a); narrow to IV nafcillin or oxacillin if MSSA confirmed.`
+      },
+      {
+        id: 2,
+        sector: 1,
+        sectorLabel: `Sector I: Native Valve IE`,
+        entity: `2. Viridans Group Streptococci (S. sanguinis & S. mutans)`,
+        etiology: `Gram-positive cocci in chains; α-hemolytic (green partial hemolysis), catalase-negative, optochin-resistant, bile-insoluble, no capsule.`,
+        pathogenesis: `Synthesize extracellular dextrans from sucrose/glucose to adhere tightly to pre-existing sterile fibrin-platelet thrombi on previously damaged valves (mitral > aortic).`,
+        hallmarks: `Small, less destructive vegetations following dental caries or oral mucosal trauma; subacute indolent progression over weeks.`,
+        clinical: `Low-grade fever, night sweats, malaise, weight loss, new/changing regurgitant murmur, splenomegaly, Osler nodes, splinter hemorrhages.`,
+        management: `IV penicillin G or ceftriaxone (± gentamicin). Guild Secret: S. sanguinis ("blood") loves damaged valves; amoxicillin dental prophylaxis only for highest-risk patients (prosthetic valve, prior IE, unrepaired cyanotic CHD).`
+      },
+      {
+        id: 3,
+        sector: 1,
+        sectorLabel: `Sector I: Native Valve IE`,
+        entity: `3. Streptococcus gallolyticus (formerly S. bovis)`,
+        etiology: `Group D non-enterococcal Gram-positive cocci in chains; γ- or α-hemolytic, bile esculin positive, PYR-negative, does NOT grow in 6.5% NaCl.`,
+        pathogenesis: `Colonic mucosal disruption from colorectal polyps, adenomas, or adenocarcinoma permits portal/systemic translocation and adhesion to cardiac valves.`,
+        hallmarks: `Subacute endocarditis in older adults paired with iron-deficiency anemia or occult GI bleeding; bile esculin+ but 6.5% NaCl-negative separates it from Enterococcus.`,
+        clinical: `Subacute fever, new murmur, fatigue, weight loss, microcytic anemia.`,
+        management: `IV penicillin G or ceftriaxone PLUS mandatory diagnostic colonoscopy ("Bovis in the blood = cancer in the colon").`
+      },
+      {
+        id: 4,
+        sector: 2,
+        sectorLabel: `Sector II: Prosthetic & Healthcare IE`,
+        entity: `4. Staphylococcus epidermidis (Prosthetic Valve IE)`,
+        etiology: `Gram-positive cocci in clusters; catalase-positive, coagulase-negative, urease-positive, novobiocin-sensitive skin commensal.`,
+        pathogenesis: `Produces dense polysaccharide extracellular slime/biofilm that adheres to prosthetic valve sewing rings, pacemakers, and central venous catheters while blocking host PMNs and antibiotics.`,
+        hallmarks: `Biofilm-encased prosthetic vegetations, paravalvular dehiscence/abscess, often dismissed as skin contaminant unless ≥2 separate blood cultures match.`,
+        clinical: `Fever, new paravalvular regurgitant murmur, prosthetic valve dysfunction months to <1 year post-op.`,
+        management: `Triple therapy: IV vancomycin + rifampin (penetrates biofilm) + gentamicin (first 2 weeks), often with surgical valve replacement.`
+      },
+      {
+        id: 5,
+        sector: 2,
+        sectorLabel: `Sector II: Prosthetic & Healthcare IE`,
+        entity: `5. Enterococcus faecalis & E. faecium`,
+        etiology: `Group D Gram-positive cocci in pairs/chains; catalase-negative, bile esculin positive, PYR-positive, grows in hypertonic 6.5% NaCl broth.`,
+        pathogenesis: `Translocates from GI/GU tract after urinary catheterization, TURP, cystoscopy, or biliary procedures; intrinsic low-affinity PBPs resist cephalosporins; VRE alters D-Ala-D-Ala to D-Ala-D-Lac.`,
+        hallmarks: `Nosocomial or post-GU procedure subacute/acute IE in older males; intrinsic cephalosporin resistance (never treat Enterococcus with ceftriaxone alone).`,
+        clinical: `Fever, chills, new murmur days to weeks after urologic or GI instrumentation.`,
+        management: `Ampicillin + gentamicin (or ampicillin + ceftriaxone double β-lactam synergy for E. faecalis); linezolid or daptomycin for vancomycin-resistant E. faecium (VRE).`
+      },
+      {
+        id: 6,
+        sector: 2,
+        sectorLabel: `Sector II: Prosthetic & Healthcare IE`,
+        entity: `6. HACEK Organisms`,
+        etiology: `Haemophilus, Aggregatibacter, Cardiobacterium, Eikenella, Kingella — fastidious, capnophilic (CO₂-requiring) Gram-negative rods/coccobacilli of oral flora.`,
+        pathogenesis: `Slow replication in normal oral cavity enters bloodstream after dental/periodontal inflammation and forms large, bulky, slowly maturing valve vegetations.`,
+        hallmarks: `Classic cause of culture-negative subacute IE (slow growth on routine automated blood cultures); unusually large vegetations prone to major arterial embolization.`,
+        clinical: `Prolonged subacute fever, poor dentition, stroke or limb ischemia from large septic emboli.`,
+        management: `IV ceftriaxone (3rd-generation cephalosporin; preferred over ampicillin because several HACEK strains produce β-lactamases).`
+      },
+      {
+        id: 7,
+        sector: 3,
+        sectorLabel: `Sector III: Post-Infectious & Pericardial`,
+        entity: `7. Streptococcus pyogenes (GAS) Acute Rheumatic Carditis`,
+        etiology: `Group A β-hemolytic Gram-positive cocci in chains; bacitracin-sensitive, PYR-positive, hyaluronic acid capsule, M-protein virulence factor.`,
+        pathogenesis: `Type II hypersensitivity molecular mimicry: antibodies against GAS M-protein cross-react with human cardiac myosin and valve endothelium 2–3 weeks after pharyngitis.`,
+        hallmarks: `Aschoff bodies (myocardial granulomas with giant cells), Anitschkow cells ("caterpillar" wavy chromatin histiocytes), elevated ASO and anti-DNase B titers.`,
+        clinical: `JONES major criteria: Migratory polyarthritis, Pancarditis (acute MR > AR; myocarditis = MCC death), Subcutaneous nodules, Erythema marginatum, Sydenham chorea.`,
+        management: `Penicillin eradication + long-term benzathine penicillin G secondary prophylaxis; NSAIDs/steroids for severe carditis. Late sequela: "fish-mouth" mitral stenosis.`
+      },
+      {
+        id: 8,
+        sector: 3,
+        sectorLabel: `Sector III: Post-Infectious & Pericardial`,
+        entity: `8. Coxsackievirus B (Viral Myopericarditis)`,
+        etiology: `Enterovirus (Picornaviridae); naked icosahedral, acid-stable, positive-sense single-stranded (+)ssRNA virus.`,
+        pathogenesis: `Binds Coxsackie-Adenovirus Receptor (CAR) on cardiomyocytes; direct viral cytolysis plus CD8+ T-cell lymphocytic infiltration with focal myocyte necrosis.`,
+        hallmarks: `Diffuse concave-upward ST elevations + PR depressions (sparing aVR/V1), pericardial friction rub, elevated troponin, persistent tachycardia out of proportion to fever.`,
+        clinical: `Sharp pleuritic substernal chest pain worse supine/inspiration, relieved by sitting up and leaning forward; can progress to dilated cardiomyopathy.`,
+        management: `NSAIDs (ibuprofen/aspirin) + colchicine (halves recurrence rate). Avoid early glucocorticoids in viral pericarditis (increases viral persistence/relapse).`
+      },
+      {
+        id: 9,
+        sector: 3,
+        sectorLabel: `Sector III: Post-Infectious & Pericardial`,
+        entity: `9. Mycobacterium tuberculosis (Constrictive Pericarditis)`,
+        etiology: `Obligate aerobic, acid-fast bacillus (Ziehl-Neelsen stain); mycolic acid cell wall resists decolorization and macrophage killing.`,
+        pathogenesis: `Lymphatic/hematogenous spread to pericardium causes caseating granulomatous pericarditis that heals with dense pericardial fibrosis and dystrophic calcification.`,
+        hallmarks: `Dense eggshell pericardial calcification on CXR/CT, Kussmaul sign (JVP rises on inspiration), early diastolic pericardial knock, dip-and-plateau ("square root") RV pressure tracing.`,
+        clinical: `Chronic right-sided failure symptoms: dyspnea, peripheral edema, hepatomegaly, ascites, pulsus paradoxus (less common than tamponade).`,
+        management: `RIPE antimycobacterial regimen (rifampin, isoniazid, pyrazinamide, ethambutol) + surgical pericardiectomy for rigid calcific constriction.`
+      },
+      {
+        id: 10,
+        sector: 4,
+        sectorLabel: `Sector IV: Zoonotic & Vector-Borne`,
+        entity: `10. Borrelia burgdorferi (Lyme Carditis)`,
+        etiology: `Large microaerophilic spirochete; poorly Gram-stained, visualized with dark-field microscopy, Wright/Giemsa stain, or two-tier ELISA/Western blot serology.`,
+        pathogenesis: `Transmitted by Ixodes scapularis (deer tick, requires >24–36h attachment); spirochetes directly invade cardiac conduction tissue causing lymphoplasmacytic AV nodal inflammation.`,
+        hallmarks: `Rapidly fluctuating AV block (1st-degree -> Mobitz I/II -> 3rd-degree complete heart block), erythema migrans ("bull's-eye" rash), facial palsy, migratory arthritis.`,
+        clinical: `Summer/early fall presentation in Northeast/Upper Midwest hiker with dizziness, presyncope, or syncope from high-grade AV block.`,
+        management: `IV ceftriaxone + temporary transvenous pacing for high-grade AV block (PR >300 ms or 2nd/3rd degree). Oral doxycycline for mild 1st-degree block. Usually fully reversible!`
+      },
+      {
+        id: 11,
+        sector: 4,
+        sectorLabel: `Sector IV: Zoonotic & Vector-Borne`,
+        entity: `11. Trypanosoma cruzi (Chagas Cardiomyopathy)`,
+        etiology: `Flagellated protozoan parasite; motile trypomastigotes in peripheral blood smear, non-flagellated intracellular amastigotes in tissue.`,
+        pathogenesis: `Reduviid ("kissing") bug defecates near bite site; scratch inoculation leads to intracellular amastigote pseudocysts in cardiac myocytes and destruction of autonomic/myenteric ganglia.`,
+        hallmarks: `Dilated cardiomyopathy with classic LV apical aneurysm/atrophy, RBBB + LAFB conduction defect, megaesophagus (dysphagia), megacolon (constipation), Romaña sign acutely.`,
+        clinical: `Latin American migrant with progressive biventricular HF, ventricular arrhythmias/sudden death, thromboembolism from apical mural thrombus.`,
+        management: `Nifurtimox or benznidazole in acute/early indeterminate phase; guideline-directed HF therapy, anticoagulation, and ICD in chronic cardiomyopathy.`
+      },
+      {
+        id: 12,
+        sector: 4,
+        sectorLabel: `Sector IV: Zoonotic & Vector-Borne`,
+        entity: `12. Coxiella burnetii (Q Fever Endocarditis)`,
+        etiology: `Obligate intracellular, small Gram-negative pleomorphic coccobacillus with spore-like small cell variant resistant to heat and desiccation.`,
+        pathogenesis: `Aerosol inhalation from birth products (placenta/amniotic fluid) of cattle, sheep, or goats; survives inside acidic macrophage phagolysosomes.`,
+        hallmarks: `Culture-negative chronic IE on damaged or prosthetic valves; serologic diagnosis shows Phase I IgG ≥ 1:800 (higher than Phase II IgG); granulomatous hepatitis.`,
+        clinical: `Farmer/veterinarian with months of low-grade fever, hepatosplenomegaly, thrombocytopenia, purpuric rash, and negative blood cultures.`,
+        management: `Doxycycline + hydroxychloroquine for 18–24 months (hydroxychloroquine alkalinizes the phagolysosome so doxycycline becomes bactericidal).`
+      },
+      {
+        id: 13,
+        sector: 5,
+        sectorLabel: `Sector V: Opportunistic & Fungal`,
+        entity: `13. Candida albicans (Fungal Endocarditis)`,
+        etiology: `Dimorphic yeast forming budding cells and pseudohyphae at 20°C and true hyphae/germ tubes at 37°C in serum.`,
+        pathogenesis: `Enters bloodstream via indwelling central venous catheters, hyperalimentation (TPN), broad-spectrum antibiotics, or IVDU; forms thick fungal biofilms on valves.`,
+        hallmarks: `Large, bulky fungating vegetations on tricuspid or mitral valves that frequently cause acute occlusion of large arteries (iliac, femoral, cerebral).`,
+        clinical: `ICU or immunocompromised patient on TPN/antibiotics with persistent candidemia, new murmur, and acute limb ischemia or stroke.`,
+        management: `Liposomal amphotericin B (± flucytosine) or high-dose echinocandin (micafungin/caspofungin) PLUS mandatory early surgical valve replacement and line removal.`
+      },
+      {
+        id: 14,
+        sector: 5,
+        sectorLabel: `Sector V: Opportunistic & Fungal`,
+        entity: `14. Aspergillus fumigatus (Angioinvasive Carditis)`,
+        etiology: `Monomorphic hyaline mold forming septate hyphae that branch at acute 45° angles (dichotomous branching) and fruiting bodies.`,
+        pathogenesis: `Spores inhaled or inoculated during open-heart surgery in severely neutropenic/immunocompromised hosts; secretes elastase to invade vessel walls and internal elastic lamina.`,
+        hallmarks: `45° branching septate hyphae, necrotizing angioinvasion causing mycotic aneurysms, coronary/cerebral thrombosis, and hemorrhagic infarction; positive galactomannan.`,
+        clinical: `Post-cardiac surgery or AML neutropenic patient with culture-negative prosthetic valve failure, acute stroke, or mycotic aortic aneurysm.`,
+        management: `IV voriconazole (first-line) or isavuconazole PLUS urgent surgical debridement/valve replacement. Intrinsically resistant to fluconazole!`
+      },
+      {
+        id: 15,
+        sector: 5,
+        sectorLabel: `Sector V: Opportunistic & Fungal`,
+        entity: `15. Bartonella henselae & B. quintana (Culture-Negative IE)`,
+        etiology: `Small, fastidious, pleomorphic Gram-negative rods; fail standard blood cultures and stain poorly on Gram stain, requiring Warthin-Starry silver stain.`,
+        pathogenesis: `B. quintana transmitted by human body louse (Pediculus humanus corporis, trench fever) in homelessness/alcoholism; B. henselae via cat scratch/flea; invades vascular endothelium.`,
+        hallmarks: `Culture-negative subacute destructive aortic valve endocarditis, immune-complex glomerulonephritis, Warthin-Starry silver stain positivity, high Bartonella IgG titers/PCR.`,
+        clinical: `Unhoused patient with alcohol use disorder (B. quintana) or cat owner (B. henselae) with severe aortic regurgitation and negative routine cultures.`,
+        management: `Doxycycline (6+ weeks) + gentamicin (first 2 weeks for bactericidal synergy), plus early valve surgery if severe valvular destruction occurs.`
+      }
+    ];
+
+    // =========================================================================
+    // 3. ALL 45 QUESTIONS (15 Entities × 3 Angles; 13 P1, 16 P2, 16 P3)
+    // =========================================================================
+    const ALL_QUESTIONS = [
+      // --- ENTITY 1: S. aureus ---
+      {
+        id: 1, lo: 1, sector: 1, angle: 1, angleLabel: `Angle 1: Presentation → Diagnosis`, phase: 2,
+        stem: `A 29-year-old man who injects heroin presents with 4 days of 39.8°C fever, pleuritic chest pain, and dyspnea. Chest CT reveals multiple bilateral peripheral cavitary nodules. Cardiac auscultation demonstrates a holosystolic murmur at the left lower sternal border that intensifies during inspiration. Which pathogen is most likely responsible?`,
+        choices: [`Staphylococcus aureus`, `Streptococcus sanguinis`, `Coxiella burnetii`],
+        correct: 0,
+        shortAnswer: `Staphylococcus aureus Acute Tricuspid IE`,
+        clue: `IV drug use + Carvallo sign (murmur louder on inspiration) + bilateral cavitary septic pulmonary emboli = acute right-sided endocarditis.`,
+        dossier: {
+          vignette: [`IV drug use introduces skin flora directly into venous circulation, seeding the tricuspid valve ("don't tri drugs").`, `Murmur accentuating with inspiration (Carvallo sign) localizes regurgitation to the right-sided tricuspid valve.`, `Multiple bilateral cavitary lung nodules reflect septic pulmonary emboli from right-sided vegetations.`],
+          etiology: [`Staphylococcus aureus: Gram-positive cocci in grape-like clusters, catalase-positive, coagulase-positive, β-hemolytic.`, `Ferments mannitol on mannitol salt agar (turns yellow), distinguishing it from coagulase-negative staphylococci.`],
+          pathogenesis: [`High-virulence pathogen capable of infecting previously normal, undamaged valve leaflets.`, `Produces large, friable, rapidly destructive vegetations that cause acute leaflet perforation and chordal rupture.`],
+          trap: [`Viridans streptococci (S. sanguinis) cause subacute left-sided IE on previously damaged valves and rarely produce acute cavitary lung emboli.`, `Coxiella burnetii causes indolent culture-negative left-sided IE in livestock handlers, not fulminant IVDU tricuspid disease.`],
+          management: [`Draw ≥3 sets of blood cultures immediately, perform TTE/TEE, and start empiric IV vancomycin for MRSA coverage.`, `OMM Pearl: Sympathetic cardiac viscerosomatic reflexes map to T1–T4 (and vagal parasympathetic tone at OA/AA/C2).`]
+        }
+      },
+      {
+        id: 2, lo: 1, sector: 1, angle: 2, angleLabel: `Angle 2: Mechanism → Pathophysiology`, phase: 1,
+        stem: `During acute native valve endocarditis caused by Staphylococcus aureus, a bacterial surface protein binds the Fc region of host IgG while an extracellular enzyme converts fibrinogen to fibrin. What combined pathophysiologic advantage do these virulence factors confer?`,
+        choices: [`Inhibition of complement/opsonophagocytosis and formation of a fibrin shield around vegetations`, `Hydrolysis of β-lactam rings and intracellular survival inside macrophage phagolysosomes`, `Synthesis of extracellular dextrans to tether to sterile fibrin-platelet thrombi only on scarred valves`],
+        correct: 0,
+        shortAnswer: `Protein A (anti-opsonization) & Coagulase (fibrin shield)`,
+        clue: `Think of Protein A binding IgG backwards (Fc) and coagulase clotting plasma around the bacterial colony.`,
+        dossier: {
+          vignette: [`Tests the two signature virulence factors of S. aureus in acute valvular vegetations: Protein A and coagulase.`],
+          etiology: [`Protein A is anchored to the peptidoglycan cell wall of S. aureus and binds the Fc portion of IgG.`, `Coagulase activates prothrombin to convert soluble fibrinogen into an insoluble fibrin clot.`],
+          pathogenesis: [`Backwards IgG binding masks bacterial antigens, blocking complement activation and macrophage Fc-receptor phagocytosis.`, `Coagulase encases the proliferating cluster in fibrin, creating large, friable vegetations prone to abscesses and septic emboli.`],
+          trap: [`Phagolysosome survival characterizes obligate intracellular Coxiella burnetii, not extracellular S. aureus.`, `Dextran synthesis for pre-damaged valves is the classic mechanism of Viridans streptococci.`],
+          management: [`Recognize coagulase positivity immediately on lab vignettes: clotted rabbit plasma = S. aureus; unclotted = S. epidermidis.`]
+        }
+      },
+      {
+        id: 3, lo: 1, sector: 1, angle: 3, angleLabel: `Angle 3: Hallmarks → Management`, phase: 3,
+        stem: `A 34-year-old woman with acute native mitral valve endocarditis grows Staphylococcus aureus from 3/3 blood culture bottles. Susceptibility testing confirms methicillin resistance conferred by the mecA gene (altered PBP2a). Which definitive IV antimicrobial regimen is indicated?`,
+        choices: [`IV vancomycin monotherapy (or daptomycin)`, `IV nafcillin plus gentamicin`, `IV ceftriaxone monotherapy`],
+        correct: 0,
+        shortAnswer: `IV Vancomycin for MRSA Endocarditis`,
+        clue: `mecA alters penicillin-binding proteins so all standard anti-staphylococcal β-lactams (nafcillin, oxacillin, ceftriaxone) fail.`,
+        dossier: {
+          vignette: [`Acute native valve MRSA endocarditis confirmed via mecA-mediated altered PBP2a.`],
+          etiology: [`MRSA produces low-affinity PBP2a, preventing β-lactams from cross-linking peptidoglycan cell walls.`],
+          pathogenesis: [`Vancomycin binds the terminal D-Ala-D-Ala pentapeptide directly, bypassing PBP2a to halt transglycosylation and transpeptidation.`],
+          trap: [`Nafcillin and oxacillin are first-line ONLY for MSSA (where they are superior to vancomycin for bactericidal clearance).`, `Ceftriaxone has poor anti-staphylococcal activity against MRSA (only ceftaroline among cephalosporins hits MRSA).`],
+          management: [`Continue IV vancomycin targeting trough/AUC goals for 4–6 weeks; avoid routine gentamicin addition in native-valve S. aureus IE due to nephrotoxicity.`]
+        }
+      },
+
+      // --- ENTITY 2: Viridans Group Streptococci ---
+      {
+        id: 4, lo: 2, sector: 1, angle: 1, angleLabel: `Angle 1: Presentation → Diagnosis`, phase: 2,
+        stem: `A 58-year-old man with known mitral valve prolapse develops 3 weeks of low-grade fever, night sweats, and painful violaceous nodules on his finger pads following a root canal procedure. Blood cultures grow α-hemolytic, optochin-resistant Gram-positive cocci in chains. What is the diagnosis?`,
+        choices: [`Subacute infective endocarditis due to Viridans streptococci`, `Acute infective endocarditis due to Enterococcus faecalis`, `Libman-Sacks endocarditis due to systemic lupus erythematosus`],
+        correct: 0,
+        shortAnswer: `Viridans Streptococci Subacute IE`,
+        clue: `Dental procedure + pre-existing mitral valve prolapse + α-hemolytic optochin-resistant cocci + Osler nodes ("ouchy" pads).`,
+        dossier: {
+          vignette: [`Dental manipulation releases normal oral flora (S. sanguinis, S. mutans) into transient bacteremia.`, `Painful violaceous lesions on finger/toe pads are Osler nodes (immune-complex vasculitis).`],
+          etiology: [`Viridans group streptococci: α-hemolytic (green zone), catalase-negative, optochin-resistant ("not afraid of the chin"), bile-insoluble.`],
+          pathogenesis: [`Low-virulence commensals require a pre-existing damaged valve (MVP, rheumatic valve, bicuspid aortic valve) to establish subacute vegetations.`],
+          trap: [`Enterococcus faecalis follows GI/GU instrumentation and is typically non-hemolytic (γ) and grows in 6.5% NaCl.`, `Libman-Sacks endocarditis produces sterile vegetations on both valve surfaces in SLE with negative blood cultures.`],
+          management: [`Treat with IV penicillin G or ceftriaxone for 4 weeks; check MIC to decide whether 2 weeks of gentamicin synergy is needed.`]
+        }
+      },
+      {
+        id: 5, lo: 2, sector: 1, angle: 2, angleLabel: `Angle 2: Mechanism → Pathophysiology`, phase: 1,
+        stem: `Which biochemical mechanism enables Streptococcus sanguinis to colonize a previously damaged mitral valve after gingival bleeding?`,
+        choices: [`Synthesis of extracellular dextrans from sucrose to bind fibrin-platelet aggregates`, `Secretion of elastase that digests the internal elastic lamina of valve leaflets`, `Production of coagulase to create a protective fibrin capsule on intact endothelium`],
+        correct: 0,
+        shortAnswer: `Dextran Adherence to Fibrin-Platelet Nidus`,
+        clue: `Think of sticky dental plaque polysaccharides binding onto sterile platelet-fibrin clots on turbulent valves.`,
+        dossier: {
+          vignette: [`Explains why Viridans streptococci cause both dental caries (S. mutans) and subacute endocarditis (S. sanguinis).`],
+          etiology: [`Viridans streptococci lack a polysaccharide capsule and lack coagulase.`],
+          pathogenesis: [`Turbulent blood flow across a scarred/prolapsed valve denudes endothelium, depositing a sterile fibrin-platelet thrombus (nonbacterial thrombotic vegetation).`, `Bacterial dextrans bind tenaciously to this fibrin-platelet nidus, allowing slow microbial proliferation.`],
+          trap: [`Elastase-mediated vascular invasion is the hallmark of Aspergillus fumigatus.`, `Coagulase-mediated invasion of normal intact endothelium describes Staphylococcus aureus.`],
+          management: [`Good daily oral hygiene reduces transient bacteremia episodes far more effectively than antibiotics alone.`]
+        }
+      },
+      {
+        id: 6, lo: 2, sector: 1, angle: 3, angleLabel: `Angle 3: Hallmarks → Management`, phase: 3,
+        stem: `A 63-year-old woman with penicillin-susceptible Viridans streptococcal mitral endocarditis (MIC ≤ 0.12 µg/mL) has stable hemodynamics and normal renal function. Which antibiotic regimen is standard first-line therapy, and when is dental IE prophylaxis indicated?`,
+        choices: [`IV ceftriaxone or penicillin G for 4 weeks; prophylaxis only for highest-risk conditions (e.g., prosthetic valve or prior IE)`, `Oral amoxicillin for 7 days; prophylaxis required before every dental visit for all mitral valve prolapse patients`, `IV vancomycin plus rifampin for 6 weeks; prophylaxis required before routine colonoscopy`],
+        correct: 0,
+        shortAnswer: `IV Penicillin G / Ceftriaxone; Restricted Dental Prophylaxis`,
+        clue: `Routine MVP no longer receives dental antibiotic prophylaxis—only prosthetic valves, prior IE, unrepaired cyanotic CHD, or cardiac transplant valvulopathy.`,
+        dossier: {
+          vignette: [`Tests both definitive antimicrobial therapy for Viridans IE and modern AHA endocarditis prophylaxis guidelines.`],
+          etiology: [`Penicillin-susceptible Viridans streptococci respond reliably to 4 weeks of IV penicillin G or once-daily IV ceftriaxone.`],
+          pathogenesis: [`Antibiotic prophylaxis targets transient oral bacteremia ONLY in patients with the highest risk of adverse outcomes.`],
+          trap: [`Isolated mitral valve prolapse (even with regurgitation) does NOT qualify for dental IE prophylaxis.`, `Routine GI/GU procedures (colonoscopy, cystoscopy) do NOT require endocarditis prophylaxis solely for valve protection.`],
+          management: [`Give single-dose oral amoxicillin 2 g 30–60 minutes before invasive dental procedures ONLY in highest-risk cardiac patients.`]
+        }
+      },
+
+      // --- ENTITY 3: Streptococcus gallolyticus (S. bovis) ---
+      {
+        id: 7, lo: 3, sector: 1, angle: 1, angleLabel: `Angle 1: Presentation → Diagnosis`, phase: 2,
+        stem: `A 69-year-old man presents with 5 weeks of fatigue, low-grade fever, a new aortic regurgitation murmur, and microcytic anemia (Hb 8.9 g/dL, MCV 72 fL). Blood cultures grow Gram-positive, catalase-negative, PYR-negative cocci that turn bile esculin agar black. What is the most likely organism?`,
+        choices: [`Streptococcus gallolyticus (S. bovis)`, `Enterococcus faecium`, `Staphylococcus saprophyticus`],
+        correct: 0,
+        shortAnswer: `Streptococcus gallolyticus (S. bovis) IE`,
+        clue: `Bile esculin positive + PYR-negative + elderly male with iron-deficiency anemia and endocarditis = "Bovis in the blood, cancer in the colon."`,
+        dossier: {
+          vignette: [`Elderly male with subacute aortic endocarditis plus unexplained iron-deficiency anemia points strongly toward an occult colonic neoplasm.`],
+          etiology: [`Streptococcus gallolyticus (formerly S. bovis biotype I) is a Group D non-enterococcal streptococcus.`],
+          pathogenesis: [`Colorectal adenomas or carcinomas compromise mucosal integrity and alter local immunity, promoting translocation into the portal and systemic circulation.`],
+          trap: [`Enterococcus faecium is also bile esculin positive, but it is PYR-positive and grows in 6.5% NaCl.`, `S. saprophyticus is a catalase-positive, novobiocin-resistant cause of uncomplicated UTI in young women.`],
+          management: [`Administer IV penicillin G or ceftriaxone AND schedule an urgent colonoscopy.`]
+        }
+      },
+      {
+        id: 8, lo: 3, sector: 1, angle: 2, angleLabel: `Angle 2: Mechanism → Pathophysiology`, phase: 1,
+        stem: `In the microbiology laboratory, a Group D streptococcal blood isolate hydrolyzes esculin in the presence of bile (black slant). Which pair of laboratory findings differentiates Streptococcus gallolyticus from Enterococcus species?`,
+        choices: [`PYR-negative and failure to grow in 6.5% NaCl broth`, `Optochin-sensitive and soluble in bile salts`, `Coagulase-positive and novobiocin-resistant`],
+        correct: 0,
+        shortAnswer: `PYR-Negative & 6.5% NaCl Growth-Negative`,
+        clue: `Both Group D bugs love bile esculin, but only Enterococcus survives salty 6.5% NaCl and turns PYR red.`,
+        dossier: {
+          vignette: [`Classic USMLE/COMLEX microbiology table distinction between Group D streptococci and Enterococci.`],
+          etiology: [`S. gallolyticus: Bile esculin (+), 6.5% NaCl (−), PYR (−).`, `Enterococcus: Bile esculin (+), 6.5% NaCl (+), PYR (+).`],
+          pathogenesis: [`Accurate speciation matters clinically because S. gallolyticus stays penicillin-susceptible and mandates colonoscopy, whereas Enterococcus resists cephalosporins.`],
+          trap: [`Optochin sensitivity and bile solubility identify Streptococcus pneumoniae.`, `Coagulase/novobiocin testing applies to catalase-positive staphylococci.`],
+          management: [`Always confirm 6.5% NaCl and PYR status whenever a Group D bile-esculin-positive coccus grows from blood.`]
+        }
+      },
+      {
+        id: 9, lo: 3, sector: 1, angle: 3, angleLabel: `Angle 3: Hallmarks → Management`, phase: 3,
+        stem: `A 72-year-old man with confirmed Streptococcus gallolyticus mitral endocarditis has cleared his bacteremia after starting IV ceftriaxone and has a normal chest radiograph. What essential diagnostic study must be performed during or immediately after his hospitalization?`,
+        choices: [`Colonoscopy to screen for occult colorectal carcinoma or polyps`, `Bronchoalveolar lavage with Ziehl-Neelsen staining`, `Transjugular liver biopsy for granulomatous hepatitis`],
+        correct: 0,
+        shortAnswer: `Diagnostic Colonoscopy for Occult Colorectal Cancer`,
+        clue: `Even without GI bleeding or weight loss, S. gallolyticus bacteremia/IE carries a very high incidence of underlying colonic neoplasia.`,
+        dossier: {
+          vignette: [`Once bacteremia is controlled, identifying the silent GI portal of entry is mandatory.`],
+          etiology: [`Up to 25–80% of patients with S. gallolyticus endocarditis harbor premalignant adenomas or colorectal adenocarcinoma.`],
+          pathogenesis: [`Collagen-binding adhesins on S. gallolyticus preferentially attach to exposed collagen in disrupted tumor mucosa and damaged heart valves.`],
+          trap: [`Waiting for symptomatic hematochezia delays curative resection of early-stage colon cancer.`, `FOBT/FIT is insufficient; direct endoscopic visualization via colonoscopy is required.`],
+          management: [`Perform full colonoscopy and treat endocarditis with 4 weeks of IV penicillin G or ceftriaxone.`]
+        }
+      },
+
+      // --- ENTITY 4: Staphylococcus epidermidis ---
+      {
+        id: 10, lo: 4, sector: 2, angle: 1, angleLabel: `Angle 1: Presentation → Diagnosis`, phase: 2,
+        stem: `A 71-year-old woman returns 3 months after mechanical aortic valve replacement with persistent fevers, night sweats, and a new diastolic decrescendo murmur. Three separate blood culture sets grow catalase-positive, coagulase-negative, novobiocin-sensitive Gram-positive cocci. What is the diagnosis?`,
+        choices: [`Prosthetic valve endocarditis due to Staphylococcus epidermidis`, `Blood culture contamination requiring no antimicrobial therapy`, `Prosthetic valve endocarditis due to Staphylococcus saprophyticus`],
+        correct: 0,
+        shortAnswer: `Staphylococcus epidermidis Prosthetic Valve IE`,
+        clue: `Coagulase-negative + novobiocin-sensitive + prosthetic valve + multiple positive blood cultures (not just 1 bottle!).`,
+        dossier: {
+          vignette: [`Within the first year of valve implantation, skin flora introduced perioperatively or via IV lines dominate prosthetic valve IE.`],
+          etiology: [`S. epidermidis: Gram+ cocci in clusters, catalase+, coagulase−, urease+, novobiocin-sensitive.`],
+          pathogenesis: [`Unlike a single positive bottle (often skin contamination), 3/3 positive cultures in a prosthetic-valve host confirm true bacteremia.`],
+          trap: [`Dismissing multiple positive blood cultures as "contaminant" in a patient with a prosthetic valve or indwelling hardware is a fatal clinical error.`, `S. saprophyticus is novobiocin-resistant and causes UTIs in young sexually active females.`],
+          management: [`Obtain urgent TEE (better visualization of prosthetic sewing ring abscesses than TTE) and initiate vancomycin + rifampin + gentamicin.`]
+        }
+      },
+      {
+        id: 11, lo: 4, sector: 2, angle: 2, angleLabel: `Angle 2: Mechanism → Pathophysiology`, phase: 1,
+        stem: `How does Staphylococcus epidermidis persist on prosthetic heart valves, orthopedic joints, and central venous catheters despite intact host neutrophil counts and standard β-lactam therapy?`,
+        choices: [`Secretion of an extracellular polysaccharide slime/biofilm matrix`, `Intracellular replication inside cardiac myocyte pseudocysts`, `Expression of M protein that mimics host valvular myosin`],
+        correct: 0,
+        shortAnswer: `Polysaccharide Biofilm / Slime Matrix Adherence`,
+        clue: `Think of "gunk on pipes and valves" shielding sessile bacteria from antibiotics and phagocytes.`,
+        dossier: {
+          vignette: [`Biofilm formation is the signature virulence mechanism of S. epidermidis on synthetic medical devices.`],
+          etiology: [`S. epidermidis secretes polysaccharide intercellular adhesin (slime layer) onto smooth metal and plastic polymers.`],
+          pathogenesis: [`The dense hydrated biofilm physically blocks antibody opsonization, neutrophil phagocytosis, and penetration of most antimicrobials.`, `Slow metabolic growth inside biofilms further induces antibiotic tolerance and frequent methicillin resistance.`],
+          trap: [`Intracellular amastigote pseudocysts belong to Trypanosoma cruzi.`, `M-protein molecular mimicry drives Group A Streptococcal rheumatic fever.`],
+          management: [`Because biofilms shield bacteria so effectively, cure often requires rifampin (penetrates biofilms) plus surgical removal/replacement of infected hardware.`]
+        }
+      },
+      {
+        id: 12, lo: 4, sector: 2, angle: 3, angleLabel: `Angle 3: Hallmarks → Management`, phase: 3,
+        stem: `A 67-year-old man is diagnosed with methicillin-resistant Staphylococcus epidermidis prosthetic mitral valve endocarditis. Which combination antibiotic regimen specifically targets both planktonic bacteria and the prosthetic valve biofilm?`,
+        choices: [`IV vancomycin + oral rifampin + IV gentamicin (initial 2 weeks)`, `IV ampicillin + IV ceftriaxone`, `Oral doxycycline + oral hydroxychloroquine`],
+        correct: 0,
+        shortAnswer: `Vancomycin + Rifampin + Gentamicin Triple Therapy`,
+        clue: `Prosthetic staphylococcal IE adds rifampin (for biofilm penetration) and gentamicin (synergy) onto a vancomycin backbone.`,
+        dossier: {
+          vignette: [`Management of staphylococcal prosthetic valve endocarditis requires combination therapy.`],
+          etiology: [`Most nosocomial S. epidermidis isolates are methicillin-resistant, making vancomycin the cell-wall backbone.`],
+          pathogenesis: [`Rifampin diffuses deeply into the polysaccharide biofilm and kills stationary-phase organisms, while gentamicin accelerates early bactericidal synergy.`],
+          trap: [`Never give rifampin as monotherapy because single-step rpoB mutations confer rapid resistance.`, `Doxycycline + hydroxychloroquine is the specialized regimen for Coxiella burnetii Q fever endocarditis.`],
+          management: [`Treat for ≥6 weeks (with gentamicin for the first 2 weeks) and obtain early cardiothoracic surgery evaluation for paravalvular abscess or dehiscence.`]
+        }
+      },
+
+      // --- ENTITY 5: Enterococcus faecalis & faecium ---
+      {
+        id: 13, lo: 5, sector: 2, angle: 1, angleLabel: `Angle 1: Presentation → Diagnosis`, phase: 2,
+        stem: `A 75-year-old man develops fever, rigors, and a new holosystolic murmur 9 days after transurethral resection of the prostate (TURP) with prolonged Foley catheterization. Blood cultures grow non-hemolytic, catalase-negative Gram-positive cocci in chains that grow in 6.5% NaCl. Which organism is implicated?`,
+        choices: [`Enterococcus faecalis`, `Streptococcus gallolyticus`, `Streptococcus agalactiae`],
+        correct: 0,
+        shortAnswer: `Enterococcus faecalis Post-GU Endocarditis`,
+        clue: `Elderly male + urologic instrumentation/Foley + Group D cocci growing in hypertonic 6.5% NaCl.`,
+        dossier: {
+          vignette: [`GI and GU procedures (TURP, cystoscopy, ERCP, biliary tract manipulation) classically precipitate enterococcal bacteremia and endocarditis.`],
+          etiology: [`Enterococcus faecalis (more common) and E. faecium (more drug-resistant): bile esculin+, PYR+, survive 6.5% NaCl and bile salts.`],
+          pathogenesis: [`Resilient colonic/perineal flora enter disrupted genitourinary mucosa and adhere to aged or calcified aortic/mitral valves.`],
+          trap: [`S. gallolyticus is also Group D bile-esculin+, but it does NOT grow in 6.5% NaCl and links to colon cancer rather than TURP.`, `S. agalactiae (GBS) is β-hemolytic, bacitracin-resistant, CAMP-positive, and causes neonatal sepsis/meningitis.`],
+          management: [`Obtain echocardiography and start synergistic bactericidal therapy (avoid cephalosporin monotherapy!).`]
+        }
+      },
+      {
+        id: 14, lo: 5, sector: 2, angle: 2, angleLabel: `Angle 2: Mechanism → Pathophysiology`, phase: 1,
+        stem: `Why does empirical ceftriaxone monotherapy fail in Enterococcus faecalis endocarditis, and how does vancomycin-resistant Enterococcus faecium (VRE) acquire vancomycin resistance?`,
+        choices: [`Intrinsic low-affinity PBPs resist cephalosporins; VRE replaces terminal D-Ala-D-Ala with D-Ala-D-Lac`, `Enterococci produce β-lactamase encoded by mecA; VRE upregulates porin efflux pumps`, `Enterococci lack peptidoglycan cell walls; VRE acquires fungal ergosterol membranes`],
+        correct: 0,
+        shortAnswer: `Low-Affinity PBPs (Cephalosporins) & D-Ala-D-Lac (VRE)`,
+        clue: `Remember the "D-lac block" blocking vancomycin binding, plus cephalosporins failing intrinsic enterococcal PBPs.`,
+        dossier: {
+          vignette: [`Tests both the intrinsic resistance of all Enterococci and acquired vanA-mediated VRE resistance.`],
+          etiology: [`All Enterococci are intrinsically resistant to cephalosporins, TMP-SMX (in vivo), and clindamycin due to low-affinity PBPs.`],
+          pathogenesis: [`In VRE, vanA alters peptidoglycan precursors from D-Ala-D-Ala to D-Ala-D-Lac, eliminating a crucial hydrogen bond needed for vancomycin binding.`],
+          trap: [`Interestingly, ampicillin + ceftriaxone IS synergistic for E. faecalis by saturating complementary PBPs—even though ceftriaxone alone is useless!`, `Bacteria lacking peptidoglycan are Mycoplasma, not Enterococcus.`],
+          management: [`Verify ampicillin and vancomycin susceptibilities immediately before finalizing therapy.`]
+        }
+      },
+      {
+        id: 15, lo: 5, sector: 2, angle: 3, angleLabel: `Angle 3: Hallmarks → Management`, phase: 3,
+        stem: `A 76-year-old man with Enterococcus faecium prosthetic valve endocarditis is found to have vancomycin-resistant Enterococcus (VRE) that is also resistant to ampicillin. Which IV agent provides effective bactericidal or clinical therapy for VRE endocarditis?`,
+        choices: [`IV daptomycin (high-dose) or linezolid`, `IV cefazolin plus metronidazole`, `IV nafcillin plus rifampin`],
+        correct: 0,
+        shortAnswer: `High-Dose Daptomycin or Linezolid for VRE IE`,
+        clue: `For susceptible E. faecalis use ampicillin + gentamicin (or ampicillin + ceftriaxone); for ampicillin/vancomycin-resistant VRE switch to daptomycin or linezolid.`,
+        dossier: {
+          vignette: [`Escaping vancomycin resistance in E. faecium requires non-glycopeptide anti-Gram-positive agents.`],
+          etiology: [`E. faecium accounts for most clinical VRE isolates.`],
+          pathogenesis: [`Daptomycin depolarizes the Gram-positive cell membrane via potassium efflux (note: inactivated by pulmonary surfactant, so never use for pneumonia—great for bacteremia/IE!).`, `Linezolid binds the 50S ribosomal subunit (watch for thrombocytopenia and serotonin syndrome with SSRIs).`],
+          trap: [`First-generation cephalosporins (cefazolin) and anti-staphylococcal penicillins (nafcillin) have zero activity against Enterococci.`],
+          management: [`High-dose daptomycin (often combined with a β-lactam) or linezolid is used alongside surgical evaluation for VRE endocarditis.`]
+        }
+      },
+
+      // --- ENTITY 6: HACEK Organisms ---
+      {
+        id: 16, lo: 6, sector: 2, angle: 1, angleLabel: `Angle 1: Presentation → Diagnosis`, phase: 2,
+        stem: `A 52-year-old man with severe periodontal disease presents with 7 weeks of fever, splenomegaly, a new mitral murmur, and an acute embolic MCA stroke. Transesophageal echo shows a large 1.8 cm mitral vegetation, yet automated blood cultures show no growth at 5 days. Which group of pathogens is most likely?`,
+        choices: [`HACEK organisms`, `Staphylococcus aureus`, `Streptococcus pyogenes`],
+        correct: 0,
+        shortAnswer: `HACEK Culture-Negative Subacute Endocarditis`,
+        clue: `Poor dentition + large embolizing vegetation + negative routine 5-day cultures in an afebrile/subacute native-valve host = HACEK.`,
+        dossier: {
+          vignette: [`HACEK = Haemophilus, Aggregatibacter, Cardiobacterium, Eikenella, Kingella.`],
+          etiology: [`Normal inhabitants of the human oropharynx that cause ~3% of native valve endocarditis, classically appearing culture-negative if not incubated in CO₂.`],
+          pathogenesis: [`Indolent subacute course allows massive bulky vegetations to mature on valves, leading to high rates of major systemic arterial emboli (stroke).`],
+          trap: [`S. aureus grows rapidly (<24 hours) in standard aerobic/anaerobic blood culture bottles.`, `S. pyogenes causes post-infectious rheumatic carditis rather than bulky culture-negative IE.`],
+          management: [`Notify the microbiology lab to hold cultures or use MALDI-TOF/16S rRNA PCR while starting IV ceftriaxone.`]
+        }
+      },
+      {
+        id: 17, lo: 6, sector: 2, angle: 2, angleLabel: `Angle 2: Mechanism → Pathophysiology`, phase: 1,
+        stem: `Why do HACEK organisms frequently cause negative initial blood cultures in subacute endocarditis unless specialized culture conditions are provided?`,
+        choices: [`They are fastidious, slow-growing, capnophilic (CO₂-requiring) Gram-negative bacilli`, `They are obligate intracellular bacteria lacking ATP synthesis outside host vacuoles`, `They require charcoal-yeast extract agar supplemented with L-cysteine and iron`],
+        correct: 0,
+        shortAnswer: `Fastidious, Slow-Growing Capnophilic Gram-Negative Rods`,
+        clue: `Capnophilic = loves CO₂; slow-growing oral Gram-negative coccobacilli.`,
+        dossier: {
+          vignette: [`Microbiologic growth requirements explain why HACEK sits on the culture-negative endocarditis differential.`],
+          etiology: [`Fastidious Gram-negative coccobacilli/rods requiring 5–10% CO₂ enrichment and prolonged incubation on chocolate/blood agar.`],
+          pathogenesis: [`Slow doubling time delays automated CO₂ detection beyond standard 5-day holds unless modern enriched media are used.`],
+          trap: [`Obligate intracellular ATP dependence describes Coxiella, Chlamydia, or Rickettsia.`, `Buffered charcoal yeast extract (BCYE) with cysteine and iron is specific for Legionella pneumophila.`],
+          management: [`Always alert the lab when endocarditis is suspected so bottles can be extended and subcultured under CO₂.`]
+        }
+      },
+      {
+        id: 18, lo: 6, sector: 2, angle: 3, angleLabel: `Angle 3: Hallmarks → Management`, phase: 3,
+        stem: `A 55-year-old man is diagnosed with subacute aortic endocarditis due to Aggregatibacter aphrophilus (a HACEK organism). Because several HACEK strains produce β-lactamases, what is the first-line antimicrobial regimen?`,
+        choices: [`IV ceftriaxone for 4 weeks (6 weeks if prosthetic valve)`, `Oral azithromycin for 5 days`, `IV ampicillin monotherapy`],
+        correct: 0,
+        shortAnswer: `IV Ceftriaxone (4–6 Weeks) for HACEK IE`,
+        clue: `3rd-generation cephalosporin stability against HACEK β-lactamases makes ceftriaxone the universal drug of choice.`,
+        dossier: {
+          vignette: [`Resistance to ampicillin via β-lactamase production makes 3rd-generation cephalosporins mandatory empirically.`],
+          etiology: [`Ceftriaxone covers all five HACEK genera reliably.`],
+          pathogenesis: [`Four weeks of bactericidal therapy clears native valves; prosthetic HACEK IE requires 6 weeks.`],
+          trap: [`Ampicillin monotherapy risks clinical failure in β-lactamase-producing Haemophilus or Aggregatibacter strains.`, `Macrolides (azithromycin) are bacteriostatic and inappropriate for infective endocarditis.`],
+          management: [`Administer IV ceftriaxone 2 g daily (or ciprofloxacin only if severe β-lactam intolerance).`]
+        }
+      },
+
+      // --- ENTITY 7: Streptococcus pyogenes (GAS) Acute Rheumatic Carditis ---
+      {
+        id: 19, lo: 7, sector: 3, angle: 1, angleLabel: `Angle 1: Presentation → Diagnosis`, phase: 2,
+        stem: `An 11-year-old boy presents with painful swelling that migrated from his left knee to his right wrist, a pericardial friction rub, an apical holosystolic murmur, and an annular nonpruritic trunk rash. Three weeks ago he had an untreated sore throat; ASO titers are elevated. What is the diagnosis?`,
+        choices: [`Acute rheumatic fever with pancarditis (Streptococcus pyogenes)`, `Reactive arthritis following Chlamydia trachomatis urethritis`, `Acute staphylococcal infective endocarditis`],
+        correct: 0,
+        shortAnswer: `GAS Acute Rheumatic Fever (JONES Criteria)`,
+        clue: `3 weeks post-pharyngitis + elevated ASO + migratory polyarthritis + pancarditis + erythema marginatum = JONES major criteria.`,
+        dossier: {
+          vignette: [`JONES major criteria: Joints (migratory polyarthritis), ♥ (pancarditis), Nodules (subcutaneous), Erythema marginatum, Sydenham chorea.`],
+          etiology: [`Nonsuppurative immunologic complication strictly following pharyngeal (not skin/impetigo!) infection with Group A β-hemolytic Streptococcus pyogenes.`],
+          pathogenesis: [`Pancarditis affects all three layers: endocarditis (verrucous vegetations along valve closure lines -> acute MR), myocarditis (MCC acute death), and fibrinous pericarditis.`],
+          trap: [`Impetigo strains of GAS cause post-streptococcal glomerulonephritis (PSGN), NOT acute rheumatic fever.`, `Chlamydia reactive arthritis presents with asymmetric oligoarthritis, conjunctivitis, and urethritis.`],
+          management: [`Confirm prior GAS via ASO or anti-DNase B titers, eradicate GAS with penicillin, and initiate anti-inflammatory therapy.`]
+        }
+      },
+      {
+        id: 20, lo: 7, sector: 3, angle: 2, angleLabel: `Angle 2: Mechanism → Pathophysiology`, phase: 1,
+        stem: `What immune mechanism drives myocardial and valvular injury in acute rheumatic fever, and what pathognomonic histologic findings appear on myocardial biopsy?`,
+        choices: [`Type II hypersensitivity molecular mimicry (M protein vs cardiac myosin); Aschoff bodies with Anitschkow caterpillar cells`, `Type III immune complex deposition in glomerular basement membranes; wire-loop subendothelial deposits`, `Direct bacterial invasion of myocardium with caseating acid-fast granulomas`],
+        correct: 0,
+        shortAnswer: `Molecular Mimicry (Type II HS) & Aschoff / Anitschkow Cells`,
+        clue: `M protein antibodies cross-react with myosin; granulomas contain giant cells (Aschoff) and wavy caterpillar nuclei (Anitschkow).`,
+        dossier: {
+          vignette: [`Classic USMLE/COMLEX pathology-immunology integration for acute rheumatic carditis.`],
+          etiology: [`GAS cell-wall M protein shares α-helical coiled-coil epitopes with human cardiac myosin and valvular laminin.`],
+          pathogenesis: [`Type II hypersensitivity cross-reactive antibodies + CD4+ T cells trigger focal fibrinoid necrosis surrounded by lymphocytes, giant cells (Aschoff bodies), and activated macrophages with slender wavy nuclei (Anitschkow "caterpillar" cells).`],
+          trap: [`Type III immune complex subendothelial "wire-loop" deposits describe lupus nephritis / PSGN, not rheumatic carditis.`, `Rheumatic fever is sterile/nonsuppurative—live GAS bacteria are NOT present in the myocardium.`],
+          management: [`Note that myocarditis causing arrhythmia/heart failure is the most common cause of death during the acute phase.`]
+        }
+      },
+      {
+        id: 21, lo: 7, sector: 3, angle: 3, angleLabel: `Angle 3: Hallmarks → Management`, phase: 3,
+        stem: `Twenty years after recurrent episodes of childhood rheumatic fever, a 32-year-old woman develops dyspnea, hemoptysis, an opening snap, and a diastolic rumble at the apex. Which valvular lesion has developed, and how could recurrences have been prevented?`,
+        choices: [`"Fish-mouth" mitral stenosis from commissural fusion; prevented by long-term benzathine penicillin G prophylaxis`, `Tricuspid stenosis from carcinoid fibrosis; prevented by octreotide`, `Aortic dissection from cystic medial necrosis; prevented by β-blockers`],
+        correct: 0,
+        shortAnswer: `Chronic "Fish-Mouth" Mitral Stenosis & Penicillin Prophylaxis`,
+        clue: `Early rheumatic fever causes regurgitation; late chronic scarring fuses mitral leaflets/chordae into a "fish-mouth" stenosis.`,
+        dossier: {
+          vignette: [`Mitral valve is involved most commonly (mitral > aortic >> tricuspid) in chronic rheumatic heart disease.`],
+          etiology: [`Repeat exposure to pharyngeal GAS reactivates immune injury and accelerates leaflet fibrosis and commissural fusion.`],
+          pathogenesis: [`Chronic scarring thickens chordae tendineae and narrows the mitral orifice ("fish-mouth" appearance), raising LA pressure -> pulmonary congestion, AFib, and left atrial mural thrombus.`],
+          trap: [`Carcinoid heart disease involves right-sided tricuspid/pulmonic valves, sparing the mitral valve due to pulmonary MAO inactivation of serotonin.`],
+          management: [`Secondary prophylaxis with IM benzathine penicillin G every 4 weeks for years (often ≥10 years or until age 40 if carditis occurred).`]
+        }
+      },
+
+      // --- ENTITY 8: Coxsackievirus B Myopericarditis ---
+      {
+        id: 22, lo: 8, sector: 3, angle: 1, angleLabel: `Angle 1: Presentation → Diagnosis`, phase: 2,
+        stem: `A 23-year-old man presents 8 days after a viral URI with sharp substernal chest pain that worsens when lying flat and improves when leaning forward. ECG shows diffuse concave-upward ST elevations and PR-segment depressions; troponin I is mildly elevated, and a scratchy triphasic friction rub is heard. What is the most likely pathogen?`,
+        choices: [`Coxsackievirus B`, `Streptococcus viridans`, `Mycobacterium tuberculosis`],
+        correct: 0,
+        shortAnswer: `Coxsackievirus B Viral Myopericarditis`,
+        clue: `Post-viral pleuritic chest pain relieved by leaning forward + diffuse ST elevations + PR depressions + elevated troponin = viral myopericarditis.`,
+        dossier: {
+          vignette: [`Presents in young, healthy adults with acute pleuritic positional chest pain and overlapping myocardial injury (↑ troponin).`],
+          etiology: [`Coxsackievirus B (an enterovirus) is the classic infectious cause of acute viral pericarditis and myocarditis in the US.`],
+          pathogenesis: [`Pericardial inflammation produces friction rub and diffuse ST elevation/PR depression (with PR elevation/ST depression in aVR); contiguous epicardial myocyte injury elevates troponin.`],
+          trap: [`STEMI shows territorial ST elevations with reciprocal ST depressions, not diffuse concave ST elevations with PR depressions.`, `M. tuberculosis causes subacute/chronic effusive-constrictive pericarditis rather than acute post-URI myopericarditis.`],
+          management: [`Obtain bedside echo to rule out large effusion/tamponade and start NSAIDs + colchicine.`]
+        }
+      },
+      {
+        id: 23, lo: 8, sector: 3, angle: 2, angleLabel: `Angle 2: Mechanism → Pathophysiology`, phase: 1,
+        stem: `Which viral structure and cellular mechanism explain how Coxsackievirus B causes both acute myocarditis and late-onset dilated cardiomyopathy?`,
+        choices: [`Naked (+)ssRNA picornavirus binds Coxsackie-Adenovirus Receptor (CAR), triggering lymphocytic infiltrate and focal myocyte necrosis`, `Enveloped dsDNA herpesvirus integrates into host telomeres causing myocardial amyloidosis`, `Segmented (-)ssRNA orthomyxovirus cleaves sialic acid on SA nodal pacemaker cells`],
+        correct: 0,
+        shortAnswer: `Naked (+)ssRNA Picornavirus · CAR Receptor & Lymphocytic Necrosis`,
+        clue: `Enteroviruses are acid-stable naked (+)ssRNA picornaviruses; histology shows lymphocytes + focal myocyte necrosis.`,
+        dossier: {
+          vignette: [`Explains why viral myocarditis is a leading cause of sudden cardiac death in adults <40 years old.`],
+          etiology: [`Coxsackievirus B: naked icosahedral, acid-stable (+)ssRNA picornavirus transmitted fecal-orally or via respiratory droplets.`],
+          pathogenesis: [`Viral protease 2A cleaves host dystrophin and disrupts cardiomyocyte cytoskeleton after entering via CAR, provoking a cytotoxic CD8+ lymphocytic infiltrate with focal myocyte necrosis.`, `Chronic autoimmune/fibrotic remodeling dilates all four chambers -> dilated cardiomyopathy (S3 gallop, eccentric hypertrophy).`],
+          trap: [`Segmented (-)ssRNA orthomyxovirus describes Influenza.`, `Chagas myocarditis shows intracellular amastigote pseudocysts rather than pure lymphocytic viral necrosis.`],
+          management: [`Restrict competitive athletics for 3–6 months during myocarditis recovery to reduce sudden arrhythmic death.`]
+        }
+      },
+      {
+        id: 24, lo: 8, sector: 3, angle: 3, angleLabel: `Angle 3: Hallmarks → Management`, phase: 3,
+        stem: `A 26-year-old woman is diagnosed with uncomplicated acute viral/idiopathic pericarditis (small effusion, no tamponade). What is the first-line pharmacologic therapy, and why are systemic corticosteroids avoided as initial treatment?`,
+        choices: [`High-dose NSAID + colchicine; early steroids increase viral replication and pericarditis recurrence rates`, `IV prednisone monotherapy; NSAIDs are contraindicated due to coronary vasospasm`, `Immediate surgical pericardiectomy; medical therapy fails in viral pericarditis`],
+        correct: 0,
+        shortAnswer: `NSAID + Colchicine (Avoid Early Steroids)`,
+        clue: `Colchicine inhibits microtubule polymerization in neutrophils and cuts recurrent pericarditis in half; steroids promote relapse!`,
+        dossier: {
+          vignette: [`Standard evidence-based management for acute viral/idiopathic pericarditis.`],
+          etiology: [`NSAIDs (ibuprofen or aspirin—aspirin preferred if post-MI) control pain and inflammation; colchicine prevents recurrence.`],
+          pathogenesis: [`Early corticosteroids impair viral clearance and markedly increase the rate of chronic relapsing pericarditis.`],
+          trap: [`Using prednisone first-line for routine viral pericarditis is a classic board trap (reserve steroids for refractory, autoimmune/SLE, or NSAID-contraindicated cases).`, `Indomethacin/NSAIDs are avoided post-acute MI (Dressler syndrome uses high-dose aspirin + colchicine).`],
+          management: [`Give ibuprofen (1–2 weeks taper) + colchicine (3 months) with PPI gastroprotection.`]
+        }
+      },
+
+      // --- ENTITY 9: Mycobacterium tuberculosis Constrictive Pericarditis ---
+      {
+        id: 25, lo: 9, sector: 3, angle: 1, angleLabel: `Angle 1: Presentation → Diagnosis`, phase: 2,
+        stem: `A 46-year-old man who recently emigrated from a TB-endemic region presents with 6 months of exertional dyspnea, ascites, and lower extremity edema. Jugular venous pressure rises paradoxically during inspiration, an early diastolic pericardial knock is heard, and chest X-ray shows dense eggshell pericardial calcification. What is the diagnosis?`,
+        choices: [`Tuberculous constrictive pericarditis`, `Acute viral pericardial tamponade`, `Coxsackievirus myocarditis`],
+        correct: 0,
+        shortAnswer: `Tuberculous Constrictive Pericarditis`,
+        clue: `Endemic TB exposure + Kussmaul sign (↑ JVP on inspiration) + pericardial knock + dense pericardial calcification = constrictive pericarditis.`,
+        dossier: {
+          vignette: [`TB remains the #1 cause of constrictive pericarditis worldwide in resource-limited regions.`],
+          etiology: [`Mycobacterium tuberculosis spreads from mediastinal lymph nodes or pleura into the pericardial sac.`],
+          pathogenesis: [`Rigid calcified pericardium prevents transmission of negative intrathoracic pressure during inspiration, so venous return backs up into the neck veins (Kussmaul sign).`],
+          trap: [`Cardiac tamponade presents acutely with Beck triad (hypotension, muffled heart sounds, JVD), electrical alternans, and prominent pulsus paradoxus—without pericardial calcification or knock.`],
+          management: [`Confirm via echocardiography/CT/cardiac catheterization ("square root" sign) and treat with RIPE + pericardiectomy.`]
+        }
+      },
+      {
+        id: 26, lo: 9, sector: 3, angle: 2, angleLabel: `Angle 2: Mechanism → Pathophysiology`, phase: 1,
+        stem: `How does Mycobacterium tuberculosis alter ventricular hemodynamics in chronic constrictive pericarditis, and what classic pressure waveform is seen on cardiac catheterization?`,
+        choices: [`Caseating granulomas heal via dense fibrocalcification that halts mid-diastolic filling (↓ EDV), producing a "dip-and-plateau" square root sign`, `Endotoxin induces systemic vasodilation and high-output cardiac failure with ↑ EDV`, `Pericardial effusion causes equalization of pressures only during systolic ejection`],
+        correct: 0,
+        shortAnswer: `Fibrocalcific Filling Restriction & "Dip-and-Plateau" Square Root Sign`,
+        clue: `Rapid early filling hits a rigid calcific wall -> sudden stop -> flat diastolic plateau ("square root" √ waveform).`,
+        dossier: {
+          vignette: [`Links granulomatous microbiology directly to constrictive physiology.`],
+          etiology: [`Acid-fast bacilli (mycolic acid wall) induce Th1-mediated caseating granulomas in the visceral and parietal pericardium.`],
+          pathogenesis: [`Subsequent scarring/calcification creates an unyielding shell: early diastole fills rapidly (creating the pericardial knock), then abruptly hits the rigid wall (dip-and-plateau / square root sign), reducing EDV and cardiac output.`],
+          trap: [`High-output failure with systemic vasodilation occurs in wet beriberi (thiamine deficiency) or severe anemia, not constrictive pericarditis.`],
+          management: [`Differentiate constriction from restrictive cardiomyopathy using respiratory ventricular interdependence on simultaneous LV/RV pressure tracings.`]
+        }
+      },
+      {
+        id: 27, lo: 9, sector: 3, angle: 3, angleLabel: `Angle 3: Hallmarks → Management`, phase: 3,
+        stem: `A 50-year-old man has confirmed tuberculous constrictive pericarditis with thick pericardial calcification, refractory ascites, and persistent Kussmaul sign despite diuretics. What is the definitive dual management?`,
+        choices: [`RIPE antimycobacterial therapy (rifampin, isoniazid, pyrazinamide, ethambutol) plus surgical pericardiectomy`, `IV doxycycline plus hydroxychloroquine without surgery`, `Urgent needle pericardiocentesis followed by colchicine monotherapy`],
+        correct: 0,
+        shortAnswer: `RIPE Regimen + Surgical Pericardiectomy`,
+        clue: `Antibiotics kill the acid-fast bacilli, but drugs cannot dissolve rigid calcified scar tissue—surgical stripping (pericardiectomy) is curative.`,
+        dossier: {
+          vignette: [`Chronic calcific constriction requires both eradication of M. tuberculosis and mechanical release of the heart.`],
+          etiology: [`RIPE therapy targets active intra- and extracellular mycobacteria (add pyridoxine/B6 to prevent INH neuropathy).`],
+          pathogenesis: [`Once dense fibrocalcification encases the ventricles, medical therapy alone cannot restore compliance.`],
+          trap: [`Pericardiocentesis drains fluid in tamponade; it cannot fix solid calcified scar tissue in chronic constriction.`],
+          management: [`Initiate RIPE (+ adjunctive corticosteroids during early effusive-constrictive phase if indicated) and perform surgical pericardiectomy.`]
+        }
+      },
+
+      // --- ENTITY 10: Borrelia burgdorferi / Lyme Carditis ---
+      {
+        id: 28, lo: 10, sector: 4, angle: 1, angleLabel: `Angle 1: Presentation → Diagnosis`, phase: 2,
+        stem: `A 31-year-old hiker from Connecticut presents in July with lightheadedness and near-syncope. Two weeks ago he noticed an expanding erythematous targetoid rash on his calf. Telemetry shows rapid fluctuation from 1st-degree AV block (PR 340 ms) to Mobitz II and complete 3rd-degree AV block. What is the diagnosis?`,
+        choices: [`Lyme carditis (Borrelia burgdorferi)`, `Chagas cardiomyopathy (Trypanosoma cruzi)`, `Diphtheritic myocarditis (Corynebacterium diphtheriae)`],
+        correct: 0,
+        shortAnswer: `Lyme Carditis (Borrelia burgdorferi)`,
+        clue: `Northeast summer hiker + erythema migrans + rapidly fluctuating high-degree AV nodal heart block = Lyme carditis.`,
+        dossier: {
+          vignette: [`Early disseminated Lyme disease classically causes fluctuating AV block ("Key Lyme pie to the FACE": Facial palsy, Arthritis, Cardiac block, Erythema migrans).`],
+          etiology: [`Borrelia burgdorferi: spirochete transmitted by Ixodes scapularis deer tick.`],
+          pathogenesis: [`Spirochetes localize near the AV node, causing edema and lymphoplasmacytic inflammation that fluctuates minute-to-minute across 1st, 2nd, and 3rd-degree block.`],
+          trap: [`Chagas cardiomyopathy causes chronic RBBB + LAFB and LV apical aneurysm in patients from Latin America.`, `Corynebacterium diphtheriae causes gray pharyngeal pseudomembranes and exotoxin-mediated myocarditis in unvaccinated individuals.`],
+          management: [`Admit to telemetry, start IV ceftriaxone immediately, and place temporary pacing if unstable.`]
+        }
+      },
+      {
+        id: 29, lo: 10, sector: 4, angle: 2, angleLabel: `Angle 2: Mechanism → Pathophysiology`, phase: 1,
+        stem: `Which vector and microbiologic characteristics accurately describe Borrelia burgdorferi transmission and laboratory visualization?`,
+        choices: [`Ixodes scapularis tick bite (>24–36h attachment); large spirochete poorly seen on Gram stain, visualized via dark-field/Giemsa or diagnosed via two-tier serology`, `Reduviid bug feces; intracellular amastigotes in myocytes diagnosed via thick blood smear`, `Ixodes tick saliva toxin; obligate intracellular organism stained with Ziehl-Neelsen acid-fast stain`],
+        correct: 0,
+        shortAnswer: `Ixodes Tick Spirochete · Dark-Field/Giemsa & Two-Tier Serology`,
+        clue: `Think "B-B-B": Borrelia = Big spirochete, visualized by Wright/Giemsa or dark-field, carried by Ixodes tick (same vector as Babesia & Anaplasma!).`,
+        dossier: {
+          vignette: [`High-yield vector biology and diagnostic microbiology of Borrelia burgdorferi.`],
+          etiology: [`Too thin for routine Gram staining; large enough for dark-field microscopy and Wright/Giemsa staining; cultured only on special BSK medium.`],
+          pathogenesis: [`Tick must typically feed for ≥24–36 hours to transmit spirochetes from its midgut to human dermis.`],
+          trap: [`Note that erythema migrans alone in early localized Lyme is a clinical diagnosis (start doxycycline without waiting for serology), whereas disseminated Lyme carditis uses ELISA + Western blot confirmation while treating empirically.`],
+          management: [`Inspect ticks and remove promptly; single-dose doxycycline prophylaxis is given only if high-risk Ixodes attachment ≥36 hours.`]
+        }
+      },
+      {
+        id: 30, lo: 10, sector: 4, angle: 3, angleLabel: `Angle 3: Hallmarks → Management`, phase: 3,
+        stem: `A 29-year-old man is admitted with symptomatic Lyme carditis and a PR interval of 350 ms that intermittently drops into 3rd-degree AV block. What is the appropriate acute management regarding antibiotics and cardiac pacing?`,
+        choices: [`IV ceftriaxone plus temporary transvenous pacing (permanent pacemaker is rarely needed because AV block resolves)`, `Oral amoxicillin alone plus immediate permanent dual-chamber pacemaker implantation`, `Observation without antibiotics until IgM/IgG Western blot returns in 5 days`],
+        correct: 0,
+        shortAnswer: `IV Ceftriaxone + Temporary Pacing (Reversible AV Block!)`,
+        clue: `Never implant a permanent pacemaker right away for Lyme AV block—it almost always resolves within 1–2 weeks of IV ceftriaxone!`,
+        dossier: {
+          vignette: [`Boards heavily test the threshold for IV ceftriaxone and temporary vs permanent pacing in Lyme carditis.`],
+          etiology: [`High-risk Lyme carditis (symptomatic, PR ≥300 ms, or 2nd/3rd-degree AV block) requires hospitalization and parenteral IV ceftriaxone.`],
+          pathogenesis: [`Because AV nodal conduction recovers rapidly once spirochetal inflammation subsides, temporary pacing bridges the patient safely.`],
+          trap: [`Implanting a permanent pacemaker prematurely exposes a young patient to lifelong hardware complications.`, `Oral doxycycline is appropriate for mild asymptomatic 1st-degree AV block with PR <300 ms, NOT for 3rd-degree block.`],
+          management: [`Start IV ceftriaxone immediately and transition to oral doxycycline to complete a 14–21 day course once PR <300 ms and high-grade block resolves.`]
+        }
+      },
+
+      // --- ENTITY 11: Trypanosoma cruzi / Chagas Cardiomyopathy ---
+      {
+        id: 31, lo: 11, sector: 4, angle: 1, angleLabel: `Angle 1: Presentation → Diagnosis`, phase: 2,
+        stem: `A 47-year-old man who grew up in rural South America presents with progressive dyspnea, lower extremity edema, dysphagia for both solids and liquids, and severe chronic constipation. ECG shows right bundle branch block and left anterior fascicular block; echocardiogram reveals dilated cardiomyopathy with a thin-walled left ventricular apical aneurysm. What is the diagnosis?`,
+        choices: [`Chronic Chagas disease (Trypanosoma cruzi)`, `Tuberculous constrictive pericarditis`, `Lyme carditis (Borrelia burgdorferi)`],
+        correct: 0,
+        shortAnswer: `Chronic Chagas Cardiomyopathy (Trypanosoma cruzi)`,
+        clue: `Latin America + dilated cardiomyopathy with LV apical aneurysm + RBBB/LAFB + megacolon + megaesophagus = Chagas disease.`,
+        dossier: {
+          vignette: [`Classic triad of chronic Chagas organ involvement: dilated cardiomyopathy, megaesophagus, and megacolon.`],
+          etiology: [`Trypanosoma cruzi: protozoan parasite endemic to Central and South America.`],
+          pathogenesis: [`Destroys both cardiac myocytes (creating a characteristic LV apical aneurysm/atrophy) and myenteric Auerbach plexus neurons (causing secondary achalasia and megacolon).`],
+          trap: [`Primary idiopathic achalasia causes dysphagia without dilated cardiomyopathy or megacolon.`, `Constrictive pericarditis restricts filling with normal/small chamber sizes, whereas Chagas causes marked chamber dilation.`],
+          management: [`Treat heart failure with guideline-directed medical therapy, anticoagulate if mural thrombus exists, and evaluate for ICD.`]
+        }
+      },
+      {
+        id: 32, lo: 11, sector: 4, angle: 2, angleLabel: `Angle 2: Mechanism → Pathophysiology`, phase: 1,
+        stem: `How is Trypanosoma cruzi transmitted to humans, and what intracellular parasitic form replicates inside cardiac myocytes during chronic myocardial destruction?`,
+        choices: [`Reduviid ("kissing") bug feces rubbed into bite wound; intracellular amastigote pseudocysts inside cardiomyocytes`, `Ixodes tick saliva; extracellular spirochetes within valve leaflets`, `Tsetse fly bite; African trypomastigotes causing daytime somnolence`],
+        correct: 0,
+        shortAnswer: `Reduviid Bug Feces · Intracellular Amastigote Pseudocysts`,
+        clue: `Kissing bug bites near the mouth/eye (Romaña sign) and defecates; intracellular form loses its flagellum (amastigote).`,
+        dossier: {
+          vignette: [`Distinguishes American trypanosomiasis (T. cruzi) from African sleeping sickness (T. brucei).`],
+          etiology: [`Vector: Reduviid (triatomine / "kissing") bug. Acute unilateral periorbital swelling = Romaña sign.`],
+          pathogenesis: [`Flagellated trypomastigotes in feces enter via scratching, invade cardiomyocytes, transform into non-flagellated amastigotes, and multiply in intracellular pseudocysts—causing cell rupture and fibrosis.`],
+          trap: [`Tsetse fly transmits Trypanosoma brucei (African sleeping sickness), which stays extracellular and undergoes VSG antigenic variation.`],
+          management: [`Diagnose acute infection via motile trypomastigotes on peripheral blood smear; diagnose chronic Chagas via two distinct IgG serologic assays.`]
+        }
+      },
+      {
+        id: 33, lo: 11, sector: 4, angle: 3, angleLabel: `Angle 3: Hallmarks → Management`, phase: 3,
+        stem: `A 22-year-old traveler returns from rural Central America with fever, unilateral painless periorbital edema (Romaña sign), and motile flagellated trypomastigotes on blood smear. Which antiparasitic drugs are indicated to eradicate Trypanosoma cruzi before chronic cardiomyopathy develops?`,
+        choices: [`Benznidazole or nifurtimox`, `Praziquantel or albendazole`, `Metronidazole plus iodoquinol`],
+        correct: 0,
+        shortAnswer: `Benznidazole or Nifurtimox for Acute/Early Chagas`,
+        clue: `Think "Cruzi = Benznidazole / Nifurtimox" (most effective in acute and congenital/early indeterminate phases).`,
+        dossier: {
+          vignette: [`Early antiparasitic eradication prevents irreversible cardiac and enteric neuronal destruction.`],
+          etiology: [`Benznidazole (better tolerated first-line) and nifurtimox generate free radicals toxic to T. cruzi.`],
+          pathogenesis: [`Once chronic end-stage dilated cardiomyopathy and megacolon are established, antiparasitic drugs no longer reverse structural fibrosis.`],
+          trap: [`Praziquantel treats trematodes/cestodes (schistosomiasis, cysticercosis); suramin/melarsoprol treat T. brucei—not T. cruzi.`],
+          management: [`Start benznidazole or nifurtimox promptly in acute, congenital, and early indeterminate Chagas disease.`]
+        }
+      },
+
+      // --- ENTITY 12: Coxiella burnetii / Q Fever Endocarditis ---
+      {
+        id: 34, lo: 12, sector: 4, angle: 1, angleLabel: `Angle 1: Presentation → Diagnosis`, phase: 2,
+        stem: `A 59-year-old sheep farmer with a known bicuspid aortic valve presents with 4 months of intermittent fevers, night sweats, weight loss, hepatosplenomegaly, and worsening aortic regurgitation. Five sets of routine blood cultures are negative, and transesophageal echo shows small aortic vegetations. What is the most likely pathogen?`,
+        choices: [`Coxiella burnetii (Q fever endocarditis)`, `Staphylococcus epidermidis`, `Streptococcus gallolyticus`],
+        correct: 0,
+        shortAnswer: `Coxiella burnetii Q Fever Culture-Negative IE`,
+        clue: `Sheep/cattle/goat farmer + damaged/prosthetic valve + hepatosplenomegaly + persistently negative blood cultures = Q fever endocarditis.`,
+        dossier: {
+          vignette: [`Coxiella burnetii is one of the top causes of blood-culture-negative endocarditis worldwide.`],
+          etiology: [`Obligate intracellular Gram-negative coccobacillus that cannot grow in cell-free routine blood culture media.`],
+          pathogenesis: [`Patients with pre-existing valvulopathy (bicuspid aortic valve, prosthetic valve) or immunosuppression fail to clear acute Q fever and progress to chronic endocarditis.`],
+          trap: [`Staphylococcus epidermidis and S. gallolyticus grow readily in standard aerobic/anaerobic blood culture bottles.`],
+          management: [`Order Coxiella burnetii Phase I and Phase II IgG serology immediately and avoid empiric attempts to culture it outside biosafety-level-3 labs.`]
+        }
+      },
+      {
+        id: 35, lo: 12, sector: 4, angle: 2, angleLabel: `Angle 2: Mechanism → Pathophysiology`, phase: 1,
+        stem: `How is Coxiella burnetii typically transmitted to humans, and what specific serologic antibody pattern confirms chronic Q fever endocarditis rather than acute Q fever?`,
+        choices: [`Aerosolized spore-like forms from livestock placenta/amniotic fluid; Phase I IgG ≥ 1:800 exceeding Phase II IgG`, `Unpasteurized milk ingestion only; positive heterophile antibodies and atypical lymphocytosis`, `Cat flea bite; Warthin-Starry silver stain positivity on blood smear`],
+        correct: 0,
+        shortAnswer: `Livestock Aerosol Spores · Phase I IgG ≥ 1:800 > Phase II`,
+        clue: `Remember "Phase I = Chronic (1st valve problem), Phase II = Acute"; spore-like small cell variant survives in barn dust!`,
+        dossier: {
+          vignette: [`Explains why Q fever outbreaks occur downwind of lambing/calving pastures without any arthropod vector.`],
+          etiology: [`Forms a hardy spore-like small cell variant shed in massive numbers in cattle/sheep/goat placenta, amniotic fluid, and milk.`],
+          pathogenesis: [`Obligate intracellular survival inside acidic macrophage phagolysosomes; antigenic shift leads to high anti-Phase I IgG titers (≥ 1:800) in chronic endocarditis vs Phase II predominance in acute Q fever.`],
+          trap: [`Unlike Rickettsia, Coxiella does NOT require an arthropod vector and does NOT cause a classic macular rash—think aerosols and barn dust!`],
+          management: [`Serology (Phase I vs Phase II IgG) + cardiac valve PCR are the gold-standard diagnostic tests.`]
+        }
+      },
+      {
+        id: 36, lo: 12, sector: 4, angle: 3, angleLabel: `Angle 3: Hallmarks → Management`, phase: 3,
+        stem: `A 61-year-old veterinarian has chronic Coxiella burnetii prosthetic aortic valve endocarditis confirmed by Phase I IgG titer 1:3200. Why is hydroxychloroquine added to doxycycline for 18–24 months?`,
+        choices: [`Hydroxychloroquine alkalinizes the acidic macrophage phagolysosome, restoring bactericidal activity of doxycycline`, `Hydroxychloroquine inhibits fungal ergosterol synthesis in co-infecting Candida biofilms`, `Hydroxychloroquine chelates excess iron to starve Gram-negative siderophores`],
+        correct: 0,
+        shortAnswer: `Doxycycline + Hydroxychloroquine (Alkalinizes Phagolysosome)`,
+        clue: `Coxiella hides inside acidic phagolysosomes where doxycycline becomes inactive—hydroxychloroquine raises the pH so doxycycline works!`,
+        dossier: {
+          vignette: [`One of the highest-yield pharmacology-microbiology mechanisms in cardiovascular infectious disease.`],
+          etiology: [`Doxycycline alone is bacteriostatic in an acidic environment, leading to frequent relapse.`],
+          pathogenesis: [`Hydroxychloroquine concentrates inside macrophage phagolysosomes and raises vacuolar pH, rendering doxycycline bactericidal against intracellular C. burnetii.`],
+          trap: [`Short 2-week doxycycline courses (used for acute Q fever pneumonia/hepatitis) fail catastrophically in chronic Q fever endocarditis.`],
+          management: [`Treat native-valve Q fever IE for ≥18 months and prosthetic-valve Q fever IE for ≥24 months with periodic ophthalmologic retinal screening for hydroxychloroquine.`]
+        }
+      },
+
+      // --- ENTITY 13: Candida albicans Endocarditis ---
+      {
+        id: 37, lo: 13, sector: 5, angle: 1, angleLabel: `Angle 1: Presentation → Diagnosis`, phase: 2,
+        stem: `A 53-year-old woman in the surgical ICU receiving total parenteral nutrition (TPN) through a femoral central venous catheter and broad-spectrum meropenem develops fever, acute pulselessness of the right leg, and a massive 2.4 cm bulky tricuspid/mitral vegetation on echo. What is the most likely etiology?`,
+        choices: [`Candida albicans fungal endocarditis`, `Coxsackievirus B myopericarditis`, `Viridans group streptococci`],
+        correct: 0,
+        shortAnswer: `Candida albicans Fungal Endocarditis`,
+        clue: `TPN + central venous catheter + broad-spectrum antibiotics + giant bulky vegetations + major arterial embolus = Candida endocarditis.`,
+        dossier: {
+          vignette: [`Fungal endocarditis produces the largest, bulkiest vegetations, often causing acute major arterial occlusion (saddle embolus, iliac/femoral artery).`],
+          etiology: [`Candida albicans (and non-albicans Candida spp.) thrives in lipid-rich TPN infusions and antibiotic-depleted flora.`],
+          pathogenesis: [`Forms dense hyphal/yeast biofilms on central lines and cardiac valves.`],
+          trap: [`Small vegetations without major limb ischemia characterize subacute Viridans streptococcal IE.`, `Bacterial blood cultures may miss or delay Candida unless fungal/lysis-centrifugation bottles are checked.`],
+          management: [`Immediately remove the central venous catheter, start systemic antifungal therapy, and consult cardiothoracic surgery.`]
+        }
+      },
+      {
+        id: 38, lo: 13, sector: 5, angle: 2, angleLabel: `Angle 2: Mechanism → Pathophysiology`, phase: 1,
+        stem: `When incubated in human serum at 37°C, Candida albicans exhibits a classic diagnostic morphologic transition. Which microscopic hallmark identifies C. albicans?`,
+        choices: [`Budding yeasts and pseudohyphae at 20°C transitioning to true germ tubes (hyphae) at 37°C`, `Septate hyphae branching strictly at 45° angles with fruiting conidiophores`, `Thick polysaccharide capsule visualized as a clear halo on India ink stain`],
+        correct: 0,
+        shortAnswer: `Pseudohyphae & Germ Tubes at 37°C`,
+        clue: `Remember "C. albicans forms germ tubes in serum at 37°C"—opposite of classic thermal dimorphs (which are yeast in the heat).`,
+        dossier: {
+          vignette: [`Microbiologic identification of Candida albicans vs Aspergillus and Cryptococcus.`],
+          etiology: [`C. albicans forms budding yeasts/pseudohyphae at room temperature and true germ tubes/hyphae at 37°C (helps invade endothelial tissue).`],
+          pathogenesis: [`Hyphal invasion + biofilm matrix enable massive, friable vegetations that easily fragment into large emboli.`],
+          trap: [`45° dichotomous branching septate hyphae identify Aspergillus fumigatus.`, `Encapsulated budding yeast with India ink halo identifies Cryptococcus neoformans.`],
+          management: [`Look for chorioretinitis on dilated fundoscopic exam in all patients with candidemia!`],
+        }
+      },
+      {
+        id: 39, lo: 13, sector: 5, angle: 3, angleLabel: `Angle 3: Hallmarks → Management`, phase: 3,
+        stem: `A 56-year-old man has confirmed Candida albicans mitral valve endocarditis with a 2.2 cm vegetation. Why is antifungal therapy alone insufficient, and what is the gold-standard management?`,
+        choices: [`Liposomal amphotericin B (± flucytosine) or high-dose echinocandin PLUS mandatory early surgical valve replacement`, `Oral fluconazole monotherapy for 14 days with medical observation`, `IV vancomycin plus gentamicin until vegetations shrink`],
+        correct: 0,
+        shortAnswer: `Liposomal Amphotericin B / Echinocandin + Early Valve Surgery`,
+        clue: `Candida endocarditis is a Class I indication for early cardiac surgery—antifungals alone rarely sterilize bulky fungal biofilms.`,
+        dossier: {
+          vignette: [`High mortality (>40–50%) demands combined medical-surgical attack.`],
+          etiology: [`Induction uses IV liposomal amphotericin B (± flucytosine) OR a high-dose echinocandin (micafungin, caspofungin, anidulafungin).`],
+          pathogenesis: [`Bulky fungal vegetations resist drug penetration and carry extreme risk of catastrophic cerebral or aortic embolization.`],
+          trap: [`Fluconazole monotherapy is inadequate for initial induction of Candida endocarditis (step-down oral suppressive fluconazole is used ONLY after surgical clearance/stabilization if susceptible).`],
+          management: [`Remove all indwelling catheters, initiate liposomal amphotericin B or high-dose echinocandin, perform early valve replacement, and continue long-term suppressive fluconazole if needed.`]
+        }
+      },
+
+      // --- ENTITY 14: Aspergillus fumigatus Endocarditis & Vascular Invasion ---
+      {
+        id: 40, lo: 14, sector: 5, angle: 1, angleLabel: `Angle 1: Presentation → Diagnosis`, phase: 2,
+        stem: `A 62-year-old man with acute myeloid leukemia and prolonged severe neutropenia following aortic valve replacement develops acute hemiplegia, a mycotic ascending aortic pseudoaneurysm, and large prosthetic vegetations. Bacterial blood cultures are sterile, but serum galactomannan is strongly positive. What is the diagnosis?`,
+        choices: [`Invasive cardiac and vascular aspergillosis (Aspergillus fumigatus)`, `HACEK prosthetic valve endocarditis`, `Acute rheumatic pancarditis`],
+        correct: 0,
+        shortAnswer: `Aspergillus fumigatus Angioinvasive Endocarditis`,
+        clue: `Severe neutropenia + post-cardiac surgery + mycotic aneurysm + positive galactomannan + sterile blood cultures = invasive Aspergillus.`,
+        dossier: {
+          vignette: [`Aspergillus endocarditis almost always occurs in severely immunocompromised hosts or after open-heart surgery (contaminated OR air/prosthesis).`],
+          etiology: [`Aspergillus fumigatus: ubiquitous monomorphic hyaline mold.`],
+          pathogenesis: [`Invades directly across prosthetic sewing rings into the aortic wall, producing mycotic aneurysms, coronary thrombosis, and hemorrhagic strokes.`],
+          trap: [`Blood cultures are almost ALWAYS negative in Aspergillus endocarditis—diagnosis relies on serum galactomannan, β-D-glucan, CT, and surgical tissue histology!`],
+          management: [`Start IV voriconazole immediately and arrange emergent cardiothoracic surgical debridement.`]
+        }
+      },
+      {
+        id: 41, lo: 14, sector: 5, angle: 2, angleLabel: `Angle 2: Mechanism → Pathophysiology`, phase: 1,
+        stem: `On surgical pathology of a resected mycotic aortic aneurysm, what fungal morphology and enzymatic mechanism account for Aspergillus fumigatus-induced vascular thrombosis and aneurysm rupture?`,
+        choices: [`Septate hyphae branching at acute 45° angles that secrete elastase to digest the arterial internal elastic lamina`, `Broad non-septate ribbon-like hyphae branching at 90° angles in diabetic ketoacidosis`, `Intracellular budding yeasts inside alveolar macrophages lacking hyphae`],
+        correct: 0,
+        shortAnswer: `45° Branching Septate Hyphae & Elastase Angioinvasion`,
+        clue: `"A for Aspergillus = Acute 45° angles" + elastase digestion of arterial walls -> mycotic aneurysms and thrombosis.`,
+        dossier: {
+          vignette: [`Classic high-yield histopathologic differentiation between Aspergillus and Mucorales.`],
+          etiology: [`Aspergillus fumigatus displays uniform, narrow, septate hyphae with dichotomous 45° acute-angle branching.`],
+          pathogenesis: [`Angioinvasive hyphae secrete elastase and proteases that cleave the internal elastic lamina of arteries, weakening the wall (mycotic aneurysm) and triggering thrombosis/hemorrhagic infarction.`],
+          trap: [`Broad, ribbon-like, pauciseptate (non-septate) hyphae branching at 90° angles describe Mucor/Rhizopus in DKA.`, `Tiny intracellular yeasts inside macrophages describe Histoplasma capsulatum.`],
+          management: [`Immediate frozen-section tissue biopsy distinguishes Aspergillus (45° septate) from Mucor (90° non-septate), which dictates drug choice!`]
+        }
+      },
+      {
+        id: 42, lo: 14, sector: 5, angle: 3, angleLabel: `Angle 3: Hallmarks → Management`, phase: 3,
+        stem: `A 64-year-old neutropenic patient is confirmed to have Aspergillus fumigatus prosthetic valve endocarditis with mycotic pseudoaneurysm. Which antifungal agent is first-line, and which common azole MUST be avoided due to intrinsic resistance?`,
+        choices: [`IV voriconazole (plus surgical debridement); avoid fluconazole (intrinsically inactive against Aspergillus)`, `Oral fluconazole monotherapy; avoid voriconazole due to intrinsic resistance`, `Oral flucytosine monotherapy without surgical intervention`],
+        correct: 0,
+        shortAnswer: `IV Voriconazole + Urgent Surgery (Avoid Fluconazole!)`,
+        clue: `Aspergillus is intrinsically resistant to fluconazole—always pick voriconazole (or isavuconazole) + surgery!`,
+        dossier: {
+          vignette: [`Choosing fluconazole for Aspergillus is a classic board-exam fatal error.`],
+          etiology: [`Voriconazole (or isavuconazole) is the first-line agent for invasive aspergillosis.`],
+          pathogenesis: [`Surgical resection of infected valve/aneurysm tissue is vital because medical therapy alone rarely cures angioinvasive Aspergillus endocarditis.`],
+          trap: [`Fluconazole treats Candida albicans and Cryptococcus maintenance, NOT Aspergillus or Mucorales.`, `Monitor voriconazole drug levels and watch for transient visual disturbances (photopsia) and hepatotoxicity.`],
+          management: [`Administer IV voriconazole + emergent surgical debridement/valve replacement (and restore neutrophil recovery if possible).`]
+        }
+      },
+
+      // --- ENTITY 15: Bartonella henselae / B. quintana ---
+      {
+        id: 43, lo: 15, sector: 5, angle: 1, angleLabel: `Angle 1: Presentation → Diagnosis`, phase: 2,
+        stem: `A 48-year-old unhoused man with chronic alcohol use disorder and body lice infestation presents with 6 weeks of fever, malaise, hematuria from immune-complex glomerulonephritis, and severe aortic regurgitation. Multiple routine blood cultures remain negative at 14 days. What is the most likely pathogen?`,
+        choices: [`Bartonella quintana`, `Staphylococcus aureus`, `Borrelia burgdorferi`],
+        correct: 0,
+        shortAnswer: `Bartonella quintana Culture-Negative Aortic IE`,
+        clue: `Homelessness + alcohol use + body lice (trench fever) + culture-negative destructive aortic endocarditis = Bartonella quintana.`,
+        dossier: {
+          vignette: [`Bartonella species rival Coxiella burnetii as leading causes of blood-culture-negative endocarditis.`],
+          etiology: [`Bartonella quintana (body louse vector, homelessness/alcoholism) and B. henselae (cat scratch/flea, pre-existing valvulopathy).`],
+          pathogenesis: [`Invades vascular endothelial cells and erythrocytes, causing severe destructive aortic valve endocarditis and secondary immune-complex glomerulonephritis.`],
+          trap: [`S. aureus grows rapidly in standard blood cultures.`, `Borrelia burgdorferi causes fluctuating AV nodal heart block with erythema migrans, not destructive culture-negative aortic valve vegetations.`],
+          management: [`Order Bartonella IgG/IgM serology and valve/blood PCR while starting doxycycline + gentamicin.`]
+        }
+      },
+      {
+        id: 44, lo: 15, sector: 5, angle: 2, angleLabel: `Angle 2: Mechanism → Pathophysiology`, phase: 2,
+        stem: `What vectors transmit Bartonella quintana versus Bartonella henselae, and which special histopathologic stain visualizes Bartonella organisms in resected cardiac valve tissue?`,
+        choices: [`Body louse (B. quintana) vs cat scratch/flea (B. henselae); Warthin-Starry silver stain`, `Deer tick (B. quintana) vs mosquito (B. henselae); India ink capsule stain`, `Reduviid bug (B. quintana) vs sandfly (B. henselae); Ziehl-Neelsen acid-fast stain`],
+        correct: 0,
+        shortAnswer: `Body Louse / Cat Flea · Warthin-Starry Silver Stain`,
+        clue: `Small pleomorphic Gram-negative rods stain poorly with routine Gram/H&E and light up black on Warthin-Starry silver stain.`,
+        dossier: {
+          vignette: [`Links epidemiologic exposure history directly to diagnostic histopathology.`],
+          etiology: [`B. quintana: Pediculus humanus corporis (human body louse). B. henselae: cat scratches, bites, or cat fleas (Ctenocephalides felis).`],
+          pathogenesis: [`Intracellular/intraerythrocytic lifestyle leads to standard blood culture failure; silver deposition on Warthin-Starry stain reveals clumps of bacilli inside valve vegetations.`],
+          trap: [`Warthin-Starry silver stain is also used for Treponema pallidum and Bartonella bacillary angiomatosis, whereas Ziehl-Neelsen targets Mycobacterium and Nocardia (weakly).`],
+          management: [`Send excised valve tissue for both Warthin-Starry staining and 16S rRNA / Bartonella PCR.`]
+        }
+      },
+      {
+        id: 45, lo: 15, sector: 5, angle: 3, angleLabel: `Angle 3: Hallmarks → Management`, phase: 3,
+        stem: `A 51-year-old cat owner with a bicuspid aortic valve has confirmed Bartonella henselae culture-negative endocarditis (IgG titer ≥ 1:800). Which bactericidal antibiotic combination is recommended alongside surgical evaluation?`,
+        choices: [`Doxycycline (6+ weeks) plus gentamicin (first 2 weeks for synergy)`, `Oral cephalexin monotherapy for 10 days`, `IV vancomycin monotherapy for 4 weeks`],
+        correct: 0,
+        shortAnswer: `Doxycycline + Gentamicin Synergy (2 Weeks) + Valve Surgery`,
+        clue: `Unlike Coxiella (doxycycline + hydroxychloroquine), Bartonella IE pairs doxycycline with gentamicin for bactericidal valve clearance.`,
+        dossier: {
+          vignette: [`High-yield distinction between the two classic culture-negative zoonotic endocarditis regimens.`],
+          etiology: [`Gentamicin provides rapid bactericidal synergy when combined with doxycycline against Bartonella.`],
+          pathogenesis: [`Because Bartonella endocarditis frequently causes severe aortic leaflet perforation, >50% of patients also require valve replacement.`],
+          trap: [`Vancomycin and cephalexin have NO activity against intracellular Gram-negative Bartonella species.`, `Do not confuse Bartonella (doxycycline + gentamicin) with Q fever Coxiella (doxycycline + hydroxychloroquine).`],
+          management: [`Treat with doxycycline (6 weeks; or 3 months if no valve surgery) + gentamicin for the first 14 days (monitor renal function/aminoglycoside levels).`]
+        }
+      }
+    ];
+
+    // =========================================================================
+    // 4. APPLICATION STATE & PERSISTENCE (notebookAppApi)
+    // =========================================================================
+    const DEFAULT_STATE = {
+      hp: 100,
+      xp: 0,
+      streak: 0,
+      bestStreak: 0,
+      deckIndices: [],
+      cursor: 0,
+      selectedLane: 1,
+      isHintsVisible: false,
+      isTimedMode: false,
+      sectorFilter: `all`,
+      phaseFilter: `all`,
+      masterSoundOn: true,
+      sfxOn: true,
+      bgmOn: false,
+      bgmVolume: 45,
+      answeredMap: {},
+      missedIds: []
+    };
+
+    let appState = JSON.parse(JSON.stringify(DEFAULT_STATE));
+    let isMenuOpen = false;
+    let isOutcomeOpen = false;
+    let isCodexOpen = false;
+    let gateLocked = false;
+    let metaFadeTimer = null;
+    let countdownInterval = null;
+    let secondsRemaining = 50;
+    let toastTimer = null;
+    let lastSelectedChoice = -1;
+    let lastVerdictType = `correct`;
+
+    // Audio Globals
+    let audioCtx = null;
+    let bgmTimer = null;
+    let bgmStep = 0;
+    let customAudioEl = null;
+    let customAudioObjectUrl = null;
+
+    // 3D / Canvas Globals
+    let rendererMode = `none`;
+    let threeScene = null;
+    let threeCamera = null;
+    let threeRenderer = null;
+    let threeCraft = null;
+    let threeDustPoints = null;
+    let threeFloorGrid = null;
+    let threePortals = [];
+    let threeRails = [];
+    let craftTargetX = 0;
+    let craftCurrentX = 0;
+    let craftPulse = 0;
+    let fallbackCanvas = null;
+    let fallbackCtx = null;
+    let fallbackDust = [];
+    let animFrameId = null;
+
+    // =========================================================================
+    // 5. UTILITY & DEFENSIVE HELPERS
+    // =========================================================================
+    function showToast(message) {
+      const el = document.getElementById(`inline-toast`);
+      if (!el) return;
+      el.textContent = message;
+      el.classList.add(`is-visible`);
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () {
+        el.classList.remove(`is-visible`);
+      }, 2200);
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, `&amp;`)
+        .replace(/</g, `&lt;`)
+        .replace(/>/g, `&gt;`)
+        .replace(/"/g, `&quot;`);
+    }
+
+    function renderDossierBullets(items) {
+      const list = Array.isArray(items) ? items : [String(items || ``)];
+      return list.map(function (line) {
+        const trimmed = String(line).trim();
+        const text = trimmed.startsWith(`•`) ? trimmed : `• ` + trimmed;
+        return `<p class="dossier-line amboss-scan-target">${escapeHtml(text)}</p>`;
+      }).join(``);
+    }
+
+    async function persistAppState() {
+      try {
+        if (window.notebookAppApi && typeof window.notebookAppApi.setAppState === `function`) {
+          await window.notebookAppApi.setAppState({
+            hp: appState.hp,
+            xp: appState.xp,
+            streak: appState.streak,
+            bestStreak: appState.bestStreak,
+            deckIndices: appState.deckIndices,
+            cursor: appState.cursor,
+            selectedLane: appState.selectedLane,
+            isHintsVisible: appState.isHintsVisible,
+            isTimedMode: appState.isTimedMode,
+            sectorFilter: appState.sectorFilter,
+            phaseFilter: appState.phaseFilter,
+            masterSoundOn: appState.masterSoundOn,
+            sfxOn: appState.sfxOn,
+            bgmOn: appState.bgmOn,
+            bgmVolume: appState.bgmVolume,
+            answeredMap: appState.answeredMap,
+            missedIds: appState.missedIds
+          });
+        }
+      } catch (err) {
+        // Non-fatal in preview environments
+      }
+    }
+
+    // =========================================================================
+    // 6. WEB AUDIO PROCEDURAL SFX & ZOMBIES SYNTHWAVE BGM
+    // =========================================================================
+    function ensureAudioCtx() {
+      if (!audioCtx) {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (Ctx) {
+          audioCtx = new Ctx();
+        }
+      }
+      if (audioCtx && audioCtx.state === `suspended`) {
+        audioCtx.resume().catch(function () {});
+      }
+      return audioCtx;
+    }
+
+    function playSfx(type) {
+      if (!appState.masterSoundOn || !appState.sfxOn) return;
+      const ctx = ensureAudioCtx();
+      if (!ctx) return;
+
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      if (type === `steer`) {
+        osc.type = `triangle`;
+        osc.frequency.setValueAtTime(340, now);
+        osc.frequency.exponentialRampToValueAtTime(520, now + 0.06);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+        osc.start(now);
+        osc.stop(now + 0.08);
+      } else if (type === `correct`) {
+        osc.type = `sine`;
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.setValueAtTime(660, now + 0.07);
+        osc.frequency.setValueAtTime(880, now + 0.14);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      } else if (type === `wrong`) {
+        osc.type = `sawtooth`;
+        osc.frequency.setValueAtTime(190, now);
+        osc.frequency.linearRampToValueAtTime(110, now + 0.22);
+        gain.gain.setValueAtTime(0.11, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+        osc.start(now);
+        osc.stop(now + 0.26);
+      } else {
+        osc.type = `sine`;
+        osc.frequency.setValueAtTime(520, now);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+        osc.start(now);
+        osc.stop(now + 0.06);
+      }
+    }
+
+    function startProceduralBgmLoop() {
+      stopProceduralBgmLoop();
+      if (!appState.masterSoundOn || !appState.bgmOn) return;
+      if (customAudioEl && !customAudioEl.paused) return;
+
+      const ctx = ensureAudioCtx();
+      if (!ctx) return;
+
+      // Dark synthwave Zombies arpeggio (D minor / Phrygian pulse)
+      const bassNotes = [73.42, 73.42, 87.31, 82.41, 65.41, 65.41, 82.41, 98.00];
+      const leadNotes = [293.66, 349.23, 440.00, 392.00, 329.63, 349.23, 440.00, 523.25];
+
+      bgmTimer = setInterval(function () {
+        if (!appState.masterSoundOn || !appState.bgmOn) return;
+        const c = ensureAudioCtx();
+        if (!c) return;
+        const now = c.currentTime;
+        const vol = Math.max(0.01, (appState.bgmVolume / 100) * 0.14);
+
+        const oscBass = c.createOscillator();
+        const gainBass = c.createGain();
+        oscBass.type = `sawtooth`;
+        oscBass.frequency.setValueAtTime(bassNotes[bgmStep % bassNotes.length], now);
+        gainBass.gain.setValueAtTime(vol * 0.65, now);
+        gainBass.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+        oscBass.connect(gainBass);
+        gainBass.connect(c.destination);
+        oscBass.start(now);
+        oscBass.stop(now + 0.24);
+
+        if (bgmStep % 2 === 0) {
+          const oscLead = c.createOscillator();
+          const gainLead = c.createGain();
+          oscLead.type = `triangle`;
+          oscLead.frequency.setValueAtTime(leadNotes[(bgmStep / 2) % leadNotes.length], now);
+          gainLead.gain.setValueAtTime(vol * 0.45, now);
+          gainLead.gain.exponentialRampToValueAtTime(0.001, now + 0.34);
+          oscLead.connect(gainLead);
+          gainLead.connect(c.destination);
+          oscLead.start(now);
+          oscLead.stop(now + 0.36);
+        }
+        bgmStep = (bgmStep + 1) % 16;
+      }, 230);
+    }
+
+    function stopProceduralBgmLoop() {
+      if (bgmTimer) {
+        clearInterval(bgmTimer);
+        bgmTimer = null;
+      }
+    }
+
+    function syncAudioUI() {
+      const mBtn = document.getElementById(`menu-master-audio-btn`);
+      const sBtn = document.getElementById(`menu-sfx-btn`);
+      const bBtn = document.getElementById(`menu-bgm-btn`);
+      const slider = document.getElementById(`bgm-volume-slider`);
+      const readout = document.getElementById(`bgm-vol-readout`);
+
+      if (mBtn) {
+        mBtn.textContent = appState.masterSoundOn ? `🔊 Sound: ON` : `🔇 Sound: OFF`;
+        mBtn.classList.toggle(`is-active`, appState.masterSoundOn);
+      }
+      if (sBtn) {
+        sBtn.textContent = appState.sfxOn ? `🎛 SFX: ON` : `🎛 SFX: OFF`;
+        sBtn.classList.toggle(`is-active`, appState.sfxOn);
+      }
+      if (bBtn) {
+        bBtn.textContent = appState.bgmOn ? `🎵 Zombies BGM: ON` : `🎵 Zombies BGM: OFF`;
+        bBtn.classList.toggle(`is-active`, appState.bgmOn);
+      }
+      if (slider) slider.value = String(appState.bgmVolume);
+      if (readout) readout.textContent = appState.bgmVolume + `%`;
+    }
+
+    function toggleMasterSound() {
+      appState.masterSoundOn = !appState.masterSoundOn;
+      if (!appState.masterSoundOn) {
+        stopProceduralBgmLoop();
+        if (customAudioEl) customAudioEl.pause();
+      } else if (appState.bgmOn) {
+        if (customAudioEl) {
+          customAudioEl.play().catch(function () {});
+        } else {
+          startProceduralBgmLoop();
+        }
+      }
+      syncAudioUI();
+      persistAppState();
+    }
+
+    function toggleSfxSound() {
+      appState.sfxOn = !appState.sfxOn;
+      if (appState.sfxOn) playSfx(`steer`);
+      syncAudioUI();
+      persistAppState();
+    }
+
+    function toggleProceduralBgm() {
+      appState.bgmOn = !appState.bgmOn;
+      if (appState.bgmOn && appState.masterSoundOn) {
+        if (customAudioEl) {
+          customAudioEl.play().catch(function () {});
+        } else {
+          startProceduralBgmLoop();
+        }
+      } else {
+        stopProceduralBgmLoop();
+        if (customAudioEl) customAudioEl.pause();
+      }
+      syncAudioUI();
+      persistAppState();
+    }
+
+    function setBgmVolume(val) {
+      appState.bgmVolume = Math.max(0, Math.min(100, Number(val) || 0));
+      if (customAudioEl) {
+        customAudioEl.volume = appState.bgmVolume / 100;
+      }
+      syncAudioUI();
+      persistAppState();
+    }
+
+    function handleCustomAudioUpload(inputEl) {
+      if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
+      const file = inputEl.files[0];
+      if (customAudioObjectUrl) {
+        try { URL.revokeObjectURL(customAudioObjectUrl); } catch (e) {}
+      }
+      customAudioObjectUrl = URL.createObjectURL(file);
+      if (!customAudioEl) {
+        customAudioEl = new Audio();
+        customAudioEl.loop = true;
+      }
+      customAudioEl.src = customAudioObjectUrl;
+      customAudioEl.volume = appState.bgmVolume / 100;
+      stopProceduralBgmLoop();
+      appState.bgmOn = true;
+      if (appState.masterSoundOn) {
+        customAudioEl.play().catch(function () {});
+      }
+      syncAudioUI();
+      showToast(`Loaded audio: ` + file.name);
+    }
+
+    // =========================================================================
+    // 7. DECK & FILTER ENGINE
+    // =========================================================================
+    function buildFilteredIndices() {
+      const indices = [];
+      for (let i = 0; i < ALL_QUESTIONS.length; i++) {
+        const q = ALL_QUESTIONS[i];
+        if (appState.sectorFilter === `missed`) {
+          if (!appState.missedIds.includes(q.id)) continue;
+        } else if (appState.sectorFilter !== `all`) {
+          if (String(q.sector) !== String(appState.sectorFilter)) continue;
+        }
+        if (appState.phaseFilter !== `all`) {
+          if (String(q.phase) !== String(appState.phaseFilter)) continue;
+        }
+        indices.push(i);
+      }
+      return indices;
+    }
+
+    function rebuildDeck(shuffle) {
+      let indices = buildFilteredIndices();
+      if (indices.length === 0) {
+        if (appState.sectorFilter === `missed`) {
+          showToast(`No missed gates yet — restoring all 45 gates.`);
+          appState.sectorFilter = `all`;
+          const sel = document.getElementById(`sector-filter-select`);
+          if (sel) sel.value = `all`;
+        } else {
+          appState.phaseFilter = `all`;
+        }
+        indices = buildFilteredIndices();
+      }
+      if (shuffle) {
+        for (let i = indices.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const tmp = indices[i];
+          indices[i] = indices[j];
+          indices[j] = tmp;
+        }
+      }
+      appState.deckIndices = indices;
+      appState.cursor = 0;
+    }
+
+    function getCurrentQuestion() {
+      if (!appState.deckIndices || appState.deckIndices.length === 0) {
+        rebuildDeck(false);
+      }
+      if (appState.cursor >= appState.deckIndices.length) {
+        appState.cursor = 0;
+      }
+      const idx = appState.deckIndices[appState.cursor];
+      return ALL_QUESTIONS[idx] || ALL_QUESTIONS[0];
+    }
+
+    // =========================================================================
+    // 8. RENDER CURRENT GATE, METADATA 3-SEC AUTO-HIDE & TELEMETRY
+    // =========================================================================
+    function updateTelemetryUI() {
+      const hpEl = document.getElementById(`stat-hp`);
+      const xpEl = document.getElementById(`stat-xp`);
+      const stEl = document.getElementById(`stat-streak`);
+      const gtEl = document.getElementById(`stat-gate`);
+      const tmEl = document.getElementById(`stat-timer`);
+
+      if (hpEl) hpEl.textContent = `♥ ` + appState.hp + ` HP`;
+      if (xpEl) xpEl.textContent = `★ ` + appState.xp + ` XP`;
+      if (stEl) stEl.textContent = `⚡ ` + appState.streak;
+      if (gtEl) gtEl.textContent = `GATE ` + (appState.cursor + 1) + `/` + appState.deckIndices.length;
+
+      if (tmEl) {
+        if (appState.isTimedMode) {
+          tmEl.textContent = `⏱ ` + secondsRemaining + `s`;
+          tmEl.classList.toggle(`is-urgent`, secondsRemaining <= 10);
+        } else {
+          tmEl.textContent = `⏱ OFF`;
+          tmEl.classList.remove(`is-urgent`);
+        }
+      }
+    }
+
+    function syncLaneTargetUI() {
+      for (let i = 0; i < 3; i++) {
+        const card = document.getElementById(`lane-card-` + i);
+        if (card) {
+          card.classList.toggle(`is-targeted`, appState.selectedLane === i);
+        }
+      }
+      craftTargetX = (appState.selectedLane - 1) * 3.1;
+    }
+
+    function triggerMetadataAutoFade() {
+      const metaRow = document.getElementById(`q-meta-row`);
+      if (!metaRow) return;
+      metaRow.classList.remove(`is-faded`);
+      if (metaFadeTimer) clearTimeout(metaFadeTimer);
+      metaFadeTimer = setTimeout(function () {
+        metaRow.classList.add(`is-faded`);
+      }, 3000);
+    }
+
+    function applyGateVisualTheme(loId) {
+      const theme = LO_VISUAL_THEMES[loId] || LO_VISUAL_THEMES[1];
+      const badgeCorridor = document.getElementById(`badge-corridor`);
+      if (badgeCorridor) badgeCorridor.textContent = theme.corridor;
+
+      if (rendererMode === `three` && threeDustPoints && threeDustPoints.material) {
+        threeDustPoints.material.color.setHex(theme.dustHex);
+      }
+      if (rendererMode === `three` && threeFloorGrid) {
+        threeFloorGrid.material.color.setHex(theme.dustHex);
+      }
+    }
+
+    function renderCurrentGate() {
+      gateLocked = false;
+      const q = getCurrentQuestion();
+      const entityObj = CODEX_DATA[q.lo - 1] || CODEX_DATA[0];
+
+      const badgeSector = document.getElementById(`badge-sector`);
+      const badgeAngle = document.getElementById(`badge-angle`);
+      const badgePhase = document.getElementById(`badge-phase`);
+      const stemEl = document.getElementById(`q-stem-text`);
+      const clueEl = document.getElementById(`q-clue-text`);
+
+      if (badgeSector) badgeSector.textContent = entityObj.sectorLabel + ` · ` + entityObj.entity.split(` (`)[0];
+      if (badgeAngle) badgeAngle.textContent = q.angleLabel;
+      if (badgePhase) badgePhase.textContent = `Phase ` + q.phase;
+      if (stemEl) stemEl.textContent = q.stem;
+      if (clueEl) clueEl.textContent = q.clue;
+
+      for (let i = 0; i < 3; i++) {
+        const laneTxt = document.getElementById(`lane-` + i + `-text`);
+        if (laneTxt) laneTxt.textContent = q.choices[i];
+      }
+
+      applyGateVisualTheme(q.lo);
+      triggerMetadataAutoFade();
+      syncLaneTargetUI();
+      updateTelemetryUI();
+      resetGateCountdown();
+    }
+
+    // =========================================================================
+    // 9. 50-SECOND COUNTDOWN TIMER
+    // =========================================================================
+    function stopGateCountdown() {
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+      }
+    }
+
+    function resetGateCountdown() {
+      stopGateCountdown();
+      secondsRemaining = 50;
+      updateTelemetryUI();
+      if (!appState.isTimedMode) return;
+
+      countdownInterval = setInterval(function () {
+        if (isMenuOpen || isOutcomeOpen || isCodexOpen || gateLocked) return;
+        secondsRemaining -= 1;
+        updateTelemetryUI();
+        if (secondsRemaining <= 0) {
+          stopGateCountdown();
+          evaluateGateAnswer(-1, true);
+        }
+      }, 1000);
+    }
+
+    function syncTimerControlsUI() {
+      const btn = document.getElementById(`menu-timer-toggle-btn`);
+      if (btn) {
+        btn.textContent = appState.isTimedMode ? `⏱ 50s Timer: ON [T]` : `⏱ 50s Timer: OFF [T]`;
+        btn.classList.toggle(`is-active`, appState.isTimedMode);
+      }
+      updateTelemetryUI();
+    }
+
+    function toggleTimedMode() {
+      appState.isTimedMode = !appState.isTimedMode;
+      syncTimerControlsUI();
+      resetGateCountdown();
+      playSfx(`steer`);
+      persistAppState();
+    }
+
+    function startTimedRunFromMenu() {
+      appState.isTimedMode = true;
+      appState.hp = 100;
+      appState.xp = 0;
+      appState.streak = 0;
+      rebuildDeck(true);
+      if (isMenuOpen) toggleMenuDrawer();
+      syncTimerControlsUI();
+      renderCurrentGate();
+      showToast(`50s Timed Raid Started!`);
+      persistAppState();
+    }
+
+    // =========================================================================
+    // 10. HINTS BAR & MENU DRAWER CONTROLS
+    // =========================================================================
+    function syncHintsUI() {
+      const appEl = document.getElementById(`xr-app`);
+      const menuBtn = document.getElementById(`menu-hints-btn`);
+      if (appEl) {
+        appEl.classList.toggle(`hints-visible`, appState.isHintsVisible);
+        appEl.classList.toggle(`hints-hidden`, !appState.isHintsVisible);
+      }
+      if (menuBtn) {
+        menuBtn.textContent = appState.isHintsVisible ? `💡 Hints: ON [H]` : `💡 Hints: OFF [H]`;
+        menuBtn.classList.toggle(`is-active`, appState.isHintsVisible);
+      }
+    }
+
+    function toggleHintsBar() {
+      appState.isHintsVisible = !appState.isHintsVisible;
+      syncHintsUI();
+      playSfx(`steer`);
+      persistAppState();
+    }
+
+    function toggleMenuDrawer() {
+      isMenuOpen = !isMenuOpen;
+      const drawer = document.getElementById(`top-menu-drawer`);
+      const backdrop = document.getElementById(`menu-backdrop`);
+      const toggleBtn = document.getElementById(`menu-toggle-btn`);
+      if (drawer) drawer.classList.toggle(`is-open`, isMenuOpen);
+      if (backdrop) backdrop.classList.toggle(`is-open`, isMenuOpen);
+      if (toggleBtn) toggleBtn.setAttribute(`aria-expanded`, isMenuOpen ? `true` : `false`);
+      playSfx(`steer`);
+    }
+
+    function openCodexFromMenu() {
+      if (isMenuOpen) toggleMenuDrawer();
+      openCodex();
+    }
+
+    function skipFromMenu() {
+      if (isMenuOpen) toggleMenuDrawer();
+      skipCurrentQuestion();
+    }
+
+    function skipCurrentQuestion() {
+      if (gateLocked || isOutcomeOpen || isCodexOpen) return;
+      appState.cursor = (appState.cursor + 1) % appState.deckIndices.length;
+      playSfx(`steer`);
+      renderCurrentGate();
+      persistAppState();
+    }
+
+    function restartOrderedFromMenu() {
+      appState.hp = 100;
+      appState.xp = 0;
+      appState.streak = 0;
+      appState.sectorFilter = `all`;
+      appState.phaseFilter = `all`;
+      const sSel = document.getElementById(`sector-filter-select`);
+      if (sSel) sSel.value = `all`;
+      syncPhasePillsUI();
+      rebuildDeck(false);
+      if (isMenuOpen) toggleMenuDrawer();
+      renderCurrentGate();
+      showToast(`Deck reset to ordered 45-gate run.`);
+      persistAppState();
+    }
+
+    function shuffleDeckFromMenu() {
+      rebuildDeck(true);
+      if (isMenuOpen) toggleMenuDrawer();
+      renderCurrentGate();
+      showToast(`Deck shuffled (` + appState.deckIndices.length + ` gates).`);
+      persistAppState();
+    }
+
+    function handleResetMastery(btn) {
+      if (!btn) return;
+      if (btn.dataset.armed !== `true`) {
+        btn.dataset.armed = `true`;
+        btn.textContent = `⚠ Confirm Reset?`;
+        setTimeout(function () {
+          if (btn.dataset.armed === `true`) {
+            btn.dataset.armed = `false`;
+            btn.textContent = `🗑 Reset Mastery`;
+          }
+        }, 3500);
+        return;
+      }
+      btn.dataset.armed = `false`;
+      btn.textContent = `🗑 Reset Mastery`;
+      appState.hp = 100;
+      appState.xp = 0;
+      appState.streak = 0;
+      appState.bestStreak = 0;
+      appState.answeredMap = {};
+      appState.missedIds = [];
+      renderSkillTreeGrid();
+      updateTelemetryUI();
+      showToast(`Mastery telemetry cleared.`);
+      persistAppState();
+    }
+
+    function applySectorFilter(val) {
+      appState.sectorFilter = val;
+      rebuildDeck(false);
+      renderCurrentGate();
+      persistAppState();
+    }
+
+    function syncPhasePillsUI() {
+      const pills = document.querySelectorAll(`.phase-pill`);
+      pills.forEach(function (p) {
+        p.classList.toggle(`is-active`, p.dataset.phase === String(appState.phaseFilter));
+      });
+    }
+
+    function setPhaseFilter(phaseVal) {
+      appState.phaseFilter = phaseVal;
+      syncPhasePillsUI();
+      rebuildDeck(false);
+      renderCurrentGate();
+      persistAppState();
+    }
+
+    function jumpToEntity(entityId) {
+      const targetLo = Number(entityId);
+      appState.sectorFilter = `all`;
+      appState.phaseFilter = `all`;
+      const sSel = document.getElementById(`sector-filter-select`);
+      if (sSel) sSel.value = `all`;
+      syncPhasePillsUI();
+      rebuildDeck(false);
+
+      const pos = appState.deckIndices.findIndex(function (idx) {
+        return ALL_QUESTIONS[idx].lo === targetLo;
+      });
+      if (pos >= 0) {
+        appState.cursor = pos;
+      }
+      if (isMenuOpen) toggleMenuDrawer();
+      renderCurrentGate();
+      playSfx(`steer`);
+      persistAppState();
+    }
+
+    function jumpToEntityFromSelect(val) {
+      if (!val) return;
+      jumpToEntity(Number(val));
+    }
+
+    function renderSkillTreeGrid() {
+      const grid = document.getElementById(`skill-tree-grid`);
+      const jumpSelect = document.getElementById(`entity-jump-select`);
+      if (jumpSelect && jumpSelect.options.length <= 1) {
+        CODEX_DATA.forEach(function (item) {
+          const opt = document.createElement(`option`);
+          opt.value = String(item.id);
+          opt.textContent = item.entity;
+          jumpSelect.appendChild(opt);
+        });
+      }
+      if (!grid) return;
+
+      grid.innerHTML = CODEX_DATA.map(function (item) {
+        const entityGates = ALL_QUESTIONS.filter(function (q) { return q.lo === item.id; });
+        const masteredCount = entityGates.filter(function (q) {
+          return appState.answeredMap[q.id] === true;
+        }).length;
+        const stars = `★`.repeat(masteredCount) + `☆`.repeat(3 - masteredCount);
+        const cls = masteredCount === 3 ? `skill-node-btn is-mastered` : `skill-node-btn`;
+        return `<button type="button" class="${cls}" onclick="jumpToEntity(${item.id})">
+          <span class="skill-node-title">${escapeHtml(item.entity)}</span>
+          <span class="skill-node-meta">${escapeHtml(item.sectorLabel)} · Mastery ${stars} (${masteredCount}/3)</span>
+        </button>`;
+      }).join(``);
+    }
+
+    // =========================================================================
+    // 11. STEERING, ANSWER EVALUATION & OUTCOME DOSSIER MODAL
+    // =========================================================================
+    function steerLane(laneIndex) {
+      if (gateLocked || isOutcomeOpen || isCodexOpen) return;
+      appState.selectedLane = Math.max(0, Math.min(2, laneIndex));
+      syncLaneTargetUI();
+      playSfx(`steer`);
+    }
+
+    function handleLaneCardClick(laneIndex) {
+      if (gateLocked || isOutcomeOpen || isCodexOpen) return;
+      appState.selectedLane = laneIndex;
+      syncLaneTargetUI();
+      craftPulse = 1.0;
+      evaluateGateAnswer(laneIndex, false);
+    }
+
+    function evaluateGateAnswer(choiceIdx, isTimeout) {
+      if (gateLocked) return;
+      gateLocked = true;
+      stopGateCountdown();
+
+      const q = getCurrentQuestion();
+      lastSelectedChoice = choiceIdx;
+      const isCorrect = !isTimeout && choiceIdx === q.correct;
+      lastVerdictType = isTimeout ? `timeout` : (isCorrect ? `correct` : `wrong`);
+
+      if (isCorrect) {
+        appState.streak += 1;
+        if (appState.streak > appState.bestStreak) appState.bestStreak = appState.streak;
+        appState.xp += 100 + Math.min(appState.streak * 15, 150);
+        appState.hp = Math.min(100, appState.hp + 5);
+        appState.answeredMap[q.id] = true;
+        appState.missedIds = appState.missedIds.filter(function (id) { return id !== q.id; });
+        playSfx(`correct`);
+      } else {
+        appState.streak = 0;
+        appState.hp = Math.max(10, appState.hp - 15);
+        appState.answeredMap[q.id] = false;
+        if (!appState.missedIds.includes(q.id)) appState.missedIds.push(q.id);
+        playSfx(`wrong`);
+      }
+
+      updateTelemetryUI();
+      renderSkillTreeGrid();
+      openOutcomeDossier(q, choiceIdx, lastVerdictType);
+      persistAppState();
+    }
+
+    function openOutcomeDossier(q, choiceIdx, verdictType) {
+      const modal = document.getElementById(`outcome-popup-modal`);
+      const banner = document.getElementById(`outcome-verdict-banner`);
+      const submeta = document.getElementById(`outcome-submeta`);
+      const pinEl = document.getElementById(`outcome-q-pin`);
+      const scrollBody = document.getElementById(`outcome-scroll-body`);
+
+      const entityObj = CODEX_DATA[q.lo - 1] || CODEX_DATA[0];
+      if (banner) {
+        banner.className = `verdict-banner`;
+        if (verdictType === `correct`) {
+          banner.classList.add(`is-correct`);
+          banner.textContent = `✔ CORRECT — ` + q.shortAnswer;
+        } else if (verdictType === `timeout`) {
+          banner.classList.add(`is-timeout`);
+          banner.textContent = `⏱ TIME'S UP — ` + q.shortAnswer;
+        } else {
+          banner.classList.add(`is-wrong`);
+          banner.textContent = `✖ INCORRECT — ` + q.shortAnswer;
+        }
+      }
+
+      if (submeta) {
+        submeta.textContent = entityObj.sectorLabel + ` · ` + q.angleLabel + ` · Phase ` + q.phase;
+      }
+      if (pinEl) pinEl.textContent = q.stem;
+
+      const userChoiceLabel = choiceIdx >= 0 ? q.choices[choiceIdx] : `No lane locked before 50s timer expired`;
+      const correctChoiceLabel = q.choices[q.correct];
+      const entityAngles = ALL_QUESTIONS.filter(function (item) { return item.lo === q.lo; });
+
+      const anglesHtml = entityAngles.map(function (ang) {
+        const isCurrent = ang.id === q.id;
+        return `<div class="angle-mini-card ${isCurrent ? `is-current` : ``}">
+          <span class="angle-mini-title">${escapeHtml(ang.angleLabel)}</span>
+          ${renderDossierBullets([ang.shortAnswer + ` (Phase ` + ang.phase + `)`])}
+        </div>`;
+      }).join(``);
+
+      if (scrollBody) {
+        scrollBody.innerHTML = `
+          <div class="choice-compare-row">
+            <div class="choice-box ${verdictType === `correct` ? `is-correct` : `is-wrong`}">
+              <span class="choice-box-label">Your Locked Lane</span>
+              <p class="amboss-scan-target">${escapeHtml(userChoiceLabel)}</p>
+            </div>
+            <div class="choice-box is-correct">
+              <span class="choice-box-label">Verified Answer</span>
+              <p class="amboss-scan-target">${escapeHtml(correctChoiceLabel)}</p>
+            </div>
+          </div>
+
+          <div class="dossier-block">
+            <h3 class="dossier-block-title">Section 2 · Clinical Vignette &amp; Buzzwords</h3>
+            ${renderDossierBullets(q.dossier.vignette)}
+          </div>
+
+          <div class="dossier-block">
+            <h3 class="dossier-block-title">Section 3 · Microbiologic Etiology &amp; Lab ID</h3>
+            ${renderDossierBullets(q.dossier.etiology)}
+          </div>
+
+          <div class="dossier-block">
+            <h3 class="dossier-block-title">Section 4 · Pathogenesis &amp; Structural Impact</h3>
+            ${renderDossierBullets(q.dossier.pathogenesis)}
+          </div>
+
+          <div class="dossier-block">
+            <h3 class="dossier-block-title">Section 5 · Board Distractor Trap &amp; Differential</h3>
+            ${renderDossierBullets(q.dossier.trap)}
+          </div>
+
+          <div class="dossier-block">
+            <h3 class="dossier-block-title">Section 6 · Management &amp; Clinical Pearls</h3>
+            ${renderDossierBullets(q.dossier.management)}
+          </div>
+
+          <div class="dossier-block">
+            <h3 class="dossier-block-title">Section 7 · Entity 3-Angle Mastery Matrix</h3>
+            <div class="angles-matrix-grid">${anglesHtml}</div>
+          </div>
+        `;
+        scrollBody.scrollTop = 0;
+      }
+
+      isOutcomeOpen = true;
+      if (modal) modal.classList.add(`is-open`);
+    }
+
+    function scrollOutcomeBody(deltaY) {
+      const el = document.getElementById(`outcome-scroll-body`);
+      if (!el) return;
+      if (typeof el.scrollBy === `function`) {
+        el.scrollBy({ top: deltaY, behavior: `smooth` });
+      } else {
+        el.scrollTop += deltaY;
+      }
+    }
+
+    function continueToNextGate() {
+      const modal = document.getElementById(`outcome-popup-modal`);
+      if (modal) modal.classList.remove(`is-open`);
+      isOutcomeOpen = false;
+      appState.cursor = (appState.cursor + 1) % appState.deckIndices.length;
+      if (appState.hp <= 10) {
+        appState.hp = 100;
+        showToast(`Vitality stabilized — HP restored to 100.`);
+      }
+      renderCurrentGate();
+      playSfx(`steer`);
+      persistAppState();
+    }
+
+    // =========================================================================
+    // 12. MASTER LOOT CODEX MODAL
+    // =========================================================================
+    function renderCodexTable(queryText) {
+      const tbody = document.getElementById(`codex-tbody`);
+      if (!tbody) return;
+      const q = String(queryText || ``).trim().toLowerCase();
+
+      const rows = CODEX_DATA.filter(function (row) {
+        if (!q) return true;
+        return (
+          row.entity.toLowerCase().includes(q) ||
+          row.etiology.toLowerCase().includes(q) ||
+          row.pathogenesis.toLowerCase().includes(q) ||
+          row.hallmarks.toLowerCase().includes(q) ||
+          row.clinical.toLowerCase().includes(q) ||
+          row.management.toLowerCase().includes(q)
+        );
+      });
+
+      tbody.innerHTML = rows.map(function (row) {
+        return `<tr>
+          <td class="amboss-scan-target"><strong>${escapeHtml(row.entity)}</strong></td>
+          <td class="amboss-scan-target">${escapeHtml(row.etiology)}</td>
+          <td class="amboss-scan-target">${escapeHtml(row.pathogenesis)}</td>
+          <td class="amboss-scan-target">${escapeHtml(row.hallmarks)}</td>
+          <td class="amboss-scan-target">${escapeHtml(row.clinical)}</td>
+          <td class="amboss-scan-target">${escapeHtml(row.management)}</td>
+        </tr>`;
+      }).join(``);
+    }
+
+    function openCodex() {
+      const modal = document.getElementById(`codex-modal`);
+      const search = document.getElementById(`codex-search-input`);
+      renderCodexTable(search ? search.value : ``);
+      isCodexOpen = true;
+      if (modal) modal.classList.add(`is-open`);
+      playSfx(`steer`);
+    }
+
+    function closeCodex() {
+      const modal = document.getElementById(`codex-modal`);
+      isCodexOpen = false;
+      if (modal) modal.classList.remove(`is-open`);
+    }
+
+    // =========================================================================
+    // 13. KEYBOARD HOTKEYS
+    // =========================================================================
+    document.addEventListener(`keydown`, function (e) {
+      const tag = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : ``;
+      if (tag === `input` || tag === `select` || tag === `textarea`) {
+        if (e.key === `Escape` && isCodexOpen) closeCodex();
+        return;
+      }
+
+      if (isOutcomeOpen) {
+        if (e.key === `ArrowUp`) {
+          e.preventDefault();
+          scrollOutcomeBody(-180);
+        } else if (e.key === `ArrowDown`) {
+          e.preventDefault();
+          scrollOutcomeBody(180);
+        } else if (e.key === ` ` || e.key === `Enter`) {
+          e.preventDefault();
+          continueToNextGate();
+        }
+        return;
+      }
+
+      if (isCodexOpen) {
+        if (e.key === `Escape` || e.key.toLowerCase() === `c`) {
+          e.preventDefault();
+          closeCodex();
+        }
+        return;
+      }
+
+      const key = e.key.toLowerCase();
+      if (key === `1`) {
+        handleLaneCardClick(0);
+      } else if (key === `2`) {
+        handleLaneCardClick(1);
+      } else if (key === `3`) {
+        handleLaneCardClick(2);
+      } else if (e.key === `ArrowLeft` || key === `a`) {
+        e.preventDefault();
+        steerLane(Math.max(0, appState.selectedLane - 1));
+      } else if (e.key === `ArrowRight` || key === `d`) {
+        e.preventDefault();
+        steerLane(Math.min(2, appState.selectedLane + 1));
+      } else if (e.key === `ArrowDown`) {
+        e.preventDefault();
+        steerLane(1);
+      } else if (e.key === ` ` || e.key === `Enter`) {
+        e.preventDefault();
+        handleLaneCardClick(appState.selectedLane);
+      } else if (key === `h`) {
+        e.preventDefault();
+        toggleHintsBar();
+      } else if (key === `c`) {
+        e.preventDefault();
+        openCodex();
+      } else if (key === `s`) {
+        e.preventDefault();
+        skipCurrentQuestion();
+      } else if (key === `t`) {
+        e.preventDefault();
+        toggleTimedMode();
+      } else if (key === `m` || e.key === `Escape`) {
+        e.preventDefault();
+        toggleMenuDrawer();
+      }
+    });
+
+    // =========================================================================
+    // 14. 3D SYNTHWAVE VOID (THREE.JS + 2D CANVAS FALLBACK, 1:1 PORTAL FUSION)
+    // =========================================================================
+    function createSquareDustTexture() {
+      const c = document.createElement(`canvas`);
+      c.width = 16;
+      c.height = 16;
+      const g = c.getContext(`2d`);
+      if (g) {
+        g.fillStyle = `#ffffff`;
+        g.fillRect(2, 2, 12, 12);
+      }
+      return c;
+    }
+
+    function projectCardCenterToWorld(cardEl, zPlane) {
+      if (!cardEl || !threeCamera) return { x: 0, y: 0 };
+      const rect = cardEl.getBoundingClientRect();
+      const cx = rect.left + rect.width * 0.5;
+      const cy = rect.top + rect.height * 0.5;
+      const ndcX = (cx / window.innerWidth) * 2 - 1;
+      const ndcY = -(cy / window.innerHeight) * 2 + 1;
+
+      const vec = new THREE.Vector3(ndcX, ndcY, 0.5);
+      vec.unproject(threeCamera);
+      const dir = vec.sub(threeCamera.position).normalize();
+      const distance = (zPlane - threeCamera.position.z) / dir.z;
+      const pos = threeCamera.position.clone().add(dir.multiplyScalar(distance));
+      return { x: pos.x, y: pos.y };
+    }
+
+    function initThreeViewport() {
+      const container = document.getElementById(`three-viewport-layer`);
+      if (!container) return;
+
+      try {
+        if (typeof THREE === `undefined` || typeof THREE.WebGLRenderer !== `function`) {
+          throw new Error(`Three.js unavailable`);
+        }
+
+        const w = window.innerWidth || 1280;
+        const h = window.innerHeight || 720;
+
+        threeScene = new THREE.Scene();
+        threeScene.background = new THREE.Color(0x070812);
+        threeScene.fog = new THREE.FogExp2(0x070812, 0.032);
+
+        threeCamera = new THREE.PerspectiveCamera(58, w / h, 0.1, 140);
+        threeCamera.position.set(0, 2.3, 8.5);
+        threeCamera.lookAt(0, 0.8, -10);
+
+        threeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: `high-performance` });
+        threeRenderer.setSize(w, h);
+        threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        container.innerHTML = ``;
+        container.appendChild(threeRenderer.domElement);
+
+        // Infinite full-width wireframe floor
+        threeFloorGrid = new THREE.GridHelper(160, 80, 0x00ffcc, 0x1a2848);
+        threeFloorGrid.position.set(0, -1.6, -32);
+        threeScene.add(threeFloorGrid);
+
+        // 3 Teal perspective track rails
+        threeRails = [];
+        for (let lane = 0; lane < 3; lane++) {
+          const x = (lane - 1) * 3.1;
+          const railGeo = new THREE.BoxGeometry(0.08, 0.04, 70);
+          const railMat = new THREE.MeshBasicMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.7 });
+          const rail = new THREE.Mesh(railGeo, railMat);
+          rail.position.set(x, -1.55, -24);
+          threeScene.add(rail);
+          threeRails.push(rail);
+        }
+
+        // 150 Crisp 3D Square Pixel-Dust Particles
+        const dustCount = 150;
+        const dustPositions = new Float32Array(dustCount * 3);
+        for (let i = 0; i < dustCount; i++) {
+          dustPositions[i * 3] = (Math.random() - 0.5) * 28;
+          dustPositions[i * 3 + 1] = Math.random() * 11 - 1.2;
+          dustPositions[i * 3 + 2] = -Math.random() * 55;
+        }
+        const dustGeo = new THREE.BufferGeometry();
+        dustGeo.setAttribute(`position`, new THREE.BufferAttribute(dustPositions, 3));
+        const dustTex = new THREE.CanvasTexture(createSquareDustTexture());
+        const dustMat = new THREE.PointsMaterial({
+          color: 0x00ffcc,
+          size: 0.22,
+          map: dustTex,
+          transparent: true,
+          opacity: 0.85,
+          alphaTest: 0.2
+        });
+        threeDustPoints = new THREE.Points(dustGeo, dustMat);
+        threeScene.add(threeDustPoints);
+
+        // Solid Geometric Teal Diamond Craft
+        const craftGeo = new THREE.OctahedronGeometry(0.55, 0);
+        craftGeo.scale(1.15, 0.55, 1.55);
+        const craftMat = new THREE.MeshBasicMaterial({ color: 0x00ffcc });
+        threeCraft = new THREE.Mesh(craftGeo, craftMat);
+        const craftWire = new THREE.LineSegments(
+          new THREE.WireframeGeometry(craftGeo),
+          new THREE.LineBasicMaterial({ color: 0xe8e0f0 })
+        );
+        threeCraft.add(craftWire);
+        threeCraft.position.set(0, -1.0, 4.6);
+        threeScene.add(threeCraft);
+
+        // 3 Neon Portals (Pink #ff2d78, Cyan #00ffcc, Yellow #ffe04a) — 1:1 DOM Card Fusion Lock
+        const portalColors = [0xff2d78, 0x00ffcc, 0xffe04a];
+        threePortals = [];
+        for (let i = 0; i < 3; i++) {
+          const ringGeo = new THREE.TorusGeometry(1.15, 0.05, 8, 4);
+          ringGeo.rotateZ(Math.PI / 4);
+          const ringMat = new THREE.MeshBasicMaterial({ color: portalColors[i], transparent: true, opacity: 0.85 });
+          const ring = new THREE.Mesh(ringGeo, ringMat);
+          ring.position.set((i - 1) * 3.1, 0.35, -3.5);
+          threeScene.add(ring);
+          threePortals.push(ring);
+        }
+
+        rendererMode = `three`;
+      } catch (err) {
+        initCanvasFallbackViewport(container);
+      }
+
+      window.addEventListener(`resize`, handleViewportResize);
+      startViewportLoop();
+    }
+
+    function initCanvasFallbackViewport(container) {
+      rendererMode = `canvas2d`;
+      container.innerHTML = ``;
+      fallbackCanvas = document.createElement(`canvas`);
+      fallbackCanvas.width = window.innerWidth || 1280;
+      fallbackCanvas.height = window.innerHeight || 720;
+      container.appendChild(fallbackCanvas);
+      fallbackCtx = fallbackCanvas.getContext(`2d`);
+
+      fallbackDust = [];
+      for (let i = 0; i < 150; i++) {
+        fallbackDust.push({
+          x: Math.random() * fallbackCanvas.width,
+          y: Math.random() * fallbackCanvas.height,
+          s: 2 + Math.floor(Math.random() * 4),
+          v: 0.6 + Math.random() * 1.4
+        });
+      }
+    }
+
+    function handleViewportResize() {
+      const w = window.innerWidth || 1280;
+      const h = window.innerHeight || 720;
+      if (rendererMode === `three` && threeCamera && threeRenderer) {
+        threeCamera.aspect = w / h;
+        threeCamera.updateProjectionMatrix();
+        threeRenderer.setSize(w, h);
+      } else if (rendererMode === `canvas2d` && fallbackCanvas) {
+        fallbackCanvas.width = w;
+        fallbackCanvas.height = h;
+      }
+    }
+
+    function startViewportLoop() {
+      if (animFrameId) cancelAnimationFrame(animFrameId);
+      let gridOffset = 0;
+
+      function tick() {
+        gridOffset = (gridOffset + 0.08) % 2;
+        craftCurrentX += (craftTargetX - craftCurrentX) * 0.18;
+        if (craftPulse > 0) craftPulse = Math.max(0, craftPulse - 0.05);
+
+        if (rendererMode === `three` && threeRenderer && threeScene && threeCamera) {
+          if (threeFloorGrid) {
+            threeFloorGrid.position.z = -32 + gridOffset;
+          }
+          if (threeDustPoints) {
+            const posAttr = threeDustPoints.geometry.getAttribute(`position`);
+            for (let i = 0; i < posAttr.count; i++) {
+              let z = posAttr.getZ(i) + 0.16;
+              if (z > 8) z = -55;
+              posAttr.setZ(i, z);
+            }
+            posAttr.needsUpdate = true;
+          }
+          if (threeCraft) {
+            threeCraft.position.x = craftCurrentX;
+            threeCraft.rotation.z = (craftCurrentX - craftTargetX) * 0.25;
+            threeCraft.position.y = -1.0 + Math.sin(Date.now() * 0.004) * 0.06 + craftPulse * 0.2;
+          }
+          for (let i = 0; i < threePortals.length; i++) {
+            const cardEl = document.getElementById(`lane-card-` + i);
+            const portal = threePortals[i];
+            if (cardEl && portal) {
+              const worldPos = projectCardCenterToWorld(cardEl, -3.5);
+              portal.position.x = worldPos.x;
+              portal.position.y = worldPos.y;
+              const isTargeted = appState.selectedLane === i;
+              const scale = isTargeted ? 1.12 : 0.92;
+              portal.scale.set(scale, scale, 1);
+            }
+          }
+          threeRenderer.render(threeScene, threeCamera);
+        } else if (rendererMode === `canvas2d` && fallbackCtx && fallbackCanvas) {
+          const w = fallbackCanvas.width;
+          const h = fallbackCanvas.height;
+          const q = getCurrentQuestion();
+          const theme = LO_VISUAL_THEMES[q.lo] || LO_VISUAL_THEMES[1];
+
+          fallbackCtx.fillStyle = `#070812`;
+          fallbackCtx.fillRect(0, 0, w, h);
+
+          // Perspective horizon grid
+          const horizonY = h * 0.42;
+          fallbackCtx.strokeStyle = `rgba(` + theme.gridRgb + `,0.24)`;
+          fallbackCtx.lineWidth = 1;
+          for (let i = -10; i <= 10; i++) {
+            fallbackCtx.beginPath();
+            fallbackCtx.moveTo(w * 0.5 + i * 24, horizonY);
+            fallbackCtx.lineTo(w * 0.5 + i * 160, h);
+            fallbackCtx.stroke();
+          }
+          for (let r = 1; r <= 10; r++) {
+            const t = ((r + gridOffset * 0.5) / 10);
+            const y = horizonY + Math.pow(t, 1.8) * (h - horizonY);
+            fallbackCtx.beginPath();
+            fallbackCtx.moveTo(0, y);
+            fallbackCtx.lineTo(w, y);
+            fallbackCtx.stroke();
+          }
+
+          // 3 Teal perspective track rails
+          fallbackCtx.strokeStyle = `rgba(0,255,204,0.6)`;
+          fallbackCtx.lineWidth = 2;
+          [-1, 0, 1].forEach(function (laneOffset) {
+            fallbackCtx.beginPath();
+            fallbackCtx.moveTo(w * 0.5 + laneOffset * 34, horizonY);
+            fallbackCtx.lineTo(w * 0.5 + laneOffset * (w * 0.28), h);
+            fallbackCtx.stroke();
+          });
+
+          // 150 crisp square pixel dust particles
+          fallbackCtx.fillStyle = `rgb(` + theme.gridRgb + `)`;
+          for (let i = 0; i < fallbackDust.length; i++) {
+            const p = fallbackDust[i];
+            p.y += p.v;
+            if (p.y > h) {
+              p.y = 0;
+              p.x = Math.random() * w;
+            }
+            fallbackCtx.fillRect(Math.floor(p.x), Math.floor(p.y), p.s, p.s);
+          }
+
+          // 1:1 Portal Fusion Boxes locked onto DOM Cards
+          const portalHex = [`#ff2d78`, `#00ffcc`, `#ffe04a`];
+          for (let i = 0; i < 3; i++) {
+            const cardEl = document.getElementById(`lane-card-` + i);
+            if (cardEl) {
+              const rect = cardEl.getBoundingClientRect();
+              fallbackCtx.strokeStyle = portalHex[i];
+              fallbackCtx.lineWidth = appState.selectedLane === i ? 2.5 : 1.2;
+              fallbackCtx.strokeRect(rect.left - 3, rect.top - 3, rect.width + 6, rect.height + 6);
+            }
+          }
+
+          // Solid teal diamond craft
+          const craftScreenX = w * 0.5 + (craftCurrentX / 3.1) * (w * 0.22);
+          const craftScreenY = h * 0.85;
+          fallbackCtx.fillStyle = `#00ffcc`;
+          fallbackCtx.beginPath();
+          fallbackCtx.moveTo(craftScreenX, craftScreenY - 16);
+          fallbackCtx.lineTo(craftScreenX + 20, craftScreenY);
+          fallbackCtx.lineTo(craftScreenX, craftScreenY + 12);
+          fallbackCtx.lineTo(craftScreenX - 20, craftScreenY);
+          fallbackCtx.closePath();
+          fallbackCtx.fill();
+        }
+
+        animFrameId = requestAnimationFrame(tick);
+      }
+      tick();
+    }
+
+    // =========================================================================
+    // 15. INITIALIZATION
+    // =========================================================================
+    async function initApp() {
+      try {
+        if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === `function`) {
+          const saved = await window.notebookAppApi.getAppState();
+          if (saved && typeof saved === `object`) {
+            appState = Object.assign({}, DEFAULT_STATE, saved);
+          }
+        }
+      } catch (err) {
+        // Fallback to default state
+      }
+
+      if (!Array.isArray(appState.deckIndices) || appState.deckIndices.length === 0) {
+        rebuildDeck(false);
+      }
+
+      const sectorSelect = document.getElementById(`sector-filter-select`);
+      if (sectorSelect) sectorSelect.value = String(appState.sectorFilter || `all`);
+
+      syncPhasePillsUI();
+      syncHintsUI();
+      syncTimerControlsUI();
+      syncAudioUI();
+      renderSkillTreeGrid();
+      initThreeViewport();
+      renderCurrentGate();
+
+      if (appState.masterSoundOn && appState.bgmOn) {
+        startProceduralBgmLoop();
+      }
+
+      if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === `function`) {
+        window.notebookAppApi.notifyAppReady();
+      }
+    }
+
+    if (document.readyState === `loading`) {
+      document.addEventListener(`DOMContentLoaded`, initApp);
+    } else {
+      initApp();
+    }
+  </script>
+</body>
+</html>
