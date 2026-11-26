@@ -1,0 +1,3201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="artifact-type" content="tool">
+<meta name="design-style" content="neon_noir">
+<title>01. GI Viruses XR 3-Lane Diagnostic Runner (v3.8)</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --background: #0a0a12;
+  --surface-container-low: #111118;
+  --surface-container: #141422;
+  --surface-container-high: #1e1e30;
+  --on-surface: #e8e0f0;
+  --on-surface-variant: #a098b0;
+  --outline: #5a5068;
+  --outline-variant: #302840;
+  --primary: #ff2d78;
+  --on-primary: #1a0010;
+  --primary-container: #b3004e;
+  --on-primary-container: #ffe0ec;
+  --secondary: #00ffcc;
+  --tertiary: #ffe04a;
+  --error: #ff4444;
+  --on-error: #1a0000;
+  --positive: #00ffcc;
+  --warning: #ffe04a;
+  --focus: #ff2d78;
+  --data-1: #ff2d78;
+  --data-2: #00ffcc;
+  --data-3: #ffe04a;
+  --data-4: #b388ff;
+  --data-context: #6e6680;
+  --font-headline: 'Sora', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-label: 'Space Mono', monospace;
+  --display-size: clamp(1.4rem, 1.1rem + 1vw, 1.9rem);
+  --headline-size: clamp(1.1rem, 1rem + 0.45vw, 1.35rem);
+  --subhead-size: clamp(0.95rem, 0.9rem + 0.25vw, 1.1rem);
+  --body-size: clamp(0.88rem, 0.84rem + 0.16vw, 0.98rem);
+  --label-size: 0.75rem;
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --rounded: 0.125rem;
+  --rounded-lg: 0.25rem;
+  --rounded-full: 0.75rem;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+  --glow-text: 0 0 8px currentColor;
+  --glow-primary: 0 0 16px color-mix(in srgb, var(--primary) 40%, transparent);
+  --glow-secondary: 0 0 16px color-mix(in srgb, var(--secondary) 35%, transparent);
+  --glow-tertiary: 0 0 16px color-mix(in srgb, var(--tertiary) 35%, transparent);
+  --neon-border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+  --glass-bg: color-mix(in srgb, var(--surface-container) 82%, transparent);
+  --glass-bg-heavy: color-mix(in srgb, var(--background) 92%, transparent);
+  --scanlines: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in srgb, var(--on-surface) 2.5%, transparent) 3px 4px);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  overflow-x: clip;
+  overflow-y: hidden;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh;
+  background-color: var(--background);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: var(--body-size);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+header { position: static !important; }
+button, input, select { font-family: inherit; }
+button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+#xr-app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  background-color: var(--background);
+  background-image: var(--scanlines);
+}
+
+/* 3D Synthwave Viewport Background Canvas */
+#xr-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  display: block;
+}
+
+/* BAND 1 — ULTRA-SLIM TOP BAR */
+#top-mini-bar {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: 0.35rem var(--space-md);
+  background: var(--glass-bg-heavy);
+  border-bottom: 1px solid var(--outline-variant);
+  backdrop-filter: blur(8px);
+  min-height: 44px;
+}
+
+.menu-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 36px;
+  padding: 0.3rem 0.7rem;
+  background: var(--surface-container);
+  color: var(--secondary);
+  border: 1px solid color-mix(in srgb, var(--secondary) 45%, transparent);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: box-shadow var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
+  flex-shrink: 0;
+}
+.menu-trigger-btn:hover {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+}
+
+.telemetry-strip {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.tele-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.22rem 0.5rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--on-surface);
+  white-space: nowrap;
+}
+.tele-chip.is-hp { border-color: color-mix(in srgb, var(--primary) 45%, transparent); color: var(--primary); }
+.tele-chip.is-xp { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+.tele-chip.is-streak { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+.tele-chip.is-gate { border-color: var(--outline); color: var(--on-surface); }
+.tele-chip.is-timer { border-color: color-mix(in srgb, var(--data-4) 50%, transparent); color: var(--data-4); }
+.tele-chip.is-timer.is-urgent { border-color: var(--error); color: var(--error); box-shadow: 0 0 10px color-mix(in srgb, var(--error) 45%, transparent); }
+
+/* BAND 2 — TOP QUESTION + 3S AUTO-HIDING METADATA */
+#question-stage {
+  position: relative;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem var(--space-md) 0.35rem;
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+}
+
+.q-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  max-height: 52px;
+  opacity: 1;
+  margin-bottom: 0.35rem;
+  overflow: hidden;
+  transition: opacity var(--dur-long) var(--ease-out), max-height var(--dur-long) var(--ease-out), margin-bottom var(--dur-long) var(--ease-out);
+}
+.q-meta-row.is-faded {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+}
+
+.meta-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.16rem 0.5rem;
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid var(--outline);
+  background: var(--surface-container-low);
+  color: var(--on-surface-variant);
+}
+.meta-badge.is-sector { border-color: color-mix(in srgb, var(--secondary) 50%, transparent); color: var(--secondary); }
+.meta-badge.is-angle { border-color: color-mix(in srgb, var(--primary) 50%, transparent); color: var(--primary); }
+.meta-badge.is-phase { border-color: color-mix(in srgb, var(--tertiary) 50%, transparent); color: var(--tertiary); }
+.meta-badge.is-corridor { border-color: color-mix(in srgb, var(--data-4) 50%, transparent); color: var(--data-4); }
+
+.question-box {
+  width: 100%;
+  background: var(--glass-bg);
+  border: var(--neon-border);
+  box-shadow: var(--neon-inset);
+  border-radius: var(--rounded-lg);
+  padding: 0.65rem var(--space-lg);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: padding var(--dur-short) var(--ease-out);
+}
+.question-stem {
+  width: 100%;
+  max-width: 72ch;
+  margin: 0 auto;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: clamp(0.9rem, 0.85rem + 0.25vw, 1.06rem);
+  font-weight: 500;
+  line-height: 1.48;
+  color: var(--on-surface);
+}
+#xr-app.hints-visible .question-box {
+  padding: 0.5rem var(--space-md);
+}
+#xr-app.hints-visible .question-stem {
+  font-size: clamp(0.84rem, 0.8rem + 0.2vw, 0.98rem);
+  line-height: 1.4;
+}
+
+/* BAND 3 — 3D VIEWPORT & 1:1 PORTAL-FUSED CENTERED CARDS */
+#lanes-viewport {
+  position: relative;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-sm) var(--space-md);
+  min-height: 0;
+  width: 100%;
+}
+
+.lanes-grid {
+  width: 100%;
+  max-width: 1120px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-md);
+  align-items: stretch;
+}
+
+.lane-dom-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  min-height: 168px;
+  padding: 0.85rem 0.85rem;
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  border-radius: var(--rounded-lg);
+  border: 1.5px solid var(--outline);
+  color: var(--on-surface);
+  cursor: pointer;
+  transition: transform var(--dur-micro) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), min-height var(--dur-short) var(--ease-out);
+  user-select: none;
+}
+.lane-dom-card[data-lane="0"] {
+  border-color: color-mix(in srgb, var(--primary) 65%, transparent);
+  box-shadow: inset 0 0 18px color-mix(in srgb, var(--primary) 14%, transparent), 0 0 14px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+.lane-dom-card[data-lane="1"] {
+  border-color: color-mix(in srgb, var(--secondary) 65%, transparent);
+  box-shadow: inset 0 0 18px color-mix(in srgb, var(--secondary) 14%, transparent), 0 0 14px color-mix(in srgb, var(--secondary) 18%, transparent);
+}
+.lane-dom-card[data-lane="2"] {
+  border-color: color-mix(in srgb, var(--tertiary) 65%, transparent);
+  box-shadow: inset 0 0 18px color-mix(in srgb, var(--tertiary) 14%, transparent), 0 0 14px color-mix(in srgb, var(--tertiary) 18%, transparent);
+}
+
+.lane-dom-card[data-lane="0"]:hover, .lane-dom-card[data-lane="0"].is-steered {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary), inset 0 0 22px color-mix(in srgb, var(--primary) 22%, transparent);
+  transform: translateY(-2px);
+}
+.lane-dom-card[data-lane="1"]:hover, .lane-dom-card[data-lane="1"].is-steered {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary), inset 0 0 22px color-mix(in srgb, var(--secondary) 22%, transparent);
+  transform: translateY(-2px);
+}
+.lane-dom-card[data-lane="2"]:hover, .lane-dom-card[data-lane="2"].is-steered {
+  border-color: var(--tertiary);
+  box-shadow: var(--glow-tertiary), inset 0 0 22px color-mix(in srgb, var(--tertiary) 22%, transparent);
+  transform: translateY(-2px);
+}
+
+#xr-app.hints-visible .lane-dom-card {
+  min-height: 128px;
+  padding: 0.65rem 0.75rem;
+}
+
+.lane-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  margin-bottom: 0.45rem;
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.lane-dom-card[data-lane="0"] .lane-card-head { color: var(--primary); }
+.lane-dom-card[data-lane="1"] .lane-card-head { color: var(--secondary); }
+.lane-dom-card[data-lane="2"] .lane-card-head { color: var(--tertiary); }
+
+.lane-key-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid currentColor;
+  border-radius: var(--rounded);
+  font-size: 0.68rem;
+}
+
+.lane-choice-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  flex: 1 1 auto;
+}
+.lane-card-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: clamp(0.86rem, 0.82rem + 0.18vw, 0.98rem);
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--on-surface);
+}
+.lane-card-text span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+}
+
+/* BAND 4 — BOTTOM HINTS BAR */
+#hints-bar {
+  position: relative;
+  z-index: 15;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 var(--space-md) var(--space-sm);
+  text-align: center;
+  transition: opacity var(--dur-short) var(--ease-out), max-height var(--dur-short) var(--ease-out);
+}
+#xr-app.hints-hidden #hints-bar {
+  display: none;
+}
+#xr-app.hints-visible #hints-bar {
+  display: block;
+}
+.hints-inner {
+  background: var(--glass-bg);
+  border: 1px solid color-mix(in srgb, var(--tertiary) 45%, transparent);
+  border-radius: var(--rounded-lg);
+  padding: 0.5rem var(--space-md);
+  backdrop-filter: blur(10px);
+  text-align: center;
+}
+.hints-kicker {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tertiary);
+  margin-bottom: 0.15rem;
+  text-align: center;
+}
+#q-clue-text {
+  margin: 0 auto;
+  font-size: 0.86rem;
+  color: var(--on-surface);
+  text-align: center;
+}
+
+/* MENU DRAWER (#top-menu-drawer) */
+#menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: color-mix(in srgb, var(--background) 70%, transparent);
+  backdrop-filter: blur(4px);
+  display: none;
+}
+#menu-backdrop.is-open { display: block; }
+
+#top-menu-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(420px, 94vw);
+  z-index: 50;
+  background: var(--surface-container-low);
+  border-right: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-104%);
+  transition: transform var(--dur-short) var(--ease-out);
+  overflow: hidden;
+}
+#top-menu-drawer.is-open {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--outline-variant);
+  background: var(--surface-container);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+.drawer-kicker {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  text-shadow: var(--glow-text);
+  margin-bottom: 0.2rem;
+}
+.drawer-title {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--on-surface);
+}
+.drawer-close-btn {
+  min-width: 36px;
+  min-height: 36px;
+  background: var(--surface-container-low);
+  color: var(--primary);
+  border: 1px solid color-mix(in srgb, var(--primary) 45%, transparent);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.drawer-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.drawer-section {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.drawer-section-label {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--secondary);
+}
+
+.drawer-btn-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.drawer-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  min-height: 40px;
+  padding: 0.35rem 0.55rem;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+}
+.drawer-btn:hover {
+  border-color: var(--secondary);
+  color: var(--secondary);
+}
+.drawer-btn.is-active {
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: var(--glow-primary);
+}
+.drawer-btn.is-danger {
+  border-color: color-mix(in srgb, var(--error) 55%, transparent);
+  color: var(--error);
+}
+.drawer-btn.is-full {
+  grid-column: 1 / -1;
+}
+
+.drawer-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.drawer-field label {
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--on-surface-variant);
+}
+.drawer-select, .drawer-range {
+  width: 100%;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  padding: 0.45rem 0.6rem;
+  font-size: 0.8rem;
+}
+.drawer-file-input {
+  width: 100%;
+  font-size: 0.74rem;
+  color: var(--on-surface-variant);
+}
+
+.phase-pills {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+.phase-pill {
+  min-height: 36px;
+  background: var(--surface-container-low);
+  color: var(--on-surface-variant);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.phase-pill.is-active {
+  border-color: var(--tertiary);
+  color: var(--tertiary);
+  box-shadow: var(--glow-tertiary);
+}
+
+.skill-tree-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+.skill-node-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.15rem;
+  padding: 0.4rem 0.3rem;
+  min-height: 54px;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  cursor: pointer;
+  color: var(--on-surface);
+}
+.skill-node-btn:hover { border-color: var(--secondary); }
+.skill-node-btn.is-mastered { border-color: var(--positive); box-shadow: inset 0 0 8px color-mix(in srgb, var(--positive) 20%, transparent); }
+.skill-node-btn.is-current { border-color: var(--primary); box-shadow: var(--glow-primary); }
+.skill-node-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--on-surface);
+  line-height: 1.25;
+}
+.skill-node-meta {
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  color: var(--on-surface-variant);
+}
+
+.hotkey-guide {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  color: var(--on-surface-variant);
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.45rem 0.65rem;
+  line-height: 1.5;
+}
+
+.inline-toast {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  color: var(--tertiary);
+  min-height: 1.1em;
+}
+
+/* OUTCOME REVIEW MODAL & 7-PART DOSSIER (100% CENTERED) */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: color-mix(in srgb, var(--background) 80%, transparent);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+}
+.modal-overlay.is-open { display: flex; }
+
+#outcome-popup-modal,
+#codex-modal {
+  width: min(860px, 94vw);
+  max-height: 90dvh;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#outcome-popup-modal,
+.popup-header,
+.popup-verdict,
+.popup-question-pin,
+.popup-question-pin-text,
+.popup-scroll-body,
+.dossier-block,
+.dossier-block-title,
+.dossier-line,
+.choice-box,
+#your-choice-text,
+#correct-choice-text,
+.angle-mini-card,
+.angle-mini-title,
+#dossier-angle-1,
+#dossier-angle-2,
+#dossier-angle-3 {
+  text-align: center !important;
+}
+
+.popup-header {
+  padding: 0.85rem var(--space-lg);
+  background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+.popup-verdict {
+  font-family: var(--font-headline);
+  font-size: clamp(1rem, 0.9rem + 0.5vw, 1.3rem);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  width: 100%;
+}
+.popup-verdict.is-correct { color: var(--positive); text-shadow: var(--glow-text); }
+.popup-verdict.is-wrong { color: var(--error); text-shadow: var(--glow-text); }
+.popup-verdict.is-timeout { color: var(--tertiary); text-shadow: var(--glow-text); }
+
+.popup-delta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+.delta-pill {
+  padding: 0.16rem 0.5rem;
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  border: 1px solid var(--outline);
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+}
+.delta-pill.is-pos { border-color: var(--positive); color: var(--positive); }
+.delta-pill.is-neg { border-color: var(--error); color: var(--error); }
+
+.popup-question-pin {
+  padding: 0.65rem var(--space-lg);
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.popup-question-pin-label {
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--secondary);
+  margin-bottom: 0.2rem;
+}
+.popup-question-pin-text {
+  font-size: 0.88rem;
+  color: var(--on-surface);
+  max-width: 70ch;
+  margin: 0 auto;
+}
+
+.popup-scroll-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--space-md) var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.choice-compare-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+.choice-box {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.choice-box.is-yours { border-color: color-mix(in srgb, var(--primary) 45%, transparent); }
+.choice-box.is-right { border-color: color-mix(in srgb, var(--positive) 50%, transparent); }
+.choice-box-label {
+  font-family: var(--font-label);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--on-surface-variant);
+  margin-bottom: 0.25rem;
+}
+
+.dossier-block {
+  width: 100%;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.65rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+.dossier-block-title {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--secondary);
+  width: 100%;
+}
+.dossier-line {
+  width: 100%;
+  font-size: 0.86rem;
+  color: var(--on-surface);
+  line-height: 1.48;
+  max-width: 72ch;
+  margin: 0 auto;
+}
+
+.angle-triad-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+.angle-mini-card {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.55rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+.angle-mini-title {
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--tertiary);
+}
+
+.popup-footer {
+  padding: 0.75rem var(--space-lg);
+  background: var(--surface-container-high);
+  border-top: 1px solid var(--outline-variant);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+}
+.primary-action-btn {
+  min-height: 44px;
+  padding: 0.5rem 1.4rem;
+  background: var(--surface-container);
+  color: var(--secondary);
+  border: 1px solid var(--secondary);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: var(--glow-secondary);
+}
+.primary-action-btn:hover {
+  background: var(--surface-container-high);
+}
+
+/* 6-COLUMN SEARCHABLE LOOT CODEX */
+#codex-modal {
+  width: min(1040px, 95vw);
+}
+.codex-toolbar {
+  padding: 0.75rem var(--space-lg);
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+.codex-search-wrap {
+  flex: 1 1 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.codex-search-wrap label {
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--on-surface-variant);
+}
+#codex-search-input {
+  width: 100%;
+  min-height: 40px;
+  padding: 0.45rem 0.65rem;
+  background: var(--surface-container);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-size: 0.85rem;
+}
+.codex-table-wrap {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: var(--space-sm) var(--space-md);
+}
+.codex-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  text-align: center;
+}
+.codex-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-container-high);
+  color: var(--secondary);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.55rem 0.45rem;
+  border-bottom: 1px solid var(--outline);
+}
+.codex-table td {
+  padding: 0.55rem 0.45rem;
+  border-bottom: 1px solid var(--outline-variant);
+  color: var(--on-surface);
+  vertical-align: middle;
+}
+.codex-table tr:nth-child(even) td {
+  background: var(--surface-container-low);
+}
+
+/* VERBATIM v3.8 PHONE MEDIA QUERIES */
+@media (max-width: 600px) {
+  #question-stage { padding: 0.35rem 0.55rem 0.2rem; }
+  .question-box { padding: 0.45rem 0.65rem; }
+  .question-stem { font-size: 0.86rem; line-height: 1.35; }
+  #lanes-viewport { padding: 0.25rem 0.55rem; }
+  .lanes-grid { grid-template-columns: 1fr; gap: 0.45rem; }
+  .lane-dom-card { min-height: 62px; padding: 0.5rem 0.65rem; }
+  .lane-card-head, .lane-key-label, .tele-chip.is-xp { display: none; }
+  .lane-card-text { font-size: 0.84rem; line-height: 1.32; }
+  #xr-app.hints-visible .question-stem { font-size: 0.8rem; }
+  #xr-app.hints-visible .lane-dom-card { min-height: 52px; padding: 0.4rem 0.55rem; }
+  #outcome-popup-modal, #codex-modal { width: 96vw; max-height: 92dvh; }
+  .choice-compare-grid, .angle-triad-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-height: 500px) and (pointer: coarse) {
+  #top-mini-bar { min-height: 36px; padding: 0.2rem 0.5rem; }
+  #question-stage { padding: 0.2rem 0.5rem; }
+  .q-meta-row { display: none; }
+  .question-box { padding: 0.3rem 0.55rem; }
+  .question-stem { font-size: 0.78rem; line-height: 1.25; }
+  .lanes-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.4rem; }
+  .lane-dom-card { min-height: 82px; padding: 0.35rem 0.45rem; }
+  .lane-card-head { margin-bottom: 0.2rem; font-size: 0.62rem; }
+  .lane-card-text { font-size: 0.74rem; line-height: 1.25; }
+}
+
+@media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+  html { font-size: 200%; }
+  .lanes-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+<div id="xr-app" class="hints-hidden">
+  <canvas id="xr-canvas" aria-hidden="true"></canvas>
+
+  <!-- BAND 1: ULTRA-SLIM TOP BAR -->
+  <header id="top-mini-bar">
+    <button type="button" class="menu-trigger-btn" id="menu-open-btn" onclick="toggleMenuDrawer()" aria-label="Open Mission Control Menu">☰ MENU</button>
+    <div class="telemetry-strip">
+      <span class="tele-chip is-hp" id="chip-hp">♥ 100 HP</span>
+      <span class="tele-chip is-xp" id="chip-xp">⚡ 0 XP</span>
+      <span class="tele-chip is-streak" id="chip-streak">🔥 0</span>
+      <span class="tele-chip is-gate" id="chip-gate">GATE 1/45</span>
+      <span class="tele-chip is-timer" id="chip-timer">⏱ OFF</span>
+    </div>
+  </header>
+
+  <!-- BAND 2: TOP QUESTION + 3S AUTO-HIDING METADATA -->
+  <section id="question-stage" aria-live="polite">
+    <div class="q-meta-row" id="q-meta-row">
+      <span class="meta-badge is-sector" id="badge-sector">SECTOR 1</span>
+      <span class="meta-badge is-angle" id="badge-angle">ANGLE 1</span>
+      <span class="meta-badge is-phase" id="badge-phase">PHASE 1</span>
+      <span class="meta-badge is-corridor" id="badge-corridor">CORRIDOR</span>
+    </div>
+    <div class="question-box">
+      <div id="q-stem-text" class="question-stem amboss-scan-target">Initializing GI Viruses Diagnostic Runner…</div>
+    </div>
+  </section>
+
+  <!-- BAND 3: 3D VIEWPORT & 3 CENTERED FROSTED-GLASS ANSWER CARDS -->
+  <main id="lanes-viewport">
+    <div class="lanes-grid">
+      <button type="button" class="lane-dom-card" id="lane-card-0" data-lane="0" onclick="selectLane(0)">
+        <div class="lane-card-head">
+          <span class="lane-key-label">[1 / A / ←]</span>
+          <span>PINK PORTAL</span>
+        </div>
+        <div class="lane-choice-body">
+          <div id="lane-0-text" class="lane-card-text amboss-scan-target"><span>Loading…</span></div>
+        </div>
+      </button>
+
+      <button type="button" class="lane-dom-card is-steered" id="lane-card-1" data-lane="1" onclick="selectLane(1)">
+        <div class="lane-card-head">
+          <span class="lane-key-label">[2 / W / ↑]</span>
+          <span>CYAN PORTAL</span>
+        </div>
+        <div class="lane-choice-body">
+          <div id="lane-1-text" class="lane-card-text amboss-scan-target"><span>Loading…</span></div>
+        </div>
+      </button>
+
+      <button type="button" class="lane-dom-card" id="lane-card-2" data-lane="2" onclick="selectLane(2)">
+        <div class="lane-card-head">
+          <span class="lane-key-label">[3 / D / →]</span>
+          <span>YELLOW PORTAL</span>
+        </div>
+        <div class="lane-choice-body">
+          <div id="lane-2-text" class="lane-card-text amboss-scan-target"><span>Loading…</span></div>
+        </div>
+      </button>
+    </div>
+  </main>
+
+  <!-- BAND 4: BOTTOM HINTS BAR -->
+  <section id="hints-bar" aria-label="Diagnostic Hint">
+    <div class="hints-inner">
+      <div class="hints-kicker">💡 CLINICAL CLUE [H]</div>
+      <div id="q-clue-text" class="amboss-scan-target">Toggle hints with [H].</div>
+    </div>
+  </section>
+</div>
+
+<!-- SLIDE-OUT MENU DRAWER -->
+<div id="menu-backdrop" onclick="toggleMenuDrawer()"></div>
+<aside id="top-menu-drawer" aria-label="Controls and Skill Tree">
+  <div class="drawer-header">
+    <div>
+      <div class="drawer-kicker">GI MICROBIOLOGY &amp; PHARMACOLOGY XR</div>
+      <h1 class="drawer-title">01. GI Viruses XR 3-Lane Diagnostic Runner</h1>
+    </div>
+    <button type="button" class="drawer-close-btn" onclick="toggleMenuDrawer()" aria-label="Close Menu">✕</button>
+  </div>
+
+  <div class="drawer-scroll">
+    <div class="drawer-section">
+      <div class="drawer-section-label">Mission Controls</div>
+      <div class="drawer-btn-grid">
+        <button type="button" class="drawer-btn" id="menu-hints-btn" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+        <button type="button" class="drawer-btn" onclick="openCodexFromMenu()">📖 Loot Codex [C]</button>
+        <button type="button" class="drawer-btn" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+        <button type="button" class="drawer-btn" id="menu-timer-btn" onclick="toggleTimerMode()">⏱ 50s Timer: OFF [T]</button>
+        <button type="button" class="drawer-btn is-full" onclick="startTimedRun()">▶ Start 50s Timed Run</button>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-label">Audio Synthesizer &amp; BGM</div>
+      <div class="drawer-btn-grid">
+        <button type="button" class="drawer-btn is-active" id="btn-master-audio" onclick="toggleMasterAudio()">🔊 Master Sound: ON</button>
+        <button type="button" class="drawer-btn is-active" id="btn-sfx-audio" onclick="toggleSfx()">⚡ SFX: ON</button>
+        <button type="button" class="drawer-btn is-full" id="btn-bgm-audio" onclick="toggleProceduralBgm()">🎵 Procedural Synth BGM: OFF</button>
+      </div>
+      <div class="drawer-field">
+        <label for="bgm-volume-slider">BGM Volume</label>
+        <input type="range" id="bgm-volume-slider" class="drawer-range" min="0" max="1" step="0.05" value="0.35" oninput="setBgmVolume(this.value)">
+      </div>
+      <div class="drawer-field">
+        <label for="custom-audio-input">Custom MP3 / WAV Track Loader</label>
+        <input type="file" id="custom-audio-input" class="drawer-file-input" accept="audio/*" onchange="loadCustomAudio(this)">
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-label">Deck &amp; Filtering</div>
+      <div class="drawer-field">
+        <label for="sector-filter-select">Sector / Filter</label>
+        <select id="sector-filter-select" class="drawer-select" onchange="applySectorFilter(this.value)">
+          <option value="all">All 15 GI Virus Entities (45 Gates)</option>
+          <option value="missed">🎯 Missed Gates Only</option>
+        </select>
+      </div>
+      <div class="drawer-field">
+        <label for="skill-entity-select">Jump to GI Virus Entity</label>
+        <select id="skill-entity-select" class="drawer-select" onchange="jumpToEntity(this.value)"></select>
+      </div>
+      <div class="drawer-field">
+        <label>Phase Mix Filter (30% P1 / 35% P2 / 35% P3)</label>
+        <div class="phase-pills">
+          <button type="button" class="phase-pill is-active" id="pill-phase-all" onclick="setPhaseFilter('all')">ALL</button>
+          <button type="button" class="phase-pill" id="pill-phase-1" onclick="setPhaseFilter(1)">P1</button>
+          <button type="button" class="phase-pill" id="pill-phase-2" onclick="setPhaseFilter(2)">P2</button>
+          <button type="button" class="phase-pill" id="pill-phase-3" onclick="setPhaseFilter(3)">P3</button>
+        </div>
+      </div>
+      <div class="drawer-btn-grid">
+        <button type="button" class="drawer-btn" onclick="restartOrdered()">↺ Restart Ordered</button>
+        <button type="button" class="drawer-btn" onclick="shuffleDeck()">🔀 Shuffle Deck</button>
+        <button type="button" class="drawer-btn is-danger is-full" id="btn-reset-mastery" onclick="resetMastery(this)">🗑 Reset Mastery</button>
+      </div>
+      <div class="inline-toast" id="menu-toast"></div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-label">15-Entity GI Viruses Skill Tree</div>
+      <div class="skill-tree-grid" id="skill-tree-grid"></div>
+    </div>
+
+    <div class="hotkey-guide">
+      KEYS: [1/A/←] Left • [2/W/↑] Center • [3/D/→] Right • [H] Hints • [C] Codex • [S] Skip • [T] 50s Timer • [M] Menu
+    </div>
+  </div>
+</aside>
+
+<!-- 7-PART OUTCOME DOSSIER MODAL -->
+<div class="modal-overlay" id="outcome-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="outcome-verdict-text">
+  <div id="outcome-popup-modal">
+    <div class="popup-header">
+      <div class="popup-verdict" id="outcome-verdict-text">✔ CORRECT</div>
+      <div class="popup-delta-row" id="outcome-delta-row"></div>
+    </div>
+
+    <div class="popup-question-pin">
+      <div class="popup-question-pin-label">Pinned Clinical Vignette</div>
+      <div class="popup-question-pin-text amboss-scan-target" id="pinned-stem-text"></div>
+    </div>
+
+    <div class="popup-scroll-body">
+      <div class="choice-compare-grid">
+        <div class="choice-box is-yours">
+          <div class="choice-box-label">Your Selected Portal</div>
+          <div id="your-choice-text" class="amboss-scan-target"></div>
+        </div>
+        <div class="choice-box is-right">
+          <div class="choice-box-label">Correct Diagnostic Target</div>
+          <div id="correct-choice-text" class="amboss-scan-target"></div>
+        </div>
+      </div>
+
+      <div class="dossier-block">
+        <div class="dossier-block-title">Section 2 — Core Mechanism &amp; Pathophysiology</div>
+        <div id="dossier-sec-2" class="amboss-scan-target"></div>
+      </div>
+
+      <div class="dossier-block">
+        <div class="dossier-block-title">Section 3 — Diagnostic Labs, Histology &amp; Serology</div>
+        <div id="dossier-sec-3" class="amboss-scan-target"></div>
+      </div>
+
+      <div class="dossier-block">
+        <div class="dossier-block-title">Section 4 — High-Yield Distractor Elimination</div>
+        <div id="dossier-sec-4" class="amboss-scan-target"></div>
+      </div>
+
+      <div class="dossier-block">
+        <div class="dossier-block-title">Section 5 — Clinical Management &amp; Antivirals</div>
+        <div id="dossier-sec-5" class="amboss-scan-target"></div>
+      </div>
+
+      <div class="dossier-block">
+        <div class="dossier-block-title">Section 6 — Board Pearls &amp; Memory Hooks</div>
+        <div id="dossier-sec-6" class="amboss-scan-target"></div>
+      </div>
+
+      <div class="dossier-block">
+        <div class="dossier-block-title">Section 7 — 3-Angle Entity Mastery Triad</div>
+        <div class="angle-triad-grid">
+          <div class="angle-mini-card">
+            <div class="angle-mini-title">Angle 1: Presentation → Dx</div>
+            <div id="dossier-angle-1" class="amboss-scan-target"></div>
+          </div>
+          <div class="angle-mini-card">
+            <div class="angle-mini-title">Angle 2: Mechanism → Pathophys</div>
+            <div id="dossier-angle-2" class="amboss-scan-target"></div>
+          </div>
+          <div class="angle-mini-card">
+            <div class="angle-mini-title">Angle 3: Hallmarks → Mgmt</div>
+            <div id="dossier-angle-3" class="amboss-scan-target"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="popup-footer">
+      <button type="button" class="primary-action-btn" id="btn-next-gate" onclick="advanceFromOutcome()">NEXT GATE [ENTER / SPACE] →</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6-COLUMN SEARCHABLE LOOT CODEX MODAL -->
+<div class="modal-overlay" id="codex-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="codex-title-text">
+  <div id="codex-modal">
+    <div class="popup-header">
+      <div class="popup-verdict is-correct" id="codex-title-text">GI VIRUSES LOOT CODEX (15 ENTITIES)</div>
+      <div class="popup-delta-row">
+        <span class="delta-pill" id="codex-mastery-summary">0 / 45 GATES CLEARED</span>
+      </div>
+    </div>
+    <div class="codex-toolbar">
+      <div class="codex-search-wrap">
+        <label for="codex-search-input">Filter by Virus, Genome, Presentation, Labs, or Antiviral</label>
+        <input type="text" id="codex-search-input" placeholder="e.g., Rotavirus, NSP4, window period, sofosbuvir, owl eye…" oninput="renderCodexTable()">
+      </div>
+      <button type="button" class="drawer-btn" onclick="closeCodex()">✕ Close [ESC]</button>
+    </div>
+    <div class="codex-table-wrap">
+      <table class="codex-table">
+        <thead>
+          <tr>
+            <th>Entity</th>
+            <th>Genome / Capsid</th>
+            <th>Transmission &amp; Vignette</th>
+            <th>Pathogenesis</th>
+            <th>Labs &amp; Biopsy</th>
+            <th>Management &amp; Mastery</th>
+          </tr>
+        </thead>
+        <tbody id="codex-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<audio id="custom-bgm-audio" loop></audio>
+<api-shim></api-shim>
+<script>
+const LO_VISUAL_THEMES = {
+  1: { tag: `WHEELHOUSE-REOVIRUS`, tint: `#00ffcc`, gridRgb: `0, 255, 204` },
+  2: { tag: `CRUISE-CALICIVIRUS`, tint: `#ff2d78`, gridRgb: `255, 45, 120` },
+  3: { tag: `STAR-ASTROVIRUS`, tint: `#ffe04a`, gridRgb: `255, 224, 74` },
+  4: { tag: `PEYERS-ADENO-40`, tint: `#b388ff`, gridRgb: `179, 136, 255` },
+  5: { tag: `SHELLFISH-HAV`, tint: `#00ffcc`, gridRgb: `0, 210, 190` },
+  6: { tag: `WATERBORNE-HEV`, tint: `#ff2d78`, gridRgb: `240, 60, 130` },
+  7: { tag: `ACID-COXSACKIE`, tint: `#ffe04a`, gridRgb: `230, 200, 70` },
+  8: { tag: `DANE-PARTICLE-HBV`, tint: `#00ffcc`, gridRgb: `0, 240, 210` },
+  9: { tag: `SEROLOGY-WINDOW`, tint: `#b388ff`, gridRgb: `160, 130, 255` },
+  10: { tag: `DELTA-COAT-HDV`, tint: `#ff2d78`, gridRgb: `255, 70, 140` },
+  11: { tag: `NO-EXONUCLEASE-HCV`, tint: `#ffe04a`, gridRgb: `255, 215, 65` },
+  12: { tag: `CRYO-VASCULITIS`, tint: `#b388ff`, gridRgb: `180, 120, 255` },
+  13: { tag: `DAA-POLYMERASE`, tint: `#00ffcc`, gridRgb: `0, 255, 180` },
+  14: { tag: `OWL-EYE-CMV`, tint: `#ff2d78`, gridRgb: `255, 50, 120` },
+  15: { tag: `PUNCHED-HSV1`, tint: `#ffe04a`, gridRgb: `255, 224, 90` }
+};
+
+const ENTITIES = [
+  {
+    id: 1,
+    name: `Rotavirus`,
+    genome: `Segmented dsRNA (11 segments), Naked, Reovirus`,
+    transmission: `Fecal-oral in daycare/infants; winter outbreaks`,
+    mechanism: `NSP4 viral enterotoxin triggers Cl- secretion & villous destruction`,
+    labs: `Stool ELISA antigen; blunted small-bowel villi`,
+    management: `Oral/IV rehydration + zinc; live-attenuated oral vaccine (intussusception risk)`,
+    triad: [
+      `Winter infant watery diarrhea in daycare -> Rotavirus`,
+      `11-segment dsRNA + NSP4 enterotoxin increases intracellular Ca2+ -> Cl- loss`,
+      `Oral rehydration; live-attenuated oral vaccine before 15 wks (monitor intussusception)`
+    ]
+  },
+  {
+    id: 2,
+    name: `Norovirus`,
+    genome: `+ssRNA, Naked icosahedral, Calicivirus`,
+    transmission: `Cruise ships, buffets, schools, shellfish; low infectious dose`,
+    mechanism: `Infects jejunal enterocytes causing transient villous blunting & delayed gastric emptying`,
+    labs: `RT-PCR (outbreaks); clinical diagnosis`,
+    management: `Aggressive oral/IV hydration; bleach/alcohol-resistant capsid requires soap & water`,
+    triad: [
+      `Explosive vomiting & watery diarrhea on a cruise ship -> Norovirus`,
+      `Naked +ssRNA Calicivirus survives alcohol hand sanitizers`,
+      `Supportive rehydration + chlorine bleach disinfection`
+    ]
+  },
+  {
+    id: 3,
+    name: `Astrovirus`,
+    genome: `+ssRNA, Naked 5- or 6-pointed star capsid`,
+    transmission: `Fecal-oral in toddlers, elderly care, immunocompromised`,
+    mechanism: `Infects mature small-intestinal enterocytes -> mild osmotic diarrhea without severe necrosis`,
+    labs: `EM 5-6 pointed star morphology; stool EIA / RT-PCR`,
+    management: `Self-limited supportive hydration; milder than Rotavirus`,
+    triad: [
+      `Mild daycare watery diarrhea with star-shaped virions -> Astrovirus`,
+      `Non-enveloped +ssRNA impairs brush-border disaccharidases & fluid absorption`,
+      `Oral rehydration; no vaccine or antiviral needed`
+    ]
+  },
+  {
+    id: 4,
+    name: `Enteric Adenovirus 40/41 & Intussusception`,
+    genome: `Linear dsDNA, Naked icosahedral`,
+    transmission: `Fecal-oral / respiratory; infants & military recruits`,
+    mechanism: `Peyer's patch lymphoid hyperplasia in terminal ileum acts as pathologic lead point`,
+    labs: `Target/donut sign on abdominal US; prolonged diarrhea >7 days`,
+    management: `Air/hydrostatic contrast enema reduction; supportive hydration`,
+    triad: [
+      `Infant with episodic screaming, sausage RUQ mass, currant-jelly stool -> Adenovirus intussusception`,
+      `Naked dsDNA drives ileal Peyer's patch hypertrophy pulling ileum into cecum`,
+      `Ultrasound target sign -> pneumatic or hydrostatic enema reduction`
+    ]
+  },
+  {
+    id: 5,
+    name: `Hepatitis A Virus (HAV)`,
+    genome: `+ssRNA, Naked Picornavirus`,
+    transmission: `Fecal-oral (raw shellfish, travelers, daycare)`,
+    mechanism: `Acid-stable capsid survives stomach; cytotoxic T cells mediate hepatocyte apoptosis`,
+    labs: `Anti-HAV IgM (acute); Anti-HAV IgG (immunity/vaccine); ALT > AST`,
+    management: `Supportive care; inactivated vaccine; NO chronic carrier state`,
+    triad: [
+      `Traveler with fever, jaundice, RUQ pain, smoker aversion -> HAV`,
+      `Naked +ssRNA resists gastric acid ("vowels hit your bowels")`,
+      `Anti-HAV IgM confirms acute disease; IgG & vaccine prevent reinfection`
+    ]
+  },
+  {
+    id: 6,
+    name: `Hepatitis E Virus (HEV)`,
+    genome: `+ssRNA, Naked Hepevirus`,
+    transmission: `Fecal-oral waterborne epidemics (Asia, Africa, Middle East)`,
+    mechanism: `Acute hepatocellular necrosis; severe immune-mediated fulminant liver failure in pregnancy`,
+    labs: `Anti-HEV IgM / HEV RNA; patchy hepatic necrosis on biopsy`,
+    management: `Supportive care; high maternal mortality in expectant patients`,
+    triad: [
+      `Pregnant traveler from endemic waterborne outbreak with fulminant liver failure -> HEV`,
+      `Naked +ssRNA causes massive hepatic necrosis in pregnancy without chronicity`,
+      `Supportive ICU management; screen water sanitation`
+    ]
+  },
+  {
+    id: 7,
+    name: `Enterovirus / Coxsackievirus`,
+    genome: `+ssRNA, Naked Picornavirus`,
+    transmission: `Fecal-oral & respiratory; acid-stable in stomach`,
+    mechanism: `Replicates in GI/pharyngeal mucosa then viremic spread to skin, myocardium, meninges`,
+    labs: `CSF lymphocytic pleocytosis with normal glucose (aseptic meningitis); RT-PCR`,
+    management: `Supportive care; watch for dilated cardiomyopathy & Bornholm pleurodynia`,
+    triad: [
+      `Child with oval vesicles on palms/soles + oral ulcers -> Coxsackie A`,
+      `Acid-stable naked +ssRNA survives gastric pH to replicate in Peyer's patches`,
+      `Supportive analgesia & hydration; Coxsackie B risks dilated cardiomyopathy`
+    ]
+  },
+  {
+    id: 8,
+    name: `HBV Structure & Reverse Transcriptase`,
+    genome: `Circular partially dsDNA, Enveloped Hepadnavirus`,
+    transmission: `Parenteral (Blood), sexual (Bedroom), perinatal (Birthing)`,
+    mechanism: `Host RNA pol makes mRNA & pregenomic RNA; viral DNA pol reverse-transcribes into progeny dsDNA`,
+    labs: `"Ground-glass" eosinophilic hepatocytes (HBsAg accumulation)`,
+    management: `Tenofovir / Entecavir / Lamivudine; newborn HBIG + HBV vaccine`,
+    triad: [
+      `Ground-glass hepatocytes + HCC risk via viral DNA integration -> HBV`,
+      `Not a retrovirus, yet carries DNA polymerase with reverse transcriptase activity`,
+      `NRTIs (tenofovir/entecavir); give neonates HBIG + recombinant HBsAg vaccine`
+    ]
+  },
+  {
+    id: 9,
+    name: `HBV Serology & Window Period`,
+    genome: `HBsAg, HBeAg, Anti-HBc (IgM/IgG), Anti-HBs`,
+    transmission: `Tracks incubation, acute, window, chronic, and immunized phases`,
+    mechanism: `HBsAg clears before Anti-HBs becomes detectable, creating the serologic window period`,
+    labs: `Window: Anti-HBc IgM ONLY; Immunized: Anti-HBs ONLY; High infectivity: HBeAg+`,
+    management: `Check HBsAg persistence >6 months for chronicity; Anti-HBs >=10 confirms immunity`,
+    triad: [
+      `HBsAg(-), Anti-HBs(-), Anti-HBc IgM(+) -> HBV Window Period`,
+      `HBeAg secreted from hepatocytes correlates with active replication & high infectivity`,
+      `Vaccinated patients show ONLY Anti-HBs IgG; resolved shows Anti-HBc IgG + Anti-HBs`
+    ]
+  },
+  {
+    id: 10,
+    name: `Hepatitis D Virus (Delta Agent)`,
+    genome: `Circular -ssRNA, Enveloped (requires HBsAg coat)`,
+    transmission: `Parenteral, sexual, perinatal (HBV-dependent)`,
+    mechanism: `Defective satellite virus borrows HBV HBsAg envelope to enter hepatocytes`,
+    labs: `Anti-HDV + HDV RNA alongside HBsAg(+)`,
+    management: `Superinfection (HDV onto chronic HBV) carries worse prognosis than coinfection; vaccinate against HBV`,
+    triad: [
+      `Chronic HBV carrier with sudden severe fulminant hepatic decompensation -> HDV superinfection`,
+      `Circular -ssRNA depends strictly on HBV HBsAg surface coat for hepatocyte entry`,
+      `HBV vaccination prevents HDV; superinfection has higher cirrhosis risk than coinfection`
+    ]
+  },
+  {
+    id: 11,
+    name: `HCV Virology & No 3'-5' Exonuclease`,
+    genome: `+ssRNA, Enveloped Flavivirus`,
+    transmission: `IV drug use, pre-1992 blood transfusion, vertical`,
+    mechanism: `RNA polymerase lacks 3'-5' exonuclease proofreading -> hypervariable E1/E2 envelope proteins`,
+    labs: `Anti-HCV screening -> HCV RNA PCR confirmation; portal lymphoid aggregates + macrovesicular steatosis`,
+    management: `60-80% progress to chronicity -> cirrhosis & HCC; treat all chronic HCV with pan-genotypic DAAs`,
+    triad: [
+      `IVDU patient with fluctuating ALT, portal lymphoid aggregates & steatosis -> HCV`,
+      `Lack of 3'-5' exonuclease proofreading lets antigenic variants outpace host antibodies`,
+      `Confirm active infection with HCV RNA PCR; treat early to prevent cirrhosis/HCC`
+    ]
+  },
+  {
+    id: 12,
+    name: `Chronic HCV Extrahepatic Manifestations`,
+    genome: `Immune-complex & lymphoproliferative sequelae of HCV`,
+    transmission: `Complicates chronic HCV carrier state`,
+    mechanism: `Chronic B-cell stimulation yields IgM cryoglobulins & immune complex deposition`,
+    labs: `Low C4, cryoprecipitate on cooling, MPGN > MGN, elevated uroporphyrins`,
+    management: `Eradicating HCV with DAAs resolves cryoglobulinemic vasculitis & porphyria cutanea tarda`,
+    triad: [
+      `Chronic HCV with palpable purpura, arthralgias, hematuria, blistering sun-exposed hands -> Cryoglobulinemia / PCT`,
+      `Essential mixed cryoglobulinemia (IgM anti-IgG) drives leukocytoclastic vasculitis & MPGN`,
+      `Treat underlying HCV with DAAs; screen for B-cell NHL, ITP, lichen planus, and DM`
+    ]
+  },
+  {
+    id: 13,
+    name: `Direct-Acting Antivirals (DAAs)`,
+    genome: `-previr (NS3/4A), -asvir (NS5A), -buvir (NS5B)`,
+    transmission: `All-oral curative regimens achieving >95% SVR`,
+    mechanism: `-previr blocks NS3/4A protease; -asvir blocks NS5A phosphoprotein; -buvir terminates NS5B RNA pol`,
+    labs: `Undetectable HCV RNA 12-24 wks post-therapy = Sustained Virologic Response (SVR)`,
+    management: `Sofosbuvir + ledipasvir/velpatasvir or glecaprevir + pibrentasvir; avoid ribavirin in pregnancy (teratogen, hemolytic anemia)`,
+    triad: [
+      `Oral nucleotide analog inhibiting HCV NS5B RNA-dependent RNA polymerase -> Sofosbuvir`,
+      `Combined NS3/4A (-previr), NS5A (-asvir), & NS5B (-buvir) blockade halts polyprotein & RNA replication`,
+      `Ribavirin inhibits IMP dehydrogenase causing dose-dependent hemolytic anemia & Category X teratogenicity`
+    ]
+  },
+  {
+    id: 14,
+    name: `Cytomegalovirus (CMV) Esophagitis / Colitis`,
+    genome: `Linear dsDNA, Enveloped Herpesvirus (HHV-5)`,
+    transmission: `Reactivation in HIV (CD4 < 50) or solid-organ transplant`,
+    mechanism: `Infects vascular endothelium & mucosal fibroblasts -> ischemic deep linear ulcerations`,
+    labs: `Basophilic "owl-eye" intranuclear inclusions on biopsy`,
+    management: `IV Ganciclovir or oral Valganciclovir; Foscarnet if UL97 kinase resistance`,
+    triad: [
+      `HIV patient (CD4 < 50) with odynophagia, linear deep ulcers, & owl-eye inclusions -> CMV esophagitis`,
+      `Viral UL97 kinase activates ganciclovir to triphosphate to inhibit viral DNA polymerase`,
+      `Ganciclovir/valganciclovir first-line; foscarnet bypasses viral kinase for resistant strains`
+    ]
+  },
+  {
+    id: 15,
+    name: `HSV-1 Punched-Out Esophagitis`,
+    genome: `Linear dsDNA, Enveloped Herpesvirus (HHV-1)`,
+    transmission: `Latent in trigeminal ganglia; reactivates in immunocompromised hosts`,
+    mechanism: `Squamous epithelial cytolysis produces discrete superficial "punched-out" volcano ulcers`,
+    labs: `Multinucleated giant cells (Tzanck) & eosinophilic Cowdry A intranuclear inclusions`,
+    management: `Acyclovir or Valacyclovir (activated by viral thymidine kinase); Foscarnet if TK-deficient`,
+    triad: [
+      `Immunocompromised patient with odynophagia & shallow punched-out esophageal ulcers -> HSV-1`,
+      `Herpesvirus thymidine kinase monophosphorylates acyclovir before cellular kinases finish activation`,
+      `Acyclovir/valacyclovir first-line; absence of viral TK causes resistance -> switch to foscarnet`
+    ]
+  }
+];
+
+// Build exactly 45 gates (15 entities x 3 angles)
+// Phase mix: 14 Phase 1 (31.1%), 16 Phase 2 (35.6%), 15 Phase 3 (33.3%) ~ 30%/35%/35%
+const GATES = [
+  // ENTITY 1: ROTAVIRUS
+  {
+    id: 1, entityId: 1, angle: 1, phase: 1,
+    shortAnswer: `Rotavirus`,
+    stem: `A 14-month-old toddler from a crowded daycare presents in January with 3 days of low-grade fever, vomiting, and profuse watery non-bloody diarrhea. Stool culture is negative for bacteria. Which pathogen is most likely responsible?`,
+    choices: [`Rotavirus`, `Norovirus`, `Enteric Adenovirus 40/41`],
+    correctIndex: 0,
+    clue: `Winter daycare toddler + profuse watery diarrhea + double-stranded segmented RNA wheel.`,
+    s2: [`Segmented 11-segment dsRNA Reovirus damages mature small-intestinal enterocytes.`, `NSP4 viral enterotoxin elevates intracellular Ca2+, driving Cl- and osmotic water secretion.`],
+    s3: [`Stool enzyme immunoassay (ELISA) detects group A rotavirus capsid antigen.`, `Histology shows villous shortening and blunting with crypt hyperplasia.`],
+    s4: [`Norovirus classically strikes older children/adults in year-round cruise or buffet outbreaks with predominant vomiting.`, `Adenovirus 40/41 causes prolonged (>7 days) non-seasonal diarrhea and mesenteric adenitis.`],
+    s5: [`Aggressive oral rehydration solution (ORS) plus zinc supplementation is mainstay therapy.`, `Live-attenuated oral rotavirus vaccine (RotaTeq/Rotarix) prevents severe dehydration.`],
+    s6: [`ROTA = Wheel-shaped capsid; 11 segments allow genetic reassortment.`, `Initiate first vaccine dose before 15 weeks to minimize intussusception risk.`]
+  },
+  {
+    id: 2, entityId: 1, angle: 2, phase: 2,
+    shortAnswer: `NSP4 Enterotoxin`,
+    stem: `An 11-month-old infant hospitalized for winter dehydrating gastroenteritis has stool testing positive for a non-enveloped double-stranded segmented RNA virus. Which viral virulence factor directly triggers secretory chloride efflux by raising enterocyte intracellular calcium?`,
+    choices: [`NSP4 viral enterotoxin`, `Shiga-like 60S ribosomal toxin`, `Heat-labile adenylate cyclase activator`],
+    correctIndex: 0,
+    clue: `First recognized viral enterotoxin; elevates Ca2+ rather than cAMP.`,
+    s2: [`NSP4 acts as a paracrine viral enterotoxin on uninfected crypt cells.`, `Intracellular Ca2+ surge activates Ca2+-dependent Cl- channels, pulling Na+ and water into the lumen.`],
+    s3: [`Brush-border lactase and sucrase drop transiently, adding an osmotic component to diarrhea.`, `Electron microscopy reveals 70-nm triple-layered wheel-like virions.`],
+    s4: [`Shiga toxin cleaves 28S rRNA of the 60S subunit in Shigella/EHEC, causing bloody dysentery.`, `Heat-labile toxin (ETEC) elevates cAMP via Gs stimulation, not viral Ca2+ signaling.`],
+    s5: [`Avoid hyperosmolar juices that worsen transient lactase-deficiency osmotic diarrhea.`, `Monitor serum sodium and bicarbonate closely in infants with severe watery losses.`],
+    s6: [`Remember: Rotavirus = NSP4 = Ca2+-mediated Cl- efflux.`, `Only segmented dsRNA human GI virus in the Reoviridae family.`]
+  },
+  {
+    id: 3, entityId: 1, angle: 3, phase: 3,
+    shortAnswer: `Oral Rehydration & Live Vaccine Precaution`,
+    stem: `A 2-month-old infant receives an oral live-attenuated vaccine for the leading global cause of severe infantile dehydrating diarrhea. Ten days later the parents are counseled to watch for bilious emesis and episodic inconsolable crying. Which adverse event warrants immediate evaluation?`,
+    choices: [`Ileocecal intussusception`, `Pseudomembranous colitis`, `Fulminant hepatic necrosis`],
+    correctIndex: 0,
+    clue: `Peyer's patch lymphoid hyperplasia after oral live vaccine pulls bowel telescopically.`,
+    s2: [`Live-attenuated rotavirus strains replicate in gut-associated lymphoid tissue, occasionally hypertrophying Peyer's patches.`, `Hypertrophied lymphoid tissue acts as a lead point for ileocecal telescoping.`],
+    s3: [`Abdominal ultrasound demonstrates the classic "target" or "doughnut" sign.`, `Late ischemia produces currant-jelly stools mixed with mucus and blood.`],
+    s4: [`Pseudomembranous colitis is driven by Clostridioides difficile toxins A and B post-antibiotics.`, `Fulminant hepatic necrosis in pregnancy is characteristic of Hepatitis E.`],
+    s5: [`Contraindicated in infants with prior intussusception or severe combined immunodeficiency (SCID).`, `Manage confirmed intussusception urgently with air or hydrostatic contrast enema.`],
+    s6: [`First dose must be given between 6 and 14 weeks 6 days of age.`, `Oral vaccine generates protective mucosal secretory IgA.`]
+  },
+
+  // ENTITY 2: NOROVIRUS
+  {
+    id: 4, entityId: 2, angle: 1, phase: 1,
+    shortAnswer: `Norovirus`,
+    stem: `Forty-eight passengers aboard a Caribbean cruise ship develop abrupt projectile non-bloody vomiting and watery diarrhea 24 hours after eating raw oysters at a buffet. Symptoms resolve within 48 hours. Which virus is most likely responsible?`,
+    choices: [`Norovirus`, `Hepatitis A Virus`, `Rotavirus`],
+    correctIndex: 0,
+    clue: `Cruise ship + oysters/buffet + abrupt explosive vomiting lasting 1-2 days.`,
+    s2: [`Norovirus is a naked +ssRNA Calicivirus with an ultra-low infectious dose (<20 virions).`, `Rapidly infects jejunal enterocytes, causing transient microvilli flattening and delayed gastric emptying.`],
+    s3: [`RT-PCR of stool or vomitus confirms outbreaks; routine clinical cases need no lab testing.`, `No fecal leukocytes or erythrocytes are seen on stool microscopy.`],
+    s4: [`HAV from shellfish has a 2-6 week incubation and causes jaundice rather than 24-hour emesis.`, `Rotavirus causes prolonged 5-7 day illness predominantly in infants.`],
+    s5: [`Supportive oral or IV hydration; antiemetics if needed.`, `Strict handwashing with soap and water plus chlorine bleach surface decontamination.`],
+    s6: [`Calicivirus = "Cruise ship, Cafeteria, Clams".`, `Alcohol-based hand sanitizers fail to inactivate this non-enveloped capsid.`]
+  },
+  {
+    id: 5, entityId: 2, angle: 2, phase: 2,
+    shortAnswer: `Naked Capsid Resistance`,
+    stem: `A hospital ward experiences secondary cases of acute viral gastroenteritis despite staff diligently using 70% ethanol hand gel between patient rooms. Which structural property of the causative Calicivirus explains this transmission failure?`,
+    choices: [`Absence of a lipid viral envelope`, `Reverse transcriptase latency in macrophages`, `Segmented double-stranded RNA stability`],
+    correctIndex: 0,
+    clue: `Enveloped viruses are dissolved by alcohol; naked capsids resist lipid solvents.`,
+    s2: [`Non-enveloped (naked) icosahedral protein capsids lack a phospholipid bilayer.`, `Ethanol denatures envelopes poorly when faced with tightly packed VP1 capsid proteins.`],
+    s3: [`Virus shedding continues in stool for days after vomiting ceases.`, `Real-time RT-PCR remains the gold standard for outbreak surveillance.`],
+    s4: [`Norovirus has no reverse transcriptase and does not establish latency.`, `Norovirus has a linear non-segmented +ssRNA genome, unlike segmented dsRNA Rotavirus.`],
+    s5: [`Switch ward hygiene to mechanical soap-and-water scrubbing and sodium hypochlorite (bleach) wipes.`, `Isolate symptomatic patients for 48 hours after symptom resolution.`],
+    s6: [`Naked GI viruses (HAV, HEV, Norovirus, Rotavirus, Adenovirus) survive acid, heat, and detergents.`, `VP1 capsid binds histo-blood group antigens (FUT2 secretor status influences susceptibility).`]
+  },
+  {
+    id: 6, entityId: 2, angle: 3, phase: 3,
+    shortAnswer: `Supportive Hydration & Bleach`,
+    stem: `A nursing home reports 22 residents with sudden-onset nausea, projectile emesis, and watery diarrhea lasting 36 hours. What is the most appropriate infection-control and clinical management strategy?`,
+    choices: [`Oral/IV rehydration plus hypochlorite disinfection`, `Oral vancomycin plus ethanol hand rub`, `Oseltamivir prophylaxis plus airborne isolation`],
+    correctIndex: 0,
+    clue: `Self-limited viral gastroenteritis requiring fluid replacement and bleach-based environmental cleaning.`,
+    s2: [`Villous architecture recovers rapidly within days, so antibiotics offer zero benefit.`, `Aerosolized vomitus droplets and fomites sustain institutional outbreaks.`],
+    s3: [`Serum electrolytes remain normal unless elderly residents develop prerenal azotemia from dehydration.`, `Outbreak criteria (Kaplan): vomiting in >50% of cases and 24-48h duration.`],
+    s4: [`Oral vancomycin treats C. difficile colitis, not viral Calicivirus.`, `Oseltamivir inhibits influenza neuraminidase and has no activity against +ssRNA GI viruses.`],
+    s5: [`Administer isotonic fluids or ORS and cohort affected residents.`, `Clean high-touch surfaces with 1000-5000 ppm sodium hypochlorite solution.`],
+    s6: [`Short-lived immunity allows repeated Norovirus infections throughout life.`, `Soap & water physically rinses virions off hands.`]
+  },
+
+  // ENTITY 3: ASTROVIRUS
+  {
+    id: 7, entityId: 3, angle: 1, phase: 1,
+    shortAnswer: `Astrovirus`,
+    stem: `A 2-year-old child develops mild watery diarrhea, low-grade fever, and anorexia without bloody stool. Electron microscopy of stool reveals 28-nm non-enveloped virions displaying a distinctive five- or six-pointed star surface contour. Which virus is identified?`,
+    choices: [`Astrovirus`, `Rotavirus`, `Coxsackievirus A`],
+    correctIndex: 0,
+    clue: `"Astro" = star-shaped capsid on electron microscopy + mild pediatric watery diarrhea.`,
+    s2: [`Naked +ssRNA virus replicates in mature small-intestinal enterocytes.`, `Triggers mild epithelial disruption and sodium malabsorption without deep mucosal ulceration.`],
+    s3: [`EM shows classic 5- or 6-pointed star morphology; clinical labs use EIA or multiplex RT-PCR.`, `Stool lacks blood, pus, or significant fecal lactoferrin.`],
+    s4: [`Rotavirus presents with a 70-nm wheel-shaped capsid and much more severe dehydration.`, `Coxsackievirus causes oral/palmar/plantar vesicles rather than isolated star-virion diarrhea.`],
+    s5: [`Self-limited over 2-4 days; treat solely with oral hydration.`, `Standard enteric contact precautions in daycare centers.`],
+    s6: [`Astro = Star; second or third most common viral pediatric diarrhea agent.`, `Can cause prolonged shedding in bone marrow transplant or HIV patients.`]
+  },
+  {
+    id: 8, entityId: 3, angle: 2, phase: 2,
+    shortAnswer: `Mild Osmotic Malabsorption`,
+    stem: `Compared with Rotavirus enteritis, why does Astrovirus infection in immunocompetent toddlers typically result in milder dehydration and fewer hospitalizations?`,
+    choices: [`Minimal enterocyte apoptosis without potent Ca2+ enterotoxin`, `Selective colonization of colonic goblet cells`, `Requirement for HBsAg helper envelope`],
+    correctIndex: 0,
+    clue: `Lacks an NSP4-like potent secretory enterotoxin and causes milder villous injury.`,
+    s2: [`Astrovirus alters tight junction permeability and brush-border absorption mildly.`, `Absence of an NSP4 calcium-mobilizing enterotoxin limits massive secretory chloride losses.`],
+    s3: [`Stool osmolarity increases slightly from unabsorbed luminal solutes.`, `Multiplex GI PCR panels differentiate Astrovirus from Rotavirus, Norovirus, and Sapovirus.`],
+    s4: [`Astrovirus targets small-intestinal villous tips, not colonic goblet cells.`, `HDV—not Astrovirus—requires HBsAg as a helper envelope.`],
+    s5: [`Maintain age-appropriate diet and standard oral rehydration fluids.`, `Immunocompromised hosts with persistent diarrhea require supportive nutrition.`],
+    s6: [`Naked +ssRNA genome replicates entirely in the host cytoplasm.`, `Translates nonstructural polyprotein cleaved by viral protease.`]
+  },
+  {
+    id: 9, entityId: 3, angle: 3, phase: 3,
+    shortAnswer: `Supportive Oral Hydration`,
+    stem: `A 78-year-old nursing home resident tests positive on a multiplex stool PCR for Astrovirus after 3 days of mild non-bloody watery diarrhea. Vital signs are stable and mucous membranes are moist. What is the best next step in management?`,
+    choices: [`Oral rehydration and continuation of regular diet`, `Empiric ciprofloxacin for 5 days`, `Oral ribavirin plus interferon-alpha`],
+    correctIndex: 0,
+    clue: `Uncomplicated non-enveloped +ssRNA gastroenteritis resolves spontaneously with fluids.`,
+    s2: [`Intact mucosal regeneration restores normal absorptive capacity within 72 hours.`, `Antibiotics disrupt protective commensal flora without affecting viral replication.`],
+    s3: [`Check basic metabolic panel only if clinical signs of hypovolemia emerge.`, `No specific antiviral agent is approved or required.`],
+    s4: [`Fluoroquinolones risk C. difficile superinfection and tendonitis in elderly patients.`, `Ribavirin is reserved for selected HCV or severe RSV cases and is toxic.`],
+    s5: [`Provide oral electrolyte solutions and enforce soap-and-water hand hygiene.`, `Bleach disinfection reduces environmental persistence of naked virions.`],
+    s6: [`Most adults possess protective antibodies from childhood Astrovirus exposure.`, `Remember the big 4 pediatric watery viral diarrheas: Rota, Noro, Astro, Adeno 40/41.`]
+  },
+
+  // ENTITY 4: ENTERIC ADENOVIRUS 40/41 & INTUSSUSCEPTION
+  {
+    id: 10, entityId: 4, angle: 1, phase: 1,
+    shortAnswer: `Adenovirus Intussusception`,
+    stem: `A 9-month-old boy who recovered from a viral URI and watery diarrhea 4 days ago now has episodes of drawing his knees to his chest every 15 minutes, followed by lethargy and dark red mucoid "currant-jelly" stools. What is the most likely underlying trigger?`,
+    choices: [`Adenovirus-induced Peyer's patch hyperplasia`, `Rotavirus NSP4 secretory shock`, `CMV endothelial colitis`],
+    correctIndex: 0,
+    clue: `Episodic colicky pain + currant-jelly stool + prior viral infection = ileocecal intussusception.`,
+    s2: [`Enteric Adenovirus (and serotypes 1, 2, 5, 6) stimulates marked lymphoid hyperplasia in terminal ileal Peyer's patches.`, `Peristalsis drags the enlarged Peyer's patch lead point into the cecum.`],
+    s3: [`Palpation often reveals a sausage-shaped RUQ mass; ultrasound shows a "target" sign.`, `Mesenteric venous compression causes mucosal ischemia and sloughing ("currant-jelly").`],
+    s4: [`NSP4 causes secretory watery diarrhea, not mechanical currant-jelly bowel telescoping.`, `CMV colitis affects severely immunocompromised adults with CD4 < 50.`],
+    s5: [`Immediate pneumatic (air) or hydrostatic saline enema reduction under imaging guidance.`, `Surgical reduction if perforation or peritonitis is present.`],
+    s6: [`In children <2 years, viral Peyer's patch hyperplasia is the #1 cause of intussusception.`, `In adults, suspect an anatomic mass (polyp or malignancy) as the lead point.`]
+  },
+  {
+    id: 11, entityId: 4, angle: 2, phase: 2,
+    shortAnswer: `Naked dsDNA Serotypes 40/41`,
+    stem: `A 6-month-old infant presents with 10 days of persistent non-bloody watery diarrhea and mild conjunctivitis. Stool antigen testing identifies Adenovirus serotypes 40 and 41. Which genomic and structural profile characterizes this pathogen?`,
+    choices: [`Linear dsDNA, non-enveloped icosahedral capsid`, `Circular partially dsDNA, enveloped`, `Segmented dsRNA, triple capsid`],
+    correctIndex: 0,
+    clue: `Only DNA virus family among the acute infantile watery diarrhea pathogens.`,
+    s2: [`Adenoviruses replicate in the host cell nucleus using viral DNA polymerase.`, `Fiber proteins projecting from icosahedral vertices mediate enterocyte attachment.`],
+    s3: [`Serotypes 40 and 41 cause prolonged infantile diarrhea (often 8-12 days) year-round.`, `Histology of infected cells may show smudge-cell intranuclear inclusions.`],
+    s4: [`Circular partial dsDNA enveloped describes Hepatitis B (Hepadnavirus).`, `Segmented dsRNA describes Rotavirus (Reovirus).`],
+    s5: [`Supportive fluid and electrolyte management; monitor nutrition during prolonged course.`, `Oral live-attenuated vaccine exists only for serotypes 4 and 7 in military recruits.`],
+    s6: [`Adenovirus = naked dsDNA with penton fibers ("satellite dish" vertices).`, `Also causes febrile pharyngitis, pink eye, and hemorrhagic cystitis.`]
+  },
+  {
+    id: 12, entityId: 4, angle: 3, phase: 3,
+    shortAnswer: `Air/Hydrostatic Enema Reduction`,
+    stem: `An 8-month-old infant with recent Adenovirus gastroenteritis shows a classic ileocecal target lesion on abdominal ultrasound without free air on upright X-ray. What is the definitive diagnostic and therapeutic intervention?`,
+    choices: [`Pneumatic or hydrostatic contrast enema`, `Immediate exploratory laparotomy`, `Oral loperamide and discharge`],
+    correctIndex: 0,
+    clue: `Both diagnoses and reduces uncomplicated pediatric intussusception non-operatively.`,
+    s2: [`Retrograde intraluminal pressure pushes the intussusceptum back out of the intussuscipiens.`, `Relieves venous congestion before transmural bowel infarction occurs.`],
+    s3: [`Ultrasound sensitivity approaches 98-100% for the target/pseudokidney sign.`, `Confirm absence of pneumoperitoneum before attempting enema reduction.`],
+    s4: [`Laparotomy is reserved for perforation, peritonitis, or failed enema attempts.`, `Antimotility agents like loperamide worsen obstruction and risk toxic megacolon.`],
+    s5: [`Obtain surgical consult prior to enema in case reduction fails or bowel ruptures.`, `Observe for 12-24 hours post-reduction to ensure tolerance of feeds and no recurrence.`],
+    s6: [`Currant-jelly stool is a LATE sign of mucosal ischemia—intervene before it appears.`, `Always check for viral prodrome or Meckel diverticulum as pediatric lead points.`]
+  },
+
+  // ENTITY 5: HEPATITIS A VIRUS
+  {
+    id: 13, entityId: 5, angle: 1, phase: 1,
+    shortAnswer: `Hepatitis A Virus (HAV)`,
+    stem: `A 26-year-old backpacker returns from Central America with 4 days of fever, malaise, RUQ tenderness, dark urine, and a sudden distaste for cigarettes. ALT is 1,450 U/L and AST is 1,120 U/L. Which viral pathogen is most likely?`,
+    choices: [`Hepatitis A Virus (HAV)`, `Hepatitis B Virus (HBV)`, `Hepatitis C Virus (HCV)`],
+    correctIndex: 0,
+    clue: `Traveler + acute self-limited jaundice + smoker's aversion + ALT > AST.`,
+    s2: [`Naked +ssRNA Picornavirus resists gastric acid and bile to reach the portal circulation.`, `Hepatocyte injury is driven by host CD8+ cytotoxic T-cell lysis rather than direct viral cytopathology.`],
+    s3: [`Anti-HAV IgM is the gold-standard test for acute infection.`, `Liver biopsy (rarely needed) shows hepatocyte swelling, monocyte infiltration, and Councilman bodies.`],
+    s4: [`HBV and HCV transmit parenterally/sexually with long incubation periods (months) and chronic carrier risk.`, `HAV incubation is short (2-6 weeks) and never becomes chronic.`],
+    s5: [`Supportive care and avoidance of hepatotoxins (acetaminophen, alcohol).`, `Active vaccination or post-exposure HAV vaccine/IG within 2 weeks of contact.`],
+    s6: [`"Vowels hit your bowels": HAV and HEV are naked fecal-oral viruses.`, `Aversion to smoking is a classic Sketchy/board buzzword for acute HAV.`]
+  },
+  {
+    id: 14, entityId: 5, angle: 2, phase: 2,
+    shortAnswer: `Anti-HAV IgM vs IgG`,
+    stem: `A 32-year-old man recovering from acute jaundiced hepatitis caused by consuming raw oysters asks whether he will develop cirrhosis or liver cancer. Which serologic profile and prognosis correctly apply?`,
+    choices: [`Anti-HAV IgM acute; IgG lifelong immunity; zero chronicity`, `HBsAg >6 months; high hepatocellular carcinoma risk`, `Persistent viral RNA; 60-80% chronicity`],
+    correctIndex: 0,
+    clue: `Acute IgM transitions to protective IgG with complete resolution in immunocompetent adults.`,
+    s2: [`HAV does not integrate into host DNA and establishes no persistent hepatic reservoir.`, `Clearing the virus confers durable neutralizing IgG immunity against reinfection.`],
+    s3: [`Anti-HAV IgM rises at symptom onset and fades over 3-6 months.`, `Isolated Anti-HAV IgG indicates prior natural infection or vaccination.`],
+    s4: [`Persistence >6 months with HCC risk characterizes HBV and HCV.`, `HAV carries NO carrier state and NO risk of cirrhosis.`],
+    s5: [`Provide symptomatic relief; report case to public health authorities.`, `Screen close household/food-handler contacts for post-exposure prophylaxis.`],
+    s6: [`IgM = In the Moment (acute); IgG = Gone/Guarded (immune).`, `Children infected with HAV are frequently anicteric/asymptomatic.`]
+  },
+  {
+    id: 15, entityId: 5, angle: 3, phase: 3,
+    shortAnswer: `HAV Vaccine / Post-Exposure Prophylaxis`,
+    stem: `A healthy 29-year-old unvaccinated woman shared uncooked shellfish with a friend diagnosed yesterday with acute Hepatitis A. Exposure occurred 5 days ago. What is the recommended preventive intervention?`,
+    choices: [`Single-dose HAV vaccine (or HAV IG if <12 mo / immunocompromised)`, `Oral tenofovir for 28 days`, `Pegylated interferon-alpha plus ribavirin`],
+    correctIndex: 0,
+    clue: `Effective within 14 days of exposure; inactivated vaccine induces rapid protective antibodies.`,
+    s2: [`Inactivated HAV vaccine elicits neutralizing Anti-HAV IgG before the 28-day incubation completes.`, `Hepatitis A immune globulin (IG) provides immediate passive immunity for infants <12 months or immunocompromised hosts.`],
+    s3: [`No baseline liver biopsy or viral PCR is needed in asymptomatic exposed contacts.`, `Monitor for scleral icterus or dark urine over the next 4 weeks.`],
+    s4: [`Tenofovir suppresses HBV polymerase and has no role against Picornavirus HAV.`, `Ribavirin/IFN is obsolete HCV therapy and teratogenic.`],
+    s5: [`Administer inactivated HAV vaccine within 2 weeks of exposure and complete the 2-dose series at 6 months.`, `Educate on hand hygiene and water/food precautions for future travel.`],
+    s6: [`Chlorine, bleach, UV, or boiling purifies HAV-contaminated water.`, `Routine childhood HAV vaccination begins at 12-23 months.`]
+  },
+
+  // ENTITY 6: HEPATITIS E VIRUS
+  {
+    id: 16, entityId: 6, angle: 1, phase: 1,
+    shortAnswer: `Hepatitis E Virus (HEV)`,
+    stem: `A 27-year-old woman in her third trimester of pregnancy develops fever, jaundice, coagulopathy (INR 2.8), and hepatic encephalopathy after monsoon flooding contaminated drinking water in South Asia. Which pathogen carries this uniquely high maternal mortality?`,
+    choices: [`Hepatitis E Virus (HEV)`, `Hepatitis A Virus (HAV)`, `Hepatitis D Virus (HDV)`],
+    correctIndex: 0,
+    clue: `Waterborne outbreak + pregnant patient + fulminant liver failure.`,
+    s2: [`Naked +ssRNA Hepevirus spreads via fecally contaminated water supplies.`, `Hormonal and immunologic shifts in pregnancy predispose to massive hepatic necrosis (~20% mortality).`],
+    s3: [`Diagnosed via Anti-HEV IgM and serum/stool HEV RNA RT-PCR.`, `Biopsy reveals widespread patchy necrosis without ground-glass cells.`],
+    s4: [`HAV is also fecal-oral but rarely causes fulminant failure selectively in pregnancy.`, `HDV requires coexisting HBV parenteral/sexual infection, not monsoon water contamination.`],
+    s5: [`Immediate ICU supportive care for acute liver failure, coagulopathy, and cerebral edema.`, `No specific FDA-approved antiviral or widely available US vaccine.`],
+    s6: [`HEV = Expectant (pregnant) women suffer fulminant Epidemic Enteric hepatitis.`, `Like HAV, HEV is naked ("vowels hit your bowels") and lacks a chronic carrier state in healthy hosts.`]
+  },
+  {
+    id: 17, entityId: 6, angle: 2, phase: 2,
+    shortAnswer: `Patchy Necrosis & Naked +ssRNA`,
+    stem: `Liver histology from a fatal case of waterborne fulminant hepatitis in an expectant mother reveals confluent patchy hepatocyte necrosis without viral inclusions or chronic portal fibrosis. Which viral structure matches this pathogen?`,
+    choices: [`Non-enveloped +ssRNA Hepevirus`, `Enveloped -ssRNA Deltavirus`, `Enveloped partially dsDNA Hepadnavirus`],
+    correctIndex: 0,
+    clue: `Naked RNA virus survives GI acid and bile during waterborne transmission.`,
+    s2: [`Absence of a lipid envelope allows HEV to survive sewage and gastric acid.`, `Th1/Th2 immune dysregulation in late pregnancy amplifies cytotoxic hepatocyte destruction.`],
+    s3: [`Markedly elevated aminotransferases (ALT > AST), hyperbilirubinemia, and prolonged PT/INR.`, `Anti-HEV IgM confirms acute disease; IgG marks past exposure.`],
+    s4: [`Circular -ssRNA enveloped describes HDV, which depends on HBsAg.`, `Partial dsDNA describes HBV, characterized by ground-glass hepatocytes.`],
+    s5: [`Urgent liver transplant evaluation for fulminant hepatic failure.`, `Boil or chlorinate drinking water in endemic regions.`],
+    s6: [`Remember: Both HAV and HEV are naked +ssRNA, short-incubation, fecal-oral, no HCC risk.`, `Only HEV has catastrophic fulminant mortality in pregnancy.`]
+  },
+  {
+    id: 18, entityId: 6, angle: 3, phase: 3,
+    shortAnswer: `Supportive ICU Care & Water Sanitation`,
+    stem: `A 30-year-old pregnant patient at 32 weeks' gestation tests positive for HEV RNA with acute hepatitis and rising bilirubin, but intact mental status. What is the most appropriate clinical management?`,
+    choices: [`Close inpatient monitoring, supportive fluids, and coagulopathy surveillance`, `Immediate ribavirin monotherapy`, `Administer HBIG and lamivudine`],
+    correctIndex: 0,
+    clue: `Ribavirin is Category X teratogenic and contraindicated in pregnancy; supportive ICU readiness is vital.`,
+    s2: [`Avoid all hepatotoxic drugs and monitor closely for asterixis or rising INR signaling fulminant failure.`, `Maternal survival depends on early recognition of acute liver failure and transplant readiness.`],
+    s3: [`Track serial PT/INR, ammonia, glucose, and renal function daily.`, `Evaluate fetal well-being alongside maternal hepatic status.`],
+    s4: [`Ribavirin is severely teratogenic (Category X) and causes hemolytic anemia.`, `HBIG and lamivudine target HBV, providing zero protection against HEV.`],
+    s5: [`Admit for inpatient observation, hypoglycemia prevention, and N-acetylcysteine/transplant center transfer if encephalopathy develops.`, `Ensure clean boiled water for household contacts.`],
+    s6: [`In solid-organ transplant recipients (non-pregnant), chronic HEV genotype 3 can occur from undercooked pork.`, `For pregnant patients, supportive care + avoiding teratogens is critical.`]
+  },
+
+  // ENTITY 7: ENTEROVIRUS / COXSACKIEVIRUS
+  {
+    id: 19, entityId: 7, angle: 1, phase: 1,
+    shortAnswer: `Coxsackievirus (Enterovirus)`,
+    stem: `A 4-year-old child presents in August with fever, sore throat, painful gray vesicles on the posterior pharynx, and oval erythematous vesicles on the palms and soles. Which virus is most likely responsible?`,
+    choices: [`Coxsackievirus A (Enterovirus)`, `Varicella-Zoster Virus (HHV-3)`, `Rotavirus`],
+    correctIndex: 0,
+    clue: `Summer/fall oral ulcers + palmar/plantar vesicles = Hand-Foot-Mouth Disease.`,
+    s2: [`Naked +ssRNA Picornavirus enters via fecal-oral route and replicates in Peyer's patches before viremia.`, `Acid stability at pH 3 distinguishes Enteroviruses from acid-labile Rhinoviruses.`],
+    s3: [`Clinical diagnosis; multiplex RT-PCR of throat swab, vesicle fluid, or stool if needed.`, `If complicated by aseptic meningitis, CSF shows lymphocytic pleocytosis with normal glucose.`],
+    s4: [`VZV vesicles appear in "crops" at different healing stages mainly on trunk/face ("dewdrop on a rose petal").`, `Rotavirus causes watery diarrhea without mucocutaneous vesicles.`],
+    s5: [`Supportive oral hydration and acetaminophen/ibuprofen for odynophagia.`, `Monitor for rare neurologic or cardiac complications.`],
+    s6: [`Enterovirus = summer/fall peak; #1 cause of viral aseptic meningitis.`, `Coxsackie A -> Hand-Foot-Mouth & Herpangina; Coxsackie B -> Dilated Cardiomyopathy & Bornholm pleurodynia.`]
+  },
+  {
+    id: 20, entityId: 7, angle: 2, phase: 2,
+    shortAnswer: `Acid-Stable Naked +ssRNA`,
+    stem: `Both Rhinovirus and Coxsackievirus belong to the Picornaviridae family, yet only Coxsackievirus successfully infects the intestinal tract and causes GI-seeded viremia. What accounts for this difference?`,
+    choices: [`Acid stability at low gastric pH`, `Presence of a protective lipid envelope`, `Reverse transcription in gastric parietal cells`],
+    correctIndex: 0,
+    clue: `Rhinovirus dissolves below pH 6 (stays in nose); Enteroviruses survive pH 3 stomach acid.`,
+    s2: [`Tight capsid packing makes Enteroviruses resistant to stomach acid, bile salts, and proteases.`, `Surviving the stomach enables primary replication in distal small-bowel lymphoid tissue.`],
+    s3: [`Viral RNA translates directly into one large polyprotein cleaved by viral proteases.`, `Replicates completely within the host cytoplasm.`],
+    s4: [`Picornaviruses are ALL non-enveloped (naked), so neither has a lipid envelope.`, `Only retroviruses and hepadnaviruses use reverse transcriptase.`],
+    s5: [`Fecal shedding can persist for weeks after symptoms resolve; stress handwashing after diaper changes.`, `No specific antiviral therapy is needed for uncomplicated infection.`],
+    s6: [`PERCH = Poliovirus, Echovirus, Rhinovirus, Coxsackievirus, HAV (all Picornaviruses).`, `Only Rhinovirus is acid-labile; GI Picornaviruses survive stomach acid.`]
+  },
+  {
+    id: 21, entityId: 7, angle: 3, phase: 3,
+    shortAnswer: `Supportive Care & Myocarditis Watch`,
+    stem: `A 22-year-old athlete recovers from a brief Enterovirus gastroenteritis and URI, then develops dyspnea, S3 gallop, and cardiomegaly on chest X-ray. Which complication of Coxsackievirus B infection should be managed supportively?`,
+    choices: [`Viral myocarditis progressing to dilated cardiomyopathy`, `Constrictive pericarditis from calcified hydatid cysts`, `Hepatic vein thrombosis (Budd-Chiari)`],
+    correctIndex: 0,
+    clue: `Coxsackie B is the classic viral cause of dilated cardiomyopathy and "Devil's Grip" pleurodynia.`,
+    s2: [`Coxsackie B infects cardiomyocytes via CAR (coxsackievirus-adenovirus receptor), triggering necrosis and autoimmune inflammation.`, `Ventricular dilation impairs systolic ejection fraction (HFrEF).`],
+    s3: [`Elevated troponin, BNP, diffuse ST/T changes, and reduced EF on echocardiogram.`, `Endomyocardial biopsy (rarely done) shows lymphocytic infiltrate and myocyte necrosis.`],
+    s4: [`Hydatid cysts are caused by Echinococcus granulosus tapeworm, not Enterovirus.`, `Budd-Chiari is linked to polycythemia vera or hypercoagulable states.`],
+    s5: [`Standard heart failure therapy (ACEi/ARB, beta-blockers, diuretics) and strict avoidance of strenuous exercise.`, `Most acute viral myocarditis cases recover, though some progress to chronic DCM.`],
+    s6: [`Coxsackie B = "B" for Body ache (Bornholm pleurodynia / Devil's Grip) and Broken heart (DCM).`, `Avoid NSAIDs in acute viral myocarditis as they may worsen myocardial inflammation.`]
+  },
+
+  // ENTITY 8: HBV STRUCTURE & REVERSE TRANSCRIPTASE
+  {
+    id: 22, entityId: 8, angle: 1, phase: 1,
+    shortAnswer: `Hepatitis B Virus (HBV)`,
+    stem: `A 38-year-old man with chronic hepatitis undergoes liver biopsy showing hepatocytes packed with finely granular, pink "ground-glass" cytoplasm. Electron microscopy of his serum shows 42-nm double-shelled Dane particles. What is the diagnosis?`,
+    choices: [`Chronic Hepatitis B Virus (HBV) infection`, `Acute Hepatitis A Virus (HAV) infection`, `Chronic Hepatitis C Virus (HCV) infection`],
+    correctIndex: 0,
+    clue: `Ground-glass hepatocytes + 42-nm Dane particles = HBV surface antigen accumulation.`,
+    s2: [`Excess HBsAg accumulates inside the endoplasmic reticulum, producing the eosinophilic ground-glass appearance.`, `Host CD8+ T cells—not the virus directly—cause hepatocyte apoptosis.`],
+    s3: [`Positive HBsAg >6 months defines chronic HBV infection.`, `HBV DNA PCR quantifies viral load and guides antiviral therapy.`],
+    s4: [`HAV has no chronic state and displays Councilman bodies without ground-glass cells.`, `HCV histology features portal lymphoid aggregates and macrovesicular steatosis.`],
+    s5: [`Initiate entecavir or tenofovir if active replication/fibrosis is present; screen q6 months for HCC with ultrasound.`, `Vaccinate sexual and household contacts.`],
+    s6: [`Dane particle = intact infectious 42-nm HBV virion.`, `HBV is linked to polyarteritis nodosa (PAN) and membranous glomerulonephritis.`]
+  },
+  {
+    id: 23, entityId: 8, angle: 2, phase: 2,
+    shortAnswer: `HBV DNA Polymerase (Reverse Transcriptase)`,
+    stem: `Unlike retroviruses, Hepatitis B Virus packages a circular partially double-stranded DNA genome. How does HBV synthesize new viral DNA genomes after host RNA polymerase transcribes pregenomic RNA?`,
+    choices: [`Viral DNA polymerase with reverse transcriptase activity`, `Host DNA-dependent DNA polymerase alpha`, `Viral NS5B RNA-dependent RNA polymerase`],
+    correctIndex: 0,
+    clue: `HBV is the only DNA virus family (Hepadnaviridae) that replicates via an RNA intermediate.`,
+    s2: [`Upon nuclear entry, viral DNA pol repairs partial dsDNA into covalently closed circular DNA (cccDNA).`, `Host RNA pol II transcribes pregenomic RNA, which HBV reverse transcriptase converts back into partial dsDNA inside core capsids.`],
+    s3: [`Persistence of nuclear cccDNA makes complete eradication difficult, requiring prolonged suppression.`, `Lack of reverse transcriptase proofreading promotes lamivudine-resistant YMDD mutants.`],
+    s4: [`Host DNA polymerase cannot copy an RNA template back into DNA.`, `NS5B RNA-dependent RNA polymerase belongs to Hepatitis C Virus.`],
+    s5: [`Nucleos(t)ide analogs like tenofovir and entecavir potently inhibit HBV reverse transcriptase.`, `Monitor HBV DNA levels every 3-6 months on therapy.`],
+    s6: [`"Not a retrovirus, but has reverse transcriptase" = classic First Aid board pearl for HBV.`, `Remember: DNA -> RNA -> DNA replication cycle.`]
+  },
+  {
+    id: 24, entityId: 8, angle: 3, phase: 3,
+    shortAnswer: `HBIG + HBV Vaccine at Birth`,
+    stem: `A pregnant patient tests positive for HBsAg and HBeAg at 36 weeks' gestation. Immediately after vaginal delivery, what regimen must be administered to her newborn at separate injection sites within 12 hours?`,
+    choices: [`Hepatitis B Immune Globulin (HBIG) plus HBV vaccine`, `Oral ribavirin plus maternal zidovudine`, `Wait 6 months and check newborn Anti-HBs`],
+    correctIndex: 0,
+    clue: `Combined passive (HBIG) + active (recombinant HBsAg vaccine) prevents 90-95% neonatal chronicity.`,
+    s2: [`Perinatal vertical transmission carries a 90-95% risk of lifelong chronic HBV in newborns due to immature T-cell responses.`, `HBIG neutralizes circulating virions immediately while the vaccine builds endogenous Anti-HBs.`],
+    s3: [`Check infant HBsAg and Anti-HBs at 9-12 months to verify protection.`, `Maternal tenofovir in third trimester is added if maternal HBV DNA >200,000 IU/mL.`],
+    s4: [`Zidovudine prevents vertical HIV transmission, not HBV.`, `Waiting 6 months guarantees chronic neonatal HBV infection.`],
+    s5: [`Administer HBIG and first recombinant HBV vaccine dose in opposite thighs within 12 hours of birth.`, `Breastfeeding is NOT contraindicated once infant receives birth prophylaxis.`],
+    s6: [`Neonates infected with HBV have normal/low ALT initially and 90-95% chronicity vs 5-10% in adults.`, `Remember HBV routes: Blood, Bedroom, Birthing.`]
+  },
+
+  // ENTITY 9: HBV SEROLOGY & WINDOW PERIOD
+  {
+    id: 25, entityId: 9, angle: 1, phase: 2,
+    shortAnswer: `HBV Window Period`,
+    stem: `A 24-year-old healthcare worker who had acute jaundice 5 weeks ago undergoes repeat serology: HBsAg is negative, Anti-HBs is negative, and Anti-HBc IgM is positive. Which phase of Hepatitis B infection does this represent?`,
+    choices: [`Window period`, `Vaccine-induced immunity`, `Chronic HBV with high infectivity`],
+    correctIndex: 0,
+    clue: `HBsAg has cleared, Anti-HBs hasn't risen to detectable levels—only Anti-HBc IgM catches it.`,
+    s2: [`During resolution of acute HBV, rising Anti-HBs forms immune complexes with remaining HBsAg, masking both markers.`, `Anti-HBc IgM against the hidden core antigen bridges the diagnostic gap.`],
+    s3: [`Window profile: HBsAg (-), Anti-HBs (-), Anti-HBc IgM (+).`, `Within weeks, Anti-HBs becomes detectable and Anti-HBc switches to IgG.`],
+    s4: [`Immunized patients have ONLY Anti-HBs (+) and negative Anti-HBc.`, `Chronic HBV requires HBsAg (+) for >6 months.`],
+    s5: [`Avoid blood donation until full serologic recovery (Anti-HBs+) is documented.`, `Supportive follow-up with repeat serologies in 4-8 weeks.`],
+    s6: [`Sole marker in the Window Period = Anti-HBc IgM.`, `Never assume a patient is uninfected if only HBsAg was ordered.`]
+  },
+  {
+    id: 26, entityId: 9, angle: 2, phase: 2,
+    shortAnswer: `HBeAg High Infectivity`,
+    stem: `A patient with chronic Hepatitis B (HBsAg positive for 2 years) has the following panel: HBsAg (+), Anti-HBc IgG (+), HBeAg (+), Anti-HBe (-), Anti-HBs (-). What does the presence of HBeAg signify?`,
+    choices: [`Active viral replication and high transmissibility`, `Complete resolution and protective immunity`, `Prior immunization with recombinant surface protein`],
+    correctIndex: 0,
+    clue: `HBeAg = "e" for extra infectious; secreted by infected hepatocytes during active replication.`,
+    s2: [`HBeAg is a soluble viral core-related protein secreted into serum during active HBV DNA synthesis.`, `Seroconversion from HBeAg(+) to Anti-HBe(+) indicates reduced viral replication and lower infectivity.`],
+    s3: [`HBeAg (+) correlates strongly with high serum HBV DNA viral load and worse prognosis.`, `Presence of HBsAg >6 months confirms chronic carrier status.`],
+    s4: [`Resolved infection has HBsAg(-), Anti-HBc IgG(+), and Anti-HBs(+).`, `Immunization produces solely Anti-HBs IgG(+).`],
+    s5: [`Evaluate for antiviral suppression (tenofovir/entecavir) and ongoing HCC surveillance.`, `Counsel on barrier protection and needle-sharing/blood precautions.`],
+    s6: [`HBeAg = high Enfectivity; Anti-HBe = low infectivity.`, `First marker to rise in acute HBV is HBsAg.`]
+  },
+  {
+    id: 27, entityId: 9, angle: 3, phase: 3,
+    shortAnswer: `Immunized vs Resolved Serology`,
+    stem: `Two nursing students undergo pre-clinical Hepatitis B screening. Student A has Anti-HBs (+) and Anti-HBc (-). Student B has Anti-HBs (+) and Anti-HBc IgG (+). All other markers are negative. How should Student A and B be interpreted?`,
+    choices: [`Student A is vaccinated; Student B recovered from natural infection`, `Student A is in the window period; Student B is chronically infected`, `Both students require immediate tenofovir therapy`],
+    correctIndex: 0,
+    clue: `Vaccines contain only purified HBsAg—never core antigen (HBcAg).`,
+    s2: [`Recombinant HBV vaccine exposes the immune system exclusively to HBsAg, yielding isolated Anti-HBs.`, `Natural infection exposes the host to both surface and core antigens, leaving lifelong Anti-HBc IgG.`],
+    s3: [`Anti-HBs >= 10 mIU/mL confirms protective immunity against reinfection.`, `Both students are HBsAg (-) and non-infectious.`],
+    s4: [`Window period is Anti-HBc IgM (+) with negative Anti-HBs.`, `Chronic HBV requires persistent HBsAg (+).`],
+    s5: [`No treatment or booster needed for either student if Anti-HBs >= 10 mIU/mL.`, `Document immunity in occupational health records.`],
+    s6: [`Vaccinated = ONLY Anti-HBs (+); Recovered = Anti-HBs (+) + Anti-HBc IgG (+).`, `HBcAg itself is intracellular and not routinely detected free in serum.`]
+  },
+
+  // ENTITY 10: HEPATITIS D VIRUS
+  {
+    id: 28, entityId: 10, angle: 1, phase: 1,
+    shortAnswer: `HDV Superinfection`,
+    stem: `A 35-year-old man with known asymptomatic chronic Hepatitis B resumes IV heroin use and presents 3 weeks later with severe jaundice, coagulopathy, and rapidly worsening ascites. Anti-HDV IgM is positive. Which viral process occurred?`,
+    choices: [`Hepatitis D Virus superinfection`, `Hepatitis D Virus coinfection`, `Hepatitis A Virus reactivation`],
+    correctIndex: 0,
+    clue: `Pre-existing chronic HBV + newly acquired HDV = superinfection (much worse prognosis).`,
+    s2: [`Pre-existing abundant HBsAg allows incoming HDV to replicate explosively across virtually all hepatocytes.`, `Short incubation (weeks) triggers severe acute necrosis and rapid progression to cirrhosis.`],
+    s3: [`Labs: HBsAg (+), Anti-HBc IgG (+), Anti-HDV IgM (+), elevated HDV RNA.`, `In coinfection, Anti-HBc is IgM (+) because both HBV and HDV enter simultaneously.`],
+    s4: [`Coinfection (HBV + HDV simultaneously) has a longer incubation and resolves spontaneously in most adults.`, `HAV does not reactivate and requires no HBV surface coat.`],
+    s5: [`Supportive liver failure care and urgent hepatology/transplant evaluation.`, `Pegylated IFN-alpha or bulevirtide (entry inhibitor) where available; suppress underlying HBV.`],
+    s6: [`Superinfection ("kid on dad's shoulders") = worse prognosis than coinfection ("holding hands").`, `Anti-HBc IgM vs IgG distinguishes coinfection (IgM) from superinfection (IgG).`]
+  },
+  {
+    id: 29, entityId: 10, angle: 2, phase: 2,
+    shortAnswer: `Defective Circular -ssRNA (Needs HBsAg)`,
+    stem: `Hepatitis D Virus is classified as a defective satellite Deltavirus. Which structural component must be supplied by Hepatitis B Virus for HDV to assemble infectious progeny and enter new hepatocytes?`,
+    choices: [`Hepatitis B surface antigen (HBsAg) coat`, `Hepatitis B core antigen (HBcAg) capsid`, `Hepatitis B e antigen (HBeAg)`],
+    correctIndex: 0,
+    clue: `HDV borrows the outer envelope protein of HBV to bind NTCP receptors on hepatocytes.`,
+    s2: [`HDV encodes only delta antigen (HDAg) and carries a circular -ssRNA genome.`, `Viral complementation: HBV supplies HBsAg envelope, enabling HDV receptor-mediated entry.`],
+    s3: [`HDV RNA PCR and Anti-HDV antibodies confirm infection in HBsAg(+) patients.`, `Cannot replicate independently in HBsAg-negative hosts.`],
+    s4: [`HBcAg forms the internal nucleocapsid of HBV virions, not the outer envelope.`, `HBeAg is a secreted non-structural marker, not a virion coat.`],
+    s5: [`Screen all HBsAg(+) patients with unexplained flares or IVDU history for HDV.`, `Strict avoidance of shared needles and unprotected sex.`],
+    s6: [`Classic example of viral complementation: HDV needs HBV's HBsAg coat.`, `Circular -ssRNA genome replicates via host RNA polymerase II rolling-circle mechanism.`]
+  },
+  {
+    id: 30, entityId: 10, angle: 3, phase: 3,
+    shortAnswer: `HBV Vaccination Prevents HDV`,
+    stem: `A public health clinic wants to prevent Hepatitis D Virus transmission among young adults at high risk for bloodborne infections. Which primary preventive measure directly eliminates susceptibility to HDV?`,
+    choices: [`Administering the recombinant Hepatitis B vaccine series`, `Oral acyclovir prophylaxis`, `Annual Hepatitis A booster`],
+    correctIndex: 0,
+    clue: `No HBsAg = no HDV entry or assembly.`,
+    s2: [`Immunity against HBsAg blocks HBV establishment, depriving HDV of its mandatory envelope protein.`, `Without HBV co-infection or carrier status, HDV cannot propagate in humans.`],
+    s3: [`Confirm vaccine response with Anti-HBs >= 10 mIU/mL in high-risk individuals.`, `Zero HDV vaccine exists independently.`],
+    s4: [`Acyclovir targets herpesvirus DNA polymerase, not RNA viruses.`, `HAV vaccine protects only against fecal-oral Picornavirus HAV.`],
+    s5: [`Complete 3-dose HBV vaccination and provide harm-reduction needle exchange counseling.`, `Test HBsAg(+) contacts for HDV.`],
+    s6: [`Prevent HBV = Prevent HDV.`, `Remember: HDV superinfection accelerates cirrhosis and HCC far faster than HBV alone.`]
+  },
+
+  // ENTITY 11: HCV VIROLOGY & NO 3'-5' EXONUCLEASE
+  {
+    id: 31, entityId: 11, angle: 1, phase: 1,
+    shortAnswer: `Hepatitis C Virus (HCV)`,
+    stem: `A 52-year-old man who received a blood transfusion in 1988 presents for fatigue. Labs show mildly fluctuating ALT (85-160 U/L). Liver biopsy demonstrates portal lymphoid aggregates and focal macrovesicular steatosis. What is the most likely diagnosis?`,
+    choices: [`Chronic Hepatitis C Virus (HCV) infection`, `Acute Hepatitis E Virus (HEV) infection`, `Autoimmune Wilson disease`],
+    correctIndex: 0,
+    clue: `Pre-1992 blood transfusion + fluctuating ALT + lymphoid aggregates & steatosis = chronic HCV.`,
+    s2: [`Enveloped +ssRNA Flavivirus evades immunity and establishes persistent hepatic infection in 60-80% of cases.`, `Chronic portal lymphocytic inflammation drives stellate cell TGF-beta fibrosis -> cirrhosis.`],
+    s3: [`Screen with Anti-HCV ELISA; confirm active viremia with quantitative HCV RNA PCR.`, `Biopsy hallmark: lymphoid aggregates in portal tracts + focal macrovesicular steatosis.`],
+    s4: [`Routine blood-supply screening after 1992 nearly eliminated transfusion-borne HCV.`, `HEV causes acute epidemic hepatitis with patchy necrosis and no carrier state.`],
+    s5: [`Treat ALL chronic HCV patients with pan-genotypic direct-acting antivirals (DAAs).`, `Screen cirrhotic HCV patients every 6 months for hepatocellular carcinoma.`],
+    s6: [`60-80% chronicity rate -> highest chronicity among adult-acquired hepatitis viruses.`, `Once cirrhosis develops, HCC risk remains even after viral cure.`]
+  },
+  {
+    id: 32, entityId: 11, angle: 2, phase: 2,
+    shortAnswer: `Lack of 3'-5' Exonuclease Proofreading`,
+    stem: `Why does Hepatitis C Virus escape host neutralizing antibodies so effectively, leading to chronic infection in 60-80% of infected individuals and preventing development of an effective HCV vaccine?`,
+    choices: [`HCV RNA polymerase lacks 3'-5' exonuclease proofreading`, `HCV integrates covalently into hepatocyte telomeres`, `HCV coats itself with host HBsAg surface protein`],
+    correctIndex: 0,
+    clue: `High mutation rate in E1/E2 envelope glycoproteins outpaces antibody production.`,
+    s2: [`NS5B RNA-dependent RNA polymerase lacks 3'-5' exonuclease proofreading activity.`, `Rapid mutations in the hypervariable E2 envelope region create shifting quasispecies.`],
+    s3: [`Host antibodies lag behind newly emerging viral envelope mutants, allowing persistent viremia.`, `HCV RNA stays detectable in serum beyond 6 months.`],
+    s4: [`HCV is a cytoplasmic +ssRNA Flavivirus that NEVER integrates into host DNA.`, `HDV—not HCV—borrows HBsAg.`],
+    s5: [`Multi-drug DAA regimens target conserved nonstructural enzymes (NS3/4A, NS5A, NS5B) to overcome resistance.`, `Confirm cure via undetectable HCV RNA 12 weeks post-treatment (SVR12).`],
+    s6: [`No 3'-5' exonuclease -> antigenic variation -> antibodies lag behind -> chronicity.`, `Same high error rate explains why multiple genotypes (1-6) exist.`]
+  },
+  {
+    id: 33, entityId: 11, angle: 3, phase: 3,
+    shortAnswer: `HCV RNA PCR Confirmation`,
+    stem: `A 34-year-old former IV drug user has a positive Anti-HCV antibody screen, normal ALT, and feels completely well. What is the essential next diagnostic test before initiating antiviral therapy?`,
+    choices: [`Serum HCV RNA quantitative PCR`, `Immediate liver biopsy`, `Anti-HAV IgM titer`],
+    correctIndex: 0,
+    clue: `Anti-HCV antibody stays positive even in the 20-40% who spontaneously cleared the virus.`,
+    s2: [`Antibodies reflect prior exposure, not necessarily active ongoing viral replication.`, `Detectable HCV RNA differentiates true chronic viremia from spontaneous viral clearance.`],
+    s3: [`Decreasing/undetectable HCV RNA indicates resolution; persistent RNA (>6 mo) confirms chronic HCV.`, `Non-invasive elastography (FibroScan) or APRI/FIB-4 estimates fibrosis without routine biopsy.`],
+    s4: [`Liver biopsy is no longer standard first-line confirmation for HCV diagnosis.`, `Anti-HAV IgM tests only for acute Hepatitis A.`],
+    s5: [`If HCV RNA is positive, prescribe an all-oral DAA regimen (e.g., sofosbuvir/velpatasvir or glecaprevir/pibrentasvir).`, `If HCV RNA is negative, reassure patient of spontaneous clearance (note: antibodies are non-protective against reinfection).`],
+    s6: [`Rule of HCV testing: Anti-HCV (+) -> reflex HCV RNA PCR.`, `Cured patients remain Anti-HCV positive for life.`]
+  },
+
+  // ENTITY 12: CHRONIC HCV EXTRAHEPATIC MANIFESTATIONS
+  {
+    id: 34, entityId: 12, angle: 1, phase: 1,
+    shortAnswer: `Essential Mixed Cryoglobulinemia`,
+    stem: `A 56-year-old man with untreated chronic Hepatitis C presents with palpable purpura on his lower extremities, arthralgias, peripheral neuropathy, and hematuria with RBC casts. Serum shows low C4 and a precipitate that forms upon cooling to 4°C. What is the diagnosis?`,
+    choices: [`Essential mixed cryoglobulinemia`, `Polyarteritis nodosa (PAN)`, `Henoch-Schönlein purpura (IgA)`],
+    correctIndex: 0,
+    clue: `Chronic HCV + cold-precipitating IgM immune complexes + low C4 + MPGN + palpable purpura.`,
+    s2: [`Persistent HCV stimulates B cells to produce monoclonal/polyclonal IgM rheumatoid factor against anti-HCV IgG.`, `Immune complexes deposit in small vessels (leukocytoclastic vasculitis) and glomeruli (MPGN).`],
+    s3: [`Labs: positive cryocrit, markedly decreased C4, positive rheumatoid factor, and MPGN ("tram-track" splitting) on renal biopsy.`, `Skin biopsy shows leukocytoclastic vasculitis.`],
+    s4: [`Polyarteritis nodosa is classically linked to Hepatitis B (medium-vessel transmural fibrinoid necrosis), sparing glomeruli.`, `IgA vasculitis affects children post-URI with normal complement levels.`],
+    s5: [`Treat underlying HCV with direct-acting antivirals (DAAs) to eliminate the antigenic trigger.`, `Severe organ-threatening vasculitis may need temporary rituximab or plasmapheresis.`],
+    s6: [`HCV = Cryoglobulinemia & MPGN > MGN; HBV = PAN & MGN > MPGN.`, `Cryoglobulins precipitate at cold temperatures ("salt precipitating on shore").`]
+  },
+  {
+    id: 35, entityId: 12, angle: 2, phase: 2,
+    shortAnswer: `Porphyria Cutanea Tarda & Lichen Planus`,
+    stem: `A patient with chronic Hepatitis C develops fragile, blistering vesicles and hypertrichosis on the dorsal hands after gardening in sunlight, plus lacy white oral reticular plaques (Wickham striae). Which dermatologic conditions are strongly associated with chronic HCV?`,
+    choices: [`Porphyria cutanea tarda and lichen planus`, `Erythema nodosum and pyoderma gangrenosum`, `Dermatitis herpetiformis and acanthosis nigricans`],
+    correctIndex: 0,
+    clue: `Blistering sun-exposed hands (uroporphyrinogen decarboxylase defect) + 6 P's of lichen planus.`,
+    s2: [`HCV-induced hepatic oxidative stress inhibits uroporphyrinogen decarboxylase (UROD), causing photoactive uroporphyrin buildup.`, `T-cell-mediated basal keratinocyte injury produces lichen planus.`],
+    s3: [`Elevated urine and plasma uroporphyrins ("tea-colored" urine fluorescing coral-pink under Wood's lamp).`, `Lichen planus histology shows sawtooth rete ridges and Civatte bodies.`],
+    s4: [`Erythema nodosum and pyoderma gangrenosum associate with IBD, not primarily HCV.`, `Dermatitis herpetiformis is celiac disease (anti-tTG IgA).`],
+    s5: [`Phlebotomy or low-dose hydroxychloroquine plus curative HCV DAA therapy resolves PCT.`, `Sun protection and avoidance of alcohol/estrogens.`],
+    s6: [`Chronic HCV extrahepatic list: Cryoglobulinemia, MPGN, PCT, Lichen planus, B-cell NHL, ITP, DM, Hypothyroidism.`, `Always screen newly diagnosed PCT patients for Hepatitis C and HIV.`]
+  },
+  {
+    id: 36, entityId: 12, angle: 3, phase: 3,
+    shortAnswer: `DAA Eradication Resolves Extrahepatic Disease`,
+    stem: `A 61-year-old woman with chronic HCV genotype 1a has mild cryoglobulinemic purpura, new-onset type 2 diabetes, and biopsy-proven membranoproliferative glomerulonephritis (MPGN) with preserved renal function. What is the cornerstone of long-term management?`,
+    choices: [`Curative all-oral DAA therapy to achieve sustained virologic response`, `Lifelong systemic corticosteroids without antivirals`, `Splenectomy followed by oral ribavirin monotherapy`],
+    correctIndex: 0,
+    clue: `Clearing HCV RNA removes the chronic B-cell antigenic stimulus driving immune complexes.`,
+    s2: [`Sustained virologic response (SVR) halts B-cell clonal expansion, reducing cryoglobulin production and B-cell NHL risk.`, `Also improves hepatic insulin resistance associated with HCV.`],
+    s3: [`Track cryocrit, C4 complement, urine protein-to-creatinine ratio, and HCV RNA post-DAA.`, `Check renal function before selecting sofosbuvir vs glecaprevir/pibrentasvir (safe in advanced CKD).`],
+    s4: [`Corticosteroids alone fail to clear the virus and accelerate HCV replication.`, `Ribavirin monotherapy does not cure HCV and causes hemolytic anemia.`],
+    s5: [`Initiate pan-genotypic DAAs promptly; add rituximab only if rapidly progressive GN or neuropathy threatens organs.`, `Screen periodically for autoimmune hypothyroidism and ITP.`],
+    s6: [`Treating HCV cures both the liver AND its extrahepatic immune-complex syndromes.`, `HCV increases risk of marginal-zone and diffuse large B-cell NHL.`]
+  },
+
+  // ENTITY 13: DIRECT-ACTING ANTIVIRALS (DAAs)
+  {
+    id: 37, entityId: 13, angle: 1, phase: 2,
+    shortAnswer: `Sofosbuvir (NS5B Inhibitor)`,
+    stem: `A patient with chronic HCV is prescribed an oral nucleotide analog prodrug that acts as a chain terminator of the viral NS5B RNA-dependent RNA polymerase. Fatigue and headache are the main adverse effects. Which medication fits this profile?`,
+    choices: [`Sofosbuvir`, `Glecaprevir`, `Ledipasvir`],
+    correctIndex: 0,
+    clue: `Suffix "-buvir" = NS5B polymerase inhibitor; sofa with nucleoside pattern.`,
+    s2: [`Intracellularly phosphorylated to an active uridine triphosphate analog that incorporates into nascent HCV RNA.`, `Lacks a 3'-OH propagation site, causing immediate chain termination of NS5B RNA synthesis.`],
+    s3: [`Active across HCV genotypes 1-6; always combined with an NS5A inhibitor (e.g., ledipasvir or velpatasvir).`, `High barrier to resistance compared with older protease inhibitors.`],
+    s4: [`Glecaprevir ("-previr") inhibits the NS3/4A viral protease.`, `Ledipasvir ("-asvir") inhibits the NS5A viral phosphoprotein.`],
+    s5: [`Administer once daily for 12 weeks with an NS5A partner; avoid coadministration with amiodarone (bradycardia risk).`, `Verify SVR12 via undetectable HCV RNA 12 weeks after completing therapy.`],
+    s6: [`DAA Suffix Code: -PREVIR = Protease (NS3/4A); -ASVIR = NS5A; -BUVIR = NS5B polymerase.`, `Remember: Sofosbuvir = "Sofa with nucleoside pattern" + tired explorer (fatigue).`]
+  },
+  {
+    id: 38, entityId: 13, angle: 2, phase: 2,
+    shortAnswer: `NS3/4A (-previr) & NS5A (-asvir) Mechanisms`,
+    stem: `A pan-genotypic HCV regimen combines glecaprevir and pibrentasvir. Which two viral steps are simultaneously blocked by these respective drugs?`,
+    choices: [`NS3/4A polyprotein protease cleavage and NS5A RNA replication complex`, `NS5B chain termination and host IMP dehydrogenase`, `Reverse transcription and viral integrase`],
+    correctIndex: 0,
+    clue: `Gleca-PREVIR (Protease) + Pibrent-ASVIR (NS5A phosphoprotein).`,
+    s2: [`HCV translates one continuous polyprotein requiring NS3/4A protease cleavage into functional viral proteins.`, `NS5A phosphoprotein orchestrates the membranous-web RNA replication complex and virion assembly.`],
+    s3: [`8-week course of glecaprevir/pibrentasvir cures >95% of treatment-naive non-cirrhotic patients.`, `Safe in severe renal impairment (CKD/dialysis).`],
+    s4: [`IMP dehydrogenase inhibition belongs to ribavirin, not glecaprevir/pibrentasvir.`, `Reverse transcriptase and integrase are HIV drug targets.`],
+    s5: [`Avoid NS3/4A protease inhibitors (-previr) in decompensated cirrhosis (Child-Pugh B or C) due to hepatotoxicity.`, `Screen for HBV coinfection (HBsAg/Anti-HBc) before starting DAAs to prevent HBV reactivation.`],
+    s6: [`Rule: Never give "-previr" protease inhibitors to decompensated Child-Pugh B/C cirrhotics!`, `ALWAYS test for occult HBV prior to HCV DAA initiation.`]
+  },
+  {
+    id: 39, entityId: 13, angle: 3, phase: 3,
+    shortAnswer: `Ribavirin Toxicities & Contraindication`,
+    stem: `Prior to modern all-oral DAAs, chronic HCV was treated with pegylated interferon-alpha plus ribavirin. Even today, if ribavirin is added for refractory cirrhotic HCV, which two classic toxicities require strict contraception and CBC monitoring?`,
+    choices: [`Hemolytic anemia and severe Category X teratogenicity`, `Nephrotoxicity and gray-baby syndrome`, `Lactic acidosis and HLA-B*5701 hypersensitivity`],
+    correctIndex: 0,
+    clue: `Red blood cells lysing + giant tarantula (teratogen) + IMP dehydrogenase inhibition.`,
+    s2: [`Ribavirin is a guanosine analog phosphorylated triply intracellularly that competitively inhibits IMP dehydrogenase.`, `Depletes intracellular GTP; erythrocytes lack nuclei to repair ATP/GTP depletion -> extravascular hemolysis.`],
+    s3: [`Monitor hemoglobin/reticulocyte counts regularly for dose-dependent hemolytic anemia.`, `Requires negative pregnancy test and two forms of contraception in BOTH female and male partners.`],
+    s4: [`Gray-baby syndrome is chloramphenicol toxicity.`, `Lactic acidosis (NRTIs) and HLA-B*5701 (abacavir) are HIV antiretroviral toxicities.`],
+    s5: [`Use ribavirin-free all-oral DAA regimens whenever possible to avoid anemia and teratogenicity.`, `Wait 6 months after stopping ribavirin before attempting pregnancy.`],
+    s6: [`Ribavirin = Red cell lysis + Teratogen ("Tarantula") + IMP dehydrogenase inhibition.`, `Also historically used in severe RSV bronchiolitis.`]
+  },
+
+  // ENTITY 14: CMV ESOPHAGITIS / COLITIS
+  {
+    id: 40, entityId: 14, angle: 1, phase: 1,
+    shortAnswer: `CMV Esophagitis / Colitis`,
+    stem: `A 36-year-old man with untreated HIV (CD4 count 28/mm3) reports severe odynophagia, fever, and watery diarrhea. Upper endoscopy reveals large, deep linear esophageal ulcers. Biopsy shows enlarged endothelial cells with basophilic intranuclear "owl-eye" inclusions. What is the diagnosis?`,
+    choices: [`Cytomegalovirus (CMV) esophagitis`, `HSV-1 punched-out esophagitis`, `Candida albicans thrush esophagitis`],
+    correctIndex: 0,
+    clue: `CD4 < 50 + deep linear ulcers + large basophilic "owl-eye" inclusions = HHV-5 (CMV).`,
+    s2: [`Enveloped dsDNA Herpesvirus (HHV-5) reactivates in profound cell-mediated immunodeficiency (CD4 < 50 or transplant).`, `Infects submucosal vascular endothelial cells, causing ischemic necrosis and deep linear ulceration.`],
+    s3: [`Pathology hallmark: cytomegaly with dense intranuclear and cytoplasmic "owl-eye" inclusions.`, `CMV colitis also causes bloody diarrhea and toxic megacolon in transplant/AIDS patients.`],
+    s4: [`HSV-1 produces small superficial "punched-out" volcano ulcers in squamous epithelium, not endothelial owl-eye cells.`, `Candida esophagitis shows white pseudomembranous plaques scrapable with pseudohyphae.`],
+    s5: [`Treat with IV ganciclovir (or oral valganciclovir) and perform dilated fundoscopy to rule out CMV retinitis.`, `Initiate ART once opportunistic infection stabilizes.`],
+    s6: [`CMV = "Sight-omegalovirus" (cotton-wool exudates) + Owl-eye inclusions + deep linear GI ulcers.`, `CD4 < 50 threshold for CMV reactivation.`]
+  },
+  {
+    id: 41, entityId: 14, angle: 2, phase: 2,
+    shortAnswer: `UL97 Kinase & Ganciclovir Resistance`,
+    stem: `A kidney transplant recipient develops biopsy-confirmed CMV colitis that fails to improve after 2 weeks of IV ganciclovir. Sequencing identifies a mutation in the viral UL97 gene. How does this mutation confer resistance?`,
+    choices: [`Loss of viral UL97 kinase prevents ganciclovir monophosphorylation`, `Overexpression of viral thymidine kinase cleaves ganciclovir`, `Mutation of CCR5 blocks ganciclovir cellular uptake`],
+    correctIndex: 0,
+    clue: `Ganciclovir requires CMV-encoded UL97 phosphotransferase for its initial activation step.`,
+    s2: [`Ganciclovir is a guanosine analog prodrug requiring monophosphorylation by CMV UL97 kinase before cellular kinases form ganciclovir-TP.`, `Without UL97 activity, the active triphosphate never forms to inhibit viral DNA polymerase.`],
+    s3: [`Monitor quantitative CMV viral load PCR; persistent viremia suggests UL97 or UL54 DNA pol resistance.`, `Ganciclovir toxicity includes dose-limiting neutropenia/myelosuppression.`],
+    s4: [`CMV does not encode thymidine kinase (HSV/VZV use TK, whereas CMV uses UL97).`, `CCR5 is an HIV co-receptor targeted by maraviroc.`],
+    s5: [`Switch immediately to IV foscarnet (or cidofovir + probenecid), which bypasses viral kinase activation.`, `Avoid live vaccines and monitor renal electrolytes closely on foscarnet.`],
+    s6: [`CMV activation = UL97 kinase; HSV/VZV activation = Thymidine Kinase.`, `Resistance to ganciclovir or acyclovir -> switch to Foscarnet.`]
+  },
+  {
+    id: 42, entityId: 14, angle: 3, phase: 3,
+    shortAnswer: `Ganciclovir / Valganciclovir vs Foscarnet`,
+    stem: `A heart transplant recipient with ganciclovir-resistant CMV esophagitis is started on IV foscarnet. Which mechanism of action and major electrolyte/organ toxicities must be monitored during foscarnet therapy?`,
+    choices: [`Direct pyrophosphate inhibition of viral DNA pol; nephrotoxicity & hypocalcemia`, `Viral kinase activation; severe hepatic steatosis`, `Protease inhibition; hyperglycemia & lipodystrophy`],
+    correctIndex: 0,
+    clue: `Pyrophosphate analog ("car with a net") chelates divalent cations and injures renal tubules.`,
+    s2: [`Foscarnet directly binds the pyrophosphate binding site on viral DNA polymerase, requiring zero phosphorylation.`, `Chelates ionized Ca2+ and Mg2+ in plasma and induces acute tubular necrosis.`],
+    s3: [`Monitor serum creatinine, ionized calcium, magnesium, potassium, and phosphate daily.`, `Pre-hydrate with normal saline before every infusion.`],
+    s4: [`Foscarnet never requires viral kinase phosphorylation.`, `Protease inhibition causing hyperglycemia/GI intolerance is characteristic of HIV ritonavir/darunavir.`],
+    s5: [`Use oral valganciclovir for standard CMV prophylaxis in high-risk donor(+)/recipient(-) transplants.`, `Reserve foscarnet for UL97-resistant CMV or severe ganciclovir-induced neutropenia.`],
+    s6: [`Foscarnet = "Fast car with a net" bypassing kinase checkpoint; causes Nephrotoxicity + seizures from hypocalcemia/hypomagnesemia.`, `Cidofovir also bypasses kinase but requires probenecid to protect renal tubules.`]
+  },
+
+  // ENTITY 15: HSV-1 PUNCHED-OUT ESOPHAGITIS
+  {
+    id: 43, entityId: 15, angle: 1, phase: 1,
+    shortAnswer: `HSV-1 Esophagitis`,
+    stem: `A 44-year-old woman undergoing chemotherapy for acute leukemia develops sudden severe odynophagia and retrosternal chest pain. Endoscopy shows multiple small, discrete, well-circumscribed "punched-out" shallow ulcers in the distal esophagus. Which pathogen is most likely?`,
+    choices: [`Herpes Simplex Virus-1 (HSV-1)`, `Cytomegalovirus (CMV)`, `Epstein-Barr Virus (EBV)`],
+    correctIndex: 0,
+    clue: `Shallow "punched-out" volcano ulcers in squamous mucosa + odynophagia = HSV-1.`,
+    s2: [`Enveloped dsDNA Herpesvirus (HHV-1) reactivates from trigeminal/vagal ganglia during immunosuppression.`, `Direct viral cytolysis of squamous epithelial cells creates coalescing vesicles that slough into punched-out ulcers.`],
+    s3: [`Biopsy from ulcer EDGES shows multinucleated giant cells (Tzanck) and eosinophilic Cowdry A intranuclear inclusions.`, `PCR of esophageal brushings confirms HSV-1.`],
+    s4: [`CMV produces deep linear ulcers in the ulcer BASE with basophilic owl-eye endothelial inclusions.`, `EBV causes mononucleosis and oral hairy leukoplakia rather than punched-out esophageal ulcers.`],
+    s5: [`Initiate IV or high-dose oral acyclovir (or valacyclovir) for 7-14 days.`, `Ensure adequate hydration to prevent acyclovir crystal nephropathy.`],
+    s6: [`Biopsy the EDGE for HSV; biopsy the BASE for CMV.`, `HSV-1 = Punched-out ulcers + Cowdry A + Tzanck multinucleated giant cells.`]
+  },
+  {
+    id: 44, entityId: 15, angle: 2, phase: 2,
+    shortAnswer: `Viral Thymidine Kinase Activation`,
+    stem: `Acyclovir exhibits high selectivity for HSV-1-infected esophageal epithelial cells while sparing uninfected host cells. Which rate-determining viral enzyme explains this selectivity?`,
+    choices: [`HSV-encoded thymidine kinase`, `Host cellular guanylate kinase`, `Viral reverse transcriptase`],
+    correctIndex: 0,
+    clue: `Uninfected human cells lack viral TK and cannot efficiently monophosphorylate acyclovir.`,
+    s2: [`HSV thymidine kinase converts acyclovir (a guanosine analog) into acyclovir monophosphate.`, `Host cellular kinases subsequently add two phosphates to yield acyclovir triphosphate, which terminates viral DNA synthesis.`],
+    s3: [`Absence or mutation of HSV thymidine kinase is the #1 mechanism of acyclovir resistance in immunocompromised hosts.`, `Tzanck smear reveals multinucleated giant cells ("3 M's of HSV": Multinucleated giant cells, Molding, Margination of chromatin).`],
+    s4: [`Host kinases complete the 2nd and 3rd phosphorylations, not the selective 1st step.`, `HSV replicates via dsDNA polymerase, not reverse transcriptase.`],
+    s5: [`Valacyclovir (L-valyl ester prodrug) offers markedly higher oral bioavailability than oral acyclovir.`, `Maintain brisk urine output during IV acyclovir to prevent crystalline obstructive nephropathy.`],
+    s6: [`Hermes with "P" luggage tag = HSV Thymidine Kinase monophosphorylation.`, `Closed baggage check (missing TK) = acyclovir resistance -> treat with Foscarnet.`]
+  },
+  {
+    id: 45, entityId: 15, angle: 3, phase: 3,
+    shortAnswer: `Acyclovir / Valacyclovir vs Foscarnet`,
+    stem: `A bone marrow transplant recipient with HSV-1 punched-out esophagitis continues to have positive viral cultures after 10 days of high-dose IV acyclovir. What is the appropriate next antiviral choice?`,
+    choices: [`Switch to IV foscarnet`, `Switch to oral valacyclovir`, `Add oral ribavirin`],
+    correctIndex: 0,
+    clue: `Valacyclovir is a prodrug of acyclovir (cross-resistant in TK-deficient HSV); bypass TK with foscarnet.`,
+    s2: [`TK-deficient HSV strains cannot phosphorylate acyclovir, valacyclovir, or famciclovir.`, `Foscarnet directly inhibits HSV DNA polymerase without needing viral thymidine kinase.`],
+    s3: [`Confirm susceptibility testing if ulcers fail to heal within 7-10 days of acyclovir.`, `Monitor BUN/creatinine and ionized calcium during foscarnet administration.`],
+    s4: [`Valacyclovir converts into acyclovir in the liver/gut, so it fails against TK-mutant HSV.`, `Ribavirin inhibits RNA synthesis and is ineffective against dsDNA Herpesviruses.`],
+    s5: [`Administer IV foscarnet with aggressive normal saline hydration until mucosal healing.`, `Resume acyclovir prophylaxis only after immune reconstitution if wild-type strains return.`],
+    s6: [`Cross-resistance rule: Acyclovir-resistant HSV = Valacyclovir/Famciclovir-resistant -> use Foscarnet (or Cidofovir).`, `All 45 GI Virus Diagnostic Gates mastered!`]
+  }
+];
+
+// --- APPLICATION STATE ---
+let deckIndices = [];
+let currentDeckPos = 0;
+let currentGate = null;
+let selectedLane = 1;
+let hp = 100;
+let xp = 0;
+let streak = 0;
+let masteredIds = [];
+let missedIds = [];
+let phaseFilter = 'all';
+let sectorFilter = 'all';
+let isHintsVisible = false;
+let isMenuOpen = false;
+let isOutcomeOpen = false;
+let isCodexOpen = false;
+let isTimerEnabled = false;
+let timeLeft = 50;
+let timerInterval = null;
+let metaFadeTimeout = null;
+
+// Audio State
+let isMasterSoundOn = true;
+let isSfxOn = true;
+let isProceduralBgmOn = false;
+let bgmVolume = 0.35;
+let audioCtx = null;
+let bgmInterval = null;
+let bgmStep = 0;
+
+// 3D Synthwave Canvas Engine State
+let canvasEl = null;
+let ctx2d = null;
+let animFrameId = null;
+let pixelDust = [];
+let worldScroll = 0;
+let craftXNorm = 0; // -1, 0, 1
+let craftTargetNorm = 0;
+
+function initPixelDust() {
+  pixelDust = [];
+  for (let i = 0; i < 150; i++) {
+    pixelDust.push({
+      x: (Math.random() - 0.5) * 2.4,
+      y: Math.random() * 0.9 - 0.2,
+      z: Math.random() * 1.0 + 0.05,
+      size: Math.floor(Math.random() * 3) + 2,
+      speed: 0.0025 + Math.random() * 0.004
+    });
+  }
+}
+
+function getThemeForGate(gate) {
+  if (!gate) return LO_VISUAL_THEMES[1];
+  return LO_VISUAL_THEMES[gate.entityId] || LO_VISUAL_THEMES[1];
+}
+
+function resizeCanvas() {
+  if (!canvasEl) return;
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  if (canvasEl.width !== w || canvasEl.height !== h) {
+    canvasEl.width = w;
+    canvasEl.height = h;
+  }
+}
+
+function getLaneCardCenter(laneIdx) {
+  const el = document.getElementById(`lane-card-${laneIdx}`);
+  if (!el || !canvasEl) return null;
+  const r = el.getBoundingClientRect();
+  return {
+    x: r.left + r.width / 2,
+    y: r.top + r.height / 2,
+    w: r.width,
+    h: r.height,
+    left: r.left,
+    right: r.right,
+    top: r.top,
+    bottom: r.bottom
+  };
+}
+
+function render3DViewport() {
+  if (!canvasEl || !ctx2d) return;
+  resizeCanvas();
+  const w = canvasEl.width;
+  const h = canvasEl.height;
+  const theme = getThemeForGate(currentGate);
+  const horizonY = h * 0.36;
+  const vpX = w * 0.5;
+
+  ctx2d.clearRect(0, 0, w, h);
+
+  // Deep midnight-navy void gradient
+  const bgGrad = ctx2d.createLinearGradient(0, 0, 0, h);
+  bgGrad.addColorStop(0, '#070710');
+  bgGrad.addColorStop(0.38, '#0a0a16');
+  bgGrad.addColorStop(1, '#0d0b1a');
+  ctx2d.fillStyle = bgGrad;
+  ctx2d.fillRect(0, 0, w, h);
+
+  // Horizon glow
+  ctx2d.strokeStyle = `rgba(${theme.gridRgb}, 0.45)`;
+  ctx2d.lineWidth = 1.5;
+  ctx2d.beginPath();
+  ctx2d.moveTo(0, horizonY);
+  ctx2d.lineTo(w, horizonY);
+  ctx2d.stroke();
+
+  // Infinite full-width perspective wireframe floor
+  worldScroll = (worldScroll + 0.012) % 1;
+  ctx2d.strokeStyle = `rgba(${theme.gridRgb}, 0.16)`;
+  ctx2d.lineWidth = 1;
+
+  // Radial perspective lines across full floor
+  const numCols = 22;
+  for (let i = -numCols; i <= numCols; i++) {
+    const bottomX = vpX + i * (w / 10);
+    ctx2d.beginPath();
+    ctx2d.moveTo(vpX + i * 6, horizonY);
+    ctx2d.lineTo(bottomX, h);
+    ctx2d.stroke();
+  }
+
+  // Horizontal receding depth lines
+  const numRows = 14;
+  for (let r = 0; r < numRows; r++) {
+    const t = (r + worldScroll) / numRows;
+    const persp = Math.pow(t, 2.2);
+    const y = horizonY + persp * (h - horizonY);
+    ctx2d.strokeStyle = `rgba(${theme.gridRgb}, ${0.06 + persp * 0.22})`;
+    ctx2d.beginPath();
+    ctx2d.moveTo(0, y);
+    ctx2d.lineTo(w, y);
+    ctx2d.stroke();
+  }
+
+  // 150 crisp 3D square pixel-dust particles
+  ctx2d.fillStyle = theme.tint;
+  for (let i = 0; i < pixelDust.length; i++) {
+    const p = pixelDust[i];
+    p.z -= p.speed;
+    if (p.z <= 0.04) {
+      p.z = 1.0;
+      p.x = (Math.random() - 0.5) * 2.4;
+      p.y = Math.random() * 0.9 - 0.25;
+    }
+    const scale = 1 / p.z;
+    const sx = vpX + p.x * (w * 0.24) * scale;
+    const sy = horizonY + p.y * (h * 0.22) * scale;
+    if (sx >= 0 && sx <= w && sy >= 0 && sy <= h) {
+      const sq = Math.max(2, Math.round(p.size * (1.2 - p.z * 0.7)));
+      ctx2d.globalAlpha = Math.max(0.15, 1 - p.z);
+      ctx2d.fillRect(Math.round(sx), Math.round(sy), sq, sq);
+    }
+  }
+  ctx2d.globalAlpha = 1;
+
+  // 3 Teal Perspective Track Rails & 1:1 Portal Fusion
+  const portalColors = ['#ff2d78', '#00ffcc', '#ffe04a'];
+  for (let l = 0; l < 3; l++) {
+    const card = getLaneCardCenter(l);
+    const laneNorm = l - 1;
+    const startX = vpX + laneNorm * 36;
+    const endX = card ? card.x : vpX + laneNorm * (w * 0.26);
+    const endY = card ? card.bottom + 24 : h * 0.78;
+
+    // Teal track rail
+    ctx2d.strokeStyle = 'rgba(0, 255, 204, 0.52)';
+    ctx2d.lineWidth = l === selectedLane ? 3 : 1.5;
+    ctx2d.beginPath();
+    ctx2d.moveTo(startX, horizonY);
+    ctx2d.lineTo(endX, h);
+    ctx2d.stroke();
+
+    // 1:1 Glowing Neon Portal Frame fused to live card getBoundingClientRect()
+    if (card && card.w > 20 && card.h > 20) {
+      ctx2d.save();
+      ctx2d.strokeStyle = portalColors[l];
+      ctx2d.lineWidth = l === selectedLane ? 2.5 : 1.5;
+      ctx2d.shadowColor = portalColors[l];
+      ctx2d.shadowBlur = l === selectedLane ? 18 : 10;
+      const pad = l === selectedLane ? 4 : 2;
+      ctx2d.strokeRect(card.left - pad, card.top - pad, card.w + pad * 2, card.h + pad * 2);
+
+      // Perspective portal tether to horizon
+      ctx2d.globalAlpha = l === selectedLane ? 0.45 : 0.22;
+      ctx2d.beginPath();
+      ctx2d.moveTo(startX - 10, horizonY);
+      ctx2d.lineTo(card.left - pad, card.top - pad);
+      ctx2d.moveTo(startX + 10, horizonY);
+      ctx2d.lineTo(card.right + pad, card.top - pad);
+      ctx2d.stroke();
+      ctx2d.restore();
+    }
+  }
+
+  // Solid Geometric Teal Diamond Player Craft
+  craftTargetNorm = selectedLane - 1;
+  craftXNorm += (craftTargetNorm - craftXNorm) * 0.18;
+  const activeCard = getLaneCardCenter(selectedLane);
+  const craftX = activeCard
+    ? vpX + craftXNorm * Math.abs(activeCard.x - vpX || w * 0.24)
+    : vpX + craftXNorm * (w * 0.24);
+  const craftY = Math.min(h - 28, activeCard ? activeCard.bottom + 34 : h * 0.88);
+
+  if (craftY > horizonY + 20) {
+    ctx2d.save();
+    ctx2d.translate(craftX, craftY);
+    ctx2d.fillStyle = '#00ffcc';
+    ctx2d.strokeStyle = '#e8e0f0';
+    ctx2d.lineWidth = 1.5;
+    ctx2d.shadowColor = '#00ffcc';
+    ctx2d.shadowBlur = 14;
+    ctx2d.beginPath();
+    ctx2d.moveTo(0, -16);
+    ctx2d.lineTo(14, 0);
+    ctx2d.lineTo(0, 12);
+    ctx2d.lineTo(-14, 0);
+    ctx2d.closePath();
+    ctx2d.fill();
+    ctx2d.stroke();
+    ctx2d.restore();
+  }
+
+  animFrameId = requestAnimationFrame(render3DViewport);
+}
+
+// --- WEB AUDIO SYNTHESIZER ---
+function ensureAudioCtx() {
+  if (!audioCtx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) {
+      audioCtx = new AudioContextClass();
+    }
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
+}
+
+function playSfx(type) {
+  if (!isMasterSoundOn || !isSfxOn) return;
+  ensureAudioCtx();
+  if (!audioCtx) return;
+
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  if (type === 'steer') {
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(340, now);
+    osc.frequency.exponentialRampToValueAtTime(520, now + 0.06);
+    gain.gain.setValueAtTime(0.08, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+    osc.start(now);
+    osc.stop(now + 0.08);
+  } else if (type === 'correct') {
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(523.25, now);
+    osc.frequency.setValueAtTime(659.25, now + 0.07);
+    osc.frequency.setValueAtTime(783.99, now + 0.14);
+    gain.gain.setValueAtTime(0.14, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+    osc.start(now);
+    osc.stop(now + 0.33);
+  } else if (type === 'wrong') {
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(210, now);
+    osc.frequency.exponentialRampToValueAtTime(95, now + 0.28);
+    gain.gain.setValueAtTime(0.13, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+    osc.start(now);
+    osc.stop(now + 0.31);
+  } else if (type === 'tick') {
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(880, now);
+    gain.gain.setValueAtTime(0.04, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+    osc.start(now);
+    osc.stop(now + 0.045);
+  }
+}
+
+function startProceduralBgmLoop() {
+  stopProceduralBgmLoop();
+  if (!isMasterSoundOn || !isProceduralBgmOn) return;
+  ensureAudioCtx();
+  const bassNotes = [110, 110, 130.81, 146.83, 164.81, 146.83, 130.81, 98];
+  bgmInterval = setInterval(() => {
+    if (!audioCtx || !isMasterSoundOn || !isProceduralBgmOn) return;
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(bassNotes[bgmStep % bassNotes.length], now);
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(420, now);
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
+    const vol = Math.max(0.005, bgmVolume * 0.14);
+    gain.gain.setValueAtTime(vol, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+    osc.start(now);
+    osc.stop(now + 0.24);
+    bgmStep++;
+  }, 240);
+}
+
+function stopProceduralBgmLoop() {
+  if (bgmInterval) {
+    clearInterval(bgmInterval);
+    bgmInterval = null;
+  }
+}
+
+function toggleMasterAudio() {
+  isMasterSoundOn = !isMasterSoundOn;
+  const btn = document.getElementById('btn-master-audio');
+  if (btn) {
+    btn.textContent = isMasterSoundOn ? `🔊 Master Sound: ON` : `🔇 Master Sound: OFF`;
+    btn.classList.toggle('is-active', isMasterSoundOn);
+  }
+  const customAudio = document.getElementById('custom-bgm-audio');
+  if (customAudio) customAudio.muted = !isMasterSoundOn;
+  if (isMasterSoundOn && isProceduralBgmOn) {
+    startProceduralBgmLoop();
+  } else {
+    stopProceduralBgmLoop();
+  }
+  persistAppState();
+}
+
+function toggleSfx() {
+  isSfxOn = !isSfxOn;
+  const btn = document.getElementById('btn-sfx-audio');
+  if (btn) {
+    btn.textContent = isSfxOn ? `⚡ SFX: ON` : `⚡ SFX: OFF`;
+    btn.classList.toggle('is-active', isSfxOn);
+  }
+  persistAppState();
+}
+
+function toggleProceduralBgm() {
+  isProceduralBgmOn = !isProceduralBgmOn;
+  const btn = document.getElementById('btn-bgm-audio');
+  if (btn) {
+    btn.textContent = isProceduralBgmOn ? `🎵 Procedural Synth BGM: ON` : `🎵 Procedural Synth BGM: OFF`;
+    btn.classList.toggle('is-active', isProceduralBgmOn);
+  }
+  if (isProceduralBgmOn && isMasterSoundOn) {
+    startProceduralBgmLoop();
+  } else {
+    stopProceduralBgmLoop();
+  }
+  persistAppState();
+}
+
+function setBgmVolume(val) {
+  bgmVolume = parseFloat(val) || 0;
+  const customAudio = document.getElementById('custom-bgm-audio');
+  if (customAudio) customAudio.volume = bgmVolume;
+  persistAppState();
+}
+
+function loadCustomAudio(input) {
+  if (!input || !input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const audioEl = document.getElementById('custom-bgm-audio');
+  if (!audioEl) return;
+  const url = URL.createObjectURL(file);
+  audioEl.src = url;
+  audioEl.volume = bgmVolume;
+  audioEl.muted = !isMasterSoundOn;
+  audioEl.play().catch(() => {});
+  setMenuToast(`Loaded custom track: ${file.name}`);
+}
+
+// --- DECK & FILTERING ---
+function buildFilteredDeck(shuffle = false) {
+  let list = GATES.filter(g => {
+    if (phaseFilter !== 'all' && g.phase !== Number(phaseFilter)) return false;
+    if (sectorFilter === 'missed') return missedIds.includes(g.id);
+    if (sectorFilter !== 'all') return g.entityId === Number(sectorFilter);
+    return true;
+  });
+
+  if (list.length === 0) {
+    list = GATES.slice();
+    if (sectorFilter === 'missed') {
+      setMenuToast(`No missed gates recorded yet — showing all 45 gates.`);
+      sectorFilter = 'all';
+      const sel = document.getElementById('sector-filter-select');
+      if (sel) sel.value = 'all';
+    }
+  }
+
+  deckIndices = list.map(g => g.id);
+  if (shuffle) {
+    for (let i = deckIndices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = deckIndices[i];
+      deckIndices[i] = deckIndices[j];
+      deckIndices[j] = tmp;
+    }
+  }
+  currentDeckPos = 0;
+}
+
+function getEntityById(id) {
+  return ENTITIES.find(e => e.id === id) || ENTITIES[0];
+}
+
+function getGateById(id) {
+  return GATES.find(g => g.id === id) || GATES[0];
+}
+
+function renderDossierBullets(lines) {
+  if (!Array.isArray(lines)) return '';
+  return lines.map(line => `<div class="dossier-line">• ${escapeHtml(line)}</div>`).join('');
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function shuffleChoicesForDisplay(gate) {
+  const mapped = gate.choices.map((text, idx) => ({
+    text,
+    isCorrect: idx === gate.correctIndex
+  }));
+  // Deterministic rotation based on gate id + streak so correct lane varies across 0/1/2
+  const shift = (gate.id * 2 + gate.angle) % 3;
+  const rotated = [
+    mapped[(0 + shift) % 3],
+    mapped[(1 + shift) % 3],
+    mapped[(2 + shift) % 3]
+  ];
+  return rotated;
+}
+
+let currentDisplayedChoices = [];
+
+function loadCurrentGate() {
+  if (!deckIndices.length) buildFilteredDeck(false);
+  const gateId = deckIndices[currentDeckPos % deckIndices.length];
+  currentGate = getGateById(gateId);
+  const entity = getEntityById(currentGate.entityId);
+  const theme = getThemeForGate(currentGate);
+
+  const metaRow = document.getElementById('q-meta-row');
+  if (metaRow) {
+    metaRow.classList.remove('is-faded');
+  }
+  if (metaFadeTimeout) clearTimeout(metaFadeTimeout);
+  metaFadeTimeout = setTimeout(() => {
+    const row = document.getElementById('q-meta-row');
+    if (row) row.classList.add('is-faded');
+  }, 3000);
+
+  const angleLabels = { 1: `ANGLE 1: Dx`, 2: `ANGLE 2: Mech`, 3: `ANGLE 3: Mgmt` };
+  const phaseLabels = { 1: `PHASE 1: Pathogenesis`, 2: `PHASE 2: Labs/Histo`, 3: `PHASE 3: Clinical/Tx` };
+
+  const bSector = document.getElementById('badge-sector');
+  const bAngle = document.getElementById('badge-angle');
+  const bPhase = document.getElementById('badge-phase');
+  const bCorr = document.getElementById('badge-corridor');
+  if (bSector) bSector.textContent = `SECTOR ${entity.id}: ${entity.name}`;
+  if (bAngle) bAngle.textContent = angleLabels[currentGate.angle] || `ANGLE ${currentGate.angle}`;
+  if (bPhase) bPhase.textContent = phaseLabels[currentGate.phase] || `PHASE ${currentGate.phase}`;
+  if (bCorr) bCorr.textContent = `CORRIDOR: ${theme.tag}`;
+
+  const stemEl = document.getElementById('q-stem-text');
+  if (stemEl) stemEl.textContent = currentGate.stem;
+
+  const clueEl = document.getElementById('q-clue-text');
+  if (clueEl) clueEl.textContent = currentGate.clue;
+
+  currentDisplayedChoices = shuffleChoicesForDisplay(currentGate);
+  for (let i = 0; i < 3; i++) {
+    const tEl = document.getElementById(`lane-${i}-text`);
+    if (tEl) {
+      tEl.innerHTML = `<span>${escapeHtml(currentDisplayedChoices[i].text)}</span>`;
+    }
+  }
+
+  steerLane(1, true);
+  updateTelemetryUI();
+  renderSkillTreeGrid();
+
+  if (isTimerEnabled) {
+    startGateCountdown();
+  } else {
+    stopGateCountdown();
+  }
+}
+
+function updateTelemetryUI() {
+  const hpEl = document.getElementById('chip-hp');
+  const xpEl = document.getElementById('chip-xp');
+  const stEl = document.getElementById('chip-streak');
+  const gtEl = document.getElementById('chip-gate');
+  const tmEl = document.getElementById('chip-timer');
+
+  if (hpEl) hpEl.textContent = `♥ ${hp} HP`;
+  if (xpEl) xpEl.textContent = `⚡ ${xp} XP`;
+  if (stEl) stEl.textContent = `🔥 ${streak}`;
+  if (gtEl) gtEl.textContent = `GATE ${currentDeckPos + 1}/${deckIndices.length}`;
+  if (tmEl) {
+    tmEl.textContent = isTimerEnabled ? `⏱ ${timeLeft}s` : `⏱ OFF`;
+    tmEl.classList.toggle('is-urgent', isTimerEnabled && timeLeft <= 10);
+  }
+}
+
+function steerLane(laneIdx, silent = false) {
+  selectedLane = Math.max(0, Math.min(2, laneIdx));
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`lane-card-${i}`);
+    if (card) card.classList.toggle('is-steered', i === selectedLane);
+  }
+  if (!silent) playSfx('steer');
+}
+
+function selectLane(laneIdx) {
+  if (isOutcomeOpen || isCodexOpen) return;
+  steerLane(laneIdx, true);
+  resolveGateAttempt(laneIdx, false);
+}
+
+function resolveGateAttempt(laneIdx, isTimeout) {
+  stopGateCountdown();
+  if (!currentGate) return;
+
+  const picked = (!isTimeout && laneIdx >= 0 && laneIdx < 3) ? currentDisplayedChoices[laneIdx] : null;
+  const correctObj = currentDisplayedChoices.find(c => c.isCorrect) || { text: currentGate.choices[currentGate.correctIndex] };
+  const isCorrect = !isTimeout && picked && picked.isCorrect;
+
+  let hpDeltaText = `±0 HP`;
+  let xpDeltaText = `+0 XP`;
+
+  if (isCorrect) {
+    streak += 1;
+    const earnedXp = 50 + Math.min(streak * 10, 50);
+    xp += earnedXp;
+    xpDeltaText = `+${earnedXp} XP`;
+    if (hp < 100 && streak % 3 === 0) {
+      const gainedHp = Math.min(10, 100 - hp);
+      hp += gainedHp;
+      hpDeltaText = `HP RESTORE +${gainedHp}`;
+    } else {
+      hpDeltaText = `HP INTACT (${hp})`;
+    }
+    if (!masteredIds.includes(currentGate.id)) masteredIds.push(currentGate.id);
+    missedIds = missedIds.filter(id => id !== currentGate.id);
+    playSfx('correct');
+  } else {
+    streak = 0;
+    const dmg = 15;
+    hp = Math.max(0, hp - dmg);
+    hpDeltaText = `-${dmg} HP`;
+    if (!missedIds.includes(currentGate.id)) missedIds.push(currentGate.id);
+    playSfx('wrong');
+    if (hp === 0) {
+      hp = 100;
+      hpDeltaText = `-15 HP (VITALS REBOOTED TO 100)`;
+    }
+  }
+
+  updateTelemetryUI();
+  openOutcomeDossier(isCorrect, isTimeout, picked ? picked.text : `No portal entered (Timer expired)`, correctObj.text, hpDeltaText, xpDeltaText);
+  persistAppState();
+}
+
+function openOutcomeDossier(isCorrect, isTimeout, yourText, correctText, hpDeltaText, xpDeltaText) {
+  isOutcomeOpen = true;
+  const entity = getEntityById(currentGate.entityId);
+  const verdictEl = document.getElementById('outcome-verdict-text');
+  if (verdictEl) {
+    verdictEl.classList.remove('is-correct', 'is-wrong', 'is-timeout');
+    if (isTimeout) {
+      verdictEl.classList.add('is-timeout');
+      verdictEl.textContent = `⏱ TIME'S UP — ${currentGate.shortAnswer}`;
+    } else if (isCorrect) {
+      verdictEl.classList.add('is-correct');
+      verdictEl.textContent = `✔ CORRECT — ${currentGate.shortAnswer}`;
+    } else {
+      verdictEl.classList.add('is-wrong');
+      verdictEl.textContent = `✖ INCORRECT — ${currentGate.shortAnswer}`;
+    }
+  }
+
+  const deltaRow = document.getElementById('outcome-delta-row');
+  if (deltaRow) {
+    deltaRow.innerHTML = `
+      <span class="delta-pill ${isCorrect ? 'is-pos' : 'is-neg'}">${escapeHtml(hpDeltaText)}</span>
+      <span class="delta-pill ${isCorrect ? 'is-pos' : ''}">${escapeHtml(xpDeltaText)}</span>
+      <span class="delta-pill">STREAK: ${streak}</span>
+    `;
+  }
+
+  const pinEl = document.getElementById('pinned-stem-text');
+  if (pinEl) pinEl.textContent = currentGate.stem;
+
+  const yEl = document.getElementById('your-choice-text');
+  const cEl = document.getElementById('correct-choice-text');
+  if (yEl) yEl.textContent = yourText;
+  if (cEl) cEl.textContent = correctText;
+
+  const s2 = document.getElementById('dossier-sec-2');
+  const s3 = document.getElementById('dossier-sec-3');
+  const s4 = document.getElementById('dossier-sec-4');
+  const s5 = document.getElementById('dossier-sec-5');
+  const s6 = document.getElementById('dossier-sec-6');
+
+  if (s2) s2.innerHTML = renderDossierBullets(currentGate.s2);
+  if (s3) s3.innerHTML = renderDossierBullets(currentGate.s3);
+  if (s4) s4.innerHTML = renderDossierBullets(currentGate.s4);
+  if (s5) s5.innerHTML = renderDossierBullets(currentGate.s5);
+  if (s6) s6.innerHTML = renderDossierBullets(currentGate.s6);
+
+  const a1 = document.getElementById('dossier-angle-1');
+  const a2 = document.getElementById('dossier-angle-2');
+  const a3 = document.getElementById('dossier-angle-3');
+  if (a1) a1.innerHTML = renderDossierBullets([entity.triad[0]]);
+  if (a2) a2.innerHTML = renderDossierBullets([entity.triad[1]]);
+  if (a3) a3.innerHTML = renderDossierBullets([entity.triad[2]]);
+
+  const overlay = document.getElementById('outcome-modal-overlay');
+  if (overlay) overlay.classList.add('is-open');
+}
+
+function advanceFromOutcome() {
+  const overlay = document.getElementById('outcome-modal-overlay');
+  if (overlay) overlay.classList.remove('is-open');
+  isOutcomeOpen = false;
+  currentDeckPos = (currentDeckPos + 1) % deckIndices.length;
+  loadCurrentGate();
+  persistAppState();
+}
+
+// --- TIMER CONTROLS ---
+function startGateCountdown() {
+  stopGateCountdown();
+  timeLeft = 50;
+  updateTelemetryUI();
+  timerInterval = setInterval(() => {
+    if (isOutcomeOpen || isCodexOpen || isMenuOpen) return;
+    timeLeft -= 1;
+    if (timeLeft <= 5 && timeLeft > 0) playSfx('tick');
+    updateTelemetryUI();
+    if (timeLeft <= 0) {
+      resolveGateAttempt(-1, true);
+    }
+  }, 1000);
+}
+
+function stopGateCountdown() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+function syncTimerControlsUI() {
+  const btn = document.getElementById('menu-timer-btn');
+  if (btn) {
+    btn.textContent = isTimerEnabled ? `⏱ 50s Timer: ON [T]` : `⏱ 50s Timer: OFF [T]`;
+    btn.classList.toggle('is-active', isTimerEnabled);
+  }
+  updateTelemetryUI();
+}
+
+function toggleTimerMode() {
+  isTimerEnabled = !isTimerEnabled;
+  syncTimerControlsUI();
+  if (isTimerEnabled) {
+    startGateCountdown();
+  } else {
+    stopGateCountdown();
+  }
+  persistAppState();
+}
+
+function startTimedRun() {
+  isTimerEnabled = true;
+  syncTimerControlsUI();
+  if (isMenuOpen) toggleMenuDrawer();
+  restartOrdered();
+}
+
+// --- HINTS & MENU CONTROLS ---
+function syncHintsUI() {
+  const app = document.getElementById('xr-app');
+  if (app) {
+    app.classList.toggle('hints-visible', isHintsVisible);
+    app.classList.toggle('hints-hidden', !isHintsVisible);
+  }
+  const menuBtn = document.getElementById('menu-hints-btn');
+  if (menuBtn) {
+    menuBtn.textContent = isHintsVisible ? `💡 Hints: ON [H]` : `💡 Hints: OFF [H]`;
+    menuBtn.classList.toggle('is-active', isHintsVisible);
+  }
+}
+
+function toggleHintsBar() {
+  isHintsVisible = !isHintsVisible;
+  syncHintsUI();
+  playSfx('steer');
+  persistAppState();
+}
+
+function toggleMenuDrawer() {
+  isMenuOpen = !isMenuOpen;
+  const drawer = document.getElementById('top-menu-drawer');
+  const backdrop = document.getElementById('menu-backdrop');
+  if (drawer) drawer.classList.toggle('is-open', isMenuOpen);
+  if (backdrop) backdrop.classList.toggle('is-open', isMenuOpen);
+}
+
+function openCodexFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  openCodex();
+}
+
+function skipFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  skipCurrentQuestion();
+}
+
+function skipCurrentQuestion() {
+  if (isOutcomeOpen || isCodexOpen) return;
+  playSfx('steer');
+  currentDeckPos = (currentDeckPos + 1) % deckIndices.length;
+  loadCurrentGate();
+  persistAppState();
+}
+
+function setMenuToast(msg) {
+  const el = document.getElementById('menu-toast');
+  if (el) el.textContent = msg;
+}
+
+function applySectorFilter(val) {
+  sectorFilter = val;
+  buildFilteredDeck(false);
+  loadCurrentGate();
+  setMenuToast(`Loaded ${deckIndices.length} gate(s).`);
+  persistAppState();
+}
+
+function jumpToEntity(entityIdVal) {
+  if (!entityIdVal) return;
+  sectorFilter = 'all';
+  phaseFilter = 'all';
+  const sel = document.getElementById('sector-filter-select');
+  if (sel) sel.value = 'all';
+  syncPhasePillsUI();
+  buildFilteredDeck(false);
+  const firstGate = GATES.find(g => g.entityId === Number(entityIdVal));
+  if (firstGate) {
+    const idx = deckIndices.indexOf(firstGate.id);
+    if (idx >= 0) currentDeckPos = idx;
+  }
+  loadCurrentGate();
+  if (isMenuOpen) toggleMenuDrawer();
+  persistAppState();
+}
+
+function syncPhasePillsUI() {
+  const map = { all: 'pill-phase-all', 1: 'pill-phase-1', 2: 'pill-phase-2', 3: 'pill-phase-3' };
+  Object.keys(map).forEach(k => {
+    const el = document.getElementById(map[k]);
+    if (el) el.classList.toggle('is-active', String(phaseFilter) === String(k));
+  });
+}
+
+function setPhaseFilter(val) {
+  phaseFilter = val;
+  syncPhasePillsUI();
+  buildFilteredDeck(false);
+  loadCurrentGate();
+  setMenuToast(`Phase filter updated (${deckIndices.length} gates).`);
+  persistAppState();
+}
+
+function restartOrdered() {
+  buildFilteredDeck(false);
+  loadCurrentGate();
+  setMenuToast(`Deck reset in ordered sequence (${deckIndices.length} gates).`);
+  persistAppState();
+}
+
+function shuffleDeck() {
+  buildFilteredDeck(true);
+  loadCurrentGate();
+  setMenuToast(`Shuffled ${deckIndices.length} gates.`);
+  persistAppState();
+}
+
+function resetMastery(btn) {
+  if (!btn) return;
+  if (btn.dataset.armed !== 'true') {
+    btn.dataset.armed = 'true';
+    btn.textContent = `⚠ Click Again to Confirm Reset Mastery`;
+    setMenuToast(`Tap Reset Mastery once more to clear XP, HP, and cleared gates.`);
+    return;
+  }
+  btn.dataset.armed = 'false';
+  btn.textContent = `🗑 Reset Mastery`;
+  hp = 100;
+  xp = 0;
+  streak = 0;
+  masteredIds = [];
+  missedIds = [];
+  buildFilteredDeck(false);
+  loadCurrentGate();
+  setMenuToast(`Mastery data reset.`);
+  persistAppState();
+}
+
+function populateEntityDropdowns() {
+  const sectorSel = document.getElementById('sector-filter-select');
+  const jumpSel = document.getElementById('skill-entity-select');
+  if (sectorSel) {
+    ENTITIES.forEach(e => {
+      const opt = document.createElement('option');
+      opt.value = String(e.id);
+      opt.textContent = `${e.id}. ${e.name}`;
+      sectorSel.appendChild(opt);
+    });
+  }
+  if (jumpSel) {
+    jumpSel.innerHTML = `<option value="">-- Select Entity to Jump --</option>`;
+    ENTITIES.forEach(e => {
+      const opt = document.createElement('option');
+      opt.value = String(e.id);
+      opt.textContent = `${e.id}. ${e.name}`;
+      jumpSel.appendChild(opt);
+    });
+  }
+}
+
+function renderSkillTreeGrid() {
+  const grid = document.getElementById('skill-tree-grid');
+  if (!grid) return;
+  grid.innerHTML = ENTITIES.map(e => {
+    const entityGates = GATES.filter(g => g.entityId === e.id);
+    const cleared = entityGates.filter(g => masteredIds.includes(g.id)).length;
+    const isMastered = cleared === entityGates.length;
+    const isCurrent = currentGate && currentGate.entityId === e.id;
+    return `
+      <button type="button" class="skill-node-btn ${isMastered ? 'is-mastered' : ''} ${isCurrent ? 'is-current' : ''}" onclick="jumpToEntity(${e.id})">
+        <span class="skill-node-title">${e.id}. ${escapeHtml(e.name.split(' ')[0])}</span>
+        <span class="skill-node-meta">${cleared}/3</span>
+      </button>
+    `;
+  }).join('');
+}
+
+// --- LOOT CODEX ---
+function openCodex() {
+  isCodexOpen = true;
+  renderCodexTable();
+  const overlay = document.getElementById('codex-modal-overlay');
+  if (overlay) overlay.classList.add('is-open');
+}
+
+function closeCodex() {
+  isCodexOpen = false;
+  const overlay = document.getElementById('codex-modal-overlay');
+  if (overlay) overlay.classList.remove('is-open');
+}
+
+function renderCodexTable() {
+  const tbody = document.getElementById('codex-table-body');
+  const searchEl = document.getElementById('codex-search-input');
+  const sumEl = document.getElementById('codex-mastery-summary');
+  if (sumEl) sumEl.textContent = `${masteredIds.length} / ${GATES.length} GATES CLEARED`;
+  if (!tbody) return;
+
+  const q = (searchEl ? searchEl.value : '').trim().toLowerCase();
+  const filtered = ENTITIES.filter(e => {
+    if (!q) return true;
+    const hay = `${e.name} ${e.genome} ${e.transmission} ${e.mechanism} ${e.labs} ${e.management}`.toLowerCase();
+    return hay.includes(q);
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="amboss-scan-target">No GI virus entities match "${escapeHtml(q)}". Clear search to view all 15 entities.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(e => {
+    const cleared = GATES.filter(g => g.entityId === e.id && masteredIds.includes(g.id)).length;
+    return `
+      <tr>
+        <td class="amboss-scan-target"><strong>${e.id}. ${escapeHtml(e.name)}</strong></td>
+        <td class="amboss-scan-target">${escapeHtml(e.genome)}</td>
+        <td class="amboss-scan-target">${escapeHtml(e.transmission)}</td>
+        <td class="amboss-scan-target">${escapeHtml(e.mechanism)}</td>
+        <td class="amboss-scan-target">${escapeHtml(e.labs)}</td>
+        <td class="amboss-scan-target">${escapeHtml(e.management)} (${cleared}/3)</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// --- KEYBOARD CONTROLS ---
+document.addEventListener('keydown', (e) => {
+  const tag = document.activeElement ? document.activeElement.tagName : '';
+  if (tag === 'INPUT' || tag === 'SELECT') {
+    if (e.key === 'Escape' && isCodexOpen) closeCodex();
+    return;
+  }
+
+  const key = e.key.toLowerCase();
+
+  if (isOutcomeOpen) {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+      e.preventDefault();
+      advanceFromOutcome();
+    }
+    return;
+  }
+
+  if (isCodexOpen) {
+    if (e.key === 'Escape' || key === 'c') {
+      e.preventDefault();
+      closeCodex();
+    }
+    return;
+  }
+
+  if (e.key === 'Escape' && isMenuOpen) {
+    toggleMenuDrawer();
+    return;
+  }
+
+  if (key === '1' || key === 'a' || e.key === 'ArrowLeft') {
+    e.preventDefault();
+    selectLane(0);
+  } else if (key === '2' || key === 'w' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    selectLane(1);
+  } else if (key === '3' || key === 'd' || e.key === 'ArrowRight') {
+    e.preventDefault();
+    selectLane(2);
+  } else if (key === 'h') {
+    e.preventDefault();
+    toggleHintsBar();
+  } else if (key === 'c') {
+    e.preventDefault();
+    openCodex();
+  } else if (key === 's') {
+    e.preventDefault();
+    skipCurrentQuestion();
+  } else if (key === 't') {
+    e.preventDefault();
+    toggleTimerMode();
+  } else if (key === 'm') {
+    e.preventDefault();
+    toggleMenuDrawer();
+  }
+});
+
+// --- STATE PERSISTENCE VIA GEMINI NOTEBOOK SHIM API ---
+async function persistAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.setAppState !== 'function') return;
+  try {
+    await window.notebookAppApi.setAppState({
+      hp,
+      xp,
+      streak,
+      masteredIds,
+      missedIds,
+      currentDeckPos,
+      phaseFilter,
+      sectorFilter,
+      isHintsVisible,
+      isTimerEnabled,
+      isMasterSoundOn,
+      isSfxOn,
+      bgmVolume
+    });
+  } catch (err) {
+    // Graceful no-op outside host
+  }
+}
+
+async function restoreAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.getAppState !== 'function') return;
+  try {
+    const saved = await window.notebookAppApi.getAppState();
+    if (!saved) return;
+    if (typeof saved.hp === 'number') hp = saved.hp;
+    if (typeof saved.xp === 'number') xp = saved.xp;
+    if (typeof saved.streak === 'number') streak = saved.streak;
+    if (Array.isArray(saved.masteredIds)) masteredIds = saved.masteredIds;
+    if (Array.isArray(saved.missedIds)) missedIds = saved.missedIds;
+    if (saved.phaseFilter !== undefined) phaseFilter = saved.phaseFilter;
+    if (saved.sectorFilter !== undefined) sectorFilter = saved.sectorFilter;
+    if (typeof saved.isHintsVisible === 'boolean') isHintsVisible = saved.isHintsVisible;
+    if (typeof saved.isTimerEnabled === 'boolean') isTimerEnabled = saved.isTimerEnabled;
+    if (typeof saved.isMasterSoundOn === 'boolean') isMasterSoundOn = saved.isMasterSoundOn;
+    if (typeof saved.isSfxOn === 'boolean') isSfxOn = saved.isSfxOn;
+    if (typeof saved.bgmVolume === 'number') bgmVolume = saved.bgmVolume;
+
+    const sel = document.getElementById('sector-filter-select');
+    if (sel) sel.value = String(sectorFilter);
+    const volSlider = document.getElementById('bgm-volume-slider');
+    if (volSlider) volSlider.value = String(bgmVolume);
+
+    buildFilteredDeck(false);
+    if (typeof saved.currentDeckPos === 'number' && deckIndices.length > 0) {
+      currentDeckPos = saved.currentDeckPos % deckIndices.length;
+    }
+  } catch (err) {
+    // Ignore restore failure
+  }
+}
+
+async function bootApp() {
+  canvasEl = document.getElementById('xr-canvas');
+  ctx2d = canvasEl ? canvasEl.getContext('2d') : null;
+  initPixelDust();
+  populateEntityDropdowns();
+  buildFilteredDeck(false);
+
+  await restoreAppState();
+
+  syncHintsUI();
+  syncTimerControlsUI();
+  syncPhasePillsUI();
+  loadCurrentGate();
+
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  render3DViewport();
+
+  if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === 'function') {
+    window.notebookAppApi.notifyAppReady();
+  }
+}
+
+window.addEventListener('DOMContentLoaded', bootApp);
+</script>
+</body>
+</html>

@@ -1,0 +1,3410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="artifact-type" content="tool">
+<meta name="design-style" content="neon_noir">
+<title>04. Respiratory Viruses — XR 3-Lane Diagnostic Runner (v3.8)</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --background: #0a0a12;
+  --surface-container-low: #111118;
+  --surface-container: #141422;
+  --surface-container-high: #1e1e30;
+  --on-surface: #e8e0f0;
+  --on-surface-variant: #a098b0;
+  --outline: #5a5068;
+  --outline-variant: #302840;
+  --primary: #ff2d78;
+  --on-primary: #1a0010;
+  --primary-container: #b3004e;
+  --on-primary-container: #ffe0ec;
+  --secondary: #00ffcc;
+  --tertiary: #ffe04a;
+  --error: #ff4444;
+  --on-error: #1a0000;
+  --positive: #00ffcc;
+  --warning: #ffe04a;
+  --focus: #ff2d78;
+  --data-1: #ff2d78;
+  --data-2: #00ffcc;
+  --data-3: #ffe04a;
+  --data-4: #b388ff;
+  --data-context: #6e6680;
+  --font-headline: 'Sora', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-label: 'Space Mono', monospace;
+  --rounded: 0.125rem;
+  --rounded-lg: 0.25rem;
+  --rounded-full: 0.75rem;
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+  --glow-text: 0 0 8px currentColor;
+  --glow-primary: 0 0 16px color-mix(in srgb, var(--primary) 40%, transparent);
+  --glow-secondary: 0 0 16px color-mix(in srgb, var(--secondary) 35%, transparent);
+  --glow-tertiary: 0 0 16px color-mix(in srgb, var(--tertiary) 35%, transparent);
+  --neon-border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 50%, transparent);
+  --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+  --scanlines: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in srgb, var(--on-surface) 3%, transparent) 3px 4px);
+  --display-size: clamp(1.35rem, 1.1rem + 0.9vw, 1.85rem);
+  --headline-size: clamp(1.05rem, 0.95rem + 0.4vw, 1.35rem);
+  --subhead-size: clamp(0.95rem, 0.9rem + 0.25vw, 1.12rem);
+  --body-size: clamp(0.88rem, 0.84rem + 0.15vw, 0.98rem);
+  --label-size: 0.75rem;
+  --game-body-size: clamp(0.88rem, 0.82rem + 0.25vw, 1rem);
+  --modal-body-size: clamp(0.88rem, 0.82rem + 0.2vw, 0.98rem);
+  --stem-pad-y: 0.58rem;
+  --stem-font-size: clamp(0.88rem, 0.82rem + 0.35vw, 1.06rem);
+  --card-min-h: clamp(118px, 19dvh, 178px);
+  --card-font-size: clamp(0.86rem, 0.82rem + 0.3vw, 1.02rem);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overflow-x: clip;
+  background-color: var(--background);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: var(--game-body-size);
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+}
+
+button, input, select { font-family: inherit; color: inherit; }
+
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+#xr-app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--background);
+  background-image: var(--scanlines);
+}
+
+#xr-app.hints-visible {
+  --stem-pad-y: 0.4rem;
+  --stem-font-size: clamp(0.82rem, 0.78rem + 0.25vw, 0.96rem);
+  --card-min-h: clamp(92px, 14.5dvh, 142px);
+  --card-font-size: clamp(0.8rem, 0.78rem + 0.22vw, 0.94rem);
+}
+
+/* BAND 1: ULTRA-SLIM TOP BAR */
+.top-mini-bar {
+  position: relative;
+  z-index: 30;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: 0.32rem 0.65rem;
+  background: color-mix(in srgb, var(--surface-container-low) 92%, transparent);
+  border-bottom: 1px solid var(--outline-variant);
+  backdrop-filter: blur(8px);
+}
+
+.menu-mini-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 36px;
+  padding: 0.28rem 0.72rem;
+  background: var(--surface-container);
+  color: var(--secondary);
+  border: 1px solid color-mix(in srgb, var(--secondary) 50%, transparent);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+.menu-mini-btn:hover, .menu-mini-btn[aria-expanded="true"] {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+  text-shadow: var(--glow-text);
+}
+
+.mini-telemetry {
+  display: flex;
+  align-items: center;
+  gap: 0.38rem;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.tele-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  color: var(--on-surface);
+}
+.tele-chip.is-hp { border-color: color-mix(in srgb, var(--primary) 45%, transparent); color: var(--primary); }
+.tele-chip.is-xp { border-color: color-mix(in srgb, var(--secondary) 40%, transparent); color: var(--secondary); }
+.tele-chip.is-streak { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+.tele-chip.is-timer.is-urgent { border-color: var(--error); color: var(--error); box-shadow: 0 0 10px color-mix(in srgb, var(--error) 45%, transparent); }
+
+/* BAND 2: TOP QUESTION STAGE + 3-SECOND AUTO-HIDING METADATA */
+.question-stage {
+  position: relative;
+  z-index: 20;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.42rem 0.75rem 0.28rem;
+  pointer-events: none;
+}
+
+.question-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  max-height: 68px;
+  margin-bottom: 0.32rem;
+  opacity: 1;
+  overflow: hidden;
+  transition: opacity var(--dur-long) var(--ease-out), max-height var(--dur-long) var(--ease-out), margin-bottom var(--dur-long) var(--ease-out);
+}
+.question-meta-row.is-faded {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+}
+
+.meta-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.16rem 0.5rem;
+  background: color-mix(in srgb, var(--surface-container) 90%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary) 45%, transparent);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+.meta-badge.is-angle { border-color: color-mix(in srgb, var(--secondary) 50%, transparent); color: var(--secondary); }
+.meta-badge.is-phase { border-color: color-mix(in srgb, var(--tertiary) 50%, transparent); color: var(--tertiary); }
+.meta-badge.is-corridor { border-color: color-mix(in srgb, var(--data-4) 50%, transparent); color: var(--data-4); }
+
+.question-stem-box {
+  width: min(980px, 96vw);
+  margin: 0 auto;
+  padding: var(--stem-pad-y) 0.95rem;
+  background: color-mix(in srgb, var(--surface-container) 84%, transparent);
+  border: var(--neon-border-lit);
+  box-shadow: var(--neon-inset);
+  border-radius: var(--rounded-lg);
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
+  text-align: center;
+}
+
+.question-stem {
+  margin: 0 auto;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: var(--stem-font-size);
+  font-weight: 500;
+  line-height: 1.42;
+  color: var(--on-surface);
+  max-width: 78ch;
+}
+
+/* BAND 3: CENTER 3D XR VIEWPORT + 3 CENTERED ANSWER CARDS */
+.viewport-shell {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#xr-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1;
+}
+
+.lane-overlay-container {
+  position: relative;
+  z-index: 10;
+  width: min(1060px, 95vw);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(0.55rem, 1.3vw, 1.15rem);
+  align-items: stretch;
+  justify-items: stretch;
+  padding: 0.4rem 0;
+}
+
+.lane-dom-card {
+  position: relative;
+  min-height: var(--card-min-h);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0.65rem 0.72rem;
+  background: color-mix(in srgb, var(--surface-container) 72%, transparent);
+  border: 1.5px solid var(--outline);
+  border-radius: var(--rounded-lg);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  user-select: none;
+  transition: transform var(--dur-micro) var(--ease-out), border-color var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+}
+.lane-dom-card.lane-0 {
+  border-color: color-mix(in srgb, var(--data-1) 60%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--data-1) 14%, transparent);
+}
+.lane-dom-card.lane-1 {
+  border-color: color-mix(in srgb, var(--data-2) 60%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--data-2) 14%, transparent);
+}
+.lane-dom-card.lane-2 {
+  border-color: color-mix(in srgb, var(--data-3) 60%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--data-3) 14%, transparent);
+}
+.lane-dom-card.lane-0:hover, .lane-dom-card.lane-0.is-targeted {
+  border-color: var(--data-1);
+  box-shadow: var(--glow-primary), inset 0 0 18px color-mix(in srgb, var(--data-1) 22%, transparent);
+  transform: translateY(-2px);
+}
+.lane-dom-card.lane-1:hover, .lane-dom-card.lane-1.is-targeted {
+  border-color: var(--data-2);
+  box-shadow: var(--glow-secondary), inset 0 0 18px color-mix(in srgb, var(--data-2) 22%, transparent);
+  transform: translateY(-2px);
+}
+.lane-dom-card.lane-2:hover, .lane-dom-card.lane-2.is-targeted {
+  border-color: var(--data-3);
+  box-shadow: var(--glow-tertiary), inset 0 0 18px color-mix(in srgb, var(--data-3) 22%, transparent);
+  transform: translateY(-2px);
+}
+
+.lane-card-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  margin-bottom: 0.4rem;
+  font-family: var(--font-label);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.lane-0 .lane-portal-name { color: var(--data-1); }
+.lane-1 .lane-portal-name { color: var(--data-2); }
+.lane-2 .lane-portal-name { color: var(--data-3); }
+.lane-key-label {
+  color: var(--on-surface-variant);
+  border: 1px solid var(--outline-variant);
+  padding: 0.08rem 0.32rem;
+  border-radius: var(--rounded);
+}
+
+.lane-choice-body {
+  flex: 1 1 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.lane-card-text,
+.lane-choice-body span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: var(--card-font-size);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--on-surface);
+}
+
+/* BAND 4: BOTTOM HINTS BAR */
+#hints-bar {
+  position: relative;
+  z-index: 20;
+  flex-shrink: 0;
+  width: 100%;
+  padding: 0.36rem 0.75rem 0.44rem;
+  background: color-mix(in srgb, var(--surface-container-low) 92%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--secondary) 35%, transparent);
+  text-align: center;
+  display: none;
+}
+#xr-app.hints-visible #hints-bar { display: block; }
+
+.hints-inner {
+  width: min(960px, 95vw);
+  margin: 0 auto;
+  text-align: center;
+}
+.hints-kicker {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  margin-bottom: 0.12rem;
+}
+#q-clue-text {
+  margin: 0 auto;
+  text-align: center;
+  font-size: 0.84rem;
+  color: var(--on-surface);
+  line-height: 1.35;
+}
+
+/* TOAST */
+.inline-toast {
+  position: fixed;
+  top: 3.1rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
+  z-index: 95;
+  padding: 0.38rem 0.9rem;
+  background: var(--surface-container-high);
+  border: 1px solid var(--secondary);
+  box-shadow: var(--glow-secondary);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--secondary);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out);
+}
+.inline-toast.is-shown { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* SLIDE-DOWN MENU DRAWER */
+#top-menu-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: color-mix(in srgb, var(--background) 88%, transparent);
+  backdrop-filter: blur(10px);
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0.75rem;
+  overflow-y: auto;
+}
+#top-menu-drawer.is-open { display: flex; }
+
+.menu-drawer-panel {
+  width: min(1040px, 98vw);
+  max-height: 94dvh;
+  overflow-y: auto;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.drawer-top-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--outline-variant);
+  padding-bottom: 0.65rem;
+}
+.drawer-kicker {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  text-shadow: var(--glow-text);
+  margin: 0 0 0.2rem;
+}
+.drawer-title {
+  font-family: var(--font-headline);
+  font-size: var(--headline-size);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--on-surface);
+  margin: 0;
+}
+
+.drawer-section {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.72rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.drawer-section-title {
+  margin: 0;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.drawer-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.btn-neon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 40px;
+  padding: 0.42rem 0.82rem;
+  background: var(--surface-container);
+  color: var(--primary);
+  border: var(--neon-border-lit);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+}
+.btn-neon:hover { border-color: var(--primary); box-shadow: var(--glow-primary); text-shadow: var(--glow-text); }
+.btn-neon.is-cyan { color: var(--secondary); border-color: color-mix(in srgb, var(--secondary) 50%, transparent); }
+.btn-neon.is-cyan:hover { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.btn-neon.is-yellow { color: var(--tertiary); border-color: color-mix(in srgb, var(--tertiary) 50%, transparent); }
+.btn-neon.is-yellow:hover { border-color: var(--tertiary); box-shadow: var(--glow-tertiary); }
+.btn-neon.is-active {
+  background: color-mix(in srgb, var(--secondary) 16%, var(--surface-container));
+  border-color: var(--secondary);
+  color: var(--secondary);
+}
+
+.drawer-controls-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr));
+  gap: 0.6rem;
+  align-items: end;
+}
+
+.control-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.control-field label {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+.control-field select,
+.control-field input[type="text"],
+.control-field input[type="range"] {
+  width: 100%;
+  min-height: 38px;
+  padding: 0.35rem 0.55rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  color: var(--on-surface);
+  font-size: 0.82rem;
+}
+.control-field input[type="range"] { padding: 0; }
+
+.phase-mix-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.phase-pill {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--rounded);
+  border: 1px solid var(--outline-variant);
+  background: var(--surface-container);
+  color: var(--on-surface-variant);
+}
+
+.skill-tree-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(185px, 100%), 1fr));
+  gap: 0.45rem;
+}
+.skill-node-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 0.2rem;
+  padding: 0.52rem 0.62rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  cursor: pointer;
+  transition: border-color var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out);
+}
+.skill-node-btn:hover { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.skill-node-btn.is-mastered { border-color: var(--secondary); background: color-mix(in srgb, var(--secondary) 10%, var(--surface-container)); }
+.skill-node-btn.is-active-filter { border-color: var(--primary); box-shadow: var(--glow-primary); }
+.skill-node-title { font-size: 0.8rem; font-weight: 600; color: var(--on-surface); line-height: 1.3; }
+.skill-node-meta { font-family: var(--font-label); font-size: 0.64rem; color: var(--on-surface-variant); }
+
+.hotkey-guide {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  color: var(--on-surface-variant);
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.45rem 0.65rem;
+  line-height: 1.5;
+}
+
+/* MODALS */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: color-mix(in srgb, var(--background) 84%, transparent);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem;
+}
+.modal-backdrop.is-open { display: flex; }
+
+#outcome-popup-modal {
+  width: 80vw;
+  height: 80vh;
+  max-width: 1120px;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-align: center !important;
+  font-size: var(--modal-body-size);
+}
+
+.popup-header {
+  flex-shrink: 0;
+  background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 0.55rem 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-align: center !important;
+}
+.popup-verdict {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: var(--headline-size);
+  font-weight: 800;
+  color: var(--secondary);
+  text-align: center !important;
+}
+.popup-verdict.is-wrong { color: var(--error); }
+
+.popup-question-pin {
+  flex-shrink: 0;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 0.52rem 0.9rem;
+  text-align: center !important;
+}
+.popup-question-pin-label {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tertiary);
+  margin-bottom: 0.18rem;
+  text-align: center !important;
+}
+.popup-question-pin-text {
+  margin: 0 auto;
+  font-size: 0.86rem;
+  color: var(--on-surface);
+  max-width: 82ch;
+  text-align: center !important;
+}
+
+.popup-scroll-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.72rem;
+  text-align: center !important;
+}
+
+.dossier-block {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.68rem 0.85rem;
+  text-align: center !important;
+}
+.dossier-block.is-highlight { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); }
+.dossier-block-title {
+  margin: 0 0 0.42rem;
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  text-align: center !important;
+}
+.dossier-line {
+  margin: 0.25rem auto;
+  color: var(--on-surface);
+  line-height: 1.48;
+  max-width: 78ch;
+  text-align: center !important;
+}
+
+.choice-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.choice-box {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.55rem 0.65rem;
+  text-align: center !important;
+}
+.choice-box.is-correct { border-color: var(--secondary); }
+.choice-box.is-wrong { border-color: var(--error); }
+.choice-box-label {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--on-surface-variant);
+  margin-bottom: 0.22rem;
+  text-align: center !important;
+}
+.choice-box p { margin: 0; font-weight: 600; color: var(--on-surface); text-align: center !important; }
+
+.angle-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.angle-mini-card {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.55rem 0.65rem;
+  text-align: center !important;
+}
+.angle-mini-title {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--tertiary);
+  text-align: center !important;
+}
+
+.popup-footer {
+  flex-shrink: 0;
+  background: var(--surface-container-high);
+  border-top: 1px solid var(--outline-variant);
+  padding: 0.55rem 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+}
+
+/* CODEX & SUMMARY MODALS */
+.wide-modal {
+  width: min(1160px, 92vw);
+  height: 86vh;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-secondary);
+  border-radius: var(--rounded-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.codex-toolbar {
+  padding: 0.65rem 0.85rem;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+}
+.codex-filter-pills { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.codex-search-input {
+  min-width: 220px;
+  min-height: 36px;
+  padding: 0.3rem 0.65rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  color: var(--on-surface);
+  font-size: 0.84rem;
+}
+.codex-table-wrap { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 0.65rem; }
+.codex-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  text-align: left;
+}
+.codex-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-container-high);
+  color: var(--secondary);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.52rem 0.6rem;
+  border-bottom: 1px solid var(--outline);
+}
+.codex-table td {
+  padding: 0.52rem 0.6rem;
+  border-bottom: 1px solid var(--outline-variant);
+  vertical-align: top;
+  line-height: 1.42;
+}
+.codex-table tr:nth-child(even) td { background: var(--surface-container-low); }
+
+.summary-modal {
+  width: min(620px, 92vw);
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  padding: 1.2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+.summary-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.stat-tile {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.65rem;
+}
+.stat-tile-val { font-family: var(--font-headline); font-size: 1.45rem; font-weight: 800; color: var(--secondary); }
+.stat-tile-lbl { font-family: var(--font-label); font-size: 0.68rem; text-transform: uppercase; color: var(--on-surface-variant); }
+
+/* 3 VERBATIM v3.8 PHONE MEDIA QUERIES */
+@media (max-width: 600px) {
+  .tele-chip.is-xp { display: none; }
+  .lane-overlay-container { grid-template-columns: 1fr; gap: 0.45rem; width: 94vw; }
+  .lane-dom-card { min-height: 62px; padding: 0.48rem 0.65rem; }
+  .lane-card-head, .lane-key-label { display: none; }
+  #xr-app.hints-visible .lane-dom-card { min-height: 52px; padding: 0.36rem 0.55rem; }
+  #xr-app.hints-visible .question-stem-box { padding: 0.35rem 0.6rem; }
+  #outcome-popup-modal { width: 96vw; height: 92dvh; }
+  .choice-compare-grid, .angle-cards-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-height: 500px) and (pointer: coarse) {
+  .top-mini-bar { padding: 0.2rem 0.5rem; }
+  .question-stage { padding: 0.25rem 0.5rem 0.15rem; }
+  .question-stem-box { padding: 0.3rem 0.6rem; }
+  .lane-overlay-container { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.4rem; }
+  .lane-dom-card { min-height: 68px; padding: 0.35rem 0.45rem; }
+  .lane-card-head { display: none; }
+}
+
+@media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+  html { font-size: 200%; }
+  .lane-overlay-container { grid-template-columns: 1fr; gap: 0.45rem; }
+  .lane-dom-card { min-height: 64px; }
+  .lane-card-head, .lane-key-label { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+<div id="xr-app" class="hints-hidden">
+  <!-- BAND 1: ULTRA-SLIM TOP BAR -->
+  <div class="top-mini-bar">
+    <button type="button" class="menu-mini-btn" id="menu-toggle-btn" onclick="toggleMenuDrawer()" aria-expanded="false" aria-controls="top-menu-drawer">☰ MENU</button>
+    <div class="mini-telemetry" aria-label="Game Status">
+      <span class="tele-chip is-hp" id="hp-chip">HP <span id="hp-text">100</span></span>
+      <span class="tele-chip is-xp">XP <span id="xp-text">0</span></span>
+      <span class="tele-chip is-streak">⚡ <span id="streak-text">0</span></span>
+      <span class="tele-chip">GATE <span id="gate-text">1/45</span></span>
+      <span class="tele-chip is-timer" id="timer-chip">⏱ <span id="timer-text">OFF</span></span>
+    </div>
+  </div>
+
+  <!-- BAND 2: TOP QUESTION + 3-SECOND AUTO-HIDING METADATA -->
+  <div class="question-stage">
+    <div class="question-meta-row" id="question-meta-row">
+      <span class="meta-badge" id="lo-badge">LO 1</span>
+      <span class="meta-badge is-angle" id="angle-badge">PRESENTATION → DIAGNOSIS</span>
+      <span class="meta-badge is-phase" id="phase-badge">PHASE 1: PATHOGENESIS</span>
+      <span class="meta-badge is-corridor" id="corridor-badge">ORTHOMYXO CORRIDOR</span>
+    </div>
+    <div class="question-stem-box">
+      <p class="question-stem amboss-scan-target" id="q-stem-text">Loading diagnostic corridor…</p>
+    </div>
+  </div>
+
+  <!-- BAND 3: CENTER 3D XR VIEWPORT + 3 CENTERED ANSWER CARDS -->
+  <div class="viewport-shell" id="viewport-shell">
+    <canvas id="xr-canvas" aria-label="3D Perspective Diagnostic Corridor"></canvas>
+    <div class="lane-overlay-container" id="lane-overlay-container">
+      <div id="lane-0-card" class="lane-dom-card lane-0" role="button" tabindex="0"
+        onmouseenter="previewLaneTarget(0)" onpointerenter="previewLaneTarget(0)" onfocus="previewLaneTarget(0)"
+        onclick="selectLaneAndResolve(0)"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(0);}">
+        <div class="lane-card-head">
+          <span class="lane-portal-name">LEFT PORTAL</span>
+          <span class="lane-key-label">1 / A / ←</span>
+        </div>
+        <div class="lane-choice-body">
+          <span class="lane-card-text amboss-scan-target" id="lane-0-text">Loading…</span>
+        </div>
+      </div>
+
+      <div id="lane-1-card" class="lane-dom-card lane-1" role="button" tabindex="0"
+        onmouseenter="previewLaneTarget(1)" onpointerenter="previewLaneTarget(1)" onfocus="previewLaneTarget(1)"
+        onclick="selectLaneAndResolve(1)"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(1);}">
+        <div class="lane-card-head">
+          <span class="lane-portal-name">CENTER PORTAL</span>
+          <span class="lane-key-label">2 / W / ↑</span>
+        </div>
+        <div class="lane-choice-body">
+          <span class="lane-card-text amboss-scan-target" id="lane-1-text">Loading…</span>
+        </div>
+      </div>
+
+      <div id="lane-2-card" class="lane-dom-card lane-2" role="button" tabindex="0"
+        onmouseenter="previewLaneTarget(2)" onpointerenter="previewLaneTarget(2)" onfocus="previewLaneTarget(2)"
+        onclick="selectLaneAndResolve(2)"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(2);}">
+        <div class="lane-card-head">
+          <span class="lane-portal-name">RIGHT PORTAL</span>
+          <span class="lane-key-label">3 / D / →</span>
+        </div>
+        <div class="lane-choice-body">
+          <span class="lane-card-text amboss-scan-target" id="lane-2-text">Loading…</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BAND 4: BOTTOM HINTS BAR -->
+  <div id="hints-bar">
+    <div class="hints-inner">
+      <span class="hints-kicker">💡 TACTICAL BOARD CLUE [H]</span>
+      <p class="amboss-scan-target" id="q-clue-text">Tactical clue appears here.</p>
+    </div>
+  </div>
+</div>
+
+<div class="inline-toast" id="inline-toast" role="status" aria-live="polite"></div>
+
+<!-- SLIDE-DOWN MENU DRAWER (TITLE + ALL CONTROLS) -->
+<div id="top-menu-drawer" role="dialog" aria-modal="true" aria-labelledby="menu-drawer-title">
+  <div class="menu-drawer-panel">
+    <div class="drawer-top-head">
+      <div>
+        <p class="drawer-kicker" id="menu-drawer-kicker">MICROBIOLOGY &amp; PATHOLOGY // RESPIRATORY VIRUSES RAID</p>
+        <h1 class="drawer-title" id="menu-drawer-title">04. Respiratory Viruses — XR 3-Lane Diagnostic Runner (v3.8)</h1>
+      </div>
+      <button type="button" class="btn-neon is-cyan" onclick="toggleMenuDrawer()">✕ Close [M]</button>
+    </div>
+
+    <div class="drawer-section">
+      <h2 class="drawer-section-title">Gameplay &amp; Run Actions</h2>
+      <div class="drawer-btn-row">
+        <button type="button" class="btn-neon is-cyan" id="menu-hints-btn" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+        <button type="button" class="btn-neon is-cyan" onclick="openCodexFromMenu()">📖 Loot Codex [C]</button>
+        <button type="button" class="btn-neon is-yellow" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+        <button type="button" class="btn-neon" id="menu-timer-btn" onclick="toggleTimerEnabled()">⏱ 50s Timer: OFF [T]</button>
+        <button type="button" class="btn-neon is-cyan" onclick="startTimedRun()">⚡ Start 50s Timed Run</button>
+        <button type="button" class="btn-neon" onclick="restartDeck(false)">↻ Restart Ordered</button>
+        <button type="button" class="btn-neon is-cyan" onclick="restartDeck(true)">🔀 Shuffle Deck</button>
+        <button type="button" class="btn-neon is-yellow" id="reset-mastery-btn" onclick="handleResetMastery(this)">🧹 Reset Mastery</button>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <h2 class="drawer-section-title">Audio Suite (Procedural Zombies Synth + Custom MP3/WAV)</h2>
+      <div class="drawer-btn-row">
+        <button type="button" class="btn-neon is-active" id="master-sound-btn" onclick="toggleMasterSound()">🔊 Master Sound: ON</button>
+        <button type="button" class="btn-neon is-active" id="sfx-sound-btn" onclick="toggleSfx()">🎵 SFX: ON</button>
+        <button type="button" class="btn-neon" id="bgm-sound-btn" onclick="toggleBgm()">🎹 Zombies BGM: OFF</button>
+        <label class="btn-neon is-cyan" for="custom-bgm-input" style="cursor:pointer;">📂 Load MP3/WAV<input type="file" id="custom-bgm-input" accept="audio/*" style="display:none;" onchange="loadCustomAudio(event)"></label>
+        <div class="control-field" style="min-width:160px;">
+          <label for="bgm-volume-slider">BGM Volume</label>
+          <input type="range" id="bgm-volume-slider" min="0" max="100" value="40" oninput="setBgmVolume(this.value)">
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <h2 class="drawer-section-title">Deck Filters &amp; Phase Distribution (30% / 35% / 35%)</h2>
+      <div class="drawer-controls-grid">
+        <div class="control-field">
+          <label for="sector-filter">Sector / Entity Filter</label>
+          <select id="sector-filter" onchange="applyDeckFilters()"></select>
+        </div>
+        <div class="control-field">
+          <label for="angle-filter">Question Angle</label>
+          <select id="angle-filter" onchange="applyDeckFilters()">
+            <option value="ALL">All 3 Diagnostic Angles</option>
+            <option value="Presentation -> Diagnosis">Presentation → Diagnosis</option>
+            <option value="Mechanism -> Pathophysiology">Mechanism → Pathophysiology</option>
+            <option value="Hallmarks -> Management">Hallmarks → Management</option>
+          </select>
+        </div>
+        <div class="control-field">
+          <label for="timesup-mode">Time's Up Behavior</label>
+          <select id="timesup-mode" onchange="setTimesUpMode(this.value)">
+            <option value="wrong">Time's Up = Wrong → Review Screen</option>
+            <option value="hold">Hold at 0s (Wait for Selection)</option>
+          </select>
+        </div>
+      </div>
+      <div class="phase-mix-row">
+        <span class="phase-pill">Phase 1: Pathogenesis (~30% • 14 Gates)</span>
+        <span class="phase-pill">Phase 2: Histology / Structure (~35% • 16 Gates)</span>
+        <span class="phase-pill">Phase 3: Clinical &amp; Management (~35% • 15 Gates)</span>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.4rem;">
+        <h2 class="drawer-section-title">15-Entity Respiratory Virus Skill Tree</h2>
+        <span style="font-family:var(--font-label);font-size:0.7rem;color:var(--on-surface-variant);" id="mastery-summary">Mastered: 0 / 15 LOs • Accuracy: --%</span>
+      </div>
+      <div class="skill-tree-grid" id="skill-tree-grid"></div>
+    </div>
+
+    <div class="hotkey-guide">
+      <strong>Keyboard Shortcuts:</strong> [1 / 2 / 3] or [A / W / D] or [← / ↑ / →] Select Portal • [H] Toggle Bottom Hints • [M] Menu • [C] Loot Codex • [S] Skip • [T] Toggle 50s Timer • [↑ / ↓] Scroll Review • [Space / Enter] Continue Review
+    </div>
+  </div>
+</div>
+
+<!-- 7-PART OUTCOME DOSSIER MODAL -->
+<div class="modal-backdrop" id="outcome-backdrop" role="dialog" aria-modal="true" aria-labelledby="outcome-verdict">
+  <div id="outcome-popup-modal">
+    <div class="popup-header">
+      <h2 class="popup-verdict" id="outcome-verdict">✔ CORRECT — [SHORT ANSWER]</h2>
+      <span class="meta-badge" id="outcome-xp-delta">+100 XP</span>
+      <span class="meta-badge is-phase" id="outcome-hp-delta">+5 HP</span>
+    </div>
+    <div class="popup-question-pin">
+      <span class="popup-question-pin-label" id="outcome-lo-ref">Original Board Vignette</span>
+      <p class="popup-question-pin-text amboss-scan-target" id="outcome-question-text"></p>
+    </div>
+    <div class="popup-scroll-body" id="outcome-scroll-body">
+      <div class="dossier-block is-highlight">
+        <h3 class="dossier-block-title">1. Your Choice vs. Correct Answer</h3>
+        <div class="choice-compare-grid">
+          <div class="choice-box" id="your-choice-box">
+            <span class="choice-box-label">Your Portal Choice</span>
+            <p class="amboss-scan-target" id="your-choice-text"></p>
+          </div>
+          <div class="choice-box is-correct">
+            <span class="choice-box-label">Verified Correct Answer</span>
+            <p class="amboss-scan-target" id="correct-choice-text"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">2. Rationale &amp; Distractor Exclusion</h3>
+        <div id="dossier-explanation" class="amboss-scan-target"></div>
+      </div>
+
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">3. Second-Order Board Logic Clue</h3>
+        <div id="dossier-board-clue" class="amboss-scan-target"></div>
+      </div>
+
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">4. Phase 1: Pathogenesis Pearl</h3>
+        <div id="dossier-pathogenesis" class="amboss-scan-target"></div>
+      </div>
+
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">5. Phase 2: Histology / Structure Hallmark</h3>
+        <div id="dossier-morphology" class="amboss-scan-target"></div>
+      </div>
+
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">6. Phase 3: Clinical &amp; Guild Master's Secret</h3>
+        <div id="dossier-epi-tx" class="amboss-scan-target"></div>
+      </div>
+
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">7. 3-Angle Synthesis Dossier</h3>
+        <div class="angle-cards-grid">
+          <div class="angle-mini-card">
+            <h4 class="angle-mini-title">Phase 1 • Pathogenesis</h4>
+            <div id="dossier-angle-1" class="amboss-scan-target"></div>
+          </div>
+          <div class="angle-mini-card">
+            <h4 class="angle-mini-title">Phase 2 • Structure / Labs</h4>
+            <div id="dossier-angle-2" class="amboss-scan-target"></div>
+          </div>
+          <div class="angle-mini-card">
+            <h4 class="angle-mini-title">Phase 3 • Clinical / Tx</h4>
+            <div id="dossier-angle-3" class="amboss-scan-target"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="popup-footer">
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(-180)">▲ Up</button>
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(180)">▼ Down</button>
+      <button type="button" class="btn-neon" id="continue-runner-btn" onclick="continueToNextGate()">▶ Continue Runner [Space / Enter]</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6-COLUMN SEARCHABLE LOOT CODEX MODAL -->
+<div class="modal-backdrop" id="codex-backdrop" role="dialog" aria-modal="true" aria-labelledby="codex-title">
+  <div class="wide-modal">
+    <div class="popup-header" style="justify-content:space-between;">
+      <h2 class="popup-verdict" id="codex-title" style="font-size:1.1rem;">📖 Respiratory Viruses Loot Codex (15 Entities)</h2>
+      <button type="button" class="btn-neon is-cyan" onclick="closeCodex()">✕ Close [C]</button>
+    </div>
+    <div class="codex-toolbar">
+      <div class="codex-filter-pills" id="codex-filter-pills">
+        <button type="button" class="btn-neon is-active" onclick="setCodexSectorFilter('ALL', this)">All Sectors</button>
+        <button type="button" class="btn-neon is-cyan" onclick="setCodexSectorFilter('sector_1', this)">I. Orthomyxo</button>
+        <button type="button" class="btn-neon is-cyan" onclick="setCodexSectorFilter('sector_2', this)">II. Paramyxo</button>
+        <button type="button" class="btn-neon is-cyan" onclick="setCodexSectorFilter('sector_3', this)">III. Rhino/Corona</button>
+        <button type="button" class="btn-neon is-cyan" onclick="setCodexSectorFilter('sector_4', this)">IV. Adeno/Herpes</button>
+        <button type="button" class="btn-neon is-cyan" onclick="setCodexSectorFilter('sector_5', this)">V. Zoonotic/Other</button>
+      </div>
+      <div class="control-field" style="flex-direction:row;align-items:center;gap:0.4rem;">
+        <label for="codex-search-input">Search</label>
+        <input type="text" id="codex-search-input" class="codex-search-input" oninput="renderCodexRows()">
+      </div>
+    </div>
+    <div class="codex-table-wrap">
+      <table class="codex-table">
+        <thead>
+          <tr>
+            <th>LO &amp; Entity / Boss</th>
+            <th>Etiology / Trigger</th>
+            <th>Pathogenesis Cascade</th>
+            <th>Gross &amp; Histology Hallmarks</th>
+            <th>Clinical Presentation</th>
+            <th>Management &amp; Guild Secret</th>
+          </tr>
+        </thead>
+        <tbody id="codex-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- END-OF-RUN SUMMARY MODAL -->
+<div class="modal-backdrop" id="summary-backdrop" role="dialog" aria-modal="true" aria-labelledby="summary-title">
+  <div class="summary-modal">
+    <h2 class="popup-verdict" id="summary-title">CORRIDOR RUN COMPLETE</h2>
+    <p id="summary-subtitle" style="margin:0;color:var(--on-surface-variant);">Diagnostic telemetry logged.</p>
+    <div class="summary-stats-grid">
+      <div class="stat-tile"><div class="stat-tile-val" id="sum-accuracy">0%</div><div class="stat-tile-lbl">Accuracy</div></div>
+      <div class="stat-tile"><div class="stat-tile-val" id="sum-xp">0</div><div class="stat-tile-lbl">Total XP</div></div>
+      <div class="stat-tile"><div class="stat-tile-val" id="sum-streak">0</div><div class="stat-tile-lbl">Best Streak</div></div>
+      <div class="stat-tile"><div class="stat-tile-val" id="sum-missed">0</div><div class="stat-tile-lbl">Missed Gates</div></div>
+    </div>
+    <div class="drawer-btn-row" style="justify-content:center;">
+      <button type="button" class="btn-neon is-yellow" onclick="reviewMissedFromSummary()">🎯 Run Missed Gates Only</button>
+      <button type="button" class="btn-neon is-cyan" onclick="restartFromSummary(true)">🔀 Shuffle &amp; Replay</button>
+      <button type="button" class="btn-neon" onclick="restartFromSummary(false)">↻ Ordered Replay</button>
+    </div>
+  </div>
+</div>
+
+<api-shim></api-shim>
+<script>
+const GAME_CONFIG = {
+  title: `04. Respiratory Viruses — XR 3-Lane Diagnostic Runner (v3.8)`,
+  kicker: `MICROBIOLOGY & PATHOLOGY // RESPIRATORY VIRUSES RAID`,
+  maxHp: 100,
+  hpPenalty: 15,
+  hpReward: 5,
+  healAmount: 25,
+  healStreakStep: 4,
+  stopDistanceMeters: 5,
+  gateStartDistance: 95,
+  gateApproachSpeed: 24,
+  timerSeconds: 50,
+  metaFadeMs: 3000
+};
+
+const LANE_COLORS = ['#ff2d78', '#00ffcc', '#ffe04a'];
+
+const SECTORS = [
+  { id: 'sector_1', label: `Sector I: Orthomyxoviruses (LO 1–3)` },
+  { id: 'sector_2', label: `Sector II: Paramyxoviruses (LO 4–6)` },
+  { id: 'sector_3', label: `Sector III: Rhinoviruses & Coronaviruses (LO 7–9)` },
+  { id: 'sector_4', label: `Sector IV: Adenoviruses & Herpesviruses (LO 10–12)` },
+  { id: 'sector_5', label: `Sector V: Zoonotic & Emerging Viruses (LO 13–15)` }
+];
+
+const LO_VISUAL_THEMES = {
+  1: { tag: `SECTOR I • INFLUENZA SHIFT`, gridRgb: '255,45,120', dustColor: '#ff2d78' },
+  2: { tag: `SECTOR I • HA / M2 / NA`, gridRgb: '0,255,204', dustColor: '#00ffcc' },
+  3: { tag: `SECTOR I • SUPERINFECTION & TX`, gridRgb: '255,224,74', dustColor: '#ffe04a' },
+  4: { tag: `SECTOR II • RSV BRONCHIOLITIS`, gridRgb: '0,255,204', dustColor: '#00ffcc' },
+  5: { tag: `SECTOR II • PARAINFLUENZA CROUP`, gridRgb: '255,45,120', dustColor: '#ff2d78' },
+  6: { tag: `SECTOR II • MEASLES & MUMPS`, gridRgb: '179,136,255', dustColor: '#b388ff' },
+  7: { tag: `SECTOR III • RHINOVIRUS ICAM-1`, gridRgb: '255,224,74', dustColor: '#ffe04a' },
+  8: { tag: `SECTOR III • SARS / MERS CORONA`, gridRgb: '0,255,204', dustColor: '#00ffcc' },
+  9: { tag: `SECTOR III • SARS-COV-2 ACE2`, gridRgb: '255,45,120', dustColor: '#ff2d78' },
+  10: { tag: `SECTOR IV • ADENOVIRUS DSDNA`, gridRgb: '179,136,255', dustColor: '#b388ff' },
+  11: { tag: `SECTOR IV • CMV PNEUMONITIS`, gridRgb: '0,255,204', dustColor: '#00ffcc' },
+  12: { tag: `SECTOR IV • HSV TRACHEOBRONCHITIS`, gridRgb: '255,45,120', dustColor: '#ff2d78' },
+  13: { tag: `SECTOR V • HANTAVIRUS HPS`, gridRgb: '255,224,74', dustColor: '#ffe04a' },
+  14: { tag: `SECTOR V • METAPNEUMOVIRUS`, gridRgb: '0,255,204', dustColor: '#00ffcc' },
+  15: { tag: `SECTOR V • COXSACKIE PLEURODYNIA`, gridRgb: '179,136,255', dustColor: '#b388ff' }
+};
+
+const CODEX_DATA = [
+  {
+    lo: 1, sector: 'sector_1',
+    entity: `LO 1: Influenza A — Antigenic Shift`,
+    trigger: `Enveloped, (-)ssRNA, 8-segment Orthomyxovirus; co-infection of animal/human host`,
+    pathogenesis: `Reassortment of segmented RNA genome (BOAR) creates novel HA/NA subtype → sudden antigenic shift → pandemic`,
+    hallmarks: `Replicates in host cell nucleus (exception among RNA viruses); segmented 8-piece genome`,
+    clinical: `Abrupt global pandemics with high fever, myalgias, malaise, cough; lacks pre-existing herd immunity`,
+    management: `Neuraminidase inhibitors (oseltamivir) within 48h; seasonal/pandemic vaccine mismatch risk`
+  },
+  {
+    lo: 2, sector: 'sector_1',
+    entity: `LO 2: Influenza A/B — Drift, HA, M2 & NA`,
+    trigger: `Point mutations in viral RNA polymerase lacking proofreading`,
+    pathogenesis: `HA binds sialic acid for entry; M2 protein acidifies virion for uncoating; NA cleaves sialic acid for progeny release`,
+    hallmarks: `Enveloped (-)ssRNA carrying RNA-dependent RNA polymerase; Influenza B undergoes drift only`,
+    clinical: `Annual winter epidemics (drift) with sudden fever, rigors, headache, nonproductive cough`,
+    management: `Live attenuated intranasal or killed injectable vaccine; avoid aspirin in kids (Reye syndrome)`
+  },
+  {
+    lo: 3, sector: 'sector_1',
+    entity: `LO 3: Influenza Complications & Antivirals`,
+    trigger: `Post-influenza respiratory epithelial necrosis & impaired mucociliary clearance`,
+    pathogenesis: `Neuraminidase exposes basement membrane receptors → fatal bacterial superinfection (S. aureus, S. pneumoniae, H. influenzae)`,
+    hallmarks: `Necrotizing tracheobronchitis; post-viral lobar or cavitary bacterial consolidation on CXR`,
+    clinical: `Biphasic illness: initial flu improvement followed by abrupt fever spike, purulent sputum, dyspnea`,
+    management: `Oseltamivir/zanamivir inhibit NA; amantadine/rimantadine (M2) obsolete due to resistance; empiric antibiotics for superinfection`
+  },
+  {
+    lo: 4, sector: 'sector_2',
+    entity: `LO 4: Respiratory Syncytial Virus (RSV)`,
+    trigger: `Enveloped (-)ssRNA Paramyxovirus; winter droplet transmission in infants < 6 months`,
+    pathogenesis: `G protein attaches to epithelium; Fusion (F) protein fuses adjacent host cells into multinucleated syncytia`,
+    hallmarks: `HA-negative, NA-negative, F-protein-positive; bronchiolar epithelial necrosis + mucus plugging`,
+    clinical: `MCC bronchiolitis and pneumonia in infants < 6 mo; wheezing, tachypnea, nasal flaring, retractions`,
+    management: `Supportive care (O2, hydration); Palivizumab (monoclonal anti-F antibody) prophylaxis for high-risk premature infants`
+  },
+  {
+    lo: 5, sector: 'sector_2',
+    entity: `LO 5: Parainfluenza Virus (Croup)`,
+    trigger: `Enveloped (-)ssRNA Paramyxovirus; respiratory droplets in children 6 mo–3 yr`,
+    pathogenesis: `HA+, NA+, F-protein+ paramyxovirus causes subglottic and laryngeal mucosal edema`,
+    hallmarks: `AP neck radiograph shows subglottic narrowing ("steeple sign")`,
+    clinical: `Acute laryngotracheobronchitis: inspiratory stridor, hoarseness, "seal-like" barking cough worse at night`,
+    management: `Dexamethasone (corticosteroid) + nebulized racemic epinephrine for stridor at rest`
+  },
+  {
+    lo: 6, sector: 'sector_2',
+    entity: `LO 6: Measles & Mumps (Paramyxoviruses)`,
+    trigger: `Enveloped (-)ssRNA Paramyxoviruses; unvaccinated children / waning immunity`,
+    pathogenesis: `Measles: HA+ (no NA) + F protein causes systemic viremia & T-cell immunosuppression; Mumps: HA+/NA+/F+ glandular tropism`,
+    hallmarks: `Measles: Warthin-Finkeldey multinucleated giant cells; Koplik spots on buccal mucosa`,
+    clinical: `Measles: 4 C's (Cough, Coryza, Conjunctivitis, Koplik) → descending maculopapular rash; giant cell pneumonia in immunocompromised; Mumps: parotitis, orchitis, aseptic meningitis`,
+    management: `MMR live attenuated vaccine (CI in pregnancy, CD4 < 200); Vitamin A reduces measles mortality`
+  },
+  {
+    lo: 7, sector: 'sector_3',
+    entity: `LO 7: Rhinovirus (Picornavirus)`,
+    trigger: `Naked (+)ssRNA Picornavirus; > 100 serotypes via fomites & respiratory droplets`,
+    pathogenesis: `Binds ICAM-1 on nasal mucosa; replicates optimally at cooler 33°C upper airway temperature; translated as 1 long polyprotein cleaved by proteases`,
+    hallmarks: `Acid-labile (destroyed by gastric acid, unlike enteroviruses); nonenveloped icosahedral capsid`,
+    clinical: `Most common cause of the "common cold" (rhinorrhea, nasal congestion, sore throat, afebrile)`,
+    management: `Supportive care only; no vaccine due to > 100 serotypes`
+  },
+  {
+    lo: 8, sector: 'sector_3',
+    entity: `LO 8: Endemic Coronaviruses, SARS & MERS`,
+    trigger: `Enveloped (+)ssRNA Coronavirus with helical capsid; zoonotic spillover (bats/camels/civets)`,
+    pathogenesis: `Largest (+)ssRNA genome; cytoplasmic replication with crown-like spike glycoproteins driving lower alveolar inflammation`,
+    hallmarks: `Crown-like peplomers on EM; diffuse alveolar damage in SARS/MERS`,
+    clinical: `Common cold (endemic strains) vs. SARS/MERS severe acute bronchitis, pneumonia, and ARDS`,
+    management: `Supportive respiratory care / ARDS lung-protective ventilation`
+  },
+  {
+    lo: 9, sector: 'sector_3',
+    entity: `LO 9: SARS-CoV-2 (COVID-19)`,
+    trigger: `Enveloped (+)ssRNA Betacoronavirus transmitted via respiratory aerosols/droplets`,
+    pathogenesis: `Spike (S) protein binds host ACE2 receptor (cleaved by TMPRSS2) → viral replication + cytokine storm + endothelial injury`,
+    hallmarks: `Diffuse alveolar damage (hyaline membranes) + widespread pulmonary microvascular thrombosis`,
+    clinical: `Fever, dry cough, anosmia/ageusia, bilateral ground-glass opacities, hypoxemic respiratory failure (ARDS)`,
+    management: `Dexamethasone (if hypoxemic/ventilated), remdesivir (RNA polymerase inhibitor), mRNA spike vaccines`
+  },
+  {
+    lo: 10, sector: 'sector_4',
+    entity: `LO 10: Adenovirus`,
+    trigger: `Naked dsDNA virus; droplets, fecal-oral, or poorly chlorinated pools`,
+    pathogenesis: `Naked capsid resists detergents/acid; replicates in host nucleus causing lytic mucosal/lymphoid inflammation`,
+    hallmarks: `Icosahedral naked dsDNA with fiber spikes; intranuclear basophilic inclusions`,
+    clinical: `Pharyngoconjunctival fever (pink eye + pharyngitis), tonsillitis/adenoiditis, military recruit outbreaks, hemorrhagic cystitis`,
+    management: `Supportive care; live non-attenuated enteric-coated oral vaccine (types 4 & 7) for military recruits`
+  },
+  {
+    lo: 11, sector: 'sector_4',
+    entity: `LO 11: Cytomegalovirus (CMV / HHV-5)`,
+    trigger: `Enveloped linear dsDNA Herpesvirus; reactivation in lung transplant or AIDS (CD4 < 100)`,
+    pathogenesis: `Latent in mononuclear cells; T-cell immunosuppression enables uncontrolled pulmonary endothelial & epithelial lysis`,
+    hallmarks: `Enlarged cells with characteristic basophilic "owl-eye" intranuclear inclusions`,
+    clinical: `Interstitial pneumonitis in lung/bone marrow transplant recipients; CREEP (Colitis, Retinitis, Esophagitis, Encephalitis, Pneumonitis)`,
+    management: `Ganciclovir (guanosine analog phosphorylated by viral UL97 kinase) or valganciclovir; foscarnet if UL97-mutant`
+  },
+  {
+    lo: 12, sector: 'sector_4',
+    entity: `LO 12: HSV-1 Respiratory Tract Disease`,
+    trigger: `Enveloped linear dsDNA Herpesvirus latent in trigeminal ganglia; critical illness/intubation`,
+    pathogenesis: `Reactivation with contiguous mucosal spread down the oropharynx into the tracheobronchial tree`,
+    hallmarks: `Multinucleated giant cells (Tzanck smear) and Cowdry type A eosinophilic intranuclear inclusions; necrotizing tracheobronchitis`,
+    clinical: `Gingivostomatitis, herpes labialis, and necrotizing tracheobronchitis/pneumonitis in intubated or immunocompromised hosts`,
+    management: `Acyclovir (phosphorylated by viral thymidine kinase) or valacyclovir`
+  },
+  {
+    lo: 13, sector: 'sector_5',
+    entity: `LO 13: Hantavirus (Sin Nombre Virus)`,
+    trigger: `Enveloped (-)ssRNA Bunyavirus (3 circular segments); aerosolized deer mouse urine/feces`,
+    pathogenesis: `Rodent-borne ("robovirus") infection of pulmonary capillary endothelium → massive capillary leak without endothelial necrosis`,
+    hallmarks: `Triad: thrombocytopenia, hemoconcentration, and immunoblasts on peripheral smear; bilateral pulmonary edema`,
+    clinical: `Hantavirus pulmonary syndrome (HPS): fever/myalgia prodrome → rapid noncardiogenic pulmonary edema, hypotension, prerenal azotemia`,
+    management: `Aggressive ICU supportive oxygenation/ECMO; avoid excessive IV fluid resuscitation`
+  },
+  {
+    lo: 14, sector: 'sector_5',
+    entity: `LO 14: Human Metapneumovirus (hMPV)`,
+    trigger: `Enveloped (-)ssRNA Pneumovirus/Paramyxovirus family; winter-spring droplets`,
+    pathogenesis: `Closely related to RSV (lacks NS1/NS2 proteins); F-protein-mediated airway epithelial fusion and peribronchiolar inflammation`,
+    hallmarks: `Pleomorphic enveloped (-)ssRNA virions; bronchiolar epithelial sloughing & mucus hypersecretion`,
+    clinical: `Bronchiolitis and viral pneumonia in infants, elderly, and immunocompromised; clinically indistinguishable from RSV`,
+    management: `Supportive care (oxygen, hydration); no targeted antiviral or licensed vaccine`
+  },
+  {
+    lo: 15, sector: 'sector_5',
+    entity: `LO 15: Coxsackievirus B (Pleurodynia)`,
+    trigger: `Naked (+)ssRNA Picornavirus (Enterovirus); fecal-oral / summer-fall outbreaks`,
+    pathogenesis: `Acid-stable enterovirus (survives stomach) spreads hematogenously to intercostal striated muscle & pleura`,
+    hallmarks: `Naked (+)ssRNA; cleaved from single large polyprotein; normal chest radiograph (rules out pneumonia/PE)`,
+    clinical: `Bornholm disease ("devil's grip" / epidemic pleurodynia): paroxysmal, lancinating, pleuritic chest/upper abdominal pain + fever`,
+    management: `Supportive care and NSAIDs; self-limiting`
+  }
+];
+
+const ALL_QUESTIONS = [
+  // LO 1: Influenza A Antigenic Shift (3 questions)
+  {
+    id: `LO01-Q1`, lo: 1, loTitle: `LO 1: Influenza A Shift`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Influenza A Antigenic Shift`,
+    stem: `A novel respiratory virus emerges from a swine-human co-infection event, triggering a rapid global pandemic with severe fever, myalgias, and dry cough across all age groups lacking pre-existing immunity. Which viral mechanism best explains this abrupt pandemic emergence?`,
+    clue: `Think of an 8-segment (-)ssRNA virus swapping whole RNA segments between species.`,
+    choices: [`Antigenic shift via reassortment of segmented RNA`, `Antigenic drift via point mutations in hemagglutinin`, `Viral integration into host chromosomal DNA`],
+    correctIndex: 0,
+    explanation: `Correct: Influenza A has an 8-segment (-)ssRNA genome capable of reassortment (antigenic shift) when two strains co-infect a single host, producing a novel HA/NA subtype and pandemics. Distractor exclusion: Antigenic drift causes seasonal epidemics via point mutations, and orthomyxoviruses do not integrate into host DNA.`,
+    secondOrderClue: `Only segmented viruses (BOAR: Bunyaviruses, Orthomyxoviruses, Arenaviruses, Reoviruses) undergo reassortment-driven antigenic shift.`,
+    phase1Pearl: `Co-infection of swine respiratory cells (which express both avian and human sialic acid receptors) enables 8-segment reassortment.`,
+    phase2Hallmark: `Enveloped (-)ssRNA orthomyxovirus with 8 helical ribonucleoprotein segments; uniquely replicates in the host nucleus.`,
+    phase3Secret: `Pandemic strains evade prior seasonal vaccine antibodies because the hemagglutinin globular head is completely replaced.`,
+    dossierBullets: {
+      p1: [`8-segment (-)ssRNA genome allows whole-segment reassortment`, `Swine act as mixing vessels for avian and human influenza A`],
+      p2: [`Enveloped orthomyxovirus replicating inside the host nucleus`, `Helical nucleocapsid with viral RNA-dependent RNA polymerase`],
+      p3: [`Causes abrupt pandemics due to zero herd immunity`, `Distinguish from Influenza B, which undergoes drift only`]
+    }
+  },
+  {
+    id: `LO01-Q2`, lo: 1, loTitle: `LO 1: Influenza A Shift`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Nuclear Replication & Cap-Snatching`,
+    stem: `Unlike nearly all other RNA viruses that complete their entire replication cycle in the cytoplasm, an 8-segment (-)ssRNA respiratory pathogen must import its ribonucleoprotein complexes into a specific host compartment to steal 5'-capped primers from host pre-mRNA. Where does this virus replicate?`,
+    clue: `"Retro flu is outta cyt (sight)" — which organelle houses host pre-mRNA?`,
+    choices: [`Host cell nucleus`, `Host rough endoplasmic reticulum`, `Host mitochondrial matrix`],
+    correctIndex: 0,
+    explanation: `Correct: Orthomyxoviruses (influenza) and retroviruses are the classic exceptions among RNA viruses that replicate in the host cell nucleus so influenza can snatch host 5' mRNA caps. Distractor exclusion: Coronaviruses/paramyxoviruses replicate in the cytoplasm/ER-Golgi, and no human respiratory virus replicates in mitochondria.`,
+    secondOrderClue: `Remember the board mnemonic: "All RNA viruses replicate in the cytoplasm EXCEPT retrovirus and influenza virus."`,
+    phase1Pearl: `Viral endonuclease cleaves host nuclear pre-mRNA 5' caps ("cap-snatching") to prime viral mRNA transcription.`,
+    phase2Hallmark: `Segmented (-)ssRNA carries its own RNA-dependent RNA polymerase inside the virion.`,
+    phase3Secret: `If a vignette links cap-snatching or nuclear replication to a segmented respiratory virus, select Influenza (Orthomyxovirus).`,
+    dossierBullets: {
+      p1: [`Imports vRNPs into nucleus for cap-snatching transcription`, `Negative-sense RNA requires packaged viral RdRp`],
+      p2: [`8 segments of linear (-)ssRNA`, `Nuclear localization distinguishes it from paramyxoviruses`],
+      p3: [`Baloxavir targets the cap-dependent endonuclease`, `Explains why host nuclear export machinery is required`]
+    }
+  },
+  {
+    id: `LO01-Q3`, lo: 1, loTitle: `LO 1: Influenza A Shift`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Segmented (-)ssRNA (BOAR)`,
+    stem: `Electron microscopy and molecular sequencing of a pandemic respiratory isolate reveal a pleomorphic enveloped virion housing eight distinct linear negative-sense single-stranded RNA molecules. Which other viral family shares the segmented genome property enabling reassortment?`,
+    clue: `Use the BOAR mnemonic for segmented RNA viruses.`,
+    choices: [`Bunyaviruses (e.g., Hantavirus)`, `Paramyxoviruses (e.g., RSV)`, `Coronaviruses (e.g., SARS-CoV-2)`],
+    correctIndex: 0,
+    explanation: `Correct: BOAR (Bunyaviruses, Orthomyxoviruses, Arenaviruses, Reoviruses) are the segmented RNA virus families. Distractor exclusion: Paramyxoviruses and coronaviruses possess single, non-segmented RNA genomes and cannot undergo segment reassortment.`,
+    secondOrderClue: `When a question pairs "segmented genome" with "antigenic shift" or "reassortment," eliminate all non-segmented families immediately.`,
+    phase1Pearl: `Segmented genomes facilitate genetic exchange during dual infection, driving rapid evolutionary jumps.`,
+    phase2Hallmark: `Orthomyxovirus = 8 segments; Bunyavirus = 3 circular segments; Arenavirus = 2 ambisense segments; Reovirus = 11 dsRNA segments.`,
+    phase3Secret: `Influenza B and C have limited animal reservoirs and therefore do not cause antigenic shift pandemics like Influenza A.`,
+    dossierBullets: {
+      p1: [`Segmented RNA enables reassortment during co-infection`, `Non-segmented RNA viruses rely on point mutations or recombination`],
+      p2: [`BOAR = Bunyavirus, Orthomyxovirus, Arenavirus, Reovirus`, `All (-)ssRNA viruses must carry their own polymerase`],
+      p3: [`Animal reservoirs (birds, swine) drive Influenza A shift`, `Surveillance tracks H and N surface subtypes (e.g., H1N1, H3N2)`]
+    }
+  },
+
+  // LO 2: Influenza A/B Drift, HA, M2 & NA (3 questions)
+  {
+    id: `LO02-Q1`, lo: 2, loTitle: `LO 2: Influenza HA/M2/NA`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Antigenic Drift (Influenza B/A)`,
+    stem: `Every winter, a nursing home experiences a localized respiratory outbreak of abrupt fever, myalgias, and nonproductive cough caused by an Influenza B strain harboring minor amino acid substitutions in its hemagglutinin receptor-binding site. What process accounts for these recurring seasonal epidemics?`,
+    clue: `Point mutations without segment swapping cause annual outbreaks rather than pandemics.`,
+    choices: [`Antigenic drift via RNA polymerase point mutations`, `Antigenic shift via reassortment with avian strains`, `Lysogenic conversion by a respiratory bacteriophage`],
+    correctIndex: 0,
+    explanation: `Correct: Antigenic drift arises from random point mutations in HA/NA genes due to error-prone viral RNA polymerase, causing seasonal epidemics in both Influenza A and B. Distractor exclusion: Influenza B lacks an animal reservoir for antigenic shift, and bacteriophages infect bacteria, not eukaryotic cells.`,
+    secondOrderClue: `Drift = Point mutation = Epidemic (A & B); Shift = Reassortment = Pandemic (A only).`,
+    phase1Pearl: `RNA-dependent RNA polymerase lacks 3'→5' exonuclease proofreading, accumulating mutations each winter.`,
+    phase2Hallmark: `Minor conformational changes in HA/NA epitopes reduce neutralizing antibody binding.`,
+    phase3Secret: `Antigenic drift necessitates annual reformulation of the trivalent/quadrivalent influenza vaccine.`,
+    dossierBullets: {
+      p1: [`Error-prone viral RdRp generates HA/NA point mutations`, `Occurs in both Influenza A and Influenza B`],
+      p2: [`Subtle epitope changes escape prior humoral immunity`, `Preserves overall H/N subtype designation`],
+      p3: [`Causes yearly winter endemic/epidemic surges`, `Requires annual vaccine strain updates`]
+    }
+  },
+  {
+    id: `LO02-Q2`, lo: 2, loTitle: `LO 2: Influenza HA/M2/NA`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `M2 Proton Channel Uncoating`,
+    stem: `After Influenza A binds respiratory epithelial sialic acid receptors and enters via receptor-mediated endocytosis, endosomal acidification triggers a conformational change that releases viral ribonucleoproteins into the host cytoplasm. Which viral protein conducts protons into the virion interior to mediate this uncoating step?`,
+    clue: `This ion channel was historically blocked by amantadine and rimantadine.`,
+    choices: [`M2 matrix ion channel protein`, `Neuraminidase surface glycoprotein`, `Hemagglutinin fusion peptide`],
+    correctIndex: 0,
+    explanation: `Correct: The M2 protein forms a proton-selective ion channel that acidifies the virion core inside the endosome, dissociating M1 matrix proteins from the ribonucleoproteins (uncoating). Distractor exclusion: Hemagglutinin mediates sialic acid binding/membrane fusion, whereas neuraminidase cleaves sialic acid for progeny release.`,
+    secondOrderClue: `Pair each Influenza protein to its step: HA = Entry (binds sialic acid), M2 = Uncoating (H+ influx), NA = Exit (cleaves sialic acid).`,
+    phase1Pearl: `Acidification via M2 disrupts M1-vRNP interactions so RNA segments can traffic into the host nucleus.`,
+    phase2Hallmark: `M2 is present in Influenza A (amantadine-sensitive historically), whereas Influenza B has NB/BM2.`,
+    phase3Secret: `Amantadine and rimantadine are no longer recommended for influenza due to widespread M2 S31N resistance.`,
+    dossierBullets: {
+      p1: [`Endosomal H+ enters virion through M2 proton channel`, `Acidic pH dissociates M1 matrix shell from vRNPs`],
+      p2: [`HA binds sialic acid; NA cleaves sialic acid`, `RBC clumping in lab assays is caused by hemagglutinin`],
+      p3: [`Amantadine/rimantadine inhibit M2 uncoating`, `Resistance makes neuraminidase inhibitors preferred`]
+    }
+  },
+  {
+    id: `LO02-Q3`, lo: 2, loTitle: `LO 2: Influenza HA/M2/NA`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Hemagglutinin & Neuraminidase`,
+    stem: `A laboratory technologist incubates throat washings from a patient with acute febrile tracheobronchitis with guinea pig erythrocytes and observes visible red blood cell clumping. Which viral surface glycoprotein directly mediates this laboratory phenomenon and host airway attachment?`,
+    clue: `Its name literally means "blood clumping" and it binds sialic acid residues.`,
+    choices: [`Hemagglutinin (HA)`, `Neuraminidase (NA)`, `Fusion (F) protein`],
+    correctIndex: 0,
+    explanation: `Correct: Hemagglutinin (HA) binds sialic acid residues on respiratory epithelial cells for viral entry and cross-links RBC sialic acid receptors causing hemagglutination. Distractor exclusion: Neuraminidase cleaves sialic acid to release budding virions, and F protein is characteristic of paramyxoviruses.`,
+    secondOrderClue: `Hemagglutination inhibition assays measure antibodies directed against HA.`,
+    phase1Pearl: `HA is cleaved by host airway proteases into HA1 (receptor binding) and HA2 (endosomal membrane fusion).`,
+    phase2Hallmark: `Surface homotrimeric spike glycoprotein; binds alpha-2,6 (human) or alpha-2,3 (avian) sialic acids.`,
+    phase3Secret: `Vaccines primarily elicit neutralizing IgG/IgA antibodies against the HA receptor-binding domain.`,
+    dossierBullets: {
+      p1: [`HA binds host sialic acid and triggers endosomal fusion`, `Cleavage by host trypsin-like proteases activates fusion`],
+      p2: [`Cross-links RBCs in vitro (hemagglutination)`, `Determines host species tropism`],
+      p3: [`Target of neutralizing vaccine antibodies`, `Avoid aspirin in children with influenza (Reye syndrome)`]
+    }
+  },
+
+  // LO 3: Influenza Complications & Antiviral Therapy (3 questions)
+  {
+    id: `LO03-Q1`, lo: 3, loTitle: `LO 3: Influenza Superinfection & Tx`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Staphylococcus aureus Superinfection`,
+    stem: `A 64-year-old man recovers partially after 5 days of severe influenza A, then suddenly develops high fever, rigors, hemoptysis, and chest radiograph findings of multilobar patchy infiltrates with early cavitation. Sputum Gram stain shows Gram-positive cocci in clusters. Which complication has developed?`,
+    clue: `Post-influenza necrotizing cavitating pneumonia with Gram-positive cocci in clusters.`,
+    choices: [`Secondary Staphylococcus aureus pneumonia`, `Primary Influenza viral myocarditis`, `Reactive hemophagocytic lymphohistiocytosis`],
+    correctIndex: 0,
+    explanation: `Correct: Fatal bacterial superinfection—most commonly S. aureus (often necrotizing/cavitary with Gram-positive cocci in clusters), S. pneumoniae, or H. influenzae—classically produces a biphasic illness after influenza. Distractor exclusion: Viral myocarditis does not produce cavitary infiltrates or Gram-positive cocci in clusters.`,
+    secondOrderClue: `Biphasic course (flu → brief improvement → abrupt worsening + purulent sputum/cavitation) = secondary bacterial pneumonia.`,
+    phase1Pearl: `Influenza destroys ciliated respiratory epithelium and suppresses alveolar macrophage phagocytosis.`,
+    phase2Hallmark: `Neutrophilic alveolar exudate and parenchymal necrosis/abscess formation on histology.`,
+    phase3Secret: `Empiric therapy for severe post-influenza pneumonia must cover MRSA (vancomycin or linezolid) plus S. pneumoniae.`,
+    dossierBullets: {
+      p1: [`Epithelial denudation and impaired ciliary clearance`, `Viral neuraminidase exposes bacterial adherence sites`],
+      p2: [`Gram-positive cocci in clusters = S. aureus`, `Cavitary infiltrates and empyema are classic`],
+      p3: [`Top 3 superinfections: S. aureus, S. pneumoniae, H. influenzae`, `Cover MRSA promptly in post-flu deterioration`]
+    }
+  },
+  {
+    id: `LO03-Q2`, lo: 3, loTitle: `LO 3: Influenza Superinfection & Tx`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Oseltamivir Inhibits Neuraminidase`,
+    stem: `A 29-year-old healthcare worker presents within 18 hours of acute fever, myalgias, and rhinorrhea and tests positive for Influenza A. She is prescribed oral oseltamivir. How does this medication limit viral spread in the respiratory tract?`,
+    clue: `Progeny virions stay trapped on the host cell surface if sialic acid is not cleaved.`,
+    choices: [`Inhibits neuraminidase, preventing progeny virion release`, `Blocks M2 proton channels, preventing viral uncoating`, `Inhibits RNA-dependent RNA polymerase chain elongation`],
+    correctIndex: 0,
+    explanation: `Correct: Oseltamivir and zanamivir are sialic acid analogs that competitively inhibit viral neuraminidase, trapping newly budded virions bound to host cell sialic acid. Distractor exclusion: Amantadine/rimantadine block M2 uncoating, and ribavirin/remdesivir interfere with viral RNA synthesis.`,
+    secondOrderClue: `Oseltamivir must be started within 48 hours of symptom onset for maximal reduction in symptom duration.`,
+    phase1Pearl: `Without neuraminidase cleavage, HA on budding virions remains tethered to host surface sialic acid and self-aggregates.`,
+    phase2Hallmark: `Zanamivir is inhaled (avoid in asthma/COPD bronchospasm); oseltamivir is oral.`,
+    phase3Secret: `Remember the board triad: Oseltamivir/Zanamivir = NA inhibitors; Amantadine/Rimantadine = M2 blockers.`,
+    dossierBullets: {
+      p1: [`Competitively inhibits viral neuraminidase active site`, `Newly budded virions clump at the host plasma membrane`],
+      p2: [`Effective against both Influenza A and Influenza B`, `Active metabolite oseltamivir carboxylate`],
+      p3: [`Initiate within 48 hours of symptom onset`, `Also used for post-exposure prophylaxis in high-risk hosts`]
+    }
+  },
+  {
+    id: `LO03-Q3`, lo: 3, loTitle: `LO 3: Influenza Superinfection & Tx`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Reye Syndrome (Avoid Aspirin)`,
+    stem: `A 7-year-old boy with laboratory-confirmed Influenza B is given an over-the-counter antipyretic by his parents and develops intractable vomiting, lethargy, hepatomegaly, elevated transaminases, and hyperammonemia 4 days later. Liver biopsy shows microvesicular steatosis without inflammation. Which drug exposure triggered this syndrome?`,
+    clue: `Never give salicylates to children with influenza or varicella.`,
+    choices: [`Aspirin (salicylate) therapy`, `Acetaminophen at standard dosing`, `Oral oseltamivir therapy`],
+    correctIndex: 0,
+    explanation: `Correct: Salicylate (aspirin) administration during Influenza B or VZV infection precipitates Reye syndrome, characterized by hepatic mitochondrial injury, microvesicular steatosis, hyperammonemia, and encephalopathy. Distractor exclusion: Acetaminophen causes centrilobular necrosis in overdose, and oseltamivir does not cause Reye syndrome.`,
+    secondOrderClue: `Child + Influenza/VZV + Aspirin + vomiting/encephalopathy + microvesicular fatty liver = Reye syndrome.`,
+    phase1Pearl: `Salicylates uncouple oxidative phosphorylation and injure hepatic mitochondria during acute viral illness.`,
+    phase2Hallmark: `Microvesicular hepatic steatosis with swollen pleomorphic mitochondria on EM and minimal inflammation.`,
+    phase3Secret: `Use acetaminophen or ibuprofen—never aspirin—for fever in children (except Kawasaki disease).`,
+    dossierBullets: {
+      p1: [`Synergistic mitochondrial damage from viral infection + salicylates`, `Impaired beta-oxidation and urea cycle → hyperammonemia`],
+      p2: [`Microvesicular steatosis in hepatocytes`, `Cerebral edema without CSF pleocytosis`],
+      p3: [`Avoid aspirin in pediatric Influenza and VZV`, `Treat urgently with IV dextrose, mannitol, and ammonia control`]
+    }
+  },
+
+  // LO 4: RSV Bronchiolitis (3 questions)
+  {
+    id: `LO04-Q1`, lo: 4, loTitle: `LO 4: RSV Bronchiolitis`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Respiratory Syncytial Virus (RSV)`,
+    stem: `In January, a 3-month-old infant presents with 2 days of rhinorrhea followed by tachypnea, nasal flaring, intercostal retractions, diffuse expiratory wheezing, and crackles. Chest radiograph shows hyperinflation and patchy peribronchial thickening. Which virus is the most common cause of this clinical syndrome?`,
+    clue: `Most common cause of bronchiolitis and pneumonia in infants under 6 months.`,
+    choices: [`Respiratory syncytial virus (RSV)`, `Parainfluenza virus type 1`, `Bordetella pertussis`],
+    correctIndex: 0,
+    explanation: `Correct: RSV is the leading cause of acute bronchiolitis and pneumonia in infants < 6 months old, presenting in winter with wheezing, tachypnea, retractions, and pulmonary hyperinflation. Distractor exclusion: Parainfluenza classically causes croup with inspiratory stridor, and pertussis causes paroxysmal whooping cough and post-tussive emesis.`,
+    secondOrderClue: `Infant < 6 mo + winter + wheezing/retractions + hyperinflated CXR = RSV bronchiolitis.`,
+    phase1Pearl: `Attaches via G protein and spreads cell-to-cell via Fusion (F) protein, causing sloughing of bronchiolar epithelium.`,
+    phase2Hallmark: `Mucus, fibrin, and necrotic epithelial plugs create ball-valve air trapping and hyperinflation on CXR.`,
+    phase3Secret: `Primary management is supportive (suctioning, hydration, humidified oxygen); routine bronchodilators/steroids are not first-line.`,
+    dossierBullets: {
+      p1: [`G protein mediates attachment; F protein mediates syncytia`, `Small infant airways easily obstruct from edema and debris`],
+      p2: [`Necrotizing bronchiolitis with multinucleated giant cells`, `Hyperinflation and flattened diaphragms on CXR`],
+      p3: [`MCC bronchiolitis and pneumonia in infants < 6 months`, `Supportive care is the cornerstone of management`]
+    }
+  },
+  {
+    id: `LO04-Q2`, lo: 4, loTitle: `LO 4: RSV Bronchiolitis`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Fusion (F) Protein Syncytia`,
+    stem: `A paramyxovirus lacks both hemagglutinin and neuraminidase activity on its envelope yet induces adjacent respiratory epithelial cells to coalesce into large multinucleated syncytia. Which viral surface glycoprotein directly mediates this cell-to-cell fusion?`,
+    clue: `RSV is HA-negative, NA-negative, and positive for this "F" virulence factor.`,
+    choices: [`Fusion (F) protein`, `G attachment glycoprotein`, `M2 matrix proton channel`],
+    correctIndex: 0,
+    explanation: `Correct: All paramyxoviruses express a surface Fusion (F) protein that fuses viral envelopes with host membranes and fuses neighboring host cells into multinucleated giant cells (syncytia); uniquely, RSV is HA- and NA-. Distractor exclusion: G protein mediates attachment only, and M2 belongs to influenza.`,
+    secondOrderClue: `Distinguish paramyxoviruses by surface spikes: Parainfluenza/Mumps = HA+ NA+ F+; Measles = HA+ NA- F+; RSV = HA- NA- F+.`,
+    phase1Pearl: `F-protein-driven syncytia formation allows RSV to spread directly from cell to cell while partially evading extracellular antibodies.`,
+    phase2Hallmark: `Multinucleated giant cells (syncytia) with intracytoplasmic eosinophilic inclusions in bronchiolar epithelium.`,
+    phase3Secret: `Palivizumab targets an antigenic epitope on the RSV F protein to block membrane fusion.`,
+    dossierBullets: {
+      p1: [`F protein drives virus-cell and cell-cell membrane fusion`, `Allows direct intercellular spread`],
+      p2: [`RSV spike profile: HA-, NA-, F+`, `Produces characteristic epithelial syncytia`],
+      p3: [`Target of monoclonal prophylaxis (palivizumab)`, `Explains the name "Respiratory Syncytial Virus"`]
+    }
+  },
+  {
+    id: `LO04-Q3`, lo: 4, loTitle: `LO 4: RSV Bronchiolitis`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Palivizumab Prophylaxis`,
+    stem: `A neonate born at 27 weeks' gestation with bronchopulmonary dysplasia is being discharged from the NICU in November. To prevent severe lower respiratory tract hospitalization from RSV during the winter season, which immunoprophylaxis should be administered?`,
+    clue: `Monoclonal antibody directed against the RSV F protein for high-risk premature infants.`,
+    choices: [`Palivizumab (anti-F protein monoclonal antibody)`, `Aerosolized ribavirin prophylaxis`, `Live attenuated intranasal RSV vaccine`],
+    correctIndex: 0,
+    explanation: `Correct: Palivizumab is a humanized monoclonal IgG antibody against the RSV F protein given monthly during RSV season to high-risk infants (prematurity < 29 weeks, chronic lung disease/BPD, hemodynamically significant congenital heart disease). Distractor exclusion: Ribavirin is reserved for severe immunocompromised adult/transplant treatment (teratogenic), and there is no live attenuated infant RSV vaccine.`,
+    secondOrderClue: `Palivizumab = Prophylaxis (passive immunity against F protein) for Premies.`,
+    phase1Pearl: `Passive neutralizing IgG binds the pre-fusion F glycoprotein, preventing viral entry and syncytia formation.`,
+    phase2Hallmark: `Monthly IM injections during winter months confer temporary passive mucosal/systemic protection.`,
+    phase3Secret: `Remember ribavirin is contraindicated in pregnancy (teratogenic) and NOT used for routine infant bronchiolitis.`,
+    dossierBullets: {
+      p1: [`Passive IgG monoclonal antibody targeting RSV F protein`, `Prevents fusion and lower airway syncytia`],
+      p2: [`Indicated in < 29 wk preterm, BPD, or congenital heart disease`, `Administered monthly during peak RSV season`],
+      p3: [`Ribavirin is teratogenic and restricted to severe adult/immunocompromised cases`, `Mainstay of acute RSV care remains supportive`]
+    }
+  },
+
+  // LO 5: Parainfluenza Croup (3 questions)
+  {
+    id: `LO05-Q1`, lo: 5, loTitle: `LO 5: Parainfluenza Croup`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Parainfluenza Virus (Croup)`,
+    stem: `A 2-year-old boy awakens at 2:00 AM with a hoarse voice, a loud "seal-like" barking cough, and audible inspiratory stridor that worsens when he cries. He has no drooling and sits comfortably in his mother's lap with a low-grade fever. Which pathogen is most likely responsible?`,
+    clue: `Acute laryngotracheobronchitis with seal-bark cough and inspiratory stridor.`,
+    choices: [`Parainfluenza virus`, `Haemophilus influenzae type b`, `Respiratory syncytial virus`],
+    correctIndex: 0,
+    explanation: `Correct: Parainfluenza virus is the #1 cause of croup (acute laryngotracheobronchitis), classically presenting in toddlers with a seal-like barking cough, hoarseness, and inspiratory stridor. Distractor exclusion: Hib causes acute epiglottitis (high fever, drooling, dysphagia, tripod position), while RSV causes bronchiolitis with expiratory wheezing.`,
+    secondOrderClue: `Inspiratory stridor + barky cough + no drooling = Croup (Parainfluenza); drooling + tripod + thumbprint sign = Epiglottitis (Hib).`,
+    phase1Pearl: `Parainfluenza expresses HA+, NA+, and F+ glycoproteins, infecting upper tracheal and subglottic mucosa.`,
+    phase2Hallmark: `Subglottic airway narrowing yields the classic "steeple sign" on AP neck X-ray.`,
+    phase3Secret: `Keep the child calm—agitation increases turbulent airflow and worsens dynamic subglottic collapse.`,
+    dossierBullets: {
+      p1: [`(-)ssRNA Paramyxovirus with HA+, NA+, and F+ spikes`, `Inflames vocal cords and narrow subglottic cricoid ring`],
+      p2: [`Subglottic edema creates steeple sign on AP neck film`, `Spares the epiglottis (unlike Hib)`],
+      p3: [`Seal-bark cough + inspiratory stridor in 6 mo–3 yr`, `Worse at night and with crying`]
+    }
+  },
+  {
+    id: `LO05-Q2`, lo: 5, loTitle: `LO 5: Parainfluenza Croup`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Steeple Sign (Subglottic Narrowing)`,
+    stem: `An anteroposterior neck radiograph is obtained in an 18-month-old child with stridor and a barking cough, revealing symmetric tapering of the upper trachea just below the vocal cords resembling a church spire. Which anatomical region is edematous in this condition?`,
+    clue: `Croup narrows the subglottic trachea, creating a "steeple" on AP view.`,
+    choices: [`Subglottic region and upper trachea`, `Supraglottic aryepiglottic folds and epiglottis`, `Distal terminal bronchioles`],
+    correctIndex: 0,
+    explanation: `Correct: In croup (laryngotracheobronchitis), edema of the subglottic mucosa within the rigid cricoid cartilage ring narrows the subglottic lumen into a "steeple sign" on AP neck radiograph. Distractor exclusion: Supraglottic epiglottis swelling causes the lateral "thumbprint sign" of epiglottitis, and terminal bronchioles are affected in RSV bronchiolitis.`,
+    secondOrderClue: `AP Neck X-ray Steeple Sign = Croup (subglottic); Lateral Neck X-ray Thumbprint Sign = Epiglottitis (supraglottic).`,
+    phase1Pearl: `The cricoid cartilage is the only complete circumferential ring in the upper airway, forcing mucosal edema inward.`,
+    phase2Hallmark: `Concentric subglottic tracheal tapering on AP neck film.`,
+    phase3Secret: `Radiographs are unnecessary in classic mild croup and should never delay airway management.`,
+    dossierBullets: {
+      p1: [`Edema inside rigid cricoid ring markedly increases airway resistance`, `Resistance is inversely proportional to radius⁴`],
+      p2: [`AP neck X-ray: steeple sign (subglottic tapering)`, `Epiglottis remains sharp and normal`],
+      p3: [`Causes inspiratory stridor rather than expiratory wheezing`, `Distinguish clinically from foreign body and epiglottitis`]
+    }
+  },
+  {
+    id: `LO05-Q3`, lo: 5, loTitle: `LO 5: Parainfluenza Croup`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Dexamethasone + Racemic Epinephrine`,
+    stem: `A 2-year-old girl with parainfluenza croup develops persistent inspiratory stridor at rest and suprasternal retractions in the emergency department. Which immediate pharmacologic combination reduces subglottic mucosal edema and prevents airway fatigue?`,
+    clue: `Combine a systemic steroid with an inhaled alpha-adrenergic vasoconstrictor.`,
+    choices: [`Dexamethasone plus nebulized racemic epinephrine`, `Inhaled albuterol plus intravenous ceftriaxone`, `Oral oseltamivir plus mist tent therapy`],
+    correctIndex: 0,
+    explanation: `Correct: All croup patients receive a single dose of dexamethasone to reduce subglottic inflammation, and moderate-to-severe croup (stridor at rest) requires nebulized racemic epinephrine for rapid alpha-1 arteriolar vasoconstriction. Distractor exclusion: Albuterol targets beta-2 bronchial smooth muscle (asthma) rather than subglottic edema, and ceftriaxone/oseltamivir do not treat parainfluenza.`,
+    secondOrderClue: `Observe patients for 2–4 hours after racemic epinephrine for rebound stridor as the short-acting vasoconstriction wears off.`,
+    phase1Pearl: `Alpha-1 adrenergic vasoconstriction rapidly shrinks edematous subglottic mucosa while dexamethasone provides sustained anti-inflammatory relief.`,
+    phase2Hallmark: `Stridor at rest indicates critical subglottic lumen reduction.`,
+    phase3Secret: `Stridor only when agitated = dexamethasone alone; stridor at rest = dexamethasone + racemic epinephrine.`,
+    dossierBullets: {
+      p1: [`Alpha-1 vasoconstriction rapidly decreases mucosal swelling`, `Glucocorticoids downregulate inflammatory cytokines over hours`],
+      p2: [`Observe post-epinephrine for rebound airway obstruction`, `Mist/humidified air alone lacks strong clinical efficacy`],
+      p3: [`First-line: dexamethasone for all; add racemic epi for stridor at rest`, `Antibiotics are ineffective against parainfluenza`]
+    }
+  },
+
+  // LO 6: Measles & Mumps (3 questions)
+  {
+    id: `LO06-Q1`, lo: 6, loTitle: `LO 6: Measles & Mumps`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Measles Giant Cell Pneumonia`,
+    stem: `An unvaccinated 6-year-old boy with acute lymphoblastic leukemia develops cough, coryza, conjunctivitis, bluish-white spots on the buccal mucosa, and rapidly progressive hypoxemic respiratory failure without a prominent skin rash. Lung biopsy shows multinucleated giant cells with nuclear and cytoplasmic inclusions. What is the diagnosis?`,
+    clue: `4 C's (Cough, Coryza, Conjunctivitis, Koplik spots) + immunosuppressed respiratory failure.`,
+    choices: [`Measles (rubeola) giant cell pneumonia`, `Cytomegalovirus (CMV) pneumonitis`, `Varicella-zoster viral pneumonia`],
+    correctIndex: 0,
+    explanation: `Correct: Measles (rubeola) presents with the 4 C's (Cough, Coryza, Conjunctivitis, Koplik spots) and can cause fatal giant cell pneumonia (Hecht pneumonia) in immunocompromised hosts, often without a T-cell-mediated rash. Distractor exclusion: CMV produces single enlarged cells with owl-eye intranuclear inclusions without Koplik spots, and VZV causes vesicular rash.`,
+    secondOrderClue: `Pneumonia is the most common cause of measles-associated death in children.`,
+    phase1Pearl: `Cell-mediated immunity generates the classic descending maculopapular rash; T-cell-deficient patients develop fatal giant cell pneumonia without rash.`,
+    phase2Hallmark: `Warthin-Finkeldey multinucleated giant cells (lymphoid) and Hecht giant cells (alveolar epithelium).`,
+    phase3Secret: `Vitamin A supplementation significantly reduces morbidity and mortality in measles, especially in malnourished children.`,
+    dossierBullets: {
+      p1: [`Paramyxovirus (HA+, NA-, F+) causing systemic T-cell suppression`, `Rash requires intact cell-mediated immunity`],
+      p2: [`Koplik spots: bright red spots with blue-white centers on buccal mucosa`, `Warthin-Finkeldey giant cells in lymph nodes/respiratory tract`],
+      p3: [`Pneumonia is the MCC of measles death in children`, `Give Vitamin A to reduce mortality; prevent with MMR`]
+    }
+  },
+  {
+    id: `LO06-Q2`, lo: 6, loTitle: `LO 6: Measles & Mumps`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `SSPE (Defective Measles Persistence)`,
+    stem: `Eight years after recovering from natural measles infection in early childhood, an adolescent develops insidious personality changes, declining school performance, myoclonic jerks, autonomic instability, and coma. Which viral mechanism underlies this fatal delayed complication?`,
+    clue: `Subacute sclerosing panencephalitis (SSPE) occurs years after wild-type measles.`,
+    choices: [`Persistent defective measles virus replication in CNS neurons`, `Reactivation of latent varicella-zoster in dorsal root ganglia`, `Autoimmune molecular mimicry against peripheral myelin`],
+    correctIndex: 0,
+    explanation: `Correct: Subacute sclerosing panencephalitis (SSPE) results from persistent, mutated (often M-protein-defective) measles virus slowly spreading across CNS synapses years after initial infection. Distractor exclusion: VZV reactivates as zoster/shingles in dermatomes, and autoimmune peripheral demyelination causes Guillain-Barré syndrome.`,
+    secondOrderClue: `Childhood measles → years later dementia + myoclonus + death = SSPE.`,
+    phase1Pearl: `Mutations in the measles matrix (M) or F gene prevent budding while permitting persistent trans-synaptic CNS spread.`,
+    phase2Hallmark: `Intranuclear inclusions in neurons/oligodendrocytes, gliosis, and elevated CSF anti-measles IgG.`,
+    phase3Secret: `Universal MMR vaccination has nearly eradicated SSPE in vaccinated populations.`,
+    dossierBullets: {
+      p1: [`Defective measles virus (M-protein mutation) persists in brain`, `Evades immune clearance and spreads cell-to-cell`],
+      p2: [`Oligoclonal anti-measles IgG bands in CSF`, `Perivascular inflammation and neuronal intranuclear inclusions`],
+      p3: [`Late fatal sequela (SSPE) years after primary measles`, `Preventable by live attenuated MMR vaccine`]
+    }
+  },
+  {
+    id: `LO06-Q3`, lo: 6, loTitle: `LO 6: Measles & Mumps`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Mumps (Parotitis & Orchitis)`,
+    stem: `An unvaccinated 19-year-old college student presents with fever, respiratory droplets exposure 2 weeks prior, painful bilateral swelling of the parotid glands obscuring the mandibular angle, unilateral testicular pain, and epigastric tenderness. Which complication poses the greatest risk to post-pubertal male fertility?`,
+    clue: `Mumps = Parotitis, Orchitis, aseptic Meningitis, Pancreatitis (POM-Poms).`,
+    choices: [`Orchitis leading to testicular atrophy and sterility`, `Viral parotitis leading to salivary duct carcinoma`, `Aseptic meningitis leading to hydrocephalus`],
+    correctIndex: 0,
+    explanation: `Correct: Mumps (a respiratory-transmitted paramyxovirus with HA+, NA+, F+) causes Parotitis, Orchitis, aseptic Meningitis, and Pancreatitis; post-pubertal orchitis can cause pressure necrosis inside the tunica albuginea and sterility. Distractor exclusion: Parotitis does not cause salivary cancer, and mumps meningitis is typically self-limited.`,
+    secondOrderClue: `Mumps makes your parotid glands and testes as big as POM-Poms (Parotitis, Orchitis, Meningitis, Pancreatitis).`,
+    phase1Pearl: `Edema of the testis within the inelastic tunica albuginea causes ischemic seminiferous tubule damage.`,
+    phase2Hallmark: `Elevated serum amylase (from both parotid and pancreatic involvement) and CSF lymphocytic pleocytosis.`,
+    phase3Secret: `MMR is a live attenuated vaccine contraindicated in pregnancy and severe immunocompromise (HIV with CD4 < 200).`,
+    dossierBullets: {
+      p1: [`(-)ssRNA Paramyxovirus spread via respiratory droplets`, `Viremia seeds salivary glands, testes, meninges, pancreas`],
+      p2: [`Elevated amylase from salivary/pancreatic inflammation`, `Interstitial edema and hemorrhage in testicular parenchyma`],
+      p3: [`Post-pubertal orchitis risks sterility`, `Prevent with MMR; CI in pregnancy and CD4 < 200`]
+    }
+  },
+
+  // LO 7: Rhinovirus (3 questions)
+  {
+    id: `LO07-Q1`, lo: 7, loTitle: `LO 7: Rhinovirus`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Rhinovirus (Common Cold)`,
+    stem: `A 24-year-old medical student develops profuse clear rhinorrhea, sneezing, nasal congestion, and mild scratchy throat without high fever or diarrhea during early autumn. A nasal swab isolates a nonenveloped (+)ssRNA virus that fails to replicate at 37°C or pH 3.0. What is the causative agent?`,
+    clue: `Naked (+)ssRNA picornavirus that is acid-labile and prefers cooler 33°C nasal passages.`,
+    choices: [`Rhinovirus`, `Coxsackievirus A`, `Adenovirus`],
+    correctIndex: 0,
+    explanation: `Correct: Rhinovirus is a naked (+)ssRNA picornavirus that is acid-labile (inactivated at pH 3.0, so it does not infect the GI tract) and replicates best at 33°C in the upper respiratory tract, causing the common cold. Distractor exclusion: Coxsackievirus is an acid-stable enterovirus, and adenovirus is a dsDNA virus.`,
+    secondOrderClue: `Among Picornaviruses (PERCH), ONLY Rhinovirus is acid-labile; all others (Polio, Echo, Coxsackie, HAV) are acid-stable enteroviruses/hepatovirus.`,
+    phase1Pearl: `Acid lability destroys rhinovirus in gastric acid, restricting it to the nasopharynx.`,
+    phase2Hallmark: `Nonenveloped (naked) icosahedral (+)ssRNA picornavirus; grows optimally at 33°C.`,
+    phase3Secret: `Over 100 serotypes make vaccine development impractical; handwashing disrupts fomite spread.`,
+    dossierBullets: {
+      p1: [`Acid-labile capsid disassembles at gastric pH`, `Cool 33°C replication restricts disease to upper airway`],
+      p2: [`Naked (+)ssRNA Picornavirus; single polyprotein cleaved by proteases`, `Resists alcohol hand rubs moderately due to lack of envelope`],
+      p3: [`MCC of the common cold (> 100 serotypes)`, `Supportive treatment only; no vaccine`]
+    }
+  },
+  {
+    id: `LO07-Q2`, lo: 7, loTitle: `LO 7: Rhinovirus`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `ICAM-1 Receptor Attachment`,
+    stem: `During a respiratory fomite-transmitted infection with the most common viral cause of acute rhinitis, the pathogen gains entry into nasal epithelial cells by binding a host immunoglobulin superfamily adhesion molecule normally used by leukocytes during extravasation. Which host receptor does this virus co-opt?`,
+    clue: `Think of the endothelial/epithelial leukocyte adhesion receptor ICAM-1.`,
+    choices: [`ICAM-1 (intercellular adhesion molecule-1)`, `ACE2 (angiotensin-converting enzyme 2)`, `CD21 (complement receptor 2)`],
+    correctIndex: 0,
+    explanation: `Correct: Most rhinovirus serotypes attach to host ICAM-1 on nasal mucosal epithelial cells to trigger endocytosis and uncoating. Distractor exclusion: ACE2 is used by SARS-CoV and SARS-CoV-2, whereas CD21 is used by Epstein-Barr virus to infect B cells.`,
+    secondOrderClue: `Virus-receptor pairs: Rhinovirus = ICAM-1; SARS-CoV-2 = ACE2; EBV = CD21; HIV = CD4 + CCR5/CXCR4.`,
+    phase1Pearl: `Inflammatory cytokines (IL-1, TNF-alpha) upregulate epithelial ICAM-1, amplifying viral attachment and nasal symptoms.`,
+    phase2Hallmark: `(+)ssRNA acts directly as mRNA in the cytoplasm to translate one large polyprotein cleaved by viral proteases.`,
+    phase3Secret: `Rhinovirus is a major trigger of acute asthma and COPD exacerbations in predisposed patients.`,
+    dossierBullets: {
+      p1: [`Binds ICAM-1 on ciliated nasal epithelium`, `Translates 1 long polyprotein cleaved by viral proteases`],
+      p2: [`Cytoplasmic replication (like all +ssRNA viruses)`, `Lacks lipid envelope (naked icosahedral capsid)`],
+      p3: [`Leading viral trigger of asthma/COPD flares`, `Transmitted via respiratory droplets and fomites`]
+    }
+  },
+  {
+    id: `LO07-Q3`, lo: 7, loTitle: `LO 7: Rhinovirus`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Single Polyprotein + Protease Cleavage`,
+    stem: `A virology assay examines a naked, non-segmented (+)ssRNA virus isolated from a patient with afebrile coryza. Inside the host cytoplasm, host ribosomes immediately translate the genomic RNA into a single giant precursor polypeptide. Which enzymatic step is required before functional viral capsid proteins can assemble?`,
+    clue: `All picornaviruses translate one long polyprotein that must be cut into active proteins.`,
+    choices: [`Cleavage by virus-encoded proteases`, `Reverse transcription into proviral dsDNA`, `Nuclear cap-snatching by viral endonuclease`],
+    correctIndex: 0,
+    explanation: `Correct: Picornaviruses (including rhinovirus) and caliciviruses translate their (+)ssRNA genome into one large polyprotein that is cleaved by virus-encoded proteases into structural and nonstructural proteins. Distractor exclusion: Reverse transcription is used by retroviruses/HBV, and nuclear cap-snatching is used by influenza.`,
+    secondOrderClue: `Positive-sense RNA is immediately infectious upon entry because host ribosomes translate it directly in the cytoplasm.`,
+    phase1Pearl: `Because the genome is (+)ssRNA, purified naked rhinovirus RNA is infectious even without packaged polymerase.`,
+    phase2Hallmark: `Small (pico) naked icosahedral RNA virus (~25–30 nm).`,
+    phase3Secret: `Do not prescribe antibiotics for uncomplicated rhinovirus rhinosinusitis; symptoms peak around days 2–3.`,
+    dossierBullets: {
+      p1: [`Genomic (+)ssRNA serves directly as mRNA`, `Virus-encoded proteases cleave polyprotein into active units`],
+      p2: [`PicoRNAvirus = small, naked, icosahedral`, `No packaged polymerase required in virion`],
+      p3: [`Avoid unnecessary antibacterials in viral URI`, `Hand hygiene is key to interrupt fomite transmission`]
+    }
+  },
+
+  // LO 8: Endemic Coronaviruses, SARS & MERS (3 questions)
+  {
+    id: `LO08-Q1`, lo: 8, loTitle: `LO 8: Endemic Corona / SARS / MERS`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `MERS-CoV (Camel Reservoir)`,
+    stem: `A 52-year-old man returns from the Arabian Peninsula after visiting a dromedary camel farm and develops high fever, dyspnea, bilateral lower-lobe pneumonia, and acute respiratory distress syndrome. Culture and PCR identify an enveloped helical (+)ssRNA virus with club-shaped surface projections. What is the diagnosis?`,
+    clue: `Middle East travel + dromedary camels + severe ARDS from an enveloped helical (+)ssRNA virus.`,
+    choices: [`Middle East respiratory syndrome (MERS-CoV)`, `Hantavirus pulmonary syndrome`, `Rhinovirus-associated bronchitis`],
+    correctIndex: 0,
+    explanation: `Correct: MERS-CoV is an enveloped (+)ssRNA coronavirus with helical nucleocapsid transmitted from dromedary camels in the Middle East, progressing from pneumonia to severe ARDS. Distractor exclusion: Hantavirus is a (-)ssRNA bunyavirus transmitted by deer mice, and rhinovirus is naked icosahedral and causes mild URI.`,
+    secondOrderClue: `Coronaviruses are the ONLY (+)ssRNA viruses with a helical capsid (enveloped with crown-like spikes).`,
+    phase1Pearl: `Zoonotic betacoronaviruses (SARS-CoV, MERS-CoV) infect lower respiratory epithelium, driving severe cytokine-mediated ARDS.`,
+    phase2Hallmark: `Crown-like ("corona") peplomers on negative-stain EM; helical nucleocapsid inside a lipid envelope.`,
+    phase3Secret: `Management of SARS/MERS relies on supportive ICU care and lung-protective mechanical ventilation.`,
+    dossierBullets: {
+      p1: [`Enveloped (+)ssRNA virus replicating in cytoplasm`, `MERS-CoV binds DPP4; bats/camels serve as reservoirs`],
+      p2: [`Helical nucleocapsid with club-shaped spike glycoproteins`, `Triggers diffuse alveolar damage in severe cases`],
+      p3: [`Causes common cold (endemic) or severe ARDS (SARS/MERS)`, `Travel/camel exposure clues point to MERS-CoV`]
+    }
+  },
+  {
+    id: `LO08-Q2`, lo: 8, loTitle: `LO 8: Endemic Corona / SARS / MERS`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Enveloped Helical (+)ssRNA`,
+    stem: `A respiratory virus isolated from a patient with acute bronchitis possesses the largest non-segmented single-stranded positive-sense RNA genome known among human viruses, enclosed within a helical nucleocapsid and a lipid bilayer envelope studded with glycoprotein spikes. How is this virus classified?`,
+    clue: `Corona = crown of spikes + enveloped helical (+)ssRNA.`,
+    choices: [`Coronavirus`, `Picornavirus`, `Reovirus`],
+    correctIndex: 0,
+    explanation: `Correct: Coronaviruses are enveloped, helical-capsid, non-segmented (+)ssRNA viruses possessing the largest (+)ssRNA viral genome. Distractor exclusion: Picornaviruses are small naked icosahedral (+)ssRNA viruses, and reoviruses are naked segmented dsRNA viruses.`,
+    secondOrderClue: `All helical RNA viruses are enveloped; most (+)ssRNA viruses are icosahedral EXCEPT coronaviruses (helical).`,
+    phase1Pearl: `Replicates entirely in the host cytoplasm, budding into ER-Golgi intermediate compartments to acquire its envelope.`,
+    phase2Hallmark: `Helical capsid + lipid envelope + crown-shaped spike projections.`,
+    phase3Secret: `Endemic human coronaviruses are the second most common cause of the common cold after rhinovirus.`,
+    dossierBullets: {
+      p1: [`Replicates in cytoplasm using viral RNA polymerase`, `Buds from host ER/Golgi membranes`],
+      p2: [`Unique among (+)ssRNA viruses for helical symmetry`, `Lipid envelope makes it sensitive to soap/detergents`],
+      p3: [`Causes mild URI (common cold) to severe ARDS`, `Includes seasonal strains, SARS, MERS, and SARS-CoV-2`]
+    }
+  },
+  {
+    id: `LO08-Q3`, lo: 8, loTitle: `LO 8: Endemic Corona / SARS / MERS`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Low Tidal Volume Ventilation (ARDS)`,
+    stem: `A patient with severe coronavirus pneumonia develops refractory hypoxemia (PaO2/FiO2 ratio < 150 mm Hg) and diffuse bilateral alveolar infiltrates without left atrial hypertension. Histopathology shows hyaline membranes lining alveoli. Which ventilator strategy reduces mortality in this complication?`,
+    clue: `Classic lung-protective ventilation strategy for acute respiratory distress syndrome (ARDS).`,
+    choices: [`Low tidal volume (6 mL/kg) with PEEP`, `High tidal volume (12 mL/kg) with zero PEEP`, `Immediate high-dose loop diuretic monotherapy`],
+    correctIndex: 0,
+    explanation: `Correct: Severe SARS/MERS/COVID-19 progresses to ARDS (diffuse alveolar damage with hyaline membranes); lung-protective ventilation using low tidal volumes (6 mL/kg predicted body weight) and adequate PEEP prevents ventilator-induced barotrauma and improves survival. Distractor exclusion: High tidal volumes worsen volutrauma, and diuretics do not reverse noncardiogenic alveolar injury alone.`,
+    secondOrderClue: `ARDS = PaO2/FiO2 <= 300 + bilateral infiltrates + noncardiogenic + hyaline membranes → low tidal volume + PEEP.`,
+    phase1Pearl: `Neutrophil- and cytokine-mediated endothelial/epithelial injury leaks protein-rich exudate into alveoli, inactivating surfactant.`,
+    phase2Hallmark: `Diffuse alveolar damage (DAD): eosinophilic hyaline membranes lining collapsed alveolar ducts.`,
+    phase3Secret: `Prone positioning and PEEP recruit dependent dorsal alveoli in severe ARDS.`,
+    dossierBullets: {
+      p1: [`Capillary endothelial + type I/II pneumocyte injury`, `Surfactant loss causes diffuse alveolar collapse`],
+      p2: [`Hyaline membranes = necrotic debris + fibrin/protein exudate`, `Normal PCWP (< 18 mm Hg) excludes cardiogenic edema`],
+      p3: [`Low tidal volume (6 mL/kg IBW) + PEEP reduces mortality`, `Prone positioning further improves V/Q matching`]
+    }
+  },
+
+  // LO 9: SARS-CoV-2 / COVID-19 (3 questions)
+  {
+    id: `LO09-Q1`, lo: 9, loTitle: `LO 9: SARS-CoV-2 (COVID-19)`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `SARS-CoV-2 (COVID-19)`,
+    stem: `A 58-year-old obese man with hypertension presents with 6 days of fever, dry cough, profound anosmia, and progressive dyspnea. Oxygen saturation is 86% on room air, D-dimer is markedly elevated, and chest CT shows bilateral peripheral ground-glass opacities. Which viral infection is most likely?`,
+    clue: `Anosmia + bilateral peripheral ground-glass opacities + elevated D-dimer.`,
+    choices: [`SARS-CoV-2 (COVID-19)`, `Influenza B virus`, `Coxsackievirus B`],
+    correctIndex: 0,
+    explanation: `Correct: COVID-19 (SARS-CoV-2) classically features fever, cough, anosmia/ageusia (olfactory sustentacular cell involvement), bilateral peripheral ground-glass opacities on CT, and a prothrombotic state with elevated D-dimer. Distractor exclusion: Influenza B does not classically cause prolonged anosmia/microthrombosis, and coxsackievirus B causes pleurodynia with clear lungs.`,
+    secondOrderClue: `Peripheral bilateral ground-glass opacities + anosmia + prothrombotic D-dimer elevation = SARS-CoV-2.`,
+    phase1Pearl: `SARS-CoV-2 infects nasal olfactory sustentacular cells and type II pneumocytes via ACE2 receptors.`,
+    phase2Hallmark: `Bilateral peripheral ground-glass opacities on chest CT; diffuse alveolar damage with microvascular thrombi on pathology.`,
+    phase3Secret: `Hospitalized patients with hypoxemia benefit from systemic dexamethasone and anticoagulation prophylaxis.`,
+    dossierBullets: {
+      p1: [`Infects type II pneumocytes and endothelial cells via ACE2`, `Triggers systemic hyperinflammation and hypercoagulability`],
+      p2: [`Chest CT: bilateral peripheral ground-glass opacities`, `Markedly elevated D-dimer, CRP, ferritin, LDH`],
+      p3: [`Anosmia/ageusia is a high-yield differentiating clinical clue`, `Risk factors for severe disease: age, obesity, DM, HTN`]
+    }
+  },
+  {
+    id: `LO09-Q2`, lo: 9, loTitle: `LO 9: SARS-CoV-2 (COVID-19)`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Spike Protein Binds ACE2`,
+    stem: `A fatal case of COVID-19 pneumonia demonstrates viral particles within type II pneumocytes and pulmonary vascular endothelial cells, accompanied by fibrin microthrombi in alveolar capillaries. Which host surface enzyme serves as the functional entry receptor for the SARS-CoV-2 spike (S) glycoprotein?`,
+    clue: `This carboxypeptidase normally degrades angiotensin II.`,
+    choices: [`Angiotensin-converting enzyme 2 (ACE2)`, `Dipeptidyl peptidase-4 (DPP4)`, `Sialic acid-linked ganglioside`],
+    correctIndex: 0,
+    explanation: `Correct: SARS-CoV-2 spike (S) protein binds host ACE2 on type II pneumocytes and vascular endothelium (primed by host TMPRSS2 serine protease), driving viral entry, endothelialitis, and microvascular thrombosis. Distractor exclusion: DPP4 is the receptor for MERS-CoV, and sialic acid is bound by influenza/parainfluenza hemagglutinin.`,
+    secondOrderClue: `SARS-CoV & SARS-CoV-2 bind ACE2; MERS-CoV binds DPP4.`,
+    phase1Pearl: `Spike protein priming by TMPRSS2 enables membrane fusion after ACE2 engagement; endothelial infection promotes immunothrombosis.`,
+    phase2Hallmark: `Diffuse alveolar damage plus extensive fibrin platelet microthrombi in alveolar septal capillaries.`,
+    phase3Secret: `mRNA vaccines deliver lipid-nanoparticle-encapsulated mRNA encoding stabilized prefusion SARS-CoV-2 spike protein.`,
+    dossierBullets: {
+      p1: [`Spike (S) binds ACE2; TMPRSS2 cleaves S for fusion`, `Endothelial injury drives pulmonary microvascular thrombosis`],
+      p2: [`Hyaline membranes + capillary fibrin microthrombi`, `Loss of type II pneumocytes impairs surfactant`],
+      p3: [`mRNA vaccines elicit neutralizing anti-spike antibodies`, `Prophylactic/therapeutic anticoagulation reduces VTE risk`]
+    }
+  },
+  {
+    id: `LO09-Q3`, lo: 9, loTitle: `LO 9: SARS-CoV-2 (COVID-19)`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Dexamethasone + Remdesivir`,
+    stem: `A 67-year-old woman hospitalized with PCR-confirmed SARS-CoV-2 pneumonia has worsening hypoxemia requiring high-flow nasal cannula oxygen. Which pharmacologic regimen is indicated to blunt hyperinflammatory lung injury and inhibit viral RNA synthesis?`,
+    clue: `Corticosteroid for hypoxemic COVID-19 + nucleotide prodrug inhibiting RdRp.`,
+    choices: [`Dexamethasone plus remdesivir`, `Amantadine plus ribavirin`, `Palivizumab plus acyclovir`],
+    correctIndex: 0,
+    explanation: `Correct: In hospitalized COVID-19 patients requiring supplemental oxygen or mechanical ventilation, dexamethasone significantly reduces mortality by dampening cytokine-mediated alveolar damage, and remdesivir inhibits the viral RNA-dependent RNA polymerase. Distractor exclusion: Amantadine targets influenza M2, palivizumab targets RSV F protein, and acyclovir targets herpesviruses.`,
+    secondOrderClue: `Give dexamethasone ONLY to hypoxemic/oxygen-requiring COVID-19 patients (not mild outpatients).`,
+    phase1Pearl: `Remdesivir is an adenosine analog prodrug that causes delayed chain termination of viral RNA polymerase.`,
+    phase2Hallmark: `Dexamethasone reduces alveolar macrophage/neutrophil cytokine storm driving hyaline membrane formation.`,
+    phase3Secret: `Know the core COVID-19 toolkit: dexamethasone, remdesivir, and mRNA spike vaccines.`,
+    dossierBullets: {
+      p1: [`Remdesivir triphosphate inhibits SARS-CoV-2 RdRp`, `Dexamethasone suppresses NF-κB inflammatory cascade`],
+      p2: [`Reduces progression of diffuse alveolar damage in hypoxemic lungs`, `Avoid steroids in mild non-hypoxemic disease`],
+      p3: [`Dexamethasone reduces mortality in O2-dependent/ventilated patients`, `Remdesivir shortens recovery time in hospitalized pneumonia`]
+    }
+  },
+
+  // LO 10: Adenovirus (3 questions)
+  {
+    id: `LO10-Q1`, lo: 10, loTitle: `LO 10: Adenovirus`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Adenovirus (Pharyngoconjunctival Fever)`,
+    stem: `Several teenagers attending a summer camp develop high fever, exudative pharyngitis, tender cervical lymphadenopathy, and bilateral nonpurulent follicular conjunctivitis 5 days after swimming in a poorly chlorinated pool. Which virus is the most likely cause?`,
+    clue: `Public pools + pink eye + pharyngitis/tonsillitis.`,
+    choices: [`Adenovirus`, `Rhinovirus`, `Parainfluenza virus`],
+    correctIndex: 0,
+    explanation: `Correct: Adenovirus is a naked dsDNA virus classically transmitted via respiratory droplets, fecal-oral route, or inadequately chlorinated swimming pools, causing pharyngoconjunctival fever (pink eye + sore throat), tonsillitis, and acute respiratory disease. Distractor exclusion: Rhinovirus causes afebrile coryza without exudative pharyngitis/conjunctivitis, and parainfluenza causes croup.`,
+    secondOrderClue: `Adenovirus triad of board stems: public pools/pink eye, military recruit ARD, and hemorrhagic cystitis in children/BMT.`,
+    phase1Pearl: `Lacks a lipid envelope, allowing it to survive chlorination, gastric acid, and detergents.`,
+    phase2Hallmark: `Naked icosahedral linear dsDNA virus with penton fiber spikes at the 12 vertices.`,
+    phase3Secret: `Military recruits receive a live non-attenuated oral enteric-coated vaccine (serotypes 4 and 7).`,
+    dossierBullets: {
+      p1: [`Naked dsDNA capsid resists desiccation, acid, and weak chlorine`, `Replicates in host cell nucleus`],
+      p2: [`Icosahedral capsid with vertex fiber spikes for attachment`, `Causes lymphoid hyperplasia in tonsils/adenoids`],
+      p3: [`Pharyngoconjunctival fever, military ARD, hemorrhagic cystitis`, `MCC of adenoiditis and tonsillitis in children`]
+    }
+  },
+  {
+    id: `LO10-Q2`, lo: 10, loTitle: `LO 10: Adenovirus`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Naked Linear dsDNA Virus`,
+    stem: `An infectious outbreak of febrile tracheobronchitis sweeps through a crowded military basic training barracks. Viral isolation reveals an acid-stable, detergent-resistant, nonenveloped icosahedral pathogen with a linear double-stranded DNA genome that replicates inside the host nucleus. Which structural feature explains its resistance to alcohol-based disinfectants?`,
+    clue: `Absence of a lipid bilayer envelope makes a virus tough against detergents and acid.`,
+    choices: [`Absence of a lipid envelope (naked icosahedral capsid)`, `Presence of segmented circular ambisense RNA`, `Presence of a thick peptidoglycan cell wall`],
+    correctIndex: 0,
+    explanation: `Correct: Adenovirus is a nonenveloped (naked) dsDNA virus; without a lipid envelope, it resists alcohol, detergents, bile, and gastric acid, facilitating outbreaks in military barracks and swimming pools. Distractor exclusion: Viruses never have peptidoglycan cell walls, and segmented circular ambisense RNA describes arenaviruses.`,
+    secondOrderClue: `All DNA viruses replicate in the nucleus EXCEPT poxvirus ("Pox is out of the box").`,
+    phase1Pearl: `Adenovirus early E1A/E1B proteins drive host cells into S phase to provide DNA replication machinery.`,
+    phase2Hallmark: `Intranuclear basophilic ("smudge cell") inclusions on respiratory/epithelial histopathology.`,
+    phase3Secret: `Enteric-coated live vaccine targets GI replication to generate mucosal immunity without causing respiratory disease.`,
+    dossierBullets: {
+      p1: [`Replicates in nucleus using host RNA pol II & viral DNA pol`, `Lytic infection of respiratory and conjunctival epithelium`],
+      p2: [`Naked icosahedral dsDNA = acid/detergent resistant`, `12 vertex fiber spikes mediate CAR receptor binding`],
+      p3: [`Causes military recruit outbreaks and pediatric pink eye`, `Also causes acute hemorrhagic cystitis`]
+    }
+  },
+  {
+    id: `LO10-Q3`, lo: 10, loTitle: `LO 10: Adenovirus`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Live Enteric-Coated Vaccine (Military)`,
+    stem: `A 19-year-old Army recruit arrives for basic training and receives a specific oral, enteric-coated tablet vaccine designed to prevent febrile acute respiratory disease outbreaks in the barracks. How does this vaccine safely immunize recruits without causing pharyngitis or pneumonia?`,
+    clue: `Live non-attenuated adenovirus types 4 and 7 bypass the respiratory tract to replicate in the gut.`,
+    choices: [`Live non-attenuated virus replicates asymptomatically in the GI tract`, `Killed virus adjuvanted with diphtheria toxoid blocks ICAM-1`, `Recombinant spike mRNA induces nasal IgM only`],
+    correctIndex: 0,
+    explanation: `Correct: The military adenovirus vaccine contains live, non-attenuated adenovirus types 4 and 7 inside an enteric-coated capsule; it bypasses the pharynx and causes an asymptomatic intestinal infection that induces systemic and mucosal immunity against respiratory disease. Distractor exclusion: It is neither a diphtheria-conjugated toxoid vaccine (that's Hib) nor an mRNA vaccine.`,
+    secondOrderClue: `Military recruits = Live non-attenuated oral enteric-coated Adenovirus types 4 & 7 vaccine.`,
+    phase1Pearl: `Acid-stable naked capsid survives intestinal passage after enteric capsule dissolution to stimulate Peyer patch IgA/IgG.`,
+    phase2Hallmark: `Targets serotypes 4 and 7, the predominant causes of barracks acute respiratory disease.`,
+    phase3Secret: `Because the virus is shed in stool after oral vaccination, strict handwashing is emphasized to prevent spread to pregnant/immunocompromised contacts.`,
+    dossierBullets: {
+      p1: [`Live non-attenuated serotypes 4 and 7 in enteric capsule`, `Asymptomatic gut infection elicits protective respiratory antibodies`],
+      p2: [`Naked dsDNA survives bile and intestinal enzymes`, `Avoids respiratory tract inoculation`],
+      p3: [`Approved specifically for military recruits`, `General civilian population receives supportive care only`]
+    }
+  },
+
+  // LO 11: CMV Pneumonitis (3 questions)
+  {
+    id: `LO11-Q1`, lo: 11, loTitle: `LO 11: CMV Pneumonitis`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Cytomegalovirus (CMV / HHV-5)`,
+    stem: `Two months after undergoing bilateral lung transplantation for idiopathic pulmonary fibrosis, a 56-year-old man develops fever, nonproductive cough, hypoxemia, and bilateral interstitial infiltrates. Bronchoalveolar lavage cytology demonstrates markedly enlarged pneumocytes containing large basophilic intranuclear inclusions surrounded by a clear halo. What is the diagnosis?`,
+    clue: `"Owl-eye" intranuclear inclusions in a transplant recipient with interstitial pneumonia.`,
+    choices: [`Cytomegalovirus (CMV) pneumonitis`, `Pneumocystis jirovecii pneumonia`, `Influenza A viral pneumonia`],
+    correctIndex: 0,
+    explanation: `Correct: CMV (HHV-5) is a leading cause of severe interstitial pneumonitis in lung and hematopoietic stem cell transplant recipients, producing cytomegalic cells with classic "owl-eye" basophilic intranuclear inclusions. Distractor exclusion: Pneumocystis shows crushed ping-pong balls on silver stain without owl-eye inclusions, and influenza causes necrotizing tracheobronchitis without owl-eye inclusions.`,
+    secondOrderClue: `Transplant recipient (especially lung/BMT) + interstitial pneumonia + owl-eye inclusions = CMV.`,
+    phase1Pearl: `Reactivation of latent CMV from donor lung or recipient mononuclear cells occurs when T-cell surveillance is suppressed.`,
+    phase2Hallmark: `Cytomegaly (enlarged cells) with basophilic intranuclear "owl-eye" inclusions and smaller cytoplasmic inclusions.`,
+    phase3Secret: `Remember CREEP for CMV organ involvement: Colitis, Retinitis, Esophagitis, Encephalitis, Pneumonitis.`,
+    dossierBullets: {
+      p1: [`Enveloped linear dsDNA Herpesvirus (HHV-5) latent in monocytes`, `T-cell immunosuppression triggers reactivation`],
+      p2: [`"Owl-eye" intranuclear inclusions on BAL or biopsy`, `Bilateral interstitial/ground-glass pulmonary infiltrates`],
+      p3: [`MCC of viral pneumonia in solid organ/BMT transplants`, `CREEP: Colitis, Retinitis, Esophagitis, Encephalitis, Pneumonitis`]
+    }
+  },
+  {
+    id: `LO11-Q2`, lo: 11, loTitle: `LO 11: CMV Pneumonitis`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `UL97 Kinase Activates Ganciclovir`,
+    stem: `A lung transplant recipient with PCR-confirmed CMV pneumonitis is treated with intravenous ganciclovir. Why is ganciclovir selectively active against CMV-infected cells compared with acyclovir?`,
+    clue: `CMV lacks thymidine kinase and instead uses a viral phosphotransferase called UL97.`,
+    choices: [`Monophosphorylated by CMV-encoded UL97 protein kinase`, `Monophosphorylated by CMV thymidine kinase`, `Directly inhibits viral neuraminidase without phosphorylation`],
+    correctIndex: 0,
+    explanation: `Correct: Unlike HSV and VZV, CMV does not encode thymidine kinase; instead, CMV encodes the UL97 protein kinase that performs the initial monophosphorylation of ganciclovir before host kinases convert it to ganciclovir triphosphate, which inhibits viral DNA polymerase. Distractor exclusion: Acyclovir requires HSV/VZV thymidine kinase and is ineffective against CMV.`,
+    secondOrderClue: `HSV/VZV = Thymidine kinase (acyclovir); CMV = UL97 kinase (ganciclovir).`,
+    phase1Pearl: `Ganciclovir triphosphate competitively inhibits viral DNA polymerase and causes chain termination.`,
+    phase2Hallmark: `Mutations in the viral UL97 gene confer ganciclovir resistance while retaining sensitivity to foscarnet.`,
+    phase3Secret: `Monitor CBC during ganciclovir therapy because bone marrow suppression (neutropenia, thrombocytopenia) is its dose-limiting toxicity.`,
+    dossierBullets: {
+      p1: [`UL97 kinase monophosphorylates ganciclovir inside infected cells`, `Host kinases form triphosphate → inhibits CMV DNA polymerase`],
+      p2: [`CMV lacks thymidine kinase (acyclovir fails)`, `UL97 mutation = ganciclovir resistance`],
+      p3: [`Dose-limiting toxicity: myelosuppression (neutropenia)`, `Use foscarnet or cidofovir for UL97-resistant CMV`]
+    }
+  },
+  {
+    id: `LO11-Q3`, lo: 11, loTitle: `LO 11: CMV Pneumonitis`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Foscarnet for UL97-Resistant CMV`,
+    stem: `After 3 weeks of ganciclovir therapy for CMV pneumonitis, a transplant patient develops rising CMV viral load due to a confirmed UL97 kinase mutation, alongside severe neutropenia. Which alternative antiviral bypasses viral kinase phosphorylation to directly inhibit viral DNA polymerase?`,
+    clue: `Pyrophosphate analog that requires NO viral or cellular phosphorylation.`,
+    choices: [`Foscarnet`, `Valacyclovir`, `Oseltamivir`],
+    correctIndex: 0,
+    explanation: `Correct: Foscarnet is a pyrophosphate analog that directly inhibits viral DNA polymerase (and reverse transcriptase) without requiring activation by UL97 or thymidine kinase, making it first-line for ganciclovir-resistant CMV and acyclovir-resistant HSV. Distractor exclusion: Valacyclovir requires viral thymidine kinase, and oseltamivir inhibits influenza neuraminidase.`,
+    secondOrderClue: `Foscarnet = Direct pyrophosphate analog → nephrotoxicity + hypocalcemia/hypomagnesemia (chelates cations).`,
+    phase1Pearl: `Binds the pyrophosphate-binding site of viral DNA polymerase, blocking pyrophosphate cleavage from incoming dNTPs.`,
+    phase2Hallmark: `Effective against both UL97-mutant CMV and TK-mutant HSV/VZV.`,
+    phase3Secret: `Hydrate aggressively and monitor creatinine, Ca2+, Mg2+, and K+ during foscarnet administration to prevent nephrotoxicity and tetany.`,
+    dossierBullets: {
+      p1: [`Pyrophosphate analog directly inhibits viral DNA polymerase`, `Does NOT require UL97 or thymidine kinase activation`],
+      p2: [`Bypasses UL97 resistance in CMV and TK resistance in HSV`, `Avoids ganciclovir-induced myelosuppression`],
+      p3: [`Key toxicities: nephrotoxicity and electrolyte wasting (↓Ca2+, ↓Mg2+)`, `Prophylactic valganciclovir is used post-transplant`]
+    }
+  },
+
+  // LO 12: HSV-1 Tracheobronchitis (3 questions)
+  {
+    id: `LO12-Q1`, lo: 12, loTitle: `LO 12: HSV-1 Tracheobronchitis`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `HSV-1 Necrotizing Tracheobronchitis`,
+    stem: `A 63-year-old man who has been endotracheally intubated in the ICU for 10 days develops bloody tracheal secretions, bronchospasm, and patchy bilateral pulmonary infiltrates. Bronchoscopy reveals hemorrhagic ulcerations with yellow pseudomembranes along the distal trachea, and brushings show multinucleated giant cells with molded ground-glass nuclei. Which virus is responsible?`,
+    clue: `Herpesvirus latent in trigeminal ganglia causing necrotizing tracheobronchitis in intubated ICU patients.`,
+    choices: [`Herpes simplex virus-1 (HSV-1)`, `Respiratory syncytial virus (RSV)`, `Rhinovirus`],
+    correctIndex: 0,
+    explanation: `Correct: HSV-1 reactivates from the trigeminal ganglia during critical illness or mucosal trauma (endotracheal intubation), spreading down the airway to cause necrotizing tracheobronchitis and pneumonitis with Tzanck-positive multinucleated giant cells. Distractor exclusion: RSV lacks intranuclear inclusions/trigeminal latency, and rhinovirus causes mild upper airway coryza.`,
+    secondOrderClue: `Intubated/immunocompromised ICU patient + hemorrhagic tracheal ulcers + multinucleated giant cells = HSV-1 tracheobronchitis.`,
+    phase1Pearl: `HSV-1 establishes latency in sensory trigeminal ganglia and reactivates during physiologic stress or mechanical airway mucosal injury.`,
+    phase2Hallmark: `Multinucleated giant cells (3 M's: Molding of nuclei, Margination of chromatin, Multinucleation) + Cowdry type A intranuclear inclusions.`,
+    phase3Secret: `Treat systemic/lower-respiratory HSV-1 reactivation promptly with IV acyclovir.`,
+    dossierBullets: {
+      p1: [`Enveloped linear dsDNA virus latent in trigeminal ganglia`, `Contiguous aspiration from oral reactivation seeds trachea`],
+      p2: [`Cowdry A eosinophilic intranuclear inclusions`, `Multinucleated giant cells with ground-glass nuclear molding`],
+      p3: [`Causes gingivostomatitis, temporal encephalitis, and ICU tracheobronchitis`, `First-line treatment: IV acyclovir`]
+    }
+  },
+  {
+    id: `LO12-Q2`, lo: 12, loTitle: `LO 12: HSV-1 Tracheobronchitis`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Viral Thymidine Kinase Activation`,
+    stem: `A patient with biopsy-proven HSV-1 necrotizing tracheobronchitis receives intravenous acyclovir. Which viral enzyme confers selective activation of acyclovir specifically within HSV-infected epithelial cells?`,
+    clue: `Loss of this viral enzyme is the classic mechanism of HSV acyclovir resistance.`,
+    choices: [`Viral thymidine kinase`, `Viral UL97 protein kinase`, `Host cellular DNA polymerase`],
+    correctIndex: 0,
+    explanation: `Correct: Acyclovir is a guanosine analog that is selectively monophosphorylated by HSV/VZV-encoded thymidine kinase, then di- and tri-phosphorylated by host cellular kinases to inhibit viral DNA polymerase and cause chain termination. Distractor exclusion: UL97 kinase belongs to CMV, and host DNA polymerase is not the activating kinase.`,
+    secondOrderClue: `Acyclovir resistance in HSV = mutated or absent viral thymidine kinase → switch to foscarnet.`,
+    phase1Pearl: `Because acyclovir lacks a 3'-OH group on its sugar-like side chain, incorporation causes obligate DNA chain termination.`,
+    phase2Hallmark: `Selective affinity for viral thymidine kinase (~200x higher than host kinase) limits toxicity to uninfected cells.`,
+    phase3Secret: `Ensure adequate IV hydration during high-dose IV acyclovir to prevent obstructive crystal nephropathy.`,
+    dossierBullets: {
+      p1: [`HSV thymidine kinase performs first phosphorylation step`, `Host kinases form acyclovir triphosphate → obligate chain terminator`],
+      p2: [`Absent/mutated thymidine kinase causes acyclovir resistance`, `All herpesviruses are enveloped linear dsDNA replicating in nucleus`],
+      p3: [`IV acyclovir risk: crystalline nephropathy (hydrate well)`, `Treat TK-deficient resistant HSV with foscarnet`]
+    }
+  },
+  {
+    id: `LO12-Q3`, lo: 12, loTitle: `LO 12: HSV-1 Tracheobronchitis`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Cowdry A & Tzanck Giant Cells`,
+    stem: `Histopathologic examination of a tracheal ulcer biopsy from an immunocompromised patient reveals epithelial cells with peripheral chromatin margination, ground-glass nuclear molding, multinucleation, and eosinophilic intranuclear Cowdry type A inclusions. Which viral family produces these characteristic cytopathic hallmarks?`,
+    clue: `All herpesviruses except CMV (owl-eye) and EBV show these classic Tzanck findings (HSV-1, HSV-2, VZV).`,
+    choices: [`Alphaherpesviruses (HSV-1 / HSV-2 / VZV)`, `Paramyxoviruses (RSV / Measles)`, `Orthomyxoviruses (Influenza A)`],
+    correctIndex: 0,
+    explanation: `Correct: The alphaherpesviruses (HSV-1, HSV-2, VZV) produce classic Tzanck smear multinucleated giant cells with nuclear molding, chromatin margination, and Cowdry type A eosinophilic intranuclear inclusions. Distractor exclusion: Paramyxoviruses form cytoplasmic syncytia (or Warthin-Finkeldey cells in measles), and influenza lacks giant cells/Cowdry A inclusions.`,
+    secondOrderClue: `Nuclear inclusions = DNA viruses (Herpesviruses, Adenovirus); Cytoplasmic inclusions = Poxvirus (Guarnieri), Rabies (Negri), Paramyxoviruses.`,
+    phase1Pearl: `Viral DNA replication and capsid assembly occur inside the host nucleus, forming nuclear inclusion bodies before budding through the nuclear membrane.`,
+    phase2Hallmark: `Herpesviruses acquire their lipid envelope by budding from the inner nuclear membrane.`,
+    phase3Secret: `Tzanck smear confirms herpesvirus infection rapidly, though PCR distinguishes HSV-1, HSV-2, and VZV.`,
+    dossierBullets: {
+      p1: [`Viral replication inside nucleus distorts chromatin to periphery`, `Enveloped icosahedral linear dsDNA`],
+      p2: [`Tzanck: Multinucleation, Molding, Margination (3 M's)`, `Cowdry A eosinophilic intranuclear inclusions`],
+      p3: [`Shared by HSV-1, HSV-2, and VZV`, `Distinguish from CMV's single large basophilic owl-eye cell`]
+    }
+  },
+
+  // LO 13: Hantavirus Pulmonary Syndrome (3 questions)
+  {
+    id: `LO13-Q1`, lo: 13, loTitle: `LO 13: Hantavirus (HPS)`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Hantavirus Pulmonary Syndrome`,
+    stem: `A 34-year-old hiker in New Mexico sweeps out a dusty abandoned cabin infested with deer mice. Four days later, he develops fever and myalgias, rapidly progressing to severe dyspnea, hypotension, bilateral interstitial pulmonary edema, hematocrit 58%, and platelet count 48,000/mm³. What is the most likely diagnosis?`,
+    clue: `Deer mouse excreta + hemoconcentration + thrombocytopenia + noncardiogenic pulmonary edema.`,
+    choices: [`Hantavirus pulmonary syndrome (Sin Nombre virus)`, `MERS coronavirus pneumonia`, `Coccidioidomycosis pulmonary infection`],
+    correctIndex: 0,
+    explanation: `Correct: Hantavirus (Sin Nombre virus) is a rodent-borne ("robovirus") bunyavirus transmitted via aerosolized deer mouse urine/feces, causing Hantavirus Pulmonary Syndrome (capillary leak → pulmonary edema, hemoconcentration, thrombocytopenia, prerenal azotemia). Distractor exclusion: MERS is linked to camels in the Middle East, and coccidioidomycosis causes desert granulomatous pneumonia without acute shock/hemoconcentration.`,
+    secondOrderClue: `Southwestern US + deer mouse droppings + pulmonary edema + ↑Hct + ↓platelets = Hantavirus.`,
+    phase1Pearl: `Hantavirus infects pulmonary capillary endothelial cells via beta-3 integrins, triggering profound vascular permeability without cell lysis.`,
+    phase2Hallmark: `Diagnostic peripheral smear triad: thrombocytopenia, hemoconcentration (left shift), and circulating immunoblasts.`,
+    phase3Secret: `Avoid aggressive IV fluid boluses in HPS because capillary leak immediately worsens alveolar pulmonary edema.`,
+    dossierBullets: {
+      p1: [`Aerosolized deer mouse urine/feces transmission (robovirus)`, `Endothelial capillary leak without overt necrosis`],
+      p2: [`Triad: ↑Hematocrit, ↓Platelets, and atypical immunoblasts`, `Bilateral noncardiogenic pulmonary edema on CXR`],
+      p3: [`Causes pulmonary edema, prerenal azotemia, hemorrhagic fever`, `ICU respiratory/ECMO support; restrict excess IV fluids`]
+    }
+  },
+  {
+    id: `LO13-Q2`, lo: 13, loTitle: `LO 13: Hantavirus (HPS)`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Pulmonary Capillary Leak`,
+    stem: `Autopsy of a patient who died of Sin Nombre virus shock shows massive intra-alveolar edema fluid and pleural effusions despite intact, unlysed pulmonary capillary endothelial cells and normal left ventricular function. Which pathophysiologic mechanism explains this fulminant respiratory failure?`,
+    clue: `Noncardiogenic pulmonary edema from cytokine/integrin-mediated endothelial permeability.`,
+    choices: [`Severe pulmonary capillary leak increasing vascular permeability`, `Direct viral lysis of type I pneumocytes with hyaline membranes`, `Left ventricular myocarditis causing hydrostatic congestion`],
+    correctIndex: 0,
+    explanation: `Correct: Hantavirus causes noncardiogenic pulmonary edema and shock via massive pulmonary capillary leak (endothelial hyperpermeability driven by viral beta-3 integrin binding and CD8+ T-cell cytokines), leading to hemoconcentration and prerenal azotemia without destroying endothelial cells. Distractor exclusion: Endothelial/alveolar architecture remains largely intact (unlike bacterial necrosis), and shock is distributive/hypovolemic rather than cardiogenic.`,
+    secondOrderClue: `Capillary leak explains ALL THREE findings simultaneously: pulmonary edema, hemoconcentration (plasma leaves vessels), and prerenal azotemia.`,
+    phase1Pearl: `Intravascular volume shifts rapidly into the pulmonary interstitium and alveoli, dropping cardiac preload and renal perfusion.`,
+    phase2Hallmark: `Protein-rich alveolar fluid with minimal alveolar epithelial necrosis.`,
+    phase3Secret: `Early ECMO referral in rapidly progressive HPS markedly improves survival.`,
+    dossierBullets: {
+      p1: [`Binds endothelial beta-3 integrins → disrupts adherens junctions`, `Plasma extravasation → hemoconcentration & prerenal azotemia`],
+      p2: [`Enveloped (-)ssRNA Bunyavirus with 3 circular segments`, `Acquires envelope by budding into host Golgi apparatus`],
+      p3: [`High mortality; supportive ICU/ECMO is main therapy`, `Cautious vasopressors preferred over large fluid boluses`]
+    }
+  },
+  {
+    id: `LO13-Q3`, lo: 13, loTitle: `LO 13: Hantavirus (HPS)`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Bunyavirus (3 Circular (-)ssRNA)`,
+    stem: `Structural characterization of Sin Nombre virus reveals an enveloped negative-sense RNA virion containing three circular single-stranded RNA segments (L, M, and S) that buds directly into the host Golgi apparatus. To which viral family does this zoonotic respiratory pathogen belong?`,
+    clue: `3 circular RNA segments + Golgi-derived envelope.`,
+    choices: [`Bunyaviruses`, `Orthomyxoviruses`, `Arenaviruses`],
+    correctIndex: 0,
+    explanation: `Correct: Bunyaviruses (including Hantavirus, Rift Valley fever, and California encephalitis) are enveloped (-)ssRNA viruses with 3 circular segments that obtain their envelope from the host Golgi body. Distractor exclusion: Orthomyxoviruses have 8 linear segments, and arenaviruses have 2 ambisense segments.`,
+    secondOrderClue: `Bunyavirus = 3 circular segments + Golgi envelope; unlike arbovirus bunyaviruses, Hantavirus is a robovirus (rodent-borne).`,
+    phase1Pearl: `Circularization via complementary 5' and 3' terminal sequences gives panhandle structures for viral RdRp.`,
+    phase2Hallmark: `Three segments: Large (RdRp), Medium (Gn/Gc glycoproteins), Small (nucleocapsid).`,
+    phase3Secret: `Prevent HPS by wet-mopping and disinfecting rodent-infested areas rather than dry sweeping (which aerosolizes dust).`,
+    dossierBullets: {
+      p1: [`3 circular (-)ssRNA segments replicate in cytoplasm`, `Buds into Golgi cisternae to acquire lipid envelope`],
+      p2: [`Part of BOAR segmented RNA virus group`, `Panhandle circular RNA ends serve as polymerase promoters`],
+      p3: [`Hantavirus is rodent-borne (deer mouse), not arthropod-borne`, `Wet-clean rodent droppings to avoid aerosol inhalation`]
+    }
+  },
+
+  // LO 14: Human Metapneumovirus (3 questions)
+  {
+    id: `LO14-Q1`, lo: 14, loTitle: `LO 14: Human Metapneumovirus`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Human Metapneumovirus (hMPV)`,
+    stem: `In late winter, an 8-month-old infant presents with cough, wheezing, tachypnea, and bronchiolitis indistinguishable from RSV, yet rapid antigen and multiplex PCR tests for RSV, influenza, and parainfluenza are negative. A closely related (-)ssRNA pneumovirus/paramyxovirus is detected. What is the most likely pathogen?`,
+    clue: `Second only to RSV as a cause of infant bronchiolitis; "RSV's close cousin."`,
+    choices: [`Human metapneumovirus (hMPV)`, `Coxsackievirus A16`, `Hantavirus`],
+    correctIndex: 0,
+    explanation: `Correct: Human metapneumovirus (hMPV) is an enveloped (-)ssRNA virus in the Pneumoviridae/Paramyxovirus group that closely mimics RSV, causing winter/spring bronchiolitis in infants and pneumonia in elderly/immunocompromised hosts. Distractor exclusion: Coxsackievirus A16 causes hand-foot-mouth disease, and hantavirus causes HPS with rodent exposure.`,
+    secondOrderClue: `RSV-like bronchiolitis + negative RSV test in late winter/spring = Human metapneumovirus.`,
+    phase1Pearl: `Like RSV, hMPV uses Fusion (F) protein to enter respiratory epithelial cells and trigger peribronchiolar inflammation.`,
+    phase2Hallmark: `Enveloped pleomorphic (-)ssRNA virus lacking hemagglutinin and neuraminidase activity.`,
+    phase3Secret: `Unlike RSV, there is no monoclonal antibody prophylaxis (like palivizumab) or approved vaccine for hMPV; treatment is supportive.`,
+    dossierBullets: {
+      p1: [`Enveloped (-)ssRNA Pneumovirus closely related to RSV`, `Uses F protein for fusion; lacks HA and NA`],
+      p2: [`Bronchiolar epithelial sloughing and mucus plugging`, `Hyperinflation and patchy peribronchial infiltrates on CXR`],
+      p3: [`Causes bronchiolitis in infants & pneumonia in elderly`, `Management is purely supportive (oxygen, hydration)`]
+    }
+  },
+  {
+    id: `LO14-Q2`, lo: 14, loTitle: `LO 14: Human Metapneumovirus`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `F-Protein Fusion Without HA/NA`,
+    stem: `Sequence analysis of a negative-sense, non-segmented RNA virus causing elderly nursing-home pneumonia reveals surface glycoproteins F (fusion), G (attachment), and SH, without hemagglutinin or neuraminidase genes. How does this pathogen spread across respiratory epithelium?`,
+    clue: `F protein fuses viral/host membranes and adjacent epithelial cells.`,
+    choices: [`F-protein-mediated membrane fusion and epithelial sloughing`, `Neuraminidase-driven cleavage of sialic acid receptors`, `ICAM-1-mediated endocytosis at 33°C only`],
+    correctIndex: 0,
+    explanation: `Correct: Both RSV and hMPV lack hemagglutinin and neuraminidase; they attach via G glycoprotein and rely on the Fusion (F) protein to fuse with host membranes and induce bronchiolar epithelial inflammation/sloughing. Distractor exclusion: Neuraminidase belongs to influenza/parainfluenza/mumps, and ICAM-1 binding at 33°C characterizes rhinovirus.`,
+    secondOrderClue: `RSV and hMPV both share the F+/G+/HA-/NA- surface profile.`,
+    phase1Pearl: `Lower airway ciliary injury and IL-8-driven neutrophil infiltration cause small-airway edema and wheezing.`,
+    phase2Hallmark: `Syncytia formation occurs (typically less prominent in vitro than RSV), with peribronchiolar lymphocytic cuffs.`,
+    phase3Secret: `Reinfection occurs throughout life because mucosal immunity is incomplete.`,
+    dossierBullets: {
+      p1: [`G protein attaches; F protein drives membrane fusion`, `Lacks hemagglutinin (HA) and neuraminidase (NA)`],
+      p2: [`Non-segmented (-)ssRNA replicates in cytoplasm`, `Induces bronchiolar edema and mucociliary dysfunction`],
+      p3: [`Incomplete immunity permits adult/elderly reinfections`, `Can trigger severe asthma/COPD exacerbations`]
+    }
+  },
+  {
+    id: `LO14-Q3`, lo: 14, loTitle: `LO 14: Human Metapneumovirus`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Supportive Care & Droplet Precautions`,
+    stem: `A 78-year-old resident of a long-term care facility with COPD develops fever, wheezing, and hypoxemia due to RT-PCR-confirmed human metapneumovirus. Which management plan is most appropriate?`,
+    clue: `No specific antiviral or vaccine exists for hMPV.`,
+    choices: [`Supplemental oxygen, bronchodilators as needed, and droplet isolation`, `Oral oseltamivir plus monthly palivizumab injections`, `Intravenous ganciclovir plus oral amantadine`],
+    correctIndex: 0,
+    explanation: `Correct: Management of hMPV is supportive (supplemental oxygen, hydration, bronchodilators if reactive airway disease/COPD flare) plus droplet/contact precautions to prevent nosocomial spread. Distractor exclusion: Oseltamivir/amantadine target influenza, palivizumab is specific to RSV F protein, and ganciclovir targets CMV.`,
+    secondOrderClue: `Do not use palivizumab or oseltamivir for hMPV—they are specific to RSV and Influenza, respectively.`,
+    phase1Pearl: `Droplet and fomite transmission drives winter-spring institutional outbreaks in daycares and nursing homes.`,
+    phase2Hallmark: `RT-PCR respiratory panel confirms hMPV since viral culture grows very slowly.`,
+    phase3Secret: `Co-infection or secondary bacterial pneumonia should be evaluated if high fever or lobar consolidation develops.`,
+    dossierBullets: {
+      p1: [`Transmitted via respiratory droplets and contaminated surfaces`, `Slow growth in cell culture makes RT-PCR gold standard`],
+      p2: [`CXR shows bilateral interstitial or peribronchial infiltrates`, `No characteristic pathognomonic inclusion on routine stain`],
+      p3: [`Supportive O2/hydration + infection control precautions`, `No licensed vaccine or specific antiviral therapy`]
+    }
+  },
+
+  // LO 15: Coxsackievirus B Pleurodynia (3 questions)
+  {
+    id: `LO15-Q1`, lo: 15, loTitle: `LO 15: Coxsackievirus B Pleurodynia`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Coxsackievirus B (Bornholm Disease)`,
+    stem: `During a summer camp outbreak, a 16-year-old boy develops sudden, excruciating, paroxysmal pleuritic pain along the lower rib cage ("devil's grip") accompanied by fever and chest wall tenderness. ECG, D-dimer, troponin, and chest radiograph are completely normal. Which pathogen is the most likely cause?`,
+    clue: `Summer/fall epidemic pleurodynia ("Bornholm disease" / "devil's grip") with a normal CXR.`,
+    choices: [`Coxsackievirus B`, `Streptococcus pneumoniae`, `Influenza A virus`],
+    correctIndex: 0,
+    explanation: `Correct: Coxsackievirus B (an acid-stable enterovirus in the Picornavirus family) causes epidemic pleurodynia (Bornholm disease / "devil's grip"), presenting with paroxysmal spasmodic lower chest/upper abdominal pain, fever, and normal CXR/ECG. Distractor exclusion: Pneumococcal pneumonia causes lobar consolidation on CXR, and influenza causes cough/diffuse myalgias rather than isolated paroxysmal pleurodynia.`,
+    secondOrderClue: `Young patient + summer + sudden spasmodic pleuritic pain ("devil's grip") + normal CXR = Coxsackievirus B pleurodynia.`,
+    phase1Pearl: `Fecal-oral or respiratory transmission leads to viremia and viral myositis of the intercostal and diaphragmatic muscles.`,
+    phase2Hallmark: `Naked (+)ssRNA Picornavirus (Enterovirus); chest radiograph and cardiac enzymes are normal unless myocarditis coexists.`,
+    phase3Secret: `Management is strictly supportive (analgesics/NSAIDs) to avoid unnecessary anticoagulation or antibiotics.`,
+    dossierBullets: {
+      p1: [`Acid-stable Enterovirus (Picornavirus) infects intercostal muscles`, `Viral myositis triggers paroxysmal chest wall spasm`],
+      p2: [`Naked (+)ssRNA translated as one polyprotein`, `Normal CXR helps exclude pneumonia and pneumothorax`],
+      p3: [`Bornholm disease = "devil's grip" (epidemic pleurodynia)`, `Also causes myocarditis, pericarditis, and aseptic meningitis`]
+    }
+  },
+  {
+    id: `LO15-Q2`, lo: 15, loTitle: `LO 15: Coxsackievirus B Pleurodynia`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Acid-Stable Enterovirus (Intercostal Myositis)`,
+    stem: `A 22-year-old lifeguard presents with recurrent spasmodic right lower chest pain that lasts 20 minutes per episode and resolves between attacks, leaving localized intercostal muscle tenderness. The causative naked (+)ssRNA virus enters via the gastrointestinal tract before seeding striated muscle. Which property permits this virus to survive gastric passage?`,
+    clue: `Unlike rhinovirus, enteroviruses survive pH 3.0 stomach acid.`,
+    choices: [`Acid stability of its naked icosahedral capsid`, `Protective lipid bilayer envelope`, `Urease-mediated gastric acid neutralization`],
+    correctIndex: 0,
+    explanation: `Correct: Coxsackievirus B is an enterovirus (Picornavirus) with an acid-stable naked icosahedral capsid that resists gastric pH (< 3.0) and bile, enabling fecal-oral GI replication prior to viremic spread to intercostal muscles (pleurodynia) or myocardium. Distractor exclusion: Picornaviruses have NO lipid envelope, and urease is produced by bacteria like H. pylori, not viruses.`,
+    secondOrderClue: `Picornavirus contrast: Rhinovirus = Acid-LABILE (URI only); Enteroviruses (Polio, Echo, Coxsackie) = Acid-STABLE (GI → viremia).`,
+    phase1Pearl: `Replication in gut-associated lymphoid tissue (Peyer patches) precedes hematogenous dissemination to striated/cardiac muscle.`,
+    phase2Hallmark: `Intercostal muscle edema and focal mononuclear myositis without pulmonary parenchymal infiltrates.`,
+    phase3Secret: `Because Coxsackievirus B can also cause dilated cardiomyopathy/myocarditis, always check an ECG if chest pain is persistent.`,
+    dossierBullets: {
+      p1: [`Acid-stable naked capsid survives stomach acid and bile`, `Replicates in gut mucosa → viremia → intercostal myositis`],
+      p2: [`(+)ssRNA genome cleaved from single polyprotein`, `Contrasts directly with acid-labile Rhinovirus`],
+      p3: [`Summer/early fall seasonality (classic enterovirus pattern)`, `Screen for coexisting myocarditis/pericarditis if tachycardic`]
+    }
+  },
+  {
+    id: `LO15-Q3`, lo: 15, loTitle: `LO 15: Coxsackievirus B Pleurodynia`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Supportive Care & NSAIDs`,
+    stem: `A 19-year-old college swimmer is diagnosed clinically with Coxsackievirus B epidemic pleurodynia after pulmonary embolism, pneumothorax, and pneumonia are excluded by imaging and labs. What is the next best step in management?`,
+    clue: `Bornholm disease is self-limiting; treat pain and avoid unnecessary antimicrobials.`,
+    choices: [`Supportive care with oral analgesics/NSAIDs and reassurance`, `Oral oseltamivir plus azithromycin`, `Intravenous acyclovir plus systemic heparin`],
+    correctIndex: 0,
+    explanation: `Correct: Epidemic pleurodynia caused by Coxsackievirus B is a self-limiting viral myositis that resolves within several days; management consists of supportive care and analgesics/NSAIDs once life-threatening causes (PE, ACS, pneumothorax) are ruled out. Distractor exclusion: Oseltamivir/azithromycin and acyclovir/heparin have no role in uncomplicated enteroviral pleurodynia.`,
+    secondOrderClue: `Supportive care is the rule for Picornaviruses (no specific antiviral for Rhinovirus or Coxsackievirus).`,
+    phase1Pearl: `Neutralizing serotype-specific IgG clears viremia and resolves muscle inflammation within 3–7 days.`,
+    phase2Hallmark: `Enterovirus RT-PCR (throat/stool) confirms diagnosis if needed during outbreaks.`,
+    phase3Secret: `Distinguish Coxsackie A (herpangina, hand-foot-mouth disease) from Coxsackie B (Bornholm pleurodynia, myocarditis, pericarditis).`,
+    dossierBullets: {
+      p1: [`Humoral IgG immunity resolves enteroviral viremia`, `Self-limiting course typically lasts 3–7 days`],
+      p2: [`Normal CXR and negative D-dimer rule out pneumonia/PE`, `Confirm via stool/throat RT-PCR if outbreak tracking needed`],
+      p3: [`Treat symptomatically with analgesics/NSAIDs`, `Coxsackie B = "Body/Breathing/Heart" (pleurodynia, myocarditis)`]
+    }
+  }
+];
+
+// =========================================================================
+// STATE & SHIM PERSISTENCE
+// =========================================================================
+const appState = {
+  hp: GAME_CONFIG.maxHp,
+  xp: 0,
+  streak: 0,
+  bestStreak: 0,
+  answeredCount: 0,
+  correctCount: 0,
+  sectorFilter: 'ALL',
+  angleFilter: 'ALL',
+  timesUpMode: 'wrong',
+  timerEnabled: false,
+  isHintsVisible: false,
+  soundMaster: true,
+  sfxEnabled: true,
+  bgmEnabled: false,
+  bgmVolume: 0.4,
+  missedIds: [],
+  masteredByLo: {}
+};
+
+let activeDeck = [];
+let deckIndex = 0;
+let currentQuestion = null;
+let shuffledChoices = [];
+let currentCorrectLane = 0;
+let targetedLane = 1;
+let gateResolved = false;
+let isMenuOpen = false;
+let isModalOpen = false;
+let timerInterval = null;
+let timeLeft = GAME_CONFIG.timerSeconds;
+let metaFadeTimeout = null;
+let toastTimeout = null;
+
+// 3D Canvas State
+let canvasEl = null;
+let ctx2d = null;
+let animFrameId = null;
+let gateDistance = GAME_CONFIG.gateStartDistance;
+let craftXNorm = 0;
+let targetCraftXNorm = 0;
+let lastFrameTime = 0;
+let dustParticles = [];
+
+// Audio State
+let audioCtx = null;
+let bgmTimer = null;
+let customAudioEl = null;
+let customAudioUrl = null;
+let bgmStep = 0;
+
+function ensureAudioContext() {
+  if (!audioCtx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) audioCtx = new AudioContextClass();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
+}
+
+function playSfx(type) {
+  if (!appState.soundMaster || !appState.sfxEnabled) return;
+  ensureAudioContext();
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  if (type === 'steer') {
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(340, now);
+    osc.frequency.exponentialRampToValueAtTime(520, now + 0.06);
+    gain.gain.setValueAtTime(0.06, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+    osc.start(now); osc.stop(now + 0.08);
+  } else if (type === 'correct') {
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(523.25, now);
+    osc.frequency.setValueAtTime(659.25, now + 0.08);
+    osc.frequency.setValueAtTime(783.99, now + 0.16);
+    gain.gain.setValueAtTime(0.12, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.34);
+    osc.start(now); osc.stop(now + 0.35);
+  } else if (type === 'wrong') {
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(190, now);
+    osc.frequency.linearRampToValueAtTime(110, now + 0.28);
+    gain.gain.setValueAtTime(0.11, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+    osc.start(now); osc.stop(now + 0.31);
+  }
+}
+
+function startProceduralBgm() {
+  stopBgm();
+  if (!appState.soundMaster || !appState.bgmEnabled) return;
+  if (customAudioEl && customAudioUrl) {
+    customAudioEl.volume = appState.bgmVolume;
+    customAudioEl.play().catch(() => {});
+    return;
+  }
+  ensureAudioContext();
+  if (!audioCtx) return;
+  const notes = [110, 130.81, 146.83, 164.81, 146.83, 130.81, 123.47, 98.0];
+  bgmTimer = setInterval(() => {
+    if (!appState.soundMaster || !appState.bgmEnabled || !audioCtx) return;
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(notes[bgmStep % notes.length], now);
+    const vol = Math.max(0.001, appState.bgmVolume * 0.09);
+    gain.gain.setValueAtTime(vol, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + 0.24);
+    bgmStep++;
+  }, 260);
+}
+
+function stopBgm() {
+  if (bgmTimer) { clearInterval(bgmTimer); bgmTimer = null; }
+  if (customAudioEl) { customAudioEl.pause(); }
+}
+
+function toggleMasterSound() {
+  appState.soundMaster = !appState.soundMaster;
+  if (!appState.soundMaster) stopBgm();
+  else if (appState.bgmEnabled) startProceduralBgm();
+  syncAudioUI();
+  persistAppState();
+}
+
+function toggleSfx() {
+  appState.sfxEnabled = !appState.sfxEnabled;
+  syncAudioUI();
+  persistAppState();
+}
+
+function toggleBgm() {
+  appState.bgmEnabled = !appState.bgmEnabled;
+  if (appState.bgmEnabled && appState.soundMaster) startProceduralBgm();
+  else stopBgm();
+  syncAudioUI();
+  persistAppState();
+}
+
+function setBgmVolume(val) {
+  appState.bgmVolume = Math.max(0, Math.min(1, Number(val) / 100));
+  if (customAudioEl) customAudioEl.volume = appState.bgmVolume;
+  persistAppState();
+}
+
+function loadCustomAudio(event) {
+  const file = event && event.target && event.target.files ? event.target.files[0] : null;
+  if (!file) return;
+  if (customAudioUrl) URL.revokeObjectURL(customAudioUrl);
+  customAudioUrl = URL.createObjectURL(file);
+  if (!customAudioEl) {
+    customAudioEl = new Audio();
+    customAudioEl.loop = true;
+  }
+  customAudioEl.src = customAudioUrl;
+  appState.bgmEnabled = true;
+  if (appState.soundMaster) startProceduralBgm();
+  syncAudioUI();
+  showToast(`LOADED AUDIO: ${file.name}`);
+}
+
+function syncAudioUI() {
+  const mBtn = document.getElementById('master-sound-btn');
+  const sBtn = document.getElementById('sfx-sound-btn');
+  const bBtn = document.getElementById('bgm-sound-btn');
+  const volSlider = document.getElementById('bgm-volume-slider');
+  if (mBtn) {
+    mBtn.textContent = appState.soundMaster ? `🔊 Master Sound: ON` : `🔇 Master Sound: OFF`;
+    mBtn.classList.toggle('is-active', appState.soundMaster);
+  }
+  if (sBtn) {
+    sBtn.textContent = appState.sfxEnabled ? `🎵 SFX: ON` : `🎵 SFX: OFF`;
+    sBtn.classList.toggle('is-active', appState.sfxEnabled);
+  }
+  if (bBtn) {
+    bBtn.textContent = appState.bgmEnabled ? `🎹 Zombies BGM: ON` : `🎹 Zombies BGM: OFF`;
+    bBtn.classList.toggle('is-active', appState.bgmEnabled);
+  }
+  if (volSlider) volSlider.value = String(Math.round(appState.bgmVolume * 100));
+}
+
+async function persistAppState() {
+  try {
+    if (window.notebookAppApi && typeof window.notebookAppApi.setAppState === 'function') {
+      await window.notebookAppApi.setAppState({
+        hp: appState.hp,
+        xp: appState.xp,
+        streak: appState.streak,
+        bestStreak: appState.bestStreak,
+        answeredCount: appState.answeredCount,
+        correctCount: appState.correctCount,
+        sectorFilter: appState.sectorFilter,
+        angleFilter: appState.angleFilter,
+        timesUpMode: appState.timesUpMode,
+        timerEnabled: appState.timerEnabled,
+        isHintsVisible: appState.isHintsVisible,
+        soundMaster: appState.soundMaster,
+        sfxEnabled: appState.sfxEnabled,
+        bgmEnabled: appState.bgmEnabled,
+        bgmVolume: appState.bgmVolume,
+        missedIds: appState.missedIds,
+        masteredByLo: appState.masteredByLo
+      });
+    }
+  } catch (e) {}
+}
+
+async function restoreAppState() {
+  try {
+    if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === 'function') {
+      const s = await window.notebookAppApi.getAppState();
+      if (s && typeof s === 'object') {
+        if (typeof s.hp === 'number') appState.hp = s.hp;
+        if (typeof s.xp === 'number') appState.xp = s.xp;
+        if (typeof s.streak === 'number') appState.streak = s.streak;
+        if (typeof s.bestStreak === 'number') appState.bestStreak = s.bestStreak;
+        if (typeof s.answeredCount === 'number') appState.answeredCount = s.answeredCount;
+        if (typeof s.correctCount === 'number') appState.correctCount = s.correctCount;
+        if (typeof s.sectorFilter === 'string') appState.sectorFilter = s.sectorFilter;
+        if (typeof s.angleFilter === 'string') appState.angleFilter = s.angleFilter;
+        if (typeof s.timesUpMode === 'string') appState.timesUpMode = s.timesUpMode;
+        if (typeof s.timerEnabled === 'boolean') appState.timerEnabled = s.timerEnabled;
+        if (typeof s.isHintsVisible === 'boolean') appState.isHintsVisible = s.isHintsVisible;
+        if (typeof s.soundMaster === 'boolean') appState.soundMaster = s.soundMaster;
+        if (typeof s.sfxEnabled === 'boolean') appState.sfxEnabled = s.sfxEnabled;
+        if (typeof s.bgmEnabled === 'boolean') appState.bgmEnabled = s.bgmEnabled;
+        if (typeof s.bgmVolume === 'number') appState.bgmVolume = s.bgmVolume;
+        if (Array.isArray(s.missedIds)) appState.missedIds = s.missedIds;
+        if (s.masteredByLo && typeof s.masteredByLo === 'object') appState.masteredByLo = s.masteredByLo;
+      }
+    }
+  } catch (e) {}
+  const sf = document.getElementById('sector-filter');
+  const af = document.getElementById('angle-filter');
+  const tm = document.getElementById('timesup-mode');
+  if (sf) sf.value = appState.sectorFilter;
+  if (af) af.value = appState.angleFilter;
+  if (tm) tm.value = appState.timesUpMode;
+}
+
+// =========================================================================
+// UI & DECK LOGIC
+// =========================================================================
+function showToast(msg) {
+  const el = document.getElementById('inline-toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('is-shown');
+  if (toastTimeout) clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => el.classList.remove('is-shown'), 2300);
+}
+
+function initDynamicSelectors() {
+  const sf = document.getElementById('sector-filter');
+  if (!sf) return;
+  sf.innerHTML = '';
+  const optAll = document.createElement('option');
+  optAll.value = 'ALL';
+  optAll.textContent = `All 15 Respiratory Viruses (45 Gates)`;
+  sf.appendChild(optAll);
+
+  const optMissed = document.createElement('option');
+  optMissed.value = 'MISSED';
+  optMissed.textContent = `🎯 Missed Gates Only (0)`;
+  sf.appendChild(optMissed);
+
+  SECTORS.forEach((sec) => {
+    const o = document.createElement('option');
+    o.value = sec.id;
+    o.textContent = sec.label;
+    sf.appendChild(o);
+  });
+
+  CODEX_DATA.forEach((c) => {
+    const o = document.createElement('option');
+    o.value = `LO_${c.lo}`;
+    o.textContent = c.entity;
+    sf.appendChild(o);
+  });
+}
+
+function syncMissedOptionLabel() {
+  const sf = document.getElementById('sector-filter');
+  if (!sf) return;
+  const missedOpt = Array.from(sf.options).find((o) => o.value === 'MISSED');
+  if (missedOpt) missedOpt.textContent = `🎯 Missed Gates Only (${appState.missedIds.length})`;
+}
+
+function renderSkillTree() {
+  const grid = document.getElementById('skill-tree-grid');
+  const summary = document.getElementById('mastery-summary');
+  if (!grid) return;
+  grid.innerHTML = '';
+  let masteredCount = 0;
+  CODEX_DATA.forEach((item) => {
+    const qs = ALL_QUESTIONS.filter((q) => q.lo === item.lo);
+    const done = qs.filter((q) => appState.masteredByLo[q.id]).length;
+    const isMastered = done >= qs.length && qs.length > 0;
+    if (isMastered) masteredCount++;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `skill-node-btn${isMastered ? ' is-mastered' : ''}${appState.sectorFilter === 'LO_' + item.lo ? ' is-active-filter' : ''}`;
+    btn.onclick = () => selectLoFromSkillTree(item.lo);
+    btn.innerHTML = `<span class="skill-node-title">${item.entity}</span><span class="skill-node-meta">Mastered: ${done}/${qs.length}</span>`;
+    grid.appendChild(btn);
+  });
+  if (summary) {
+    const acc = appState.answeredCount > 0 ? Math.round((appState.correctCount / appState.answeredCount) * 100) + '%' : '--%';
+    summary.textContent = `Mastered: ${masteredCount} / ${CODEX_DATA.length} LOs • Accuracy: ${acc}`;
+  }
+}
+
+function selectLoFromSkillTree(loNum) {
+  appState.sectorFilter = `LO_${loNum}`;
+  const sf = document.getElementById('sector-filter');
+  if (sf) sf.value = appState.sectorFilter;
+  applyDeckFilters();
+  if (isMenuOpen) toggleMenuDrawer();
+}
+
+function buildDeck(shuffle) {
+  let pool = ALL_QUESTIONS.slice();
+  if (appState.sectorFilter === 'MISSED') {
+    pool = pool.filter((q) => appState.missedIds.includes(q.id));
+    if (pool.length === 0) {
+      showToast('NO MISSED GATES RECORDED — SHOWING FULL DECK');
+      appState.sectorFilter = 'ALL';
+      const sf = document.getElementById('sector-filter');
+      if (sf) sf.value = 'ALL';
+      pool = ALL_QUESTIONS.slice();
+    }
+  } else if (appState.sectorFilter.startsWith('sector_')) {
+    const losInSector = CODEX_DATA.filter((c) => c.sector === appState.sectorFilter).map((c) => c.lo);
+    pool = pool.filter((q) => losInSector.includes(q.lo));
+  } else if (appState.sectorFilter.startsWith('LO_')) {
+    const loNum = Number(appState.sectorFilter.replace('LO_', ''));
+    pool = pool.filter((q) => q.lo === loNum);
+  }
+
+  if (appState.angleFilter !== 'ALL') {
+    pool = pool.filter((q) => q.angle === appState.angleFilter);
+  }
+  if (pool.length === 0) pool = ALL_QUESTIONS.slice();
+
+  if (shuffle) {
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+  }
+  activeDeck = pool;
+  deckIndex = 0;
+}
+
+function applyDeckFilters() {
+  const sf = document.getElementById('sector-filter');
+  const af = document.getElementById('angle-filter');
+  appState.sectorFilter = sf ? sf.value : 'ALL';
+  appState.angleFilter = af ? af.value : 'ALL';
+  buildDeck(false);
+  renderSkillTree();
+  prepareNextGate();
+  persistAppState();
+}
+
+function restartDeck(shuffle) {
+  appState.hp = GAME_CONFIG.maxHp;
+  appState.streak = 0;
+  buildDeck(shuffle);
+  updateTelemetryUI();
+  prepareNextGate();
+  if (isMenuOpen) toggleMenuDrawer();
+  showToast(shuffle ? 'DECK SHUFFLED' : 'DECK RESTARTED');
+  persistAppState();
+}
+
+function handleResetMastery(btn) {
+  if (!btn) return;
+  if (btn.dataset.armed !== 'true') {
+    btn.dataset.armed = 'true';
+    btn.textContent = '⚠ Tap Again to Confirm Reset';
+    setTimeout(() => {
+      if (btn.dataset.armed === 'true') {
+        btn.dataset.armed = 'false';
+        btn.textContent = '🧹 Reset Mastery';
+      }
+    }, 3500);
+    return;
+  }
+  btn.dataset.armed = 'false';
+  btn.textContent = '🧹 Reset Mastery';
+  appState.hp = GAME_CONFIG.maxHp;
+  appState.xp = 0;
+  appState.streak = 0;
+  appState.bestStreak = 0;
+  appState.answeredCount = 0;
+  appState.correctCount = 0;
+  appState.missedIds = [];
+  appState.masteredByLo = {};
+  syncMissedOptionLabel();
+  renderSkillTree();
+  updateTelemetryUI();
+  buildDeck(false);
+  prepareNextGate();
+  persistAppState();
+  showToast('MASTERY PROGRESS CLEARED');
+}
+
+function updateTelemetryUI() {
+  const hpEl = document.getElementById('hp-text');
+  const xpEl = document.getElementById('xp-text');
+  const stEl = document.getElementById('streak-text');
+  const gtEl = document.getElementById('gate-text');
+  if (hpEl) hpEl.textContent = String(appState.hp);
+  if (xpEl) xpEl.textContent = String(appState.xp);
+  if (stEl) stEl.textContent = String(appState.streak);
+  if (gtEl) gtEl.textContent = `${Math.min(deckIndex + 1, activeDeck.length)}/${activeDeck.length}`;
+}
+
+function syncHintsUI() {
+  const app = document.getElementById('xr-app');
+  const menuBtn = document.getElementById('menu-hints-btn');
+  if (app) {
+    app.classList.toggle('hints-visible', appState.isHintsVisible);
+    app.classList.toggle('hints-hidden', !appState.isHintsVisible);
+  }
+  if (menuBtn) {
+    menuBtn.textContent = appState.isHintsVisible ? `💡 Hints: ON [H]` : `💡 Hints: OFF [H]`;
+    menuBtn.classList.toggle('is-active', appState.isHintsVisible);
+  }
+}
+
+function toggleHintsBar() {
+  appState.isHintsVisible = !appState.isHintsVisible;
+  syncHintsUI();
+  resizeCanvas();
+  playSfx('steer');
+  persistAppState();
+}
+
+function toggleMenuDrawer() {
+  isMenuOpen = !isMenuOpen;
+  const drawer = document.getElementById('top-menu-drawer');
+  const btn = document.getElementById('menu-toggle-btn');
+  if (drawer) drawer.classList.toggle('is-open', isMenuOpen);
+  if (btn) btn.setAttribute('aria-expanded', String(isMenuOpen));
+  if (isMenuOpen) renderSkillTree();
+}
+
+function openCodexFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  openCodex();
+}
+
+function skipFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  skipCurrentQuestion();
+}
+
+function skipCurrentQuestion() {
+  if (isModalOpen) return;
+  stopGateTimer();
+  deckIndex++;
+  if (deckIndex >= activeDeck.length) {
+    openSummaryModal();
+  } else {
+    prepareNextGate();
+    showToast('GATE SKIPPED');
+  }
+}
+
+function setTimesUpMode(mode) {
+  appState.timesUpMode = mode;
+  persistAppState();
+}
+
+function syncTimerControlsUI() {
+  const menuTimerBtn = document.getElementById('menu-timer-btn');
+  const timerChip = document.getElementById('timer-chip');
+  const timerText = document.getElementById('timer-text');
+  if (menuTimerBtn) {
+    menuTimerBtn.textContent = appState.timerEnabled ? `⏱ 50s Timer: ON [T]` : `⏱ 50s Timer: OFF [T]`;
+    menuTimerBtn.classList.toggle('is-active', appState.timerEnabled);
+  }
+  if (timerText) timerText.textContent = appState.timerEnabled ? `${timeLeft}s` : `OFF`;
+  if (timerChip) timerChip.classList.toggle('is-urgent', appState.timerEnabled && timeLeft <= 10);
+}
+
+function toggleTimerEnabled() {
+  appState.timerEnabled = !appState.timerEnabled;
+  if (appState.timerEnabled) {
+    timeLeft = GAME_CONFIG.timerSeconds;
+    startGateTimer();
+  } else {
+    stopGateTimer();
+  }
+  syncTimerControlsUI();
+  persistAppState();
+}
+
+function startTimedRun() {
+  appState.timerEnabled = true;
+  if (isMenuOpen) toggleMenuDrawer();
+  restartDeck(true);
+  timeLeft = GAME_CONFIG.timerSeconds;
+  startGateTimer();
+  syncTimerControlsUI();
+  showToast('50s TIMED RUN ACTIVE');
+}
+
+function stopGateTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+function startGateTimer() {
+  stopGateTimer();
+  if (!appState.timerEnabled || gateResolved || isModalOpen) {
+    syncTimerControlsUI();
+    return;
+  }
+  timeLeft = GAME_CONFIG.timerSeconds;
+  syncTimerControlsUI();
+  timerInterval = setInterval(() => {
+    if (isMenuOpen || isModalOpen || gateResolved) return;
+    timeLeft--;
+    syncTimerControlsUI();
+    if (timeLeft <= 0) {
+      stopGateTimer();
+      if (appState.timesUpMode === 'wrong') {
+        resolveGate(-1, true);
+      } else {
+        showToast(`⏱ 0s — SELECT A PORTAL`);
+      }
+    }
+  }, 1000);
+}
+
+function prepareNextGate() {
+  if (deckIndex >= activeDeck.length) {
+    openSummaryModal();
+    return;
+  }
+  gateResolved = false;
+  currentQuestion = activeDeck[deckIndex];
+  gateDistance = GAME_CONFIG.gateStartDistance;
+
+  // Shuffle 3 choices
+  const tagged = currentQuestion.choices.map((text, idx) => ({ text, isCorrect: idx === currentQuestion.correctIndex }));
+  for (let i = tagged.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [tagged[i], tagged[j]] = [tagged[j], tagged[i]];
+  }
+  shuffledChoices = tagged.map((t) => t.text);
+  currentCorrectLane = tagged.findIndex((t) => t.isCorrect);
+
+  const loEl = document.getElementById('lo-badge');
+  const angEl = document.getElementById('angle-badge');
+  const phEl = document.getElementById('phase-badge');
+  const corEl = document.getElementById('corridor-badge');
+  const stemEl = document.getElementById('q-stem-text');
+  const clueEl = document.getElementById('q-clue-text');
+  const metaRow = document.getElementById('question-meta-row');
+
+  const theme = LO_VISUAL_THEMES[currentQuestion.lo] || LO_VISUAL_THEMES[1];
+  if (loEl) loEl.textContent = currentQuestion.loTitle;
+  if (angEl) angEl.textContent = currentQuestion.angle.replace('->', '→');
+  if (phEl) phEl.textContent = currentQuestion.phaseFocus;
+  if (corEl) corEl.textContent = theme.tag;
+  if (stemEl) stemEl.textContent = currentQuestion.stem;
+  if (clueEl) clueEl.textContent = currentQuestion.clue;
+
+  for (let i = 0; i < 3; i++) {
+    const laneText = document.getElementById(`lane-${i}-text`);
+    if (laneText) laneText.textContent = shuffledChoices[i];
+  }
+  previewLaneTarget(1, true);
+
+  if (metaRow) {
+    metaRow.classList.remove('is-faded');
+    if (metaFadeTimeout) clearTimeout(metaFadeTimeout);
+    metaFadeTimeout = setTimeout(() => {
+      metaRow.classList.add('is-faded');
+    }, GAME_CONFIG.metaFadeMs);
+  }
+
+  updateTelemetryUI();
+  startGateTimer();
+}
+
+function previewLaneTarget(lane, silent) {
+  targetedLane = lane;
+  targetCraftXNorm = lane === 0 ? -0.78 : lane === 2 ? 0.78 : 0;
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`lane-${i}-card`);
+    if (card) card.classList.toggle('is-targeted', i === lane);
+  }
+  if (!silent) playSfx('steer');
+}
+
+function selectLaneAndResolve(lane) {
+  if (gateResolved || isModalOpen || isMenuOpen || !currentQuestion) return;
+  previewLaneTarget(lane, true);
+  resolveGate(lane, false);
+}
+
+function resolveGate(chosenLane, isTimesUp) {
+  if (gateResolved || !currentQuestion) return;
+  gateResolved = true;
+  stopGateTimer();
+
+  const isCorrect = !isTimesUp && chosenLane === currentCorrectLane;
+  appState.answeredCount++;
+  let xpDelta = 0;
+  let hpDeltaLabel = '';
+
+  if (isCorrect) {
+    appState.correctCount++;
+    appState.streak++;
+    if (appState.streak > appState.bestStreak) appState.bestStreak = appState.streak;
+    xpDelta = 100 + Math.min(appState.streak * 15, 90);
+    appState.xp += xpDelta;
+    appState.hp = Math.min(GAME_CONFIG.maxHp, appState.hp + GAME_CONFIG.hpReward);
+    hpDeltaLabel = `+${GAME_CONFIG.hpReward} HP`;
+    if (appState.streak > 0 && appState.streak % GAME_CONFIG.healStreakStep === 0) {
+      appState.hp = Math.min(GAME_CONFIG.maxHp, appState.hp + GAME_CONFIG.healAmount);
+      showToast(`✚ STREAK BONUS +${GAME_CONFIG.healAmount} HP`);
+    }
+    appState.masteredByLo[currentQuestion.id] = true;
+    appState.missedIds = appState.missedIds.filter((id) => id !== currentQuestion.id);
+    playSfx('correct');
+  } else {
+    appState.streak = 0;
+    appState.hp = Math.max(0, appState.hp - GAME_CONFIG.hpPenalty);
+    hpDeltaLabel = `-${GAME_CONFIG.hpPenalty} HP`;
+    if (!appState.missedIds.includes(currentQuestion.id)) {
+      appState.missedIds.push(currentQuestion.id);
+    }
+    playSfx('wrong');
+  }
+
+  syncMissedOptionLabel();
+  updateTelemetryUI();
+  populateOutcomeModal(currentQuestion, chosenLane, isCorrect, xpDelta, hpDeltaLabel, isTimesUp);
+  persistAppState();
+}
+
+function renderDossierBullets(el, lines) {
+  if (!el) return;
+  const items = (Array.isArray(lines) ? lines : [lines])
+    .flatMap((line) => String(line || '').split(/\n|<br\s*\/?>/i))
+    .map((line) => line.replace(/^\s*[•\-\*]\s*/, '').trim())
+    .filter(Boolean);
+  el.innerHTML = items.map((line) => `<p class="dossier-line">• ${line}</p>`).join('');
+}
+
+function populateOutcomeModal(q, chosenLane, isCorrect, xpDelta, hpDeltaLabel, isTimesUp) {
+  isModalOpen = true;
+  const verdict = document.getElementById('outcome-verdict');
+  const xpBadge = document.getElementById('outcome-xp-delta');
+  const hpBadge = document.getElementById('outcome-hp-delta');
+  const loRef = document.getElementById('outcome-lo-ref');
+  const qText = document.getElementById('outcome-question-text');
+  const yourBox = document.getElementById('your-choice-box');
+  const yourText = document.getElementById('your-choice-text');
+  const rightText = document.getElementById('correct-choice-text');
+
+  if (verdict) {
+    verdict.textContent = isTimesUp
+      ? `⏱ TIME'S UP — ${q.shortAnswer}`
+      : isCorrect
+        ? `✔ CORRECT — ${q.shortAnswer}`
+        : `✖ INCORRECT — ${q.shortAnswer}`;
+    verdict.classList.toggle('is-wrong', !isCorrect);
+  }
+  if (xpBadge) xpBadge.textContent = isCorrect ? `+${xpDelta} XP` : `+0 XP`;
+  if (hpBadge) hpBadge.textContent = hpDeltaLabel;
+  if (loRef) loRef.textContent = `${q.loTitle} • ${q.angle.replace('->', '→')} • ${q.phaseFocus}`;
+  if (qText) qText.textContent = q.stem;
+
+  if (yourBox) {
+    yourBox.classList.toggle('is-correct', isCorrect);
+    yourBox.classList.toggle('is-wrong', !isCorrect);
+  }
+  if (yourText) {
+    yourText.textContent = isTimesUp ? `⏱ Time expired (no portal selected)` : (shuffledChoices[chosenLane] || '—');
+  }
+  if (rightText) rightText.textContent = shuffledChoices[currentCorrectLane] || q.choices[0];
+
+  renderDossierBullets(document.getElementById('dossier-explanation'), q.explanation);
+  renderDossierBullets(document.getElementById('dossier-board-clue'), q.secondOrderClue);
+  renderDossierBullets(document.getElementById('dossier-pathogenesis'), q.phase1Pearl);
+  renderDossierBullets(document.getElementById('dossier-morphology'), q.phase2Hallmark);
+  renderDossierBullets(document.getElementById('dossier-epi-tx'), q.phase3Secret);
+  renderDossierBullets(document.getElementById('dossier-angle-1'), q.dossierBullets.p1);
+  renderDossierBullets(document.getElementById('dossier-angle-2'), q.dossierBullets.p2);
+  renderDossierBullets(document.getElementById('dossier-angle-3'), q.dossierBullets.p3);
+
+  const scrollBody = document.getElementById('outcome-scroll-body');
+  if (scrollBody) scrollBody.scrollTop = 0;
+
+  const backdrop = document.getElementById('outcome-backdrop');
+  if (backdrop) backdrop.classList.add('is-open');
+}
+
+function scrollOutcomeBody(deltaY) {
+  const body = document.getElementById('outcome-scroll-body') || document.querySelector('.popup-scroll-body');
+  if (!body) return;
+  if (typeof body.scrollBy === 'function') {
+    body.scrollBy({ top: deltaY, behavior: 'smooth' });
+  } else {
+    body.scrollTop += deltaY;
+  }
+}
+
+function continueToNextGate() {
+  closeAllModals();
+  if (appState.hp <= 0) {
+    appState.hp = GAME_CONFIG.maxHp;
+    showToast('VITALS RESTORED TO 100 HP');
+    openSummaryModal();
+    return;
+  }
+  deckIndex++;
+  if (deckIndex >= activeDeck.length) {
+    openSummaryModal();
+  } else {
+    prepareNextGate();
+  }
+}
+
+function closeAllModals() {
+  ['outcome-backdrop', 'codex-backdrop', 'summary-backdrop'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('is-open');
+  });
+  isModalOpen = false;
+}
+
+// =========================================================================
+// CODEX & SUMMARY MODALS
+// =========================================================================
+let codexSectorFilter = 'ALL';
+
+function openCodex() {
+  isModalOpen = true;
+  renderCodexRows();
+  const backdrop = document.getElementById('codex-backdrop');
+  if (backdrop) backdrop.classList.add('is-open');
+}
+
+function closeCodex() {
+  const backdrop = document.getElementById('codex-backdrop');
+  if (backdrop) backdrop.classList.remove('is-open');
+  isModalOpen = false;
+}
+
+function setCodexSectorFilter(sector, btn) {
+  codexSectorFilter = sector;
+  const pills = document.querySelectorAll('#codex-filter-pills button');
+  pills.forEach((p) => p.classList.remove('is-active'));
+  if (btn) btn.classList.add('is-active');
+  renderCodexRows();
+}
+
+function renderCodexRows() {
+  const tbody = document.getElementById('codex-tbody');
+  const searchEl = document.getElementById('codex-search-input');
+  if (!tbody) return;
+  const query = (searchEl ? searchEl.value : '').trim().toLowerCase();
+  const rows = CODEX_DATA.filter((item) => {
+    if (codexSectorFilter !== 'ALL' && item.sector !== codexSectorFilter) return false;
+    if (!query) return true;
+    return [item.entity, item.trigger, item.pathogenesis, item.hallmarks, item.clinical, item.management]
+      .join(' ').toLowerCase().includes(query);
+  });
+  tbody.innerHTML = rows.map((r) => `
+    <tr>
+      <td class="amboss-scan-target"><strong>${r.entity}</strong></td>
+      <td class="amboss-scan-target">${r.trigger}</td>
+      <td class="amboss-scan-target">${r.pathogenesis}</td>
+      <td class="amboss-scan-target">${r.hallmarks}</td>
+      <td class="amboss-scan-target">${r.clinical}</td>
+      <td class="amboss-scan-target">${r.management}</td>
+    </tr>
+  `).join('');
+}
+
+function openSummaryModal() {
+  stopGateTimer();
+  isModalOpen = true;
+  const acc = appState.answeredCount > 0 ? Math.round((appState.correctCount / appState.answeredCount) * 100) : 0;
+  const sumAcc = document.getElementById('sum-accuracy');
+  const sumXp = document.getElementById('sum-xp');
+  const sumSt = document.getElementById('sum-streak');
+  const sumMs = document.getElementById('sum-missed');
+  if (sumAcc) sumAcc.textContent = `${acc}%`;
+  if (sumXp) sumXp.textContent = String(appState.xp);
+  if (sumSt) sumSt.textContent = String(appState.bestStreak);
+  if (sumMs) sumMs.textContent = String(appState.missedIds.length);
+  const backdrop = document.getElementById('summary-backdrop');
+  if (backdrop) backdrop.classList.add('is-open');
+}
+
+function reviewMissedFromSummary() {
+  closeAllModals();
+  if (appState.missedIds.length === 0) {
+    showToast('ZERO MISSED GATES — STARTING ORDERED REPLAY');
+    restartDeck(false);
+    return;
+  }
+  appState.sectorFilter = 'MISSED';
+  const sf = document.getElementById('sector-filter');
+  if (sf) sf.value = 'MISSED';
+  buildDeck(false);
+  prepareNextGate();
+}
+
+function restartFromSummary(shuffle) {
+  closeAllModals();
+  restartDeck(shuffle);
+}
+
+// =========================================================================
+// 3D SYNTHWAVE PERSPECTIVE ENGINE + 1:1 PORTAL FUSION
+// =========================================================================
+function initDustParticles() {
+  dustParticles = [];
+  for (let i = 0; i < 150; i++) {
+    dustParticles.push({
+      x: (Math.random() - 0.5) * 2.4,
+      y: Math.random() * 0.9 - 0.1,
+      z: Math.random() * 100 + 4,
+      size: Math.random() * 2.6 + 1.4
+    });
+  }
+}
+
+function resizeCanvas() {
+  if (!canvasEl) return;
+  const shell = document.getElementById('viewport-shell');
+  const w = shell ? shell.clientWidth : window.innerWidth;
+  const h = shell ? shell.clientHeight : window.innerHeight;
+  if (w > 0 && h > 0) {
+    canvasEl.width = w;
+    canvasEl.height = h;
+  }
+}
+
+function draw3DCorridor(timestamp) {
+  if (!canvasEl || !ctx2d) return;
+  const dt = lastFrameTime ? Math.min(0.05, (timestamp - lastFrameTime) / 1000) : 0.016;
+  lastFrameTime = timestamp;
+
+  const cssW = canvasEl.clientWidth || 0;
+  const cssH = canvasEl.clientHeight || 0;
+  if (cssW <= 0 || cssH <= 0) {
+    animFrameId = requestAnimationFrame(draw3DCorridor);
+    return;
+  }
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const targetW = Math.round(cssW * dpr);
+  const targetH = Math.round(cssH * dpr);
+  if (canvasEl.width !== targetW || canvasEl.height !== targetH) {
+    canvasEl.width = targetW;
+    canvasEl.height = targetH;
+  }
+  ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const w = cssW;
+  const h = cssH;
+
+  const theme = currentQuestion ? (LO_VISUAL_THEMES[currentQuestion.lo] || LO_VISUAL_THEMES[1]) : LO_VISUAL_THEMES[1];
+  const horizonY = h * 0.38;
+  const vanishX = w * 0.5;
+
+  // Deep midnight navy void
+  ctx2d.fillStyle = '#0a0a12';
+  ctx2d.fillRect(0, 0, w, h);
+
+  // Perspective wireframe grid floor
+  ctx2d.save();
+  ctx2d.strokeStyle = `rgba(${theme.gridRgb}, 0.24)`;
+  ctx2d.lineWidth = 1;
+  const numCols = 14;
+  for (let i = -numCols; i <= numCols; i++) {
+    ctx2d.beginPath();
+    ctx2d.moveTo(vanishX + i * 18, horizonY);
+    ctx2d.lineTo(vanishX + i * (w * 0.14), h);
+    ctx2d.stroke();
+  }
+  const scrollOffset = ((timestamp * 0.045) % 100) / 100;
+  for (let r = 0; r < 14; r++) {
+    const t = (r + scrollOffset) / 14;
+    const y = horizonY + Math.pow(t, 2.2) * (h - horizonY);
+    ctx2d.beginPath();
+    ctx2d.moveTo(0, y);
+    ctx2d.lineTo(w, y);
+    ctx2d.stroke();
+  }
+  ctx2d.restore();
+
+  // 3 Teal Perspective Track Rails
+  const railOffsets = [-0.72, 0, 0.72];
+  ctx2d.save();
+  ctx2d.strokeStyle = 'rgba(0, 255, 204, 0.55)';
+  ctx2d.lineWidth = 2;
+  railOffsets.forEach((off) => {
+    ctx2d.beginPath();
+    ctx2d.moveTo(vanishX + off * 36, horizonY);
+    ctx2d.lineTo(vanishX + off * (w * 0.34), h);
+    ctx2d.stroke();
+  });
+  ctx2d.restore();
+
+  // 150 Crisp 3D Square Pixel-Dust Particles
+  ctx2d.fillStyle = theme.dustColor;
+  for (let i = 0; i < dustParticles.length; i++) {
+    const p = dustParticles[i];
+    if (!gateResolved && !isMenuOpen && !isModalOpen) {
+      p.z -= dt * 34;
+      if (p.z < 3) p.z = 100;
+    }
+    const scale = 28 / p.z;
+    const sx = vanishX + p.x * w * 0.45 * scale;
+    const sy = horizonY + (p.y - 0.15) * h * 0.65 * scale;
+    const sz = Math.max(1.5, p.size * scale * 0.45);
+    if (sx >= 0 && sx <= w && sy >= 0 && sy <= h) {
+      ctx2d.fillRect(sx, sy, sz, sz);
+    }
+  }
+
+  // Approach Gate Distance & 1:1 Portal Fusion onto Centered Cards
+  if (!gateResolved && !isMenuOpen && !isModalOpen) {
+    gateDistance = Math.max(GAME_CONFIG.stopDistanceMeters, gateDistance - dt * GAME_CONFIG.gateApproachSpeed);
+  }
+  const approachProgress = 1 - Math.min(1, Math.max(0, (gateDistance - GAME_CONFIG.stopDistanceMeters) / (GAME_CONFIG.gateStartDistance - GAME_CONFIG.stopDistanceMeters)));
+
+  const canvasRect = canvasEl.getBoundingClientRect();
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`lane-${i}-card`);
+    if (!card) continue;
+    const rect = card.getBoundingClientRect();
+    const targetX = rect.left - canvasRect.left;
+    const targetY = rect.top - canvasRect.top;
+    const targetW = rect.width;
+    const targetH = rect.height;
+
+    const farW = Math.max(36, targetW * 0.22);
+    const farH = Math.max(24, targetH * 0.22);
+    const farCenterX = vanishX + railOffsets[i] * 75;
+    const farCenterY = horizonY + 18;
+    const farX = farCenterX - farW / 2;
+    const farY = farCenterY - farH / 2;
+
+    const px = farX + (targetX - farX) * approachProgress;
+    const py = farY + (targetY - farY) * approachProgress;
+    const pw = farW + (targetW - farW) * approachProgress;
+    const ph = farH + (targetH - farH) * approachProgress;
+
+    const fusePad = approachProgress * 2.5;
+    const bx = px - fusePad;
+    const by = py - fusePad;
+    const bw = pw + fusePad * 2;
+    const bh = ph + fusePad * 2;
+
+    ctx2d.save();
+    ctx2d.strokeStyle = LANE_COLORS[i];
+    ctx2d.lineWidth = i === targetedLane ? 3.2 : 2;
+    ctx2d.shadowColor = LANE_COLORS[i];
+    ctx2d.shadowBlur = i === targetedLane ? 18 : 10;
+    if (typeof ctx2d.roundRect === 'function') {
+      ctx2d.beginPath();
+      ctx2d.roundRect(bx, by, bw, bh, 4);
+      ctx2d.stroke();
+    } else {
+      ctx2d.strokeRect(bx, by, bw, bh);
+    }
+    ctx2d.restore();
+  }
+
+  // Solid Geometric Teal Diamond Craft
+  craftXNorm += (targetCraftXNorm - craftXNorm) * Math.min(1, dt * 12);
+  const craftX = vanishX + craftXNorm * (w * 0.28);
+  const craftY = h - Math.max(26, h * 0.085);
+  ctx2d.save();
+  ctx2d.translate(craftX, craftY);
+  ctx2d.fillStyle = '#00ffcc';
+  ctx2d.strokeStyle = '#e8e0f0';
+  ctx2d.lineWidth = 1.5;
+  ctx2d.shadowColor = '#00ffcc';
+  ctx2d.shadowBlur = 14;
+  ctx2d.beginPath();
+  ctx2d.moveTo(0, -14);
+  ctx2d.lineTo(13, 4);
+  ctx2d.lineTo(0, 12);
+  ctx2d.lineTo(-13, 4);
+  ctx2d.closePath();
+  ctx2d.fill();
+  ctx2d.stroke();
+  ctx2d.restore();
+
+  animFrameId = requestAnimationFrame(draw3DCorridor);
+}
+
+// =========================================================================
+// KEYBOARD SHORTCUTS & INITIALIZATION
+// =========================================================================
+function bindKeyboardShortcuts() {
+  document.addEventListener('keydown', (e) => {
+    const activeTag = document.activeElement ? document.activeElement.tagName : '';
+    if (activeTag === 'INPUT' || activeTag === 'SELECT') return;
+    const key = e.key.toLowerCase();
+
+    const outcomeOpen = document.getElementById('outcome-backdrop')?.classList.contains('is-open');
+    const codexOpen = document.getElementById('codex-backdrop')?.classList.contains('is-open');
+    const summaryOpen = document.getElementById('summary-backdrop')?.classList.contains('is-open');
+
+    if (e.key === 'Escape') {
+      if (isMenuOpen) { toggleMenuDrawer(); return; }
+      if (codexOpen) { closeCodex(); return; }
+    }
+    if (codexOpen) {
+      if (key === 'c') { e.preventDefault(); closeCodex(); }
+      return;
+    }
+    if (outcomeOpen) {
+      if (key === ' ' || key === 'enter') {
+        e.preventDefault();
+        continueToNextGate();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        scrollOutcomeBody(140);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        scrollOutcomeBody(-140);
+      }
+      return;
+    }
+    if (summaryOpen) return;
+
+    if (key === 'm') { e.preventDefault(); toggleMenuDrawer(); return; }
+    if (isMenuOpen) return;
+
+    if (key === 'h') { e.preventDefault(); toggleHintsBar(); }
+    else if (key === 'c') { e.preventDefault(); openCodex(); }
+    else if (key === 's') { e.preventDefault(); skipCurrentQuestion(); }
+    else if (key === 't') { e.preventDefault(); toggleTimerEnabled(); }
+    else if (key === '1' || key === 'a' || e.key === 'ArrowLeft') { e.preventDefault(); selectLaneAndResolve(0); }
+    else if (key === '2' || key === 'w' || e.key === 'ArrowUp') { e.preventDefault(); selectLaneAndResolve(1); }
+    else if (key === '3' || key === 'd' || e.key === 'ArrowRight') { e.preventDefault(); selectLaneAndResolve(2); }
+  });
+}
+
+async function initRunnerGame() {
+  initDynamicSelectors();
+  await restoreAppState();
+  syncHintsUI();
+  syncAudioUI();
+  syncMissedOptionLabel();
+  renderSkillTree();
+  buildDeck(false);
+  updateTelemetryUI();
+  prepareNextGate();
+
+  canvasEl = document.getElementById('xr-canvas');
+  if (canvasEl) {
+    ctx2d = canvasEl.getContext('2d');
+    initDustParticles();
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    if (animFrameId) cancelAnimationFrame(animFrameId);
+    animFrameId = requestAnimationFrame(draw3DCorridor);
+  }
+  bindKeyboardShortcuts();
+
+  try {
+    if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === 'function') {
+      window.notebookAppApi.notifyAppReady();
+    }
+  } catch (e) {}
+}
+
+document.addEventListener('DOMContentLoaded', initRunnerGame);
+</script>
+</body>
+</html>
