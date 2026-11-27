@@ -1,0 +1,3059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="artifact-type" content="tool">
+  <meta name="design-style" content="neon_noir">
+  <title>Renal Pharmacology XR Runner</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@100;200;300;400;500;600;700;800&family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      --background: #0a0a12;
+      --surface-container-low: #111118;
+      --surface-container: #141422;
+      --surface-container-high: #1e1e30;
+      --surface-glass: rgba(14, 16, 28, 0.84);
+      --surface-glass-strong: rgba(10, 12, 22, 0.94);
+      --backdrop-drawer: rgba(5, 5, 12, 0.72);
+      --backdrop-modal: rgba(5, 6, 14, 0.84);
+
+      --on-surface: #e8e0f0;
+      --on-surface-variant: #a098b0;
+
+      --outline: #5a5068;
+      --outline-variant: #302840;
+
+      --primary: #ff2d78;
+      --on-primary: #1a0010;
+      --primary-container: #b3004e;
+      --on-primary-container: #ffe0ec;
+      --secondary: #00ffcc;
+      --tertiary: #ffe04a;
+      --error: #ff4444;
+      --on-error: #1a0000;
+
+      --positive: #00ffcc;
+      --warning: #ffe04a;
+      --focus: #ff2d78;
+
+      --data-1: #ff2d78;
+      --data-2: #00ffcc;
+      --data-3: #ffe04a;
+      --data-4: #b388ff;
+      --data-context: #6e6680;
+
+      --font-headline: 'Sora', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --font-label: 'Space Mono', monospace;
+
+      --display-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem);
+      --headline-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+      --subhead-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+      --body-size: clamp(0.9375rem, 0.9rem + 0.15vw, 1rem);
+      --label-size: 0.75rem;
+
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+      --space-2xl: 4rem;
+      --space-3xl: 6rem;
+
+      --rounded: 0.125rem;
+      --rounded-lg: 0.25rem;
+      --rounded-full: 0.75rem;
+
+      --glow-text: 0 0 8px currentColor;
+      --glow-primary: 0 0 16px color-mix(in srgb, var(--primary) 40%, transparent);
+      --glow-secondary: 0 0 16px color-mix(in srgb, var(--secondary) 35%, transparent);
+      --glow-tertiary: 0 0 16px color-mix(in srgb, var(--tertiary) 35%, transparent);
+      --neon-border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+      --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 50%, transparent);
+      --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+      --cyan-border: 1px solid color-mix(in srgb, var(--secondary) 35%, transparent);
+      --yellow-border: 1px solid color-mix(in srgb, var(--tertiary) 40%, transparent);
+      --scanlines: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in srgb, var(--on-surface) 3%, transparent) 3px 4px);
+
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+      --dur-long: 420ms;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      overflow-x: clip;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background-color: var(--background);
+      color: var(--on-surface);
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    header { position: static !important; }
+    button, input, select { font-family: inherit; }
+
+    :focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    /* 4-Band Cockpit Root */
+    #xr-app {
+      position: relative;
+      width: 100%;
+      height: 100dvh;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      overflow: hidden;
+      background-color: var(--background);
+      background-image: var(--scanlines);
+    }
+    #xr-app.hints-hidden #hints-bar {
+      display: none;
+    }
+
+    /* Canvas Background Layer */
+    #xr-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      display: block;
+      cursor: crosshair;
+    }
+
+    /* Band 1: Ultra-Slim Top Bar */
+    #top-hud {
+      position: relative;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      padding: var(--space-xs) var(--space-md);
+      background: var(--surface-glass-strong);
+      border-bottom: 1px solid var(--outline-variant);
+      min-height: 44px;
+    }
+    .menu-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      min-height: 36px;
+      padding: var(--space-xs) var(--space-sm);
+      background: var(--surface-container);
+      color: var(--secondary);
+      border: var(--cyan-border);
+      border-radius: var(--rounded);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: border-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out);
+    }
+    .menu-btn:hover {
+      border-color: var(--secondary);
+      box-shadow: var(--glow-secondary);
+      text-shadow: var(--glow-text);
+    }
+
+    .telemetry-strip {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .hud-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.2rem 0.5rem;
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--on-surface);
+      white-space: nowrap;
+    }
+    .hud-chip .chip-lbl { color: var(--on-surface-variant); }
+    .hud-chip.is-hp { border-color: color-mix(in srgb, var(--primary) 45%, transparent); color: var(--primary); }
+    .hud-chip.is-xp { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+    .hud-chip.is-streak { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+    .hud-chip.is-timer { border-color: var(--primary); color: var(--tertiary); }
+    .hud-chip.is-timer.is-hidden { display: none; }
+
+    /* Band 2: Top Question + 3s Auto-Hiding Metadata */
+    #question-hud {
+      position: relative;
+      z-index: 15;
+      width: min(980px, 94vw);
+      margin: var(--space-sm) auto 0;
+      padding: var(--space-sm) var(--space-md);
+      background: var(--surface-glass);
+      backdrop-filter: blur(8px);
+      border: var(--neon-border);
+      box-shadow: var(--neon-inset);
+      border-radius: var(--rounded-lg);
+      text-align: center;
+    }
+    #q-meta-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+      margin-bottom: var(--space-xs);
+      max-height: 64px;
+      opacity: 1;
+      overflow: hidden;
+      transition: opacity var(--dur-long) var(--ease-out), max-height var(--dur-long) var(--ease-out), margin-bottom var(--dur-long) var(--ease-out);
+    }
+    #q-meta-bar.is-faded {
+      opacity: 0;
+      max-height: 0;
+      margin-bottom: 0;
+      pointer-events: none;
+    }
+    .meta-badge {
+      padding: 0.15rem 0.45rem;
+      border-radius: var(--rounded);
+      font-family: var(--font-label);
+      font-size: 0.7rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border: 1px solid var(--outline-variant);
+      background: var(--surface-container-low);
+      color: var(--secondary);
+    }
+    .meta-badge.is-pink { color: var(--primary); border-color: color-mix(in srgb, var(--primary) 45%, transparent); }
+    .meta-badge.is-yellow { color: var(--tertiary); border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); }
+
+    #q-stem-text {
+      margin: 0 auto;
+      max-width: 72ch;
+      font-family: var(--font-body);
+      font-size: clamp(0.92rem, 0.86rem + 0.35vw, 1.08rem);
+      font-weight: 500;
+      line-height: 1.48;
+      color: var(--on-surface);
+    }
+
+    /* Band 3: Viewport Stage + 3 Centered Answer Cards (5M Fusion Lock) */
+    #viewport-stage {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-sm) var(--space-md);
+      min-height: 0;
+      pointer-events: none;
+    }
+    #lanes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-md);
+      width: min(1040px, 95vw);
+      pointer-events: auto;
+    }
+    .lane-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      text-align: center;
+      gap: var(--space-sm);
+      padding: var(--space-md);
+      min-height: 144px;
+      background: var(--surface-glass);
+      backdrop-filter: blur(8px);
+      border-radius: var(--rounded-lg);
+      color: var(--on-surface);
+      cursor: pointer;
+      user-select: none;
+      transition: transform var(--dur-micro) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+    }
+    .lane-card[data-lane="0"] {
+      border: 1.5px solid color-mix(in srgb, var(--primary) 55%, transparent);
+      box-shadow: inset 0 0 14px color-mix(in srgb, var(--primary) 14%, transparent);
+    }
+    .lane-card[data-lane="1"] {
+      border: 1.5px solid color-mix(in srgb, var(--secondary) 55%, transparent);
+      box-shadow: inset 0 0 14px color-mix(in srgb, var(--secondary) 14%, transparent);
+    }
+    .lane-card[data-lane="2"] {
+      border: 1.5px solid color-mix(in srgb, var(--tertiary) 55%, transparent);
+      box-shadow: inset 0 0 14px color-mix(in srgb, var(--tertiary) 14%, transparent);
+    }
+
+    .lane-card.is-targeted {
+      transform: translateY(-4px);
+      background: var(--surface-glass-strong);
+    }
+    .lane-card[data-lane="0"].is-targeted,
+    .lane-card[data-lane="0"]:hover {
+      border-color: var(--primary);
+      box-shadow: var(--glow-primary), inset 0 0 18px color-mix(in srgb, var(--primary) 24%, transparent);
+    }
+    .lane-card[data-lane="1"].is-targeted,
+    .lane-card[data-lane="1"]:hover {
+      border-color: var(--secondary);
+      box-shadow: var(--glow-secondary), inset 0 0 18px color-mix(in srgb, var(--secondary) 24%, transparent);
+    }
+    .lane-card[data-lane="2"].is-targeted,
+    .lane-card[data-lane="2"]:hover {
+      border-color: var(--tertiary);
+      box-shadow: var(--glow-tertiary), inset 0 0 18px color-mix(in srgb, var(--tertiary) 24%, transparent);
+    }
+
+    .lane-card-head {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-label);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--on-surface-variant);
+    }
+    .lane-key-label {
+      padding: 0.1rem 0.4rem;
+      border-radius: var(--rounded);
+      border: 1px solid var(--outline-variant);
+      background: var(--surface-container-low);
+      font-weight: 700;
+    }
+    .lane-card[data-lane="0"] .lane-key-label { color: var(--primary); border-color: color-mix(in srgb, var(--primary) 50%, transparent); }
+    .lane-card[data-lane="1"] .lane-key-label { color: var(--secondary); border-color: color-mix(in srgb, var(--secondary) 50%, transparent); }
+    .lane-card[data-lane="2"] .lane-key-label { color: var(--tertiary); border-color: color-mix(in srgb, var(--tertiary) 50%, transparent); }
+
+    .lane-answer-text {
+      font-family: var(--font-body);
+      font-size: clamp(0.88rem, 0.82rem + 0.25vw, 0.98rem);
+      font-weight: 500;
+      line-height: 1.4;
+      color: var(--on-surface);
+      margin: auto 0;
+    }
+    .lane-footer-hint {
+      font-family: var(--font-label);
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--on-surface-variant);
+    }
+
+    /* Proportional auto-resizing when hints bar is visible */
+    #xr-app.hints-visible #question-hud {
+      padding: var(--space-xs) var(--space-md);
+    }
+    #xr-app.hints-visible #q-stem-text {
+      font-size: clamp(0.84rem, 0.8rem + 0.22vw, 0.96rem);
+      line-height: 1.38;
+    }
+    #xr-app.hints-visible .lane-card {
+      min-height: 112px;
+      padding: var(--space-sm) var(--space-md);
+    }
+    #xr-app.hints-visible .lane-answer-text {
+      font-size: clamp(0.82rem, 0.78rem + 0.2vw, 0.92rem);
+      line-height: 1.32;
+    }
+
+    /* Band 4: Bottom Hints Bar */
+    #hints-bar {
+      position: relative;
+      z-index: 15;
+      width: min(980px, 94vw);
+      margin: 0 auto var(--space-sm);
+      padding: var(--space-xs) var(--space-md);
+      background: var(--surface-glass-strong);
+      border: var(--yellow-border);
+      border-radius: var(--rounded-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-sm);
+      text-align: center;
+    }
+    .hints-kicker {
+      font-family: var(--font-label);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--tertiary);
+      white-space: nowrap;
+    }
+    #q-clue-text {
+      font-size: 0.85rem;
+      color: var(--on-surface);
+      margin: 0;
+    }
+
+    /* Menu Drawer (#top-menu-drawer) */
+    #drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      background: var(--backdrop-drawer);
+      backdrop-filter: blur(4px);
+      display: none;
+    }
+    #drawer-backdrop.is-open { display: block; }
+
+    #top-menu-drawer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: min(440px, 94vw);
+      z-index: 50;
+      background: var(--surface-container);
+      border-right: var(--neon-border-lit);
+      box-shadow: var(--glow-primary);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(-105%);
+      transition: transform var(--dur-short) var(--ease-out);
+      overflow-y: auto;
+      padding: var(--space-md);
+      gap: var(--space-md);
+    }
+    #top-menu-drawer.is-open {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      border-bottom: 1px solid var(--outline-variant);
+      padding-bottom: var(--space-sm);
+    }
+    .kicker {
+      font-family: var(--font-label);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--secondary);
+      text-shadow: var(--glow-text);
+      margin: 0 0 0.2rem;
+    }
+    .drawer-title {
+      font-family: var(--font-headline);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--on-surface);
+      margin: 0;
+      letter-spacing: -0.01em;
+    }
+    .drawer-section {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      padding: var(--space-sm);
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded-lg);
+    }
+    .drawer-sec-title {
+      font-family: var(--font-label);
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--on-surface-variant);
+      margin: 0 0 0.25rem;
+    }
+    .ctrl-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-xs);
+    }
+    .btn-neon {
+      min-height: 38px;
+      padding: 0.35rem 0.6rem;
+      background: var(--surface-container);
+      color: var(--on-surface);
+      border: 1px solid var(--outline);
+      border-radius: var(--rounded);
+      font-family: var(--font-label);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: border-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+    }
+    .btn-neon:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: var(--glow-primary);
+    }
+    .btn-neon.is-active {
+      border-color: var(--secondary);
+      color: var(--secondary);
+      box-shadow: var(--glow-secondary);
+    }
+    .btn-neon.is-danger {
+      border-color: color-mix(in srgb, var(--error) 60%, transparent);
+      color: var(--error);
+    }
+    .btn-neon.is-pink {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .field-lbl {
+      display: block;
+      font-family: var(--font-label);
+      font-size: 0.68rem;
+      color: var(--on-surface-variant);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.2rem;
+    }
+    .drawer-select {
+      width: 100%;
+      min-height: 38px;
+      padding: 0.35rem 2rem 0.35rem 0.55rem;
+      background: var(--surface-container);
+      color: var(--on-surface);
+      border: 1px solid var(--outline);
+      border-radius: var(--rounded);
+      font-size: 0.82rem;
+    }
+    .phase-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+    .phase-pill {
+      padding: 0.25rem 0.5rem;
+      font-family: var(--font-label);
+      font-size: 0.68rem;
+      border-radius: var(--rounded);
+      border: 1px solid var(--outline-variant);
+      background: var(--surface-container);
+      color: var(--on-surface-variant);
+      cursor: pointer;
+    }
+    .phase-pill.is-active {
+      border-color: var(--secondary);
+      color: var(--secondary);
+      box-shadow: var(--glow-secondary);
+    }
+
+    .skill-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.35rem;
+    }
+    .skill-node {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.15rem;
+      padding: 0.4rem;
+      background: var(--surface-container);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      text-align: left;
+      cursor: pointer;
+      transition: border-color var(--dur-micro) var(--ease-out);
+    }
+    .skill-node:hover { border-color: var(--secondary); }
+    .skill-node.is-mastered { border-color: var(--secondary); background: color-mix(in srgb, var(--secondary) 10%, var(--surface-container)); }
+    .skill-node-title {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--on-surface);
+      line-height: 1.25;
+    }
+    .skill-node-meta {
+      font-family: var(--font-label);
+      font-size: 0.62rem;
+      color: var(--on-surface-variant);
+    }
+
+    .audio-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+    .audio-row input[type="range"] {
+      flex: 1;
+      accent-color: var(--secondary);
+    }
+    .hotkey-guide {
+      font-family: var(--font-label);
+      font-size: 0.68rem;
+      color: var(--on-surface-variant);
+      background: var(--surface-container);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      padding: 0.45rem 0.65rem;
+      line-height: 1.5;
+    }
+    .inline-toast {
+      font-family: var(--font-label);
+      font-size: 0.72rem;
+      color: var(--tertiary);
+      min-height: 1.1em;
+    }
+
+    /* Modals: Outcome Dossier & Loot Codex */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      background: var(--backdrop-modal);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-md);
+    }
+    .modal-overlay.is-open { display: flex; }
+
+    .modal-card {
+      width: min(880px, 94vw);
+      max-height: 90dvh;
+      background: var(--surface-container);
+      border: var(--neon-border-lit);
+      box-shadow: var(--glow-primary);
+      border-radius: var(--rounded-lg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Outcome Dossier Specifics: Centered text across all elements, pinned stem, scroll buttons */
+    #outcome-modal .modal-card {
+      text-align: center;
+    }
+    .outcome-pinned-head {
+      padding: var(--space-md);
+      background: var(--surface-container-high);
+      border-bottom: 1px solid var(--outline-variant);
+      text-align: center;
+    }
+    .outcome-status-banner {
+      font-family: var(--font-headline);
+      font-size: clamp(1.05rem, 0.95rem + 0.5vw, 1.35rem);
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      margin: 0 0 var(--space-xs);
+      text-shadow: var(--glow-text);
+    }
+    .outcome-status-banner.is-correct { color: var(--secondary); }
+    .outcome-status-banner.is-incorrect { color: var(--primary); }
+    .outcome-status-banner.is-timeout { color: var(--tertiary); }
+
+    #outcome-stem {
+      margin: 0 auto;
+      max-width: 72ch;
+      font-size: 0.88rem;
+      color: var(--on-surface-variant);
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    .outcome-scroll-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+      text-align: center;
+    }
+    .choice-compare-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-sm);
+    }
+    .choice-box {
+      padding: var(--space-sm) var(--space-md);
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      text-align: center;
+    }
+    .choice-box.is-right { border-color: var(--secondary); }
+    .choice-box.is-wrong { border-color: var(--primary); }
+    .choice-box-lbl {
+      font-family: var(--font-label);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--on-surface-variant);
+      margin-bottom: 0.25rem;
+    }
+    .choice-box-val {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--on-surface);
+    }
+
+    .dossier-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      align-items: center;
+    }
+    .dossier-line {
+      width: 100%;
+      max-width: 72ch;
+      padding: var(--space-sm) var(--space-md);
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      font-size: 0.88rem;
+      line-height: 1.5;
+      color: var(--on-surface);
+      text-align: center;
+    }
+    .dossier-line strong {
+      color: var(--secondary);
+      font-family: var(--font-label);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-md);
+      background: var(--surface-container-high);
+      border-top: 1px solid var(--outline-variant);
+    }
+
+    /* Codex Modal */
+    .codex-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      padding: var(--space-md);
+      background: var(--surface-container-high);
+      border-bottom: 1px solid var(--outline-variant);
+    }
+    .codex-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--space-md);
+    }
+    .codex-controls {
+      display: flex;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-sm);
+      flex-wrap: wrap;
+    }
+    .codex-input {
+      flex: 1;
+      min-width: 200px;
+      padding: 0.45rem 0.65rem;
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      border: 1px solid var(--outline);
+      border-radius: var(--rounded);
+      font-size: 0.85rem;
+    }
+    .codex-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+    .codex-table th, .codex-table td {
+      padding: 0.45rem 0.5rem;
+      border-bottom: 1px solid var(--outline-variant);
+      text-align: left;
+      vertical-align: top;
+    }
+    .codex-table th {
+      font-family: var(--font-label);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--secondary);
+      background: var(--surface-container-low);
+      position: sticky;
+      top: 0;
+    }
+    .codex-table tr:nth-child(even) td { background: var(--surface-container-low); }
+
+    /* Required 3 v3.8 Phone Media Queries Verbatim */
+    @media (max-width: 600px) {
+      #lanes-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-xs);
+      }
+      .lane-card {
+        min-height: 64px;
+        padding: var(--space-xs) var(--space-sm);
+      }
+      .lane-card-head, .lane-key-label, .hud-chip.is-xp {
+        display: none;
+      }
+      #xr-app.hints-visible #question-hud {
+        padding: var(--space-xs);
+      }
+      #xr-app.hints-visible .lane-card {
+        min-height: 52px;
+      }
+      .modal-card {
+        width: 96vw;
+        max-height: 92dvh;
+      }
+      .choice-compare-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-height: 500px) and (pointer: coarse) {
+      #question-hud {
+        margin-top: 2px;
+        padding: 0.25rem 0.5rem;
+      }
+      #q-stem-text {
+        font-size: 0.78rem;
+        line-height: 1.25;
+      }
+      #lanes-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: var(--space-xs);
+      }
+      .lane-card {
+        min-height: 76px;
+        padding: 0.35rem;
+      }
+      .lane-answer-text {
+        font-size: 0.74rem;
+        line-height: 1.2;
+      }
+      .lane-footer-hint {
+        display: none;
+      }
+    }
+
+    @media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+      html { font-size: 200%; }
+      #lanes-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="xr-canvas" aria-hidden="true"></canvas>
+
+  <div id="xr-app" class="hints-hidden">
+    <!-- Band 1: Ultra-Slim Top Bar -->
+    <header id="top-hud">
+      <button type="button" id="menu-toggle-btn" class="menu-btn" onclick="toggleMenuDrawer()" aria-expanded="false" aria-controls="top-menu-drawer">
+        ☰ MENU
+      </button>
+      <div class="telemetry-strip" aria-live="polite">
+        <div class="hud-chip is-hp"><span class="chip-lbl">HP</span> <strong id="hud-hp">100</strong></div>
+        <div class="hud-chip is-xp"><span class="chip-lbl">XP</span> <strong id="hud-xp">0</strong></div>
+        <div class="hud-chip is-streak"><span class="chip-lbl">⚡</span> <strong id="hud-streak">0</strong></div>
+        <div class="hud-chip"><span class="chip-lbl">GATE</span> <strong id="hud-gate">1/45</strong></div>
+        <div id="hud-timer-chip" class="hud-chip is-timer is-hidden"><span class="chip-lbl">⏱</span> <strong id="hud-timer">50s</strong></div>
+      </div>
+    </header>
+
+    <!-- Band 2: Top Question + 3-Second Auto-Hiding Metadata -->
+    <section id="question-hud" aria-label="Clinical Vignette">
+      <div id="q-meta-bar">
+        <span id="badge-sector" class="meta-badge is-pink">SECTOR I</span>
+        <span id="badge-entity" class="meta-badge">ENTITY 1</span>
+        <span id="badge-angle" class="meta-badge is-yellow">HIGH-YIELD</span>
+        <span id="badge-phase" class="meta-badge">MECHANISM</span>
+        <span id="badge-corridor" class="meta-badge is-pink">CORRIDOR</span>
+      </div>
+      <p id="q-stem-text" class="amboss-scan-target"></p>
+    </section>
+
+    <!-- Band 3: 3 Centered Frosted Dark-Glass Answer Cards -->
+    <main id="viewport-stage">
+      <div id="lanes-grid" role="group" aria-label="Diagnostic Corridors">
+        <button type="button" id="lane-card-0" class="lane-card" data-lane="0" onclick="commitLane(0)">
+          <div class="lane-card-head">
+            <span class="lane-key-label">[1]</span>
+            <span>CORRIDOR ALPHA</span>
+          </div>
+          <div id="lane-0-text" class="lane-answer-text amboss-scan-target"></div>
+          <div class="lane-footer-hint">CLICK OR [SPACE/ENTER]</div>
+        </button>
+
+        <button type="button" id="lane-card-1" class="lane-card" data-lane="1" onclick="commitLane(1)">
+          <div class="lane-card-head">
+            <span class="lane-key-label">[2]</span>
+            <span>CORRIDOR BETA</span>
+          </div>
+          <div id="lane-1-text" class="lane-answer-text amboss-scan-target"></div>
+          <div class="lane-footer-hint">CLICK OR [SPACE/ENTER]</div>
+        </button>
+
+        <button type="button" id="lane-card-2" class="lane-card" data-lane="2" onclick="commitLane(2)">
+          <div class="lane-card-head">
+            <span class="lane-key-label">[3]</span>
+            <span>CORRIDOR GAMMA</span>
+          </div>
+          <div id="lane-2-text" class="lane-answer-text amboss-scan-target"></div>
+          <div class="lane-footer-hint">CLICK OR [SPACE/ENTER]</div>
+        </button>
+      </div>
+    </main>
+
+    <!-- Band 4: Collapsible Bottom Hints Bar -->
+    <footer id="hints-bar" aria-label="Clinical Clue">
+      <span class="hints-kicker">💡 CLUE [H]:</span>
+      <p id="q-clue-text" class="amboss-scan-target"></p>
+    </footer>
+  </div>
+
+  <!-- Menu Drawer (#top-menu-drawer) -->
+  <div id="drawer-backdrop" onclick="toggleMenuDrawer()"></div>
+  <aside id="top-menu-drawer" aria-label="Command Console">
+    <div class="drawer-header">
+      <div>
+        <p class="kicker">COMLEX-USA · CLINICAL PRESENTATION 6 &amp; OMT</p>
+        <h1 class="drawer-title">Renal Pharmacology XR Runner</h1>
+      </div>
+      <button type="button" class="btn-neon" onclick="toggleMenuDrawer()" aria-label="Close Menu">✕</button>
+    </div>
+
+    <div class="drawer-section">
+      <p class="drawer-sec-title">Cockpit &amp; Gate Controls</p>
+      <div class="ctrl-grid">
+        <button type="button" id="menu-hints-btn" class="btn-neon" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+        <button type="button" class="btn-neon" onclick="openCodexFromMenu()">📘 Loot Codex [C]</button>
+        <button type="button" class="btn-neon" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+        <button type="button" id="menu-timer-btn" class="btn-neon" onclick="toggleTimerMode()">⏱ 50s Timer: OFF [T]</button>
+        <button type="button" class="btn-neon is-pink" onclick="startTimedRunFromMenu()">▶ Start 50s Timed Run</button>
+        <button type="button" class="btn-neon" onclick="restartOrdered()">↺ Restart Ordered</button>
+        <button type="button" class="btn-neon" onclick="shuffleDeck()">🔀 Shuffle Deck</button>
+        <button type="button" id="reset-mastery-btn" class="btn-neon is-danger" onclick="handleResetMastery(this)">🗑 Reset Mastery</button>
+      </div>
+      <div id="menu-toast" class="inline-toast" aria-live="polite"></div>
+    </div>
+
+    <div class="drawer-section">
+      <p class="drawer-sec-title">Sector &amp; Phase Filter</p>
+      <div>
+        <label for="sector-filter-select" class="field-lbl">Active Sector / Missed Filter</label>
+        <select id="sector-filter-select" class="drawer-select" onchange="onSectorFilterChange(this.value)">
+          <option value="ALL">All 5 Sectors (45 Gates)</option>
+          <option value="1">Sector I — CA Inhibitors &amp; Osmotics (1–9)</option>
+          <option value="2">Sector II — Loop Diuretics (10–18)</option>
+          <option value="3">Sector III — Thiazide Diuretics (19–27)</option>
+          <option value="4">Sector IV — K+-Sparing &amp; Vaptans (28–36)</option>
+          <option value="5">Sector V — RAAS, Toxins &amp; OMT (37–45)</option>
+          <option value="MISSED">🎯 Missed Gates Only</option>
+        </select>
+      </div>
+      <div>
+        <span class="field-lbl">Phase Mix</span>
+        <div class="phase-pills">
+          <button type="button" class="phase-pill is-active" data-phase="ALL" onclick="setPhaseFilter('ALL')">All Phases</button>
+          <button type="button" class="phase-pill" data-phase="Mechanism" onclick="setPhaseFilter('Mechanism')">Mechanism</button>
+          <button type="button" class="phase-pill" data-phase="Clinical" onclick="setPhaseFilter('Clinical')">Clinical</button>
+          <button type="button" class="phase-pill" data-phase="OMT / Toxicity" onclick="setPhaseFilter('OMT / Toxicity')">OMT / Toxicity</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <p class="drawer-sec-title">Audio Synthesizer</p>
+      <div class="ctrl-grid">
+        <button type="button" id="audio-master-btn" class="btn-neon is-active" onclick="toggleMasterAudio()">🔊 Master: ON</button>
+        <button type="button" id="audio-sfx-btn" class="btn-neon is-active" onclick="toggleSfx()">⚡ SFX: ON</button>
+        <button type="button" id="audio-bgm-btn" class="btn-neon" onclick="toggleBgm()">🎵 Synth BGM: OFF</button>
+        <label class="btn-neon" style="display:flex;align-items:center;justify-content:center;text-align:center;">
+          📂 Load MP3/WAV
+          <input type="file" accept="audio/*" style="display:none;" onchange="loadCustomAudio(this)">
+        </label>
+      </div>
+      <div class="audio-row">
+        <label for="bgm-volume-slider" class="field-lbl" style="margin:0;">BGM Volume</label>
+        <input type="range" id="bgm-volume-slider" min="0" max="100" value="40" oninput="onBgmVolumeChange(this.value)">
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <p class="drawer-sec-title">Renal Skill Tree (15 Entities)</p>
+      <div>
+        <label for="entity-jump-select" class="field-lbl">Jump to Entity</label>
+        <select id="entity-jump-select" class="drawer-select" onchange="jumpToEntity(this.value)"></select>
+      </div>
+      <div id="skill-tree-grid" class="skill-grid"></div>
+    </div>
+
+    <div class="hotkey-guide">
+      <strong>Steering &amp; Hotkeys:</strong> Move mouse over canvas or hover cards to bank craft · [1/2/3] select corridor · [A/D] or [←/→] steer · [Space/Enter] commit · [H] Hints · [C] Codex · [S] Skip · [T] 50s Timer · [M] Menu
+    </div>
+  </aside>
+
+  <!-- Outcome Dossier Modal -->
+  <div id="outcome-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="outcome-banner">
+    <div class="modal-card">
+      <div class="outcome-pinned-head">
+        <h2 id="outcome-banner" class="outcome-status-banner is-correct">CORRECT</h2>
+        <p id="outcome-stem" class="amboss-scan-target"></p>
+      </div>
+      <div id="outcome-scroll-body" class="outcome-scroll-body">
+        <div class="choice-compare-grid">
+          <div id="your-pick-box" class="choice-box">
+            <div class="choice-box-lbl">Your Corridor Pick</div>
+            <div id="your-pick-text" class="choice-box-val amboss-scan-target"></div>
+          </div>
+          <div class="choice-box is-right">
+            <div class="choice-box-lbl">Verified Answer</div>
+            <div id="correct-pick-text" class="choice-box-val amboss-scan-target"></div>
+          </div>
+        </div>
+        <div id="dossier-lines" class="dossier-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-neon" onclick="scrollOutcomeModal(-180)">▲ Up</button>
+        <button type="button" class="btn-neon" onclick="scrollOutcomeModal(180)">▼ Down</button>
+        <button type="button" id="continue-runner-btn" class="btn-neon is-active" onclick="continueRunner()">▶ Continue Runner [Space / Enter]</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loot Codex Modal -->
+  <div id="codex-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="codex-title">
+    <div class="modal-card">
+      <div class="codex-header">
+        <div>
+          <p class="kicker" style="margin:0;">6-COLUMN DIAGNOSTIC ARCHIVE</p>
+          <h2 id="codex-title" class="drawer-title">Renal Pharmacology Loot Codex</h2>
+        </div>
+        <button type="button" class="btn-neon" onclick="closeCodex()">✕ Close [Esc]</button>
+      </div>
+      <div class="codex-body">
+        <div class="codex-controls">
+          <label for="codex-search" class="field-lbl" style="align-self:center;margin:0;">Filter</label>
+          <input type="text" id="codex-search" class="codex-input" placeholder="Search drug, mechanism, OMT, or entity..." oninput="renderCodexTable()">
+        </div>
+        <table class="codex-table">
+          <thead>
+            <tr>
+              <th>Gate</th>
+              <th>Sector / Entity</th>
+              <th>Drug / Target</th>
+              <th>Short Answer</th>
+              <th>Status</th>
+              <th>Clinical Pearl</th>
+            </tr>
+          </thead>
+          <tbody id="codex-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <api-shim></api-shim>
+  <script>
+    const LO_VISUAL_THEMES = {
+      1:  { tag: 'PCT-CARBONIC',    dustHex: '#00ffcc', gridRgb: '0, 255, 204' },
+      2:  { tag: 'ACETAZOLAMIDE',   dustHex: '#ff2d78', gridRgb: '255, 45, 120' },
+      3:  { tag: 'OSMOTIC-SHIFT',   dustHex: '#ffe04a', gridRgb: '255, 224, 74' },
+      4:  { tag: 'TAL-NKCC2',       dustHex: '#00ffcc', gridRgb: '0, 220, 255' },
+      5:  { tag: 'LOOP-WASTING',    dustHex: '#ff2d78', gridRgb: '255, 45, 120' },
+      6:  { tag: 'ETHACRYNIC-SULFA',dustHex: '#ffe04a', gridRgb: '255, 210, 60' },
+      7:  { tag: 'DCT-NCCT',        dustHex: '#00ffcc', gridRgb: '0, 255, 180' },
+      8:  { tag: 'HYPER-GLUC',      dustHex: '#ff2d78', gridRgb: '240, 60, 140' },
+      9:  { tag: 'NEPHROGENIC-DI',  dustHex: '#ffe04a', gridRgb: '255, 224, 74' },
+      10: { tag: 'CCD-ENAC-BLOCK',  dustHex: '#00ffcc', gridRgb: '0, 255, 204' },
+      11: { tag: 'ALDOSTERONE-MR',  dustHex: '#ff2d78', gridRgb: '255, 45, 120' },
+      12: { tag: 'VAPTAN-SIADH',    dustHex: '#ffe04a', gridRgb: '255, 224, 74' },
+      13: { tag: 'RAAS-EFFERENT',   dustHex: '#00ffcc', gridRgb: '0, 255, 204' },
+      14: { tag: 'ATN-NEPHROTOXIN', dustHex: '#ff2d78', gridRgb: '255, 45, 120' },
+      15: { tag: 'T10-L1-OMT',      dustHex: '#ffe04a', gridRgb: '255, 224, 74' }
+    };
+
+    const ENTITIES = [
+      { id: 1, sector: 1, name: `PCT Carbonic Anhydrase`, short: `CA Mechanics` },
+      { id: 2, sector: 1, name: `Acetazolamide Indications`, short: `Glaucoma / AMS` },
+      { id: 3, sector: 1, name: `Mannitol Osmotic Mechanics`, short: `ICP / Anuria` },
+      { id: 4, sector: 2, name: `TAL NKCC2 Blockade`, short: `Loop Site` },
+      { id: 5, sector: 2, name: `Loop Cation & Volume Effects`, short: `Ca/Mg & Preload` },
+      { id: 6, sector: 2, name: `Loop Toxicities & Ethacrynic`, short: `Oto / Sulfa` },
+      { id: 7, sector: 3, name: `DCT NCCT & Calcium Retention`, short: `Stones / Osteo` },
+      { id: 8, sector: 3, name: `Thiazide Metabolic Profile`, short: `HyperGLUC` },
+      { id: 9, sector: 3, name: `Nephrogenic DI & Lithium`, short: `Paradoxical DI` },
+      { id: 10, sector: 4, name: `ENaC Blockers & Liddle`, short: `Amiloride / Triam` },
+      { id: 11, sector: 4, name: `MR Antagonists & Type 4 RTA`, short: `Spiro / Eplerenone` },
+      { id: 12, sector: 4, name: `Vaptans & K+ Binders`, short: `SIADH / Patiromer` },
+      { id: 13, sector: 5, name: `ACEi, ARBs & Aliskiren`, short: `Efferent / RAS` },
+      { id: 14, sector: 5, name: `Nephrotoxins & Uricosurics`, short: `ATN / Gout` },
+      { id: 15, sector: 5, name: `Renal Autonomics & OMT`, short: `T10-11 / Chapman` }
+    ];
+
+    const QUESTIONS = [
+      // SECTOR I: CA Inhibitors & Osmotics (1-9)
+      {
+        id: 1, sector: 1, entityId: 1, phase: `Mechanism`, angle: `PCT Transport`,
+        stem: `A 58-year-old woman begins acetazolamide for open-angle glaucoma. Which luminal and intracellular proximal convoluted tubule (PCT) reaction is directly blocked to produce urinary alkalinization?`,
+        choices: [
+          `Dehydration of luminal H2CO3 into CO2 and H2O for passive diffusion`,
+          `Basolateral Na+/K+-ATPase exchange driving active Cl- reabsorption`,
+          `Apical Na+/K+/2Cl- cotransport across the thick ascending limb`
+        ],
+        correct: 0,
+        shortAnswer: `Luminal H2CO3 Dehydration Blocked`,
+        clue: `Carbonic anhydrase splits luminal H2CO3 into CO2 + H2O so bicarbonate can be reclaimed intracellularly.`,
+        dossier: [
+          `Mechanism / Target: Inhibits both luminal and intracellular carbonic anhydrase in the PCT, preventing dehydration of luminal H2CO3 to CO2 + H2O and blocking NaHCO3 reabsorption.`,
+          `Clinical Presentation: Produces rapid urinary alkalinization (high urinary HCO3-) and self-limited natriuresis because distal nephron segments compensate within days.`,
+          `Key Labs / Electrolytes: Normal anion gap (hyperchloremic) metabolic acidosis (Type 2 proximal RTA) with mild hypokalemia due to increased distal Na+ delivery.`,
+          `Contraindications / Adverse Effects: Paresthesias, sulfa hypersensitivity, NH3 toxicity in cirrhosis (alkaline urine traps NH4+ less effectively), and calcium phosphate nephrolithiasis.`,
+          `Osteopathic / Autonomic Pearl: Sympathetic hypertonicity at T10–T11 modulates proximal renal arteriolar tone; rib raising helps normalize sympathetic outflow.`,
+          `Distractor Breakdown: Basolateral Na+/K+-ATPase is not directly inhibited by acetazolamide; NKCC2 in the TAL is the target of loop diuretics.`,
+          `High-Yield Board Takeaway: Acetazolamide wastes HCO3- in the PCT, alkalinizes urine, and causes normal anion gap metabolic acidosis.`
+        ]
+      },
+      {
+        id: 2, sector: 1, entityId: 1, phase: `OMT / Toxicity`, angle: `Nephrolithiasis`,
+        stem: `A 44-year-old man taking chronic acetazolamide for intracranial hypertension develops flank pain and hematuria. Urinalysis reveals pH 7.8. Which stone composition is promoted by his medication?`,
+        choices: [
+          `Calcium phosphate stones`,
+          `Uric acid stones`,
+          `Cystine stones`
+        ],
+        correct: 0,
+        shortAnswer: `Calcium Phosphate Stones`,
+        clue: `Alkaline urine precipitates phosphate salts while actually solubilizing uric acid and cystine.`,
+        dossier: [
+          `Mechanism / Target: Acetazolamide prevents PCT HCO3- reclamation, creating persistently alkaline urine (pH > 7.5) and hypocitraturia from systemic metabolic acidosis.`,
+          `Clinical Presentation: Acute renal colic radiating from flank to groin with microscopic or gross hematuria in a patient on chronic CA inhibition.`,
+          `Key Labs / Electrolytes: Elevated urine pH, low serum HCO3-, hyperchloremia, and radiopaque calcium phosphate calculi on CT.`,
+          `Contraindications / Adverse Effects: Calcium phosphate is insoluble at high urinary pH; conversely, urinary alkalinization treats uric acid and cystine stones.`,
+          `Osteopathic / Autonomic Pearl: Ureteral colic triggers viscerosomatic reflexes at T10–L2 along the ilioinguinal/genitofemoral referral pattern.`,
+          `Distractor Breakdown: Uric acid and cystine stones form in acidic urine and are actually treated—not caused—by urinary alkalinization.`,
+          `High-Yield Board Takeaway: "Acid"azolamide causes metabolic acidosis, alkaline urine, and calcium phosphate stones.`
+        ]
+      },
+      {
+        id: 3, sector: 1, entityId: 1, phase: `Clinical`, angle: `Acid-Base`,
+        stem: `A 63-year-old COPD patient is aggressively diuresed with furosemide in the ICU and develops severe metabolic alkalosis (pH 7.54, HCO3- 38 mEq/L). Which agent directly corrects this refractory metabolic alkalosis while promoting diuresis?`,
+        choices: [
+          `Acetazolamide`,
+          `Hydrochlorothiazide`,
+          `Amiloride`
+        ],
+        correct: 0,
+        shortAnswer: `Acetazolamide`,
+        clue: `Think of an agent that forces renal bicarbonate excretion into the urine.`,
+        dossier: [
+          `Mechanism / Target: Acetazolamide inhibits PCT carbonic anhydrase, causing renal wasting of HCO3- and lowering serum bicarbonate concentration.`,
+          `Clinical Presentation: Post-hypercapnic or loop-induced contraction metabolic alkalosis in an ICU patient who cannot tolerate large saline boluses.`,
+          `Key Labs / Electrolytes: Serum HCO3- normalizes downward; urine pH rises acutely as bicarbonate spills into the tubular lumen.`,
+          `Contraindications / Adverse Effects: Monitor K+ closely because both loops and acetazolamide waste potassium; avoid in hepatic encephalopathy (risk of NH3 toxicity).`,
+          `Osteopathic / Autonomic Pearl: Thoracolumbar (T10–T11) paraspinal hypertonicity reflects renal stress; thoracic inlet release aids lymphatic/venous return.`,
+          `Distractor Breakdown: Hydrochlorothiazide worsens contraction alkalosis; amiloride causes hyperkalemic acidosis but is weak for reversing severe alkalemia.`,
+          `High-Yield Board Takeaway: Acetazolamide is the diuretic of choice for refractory metabolic alkalosis.`
+        ]
+      },
+      {
+        id: 4, sector: 1, entityId: 2, phase: `Clinical`, angle: `Neuro-Ophthalmology`,
+        stem: `A 26-year-old woman with obesity presents with throbbing morning headaches, transient visual obscurations, and bilateral papilledema. Brain MRI is normal and lumbar puncture opening pressure is 320 mm H2O. What is the first-line pharmacotherapy?`,
+        choices: [
+          `Acetazolamide to reduce CSF production`,
+          `Mannitol infusion to shrink cortical neurons`,
+          `Spironolactone to block choroid plexus ENaC`
+        ],
+        correct: 0,
+        shortAnswer: `Acetazolamide (Decreases CSF)`,
+        clue: `Choroid plexus carbonic anhydrase drives cerebrospinal fluid secretion.`,
+        dossier: [
+          `Mechanism / Target: Acetazolamide inhibits carbonic anhydrase in the choroid plexus epithelium, decreasing Na+ and HCO3- transport and reducing CSF production.`,
+          `Clinical Presentation: Idiopathic intracranial hypertension (pseudotumor cerebri) classically affecting young women with obesity; presents with papilledema and CN VI palsy.`,
+          `Key Labs / Electrolytes: Normal CSF composition with elevated opening pressure (> 250 mm H2O); drug induces mild non-anion-gap metabolic acidosis.`,
+          `Contraindications / Adverse Effects: Sulfa allergy, digital/perioral paresthesias, metallic taste (dysgeusia with carbonated drinks), and fatigue.`,
+          `Osteopathic / Autonomic Pearl: Cranial OMM (CV4 compression, OA decompression) improves venous sinus drainage via the internal jugular vein.`,
+          `Distractor Breakdown: IV mannitol is reserved for acute herniation, not chronic IIH management; spironolactone has no primary role in CSF suppression.`,
+          `High-Yield Board Takeaway: Acetazolamide lowers intraocular pressure (glaucoma) and CSF production (pseudotumor cerebri).`
+        ]
+      },
+      {
+        id: 5, sector: 1, entityId: 2, phase: `Clinical`, angle: `Altitude Physiology`,
+        stem: `A mountaineer plans a rapid ascent above 3,500 meters and asks for prophylaxis against acute mountain sickness. How does acetazolamide prevent altitude-induced symptoms?`,
+        choices: [
+          `Metabolic acidosis stimulates central chemoreceptors to increase ventilation`,
+          `Respiratory alkalosis suppresses carotid body hypoxic drive during sleep`,
+          `Osmotic diuresis directly pulls interstitial fluid out of alveolar capillaries`
+        ],
+        correct: 0,
+        shortAnswer: `Acidosis Drives Hyperventilation`,
+        clue: `High altitude causes hypoxia-driven hyperventilation and respiratory alkalosis that normally brakes breathing.`,
+        dossier: [
+          `Mechanism / Target: By inducing a mild metabolic acidosis via renal HCO3- excretion, acetazolamide offsets high-altitude respiratory alkalosis and stimulates medullary chemoreceptors.`,
+          `Clinical Presentation: Prevents headache, nausea, insomnia, and periodic breathing during rapid ascent above 3,000 meters.`,
+          `Key Labs / Electrolytes: Lower serum HCO3- and lower arterial pH permit sustained hyperventilation, raising alveolar and arterial PO2.`,
+          `Contraindications / Adverse Effects: Avoid in severe sulfa anaphylaxis; causes polyuria and mild paresthesias.`,
+          `Osteopathic / Autonomic Pearl: Rib raising and diaphragmatic doming optimize thoracic excursion and hypoxic ventilatory mechanics.`,
+          `Distractor Breakdown: Suppressing hypoxic drive would worsen hypoxemia; osmotic diuresis (mannitol) is not used for altitude prophylaxis.`,
+          `High-Yield Board Takeaway: Acetazolamide treats altitude sickness by inducing metabolic acidosis to sustain hyperventilation.`
+        ]
+      },
+      {
+        id: 6, sector: 1, entityId: 2, phase: `OMT / Toxicity`, angle: `Hepatic Coma`,
+        stem: `A 61-year-old man with Child-Pugh C cirrhosis and ascites is mistakenly started on acetazolamide and develops asterixis and confusion. Why did acetazolamide precipitate hepatic encephalopathy?`,
+        choices: [
+          `Alkaline urine decreases urinary trapping of NH4+, increasing NH3 reabsorption`,
+          `Inhibition of hepatic urease blocks conversion of urea into glutamine`,
+          `Direct antagonism of GABA-A receptors lowers cortical seizure threshold`
+        ],
+        correct: 0,
+        shortAnswer: `Decreased Urinary NH4+ Trapping`,
+        clue: `Acidic urine ion-traps NH3 as NH4+; alkaline urine leaves uncharged NH3 free to diffuse back.`,
+        dossier: [
+          `Mechanism / Target: Urinary alkalinization shifts the NH3/NH4+ equilibrium toward lipid-soluble NH3, reducing renal ammonium excretion and raising blood ammonia.`,
+          `Clinical Presentation: Worsening confusion, sleep-wake reversal, and asterixis (flapping tremor) in a patient with underlying portosystemic shunting.`,
+          `Key Labs / Electrolytes: Elevated serum ammonia alongside hyperchloremic normal anion gap metabolic acidosis and alkaline urine.`,
+          `Contraindications / Adverse Effects: Contraindicated in advanced hepatic cirrhosis for this reason; spironolactone + furosemide are preferred for cirrhotic ascites.`,
+          `Osteopathic / Autonomic Pearl: Liver viscerosomatics present at T6–T9 (predominantly right), whereas kidney presents at T10–T11.`,
+          `Distractor Breakdown: Acetazolamide does not inhibit urease or act as a GABA-A antagonist.`,
+          `High-Yield Board Takeaway: Avoid acetazolamide in cirrhosis because alkaline urine impairs NH4+ trapping and worsens hyperammonemia.`
+        ]
+      },
+      {
+        id: 7, sector: 1, entityId: 3, phase: `Mechanism`, angle: `Osmotic Shift`,
+        stem: `A 32-year-old man sustains severe traumatic brain injury with a fixed dilated pupil and midline shift on CT. IV mannitol is infused. What is its immediate mechanism for lowering intracranial pressure?`,
+        choices: [
+          `Raises serum osmolality to draw free water from brain interstitium into vasculature`,
+          `Inhibits aquaporin-2 insertion in cortical collecting duct principal cells`,
+          `Blocks Na+/K+/2Cl- cotransport in the thick ascending limb`
+        ],
+        correct: 0,
+        shortAnswer: `Draws Free Water Intravascularly`,
+        clue: `Mannitol is freely filtered at the glomerulus, not reabsorbed, and stays intravascular before excretion.`,
+        dossier: [
+          `Mechanism / Target: Non-reabsorbable osmotic diuretic that acutely increases plasma osmolality, pulling interstitial water from brain parenchyma (and eye) into the intravascular space, then obligates water excretion in the PCT and descending limb.`,
+          `Clinical Presentation: Acute cerebral edema with impending uncal herniation or acute angle-closure glaucoma crisis.`,
+          `Key Labs / Electrolytes: Initially causes dilutional hyponatremia (water pulled out of cells), followed by hypernatremia and dehydration if free water is not replaced.`,
+          `Contraindications / Adverse Effects: Contraindicated in anuria and decompensated heart failure because initial intravascular volume expansion precipitates pulmonary edema.`,
+          `Osteopathic / Autonomic Pearl: Avoid cranial vault compression or Trendelenburg positioning in acute elevated ICP.`,
+          `Distractor Breakdown: Aquaporin-2 blockade describes vaptans; NKCC2 blockade describes loop diuretics.`,
+          `High-Yield Board Takeaway: Mannitol shifts water intravascularly to lower ICP/IOP, then causes osmotic diuresis.`
+        ]
+      },
+      {
+        id: 8, sector: 1, entityId: 3, phase: `OMT / Toxicity`, angle: `Contraindication`,
+        stem: `A 74-year-old man with NYHA Class IV heart failure and oligo-anuric acute kidney injury is mistakenly administered IV mannitol. Within 45 minutes he develops pink frothy sputum and crackles. What caused this decompensation?`,
+        choices: [
+          `Acute intravascular volume expansion from interstitial fluid shift with failed renal clearance`,
+          `Rapid bradykinin accumulation causing non-cardiogenic pulmonary capillary leak`,
+          `Direct negative inotropic blockade of myocardial L-type calcium channels`
+        ],
+        correct: 0,
+        shortAnswer: `Intravascular Overload / Pulmonary Edema`,
+        clue: `If the kidneys cannot filter an osmotic agent, all that pulled interstitial water stays in the bloodstream.`,
+        dossier: [
+          `Mechanism / Target: Mannitol increases plasma osmolality and pulls fluid into the vascular compartment; in anuria or CHF, the heart and kidneys cannot handle the acute preload surge.`,
+          `Clinical Presentation: Flash pulmonary edema with orthopnea, hypoxemia, bibasilar rales, and elevated JVP.`,
+          `Key Labs / Electrolytes: Markedly elevated serum osmolality, pseudohyponatremia or dilutional hyponatremia, and elevated BNP.`,
+          `Contraindications / Adverse Effects: Strictly contraindicated in active CHF, pulmonary edema, anuria, and intracranial hemorrhage with disrupted blood-brain barrier.`,
+          `Osteopathic / Autonomic Pearl: Heart failure sympathetics map to T1–T4 (left > right), while renal sympathetics map to T10–T11.`,
+          `Distractor Breakdown: Bradykinin angioedema is an ACEi effect; mannitol does not block cardiac calcium channels.`,
+          `High-Yield Board Takeaway: Never give mannitol in anuria or heart failure due to flash pulmonary edema risk.`
+        ]
+      },
+      {
+        id: 9, sector: 1, entityId: 3, phase: `Clinical`, angle: `Electrolytes`,
+        stem: `After 48 hours of repeated mannitol boluses for cerebral edema without adequate free water replacement, a neuro-ICU patient's serum sodium rises from 138 to 156 mEq/L. What explains this electrolyte shift?`,
+        choices: [
+          `Free water excretion exceeds sodium loss during sustained osmotic diuresis`,
+          `Upregulation of epithelial sodium channels (ENaC) in the collecting duct`,
+          `Paradoxical stimulation of aldosterone by proximal tubule stretch`
+        ],
+        correct: 0,
+        shortAnswer: `Free Water Loss > Na+ Loss`,
+        clue: `Osmotic diuretics pull more water than salt into the urine once filtration is ongoing.`,
+        dossier: [
+          `Mechanism / Target: Filtered mannitol obligates water excretion in water-permeable segments (PCT and thin descending limb) at a higher proportion than sodium, resulting in net free water loss.`,
+          `Clinical Presentation: Volume depletion, dry mucous membranes, tachycardia, and hypernatremic encephalopathy if unmonitored.`,
+          `Key Labs / Electrolytes: Hypernatremia, elevated serum osmolality, and high urine flow rate with elevated urine osmolality.`,
+          `Contraindications / Adverse Effects: Requires strict intake/output monitoring and hypotonic fluid replacement once ICP stabilizes.`,
+          `Osteopathic / Autonomic Pearl: Systemic dehydration reduces tissue turgor and can accentuate myofascial restriction around T10–T11.`,
+          `Distractor Breakdown: ENaC upregulation occurs in Liddle syndrome or hyperaldosteronism, not as a primary mannitol mechanism.`,
+          `High-Yield Board Takeaway: Early mannitol causes hyponatremia (fluid shift in); prolonged unreplaced mannitol causes hypernatremia (free water loss out).`
+        ]
+      },
+
+      // SECTOR II: Loop Diuretics (10-18)
+      {
+        id: 10, sector: 2, entityId: 4, phase: `Mechanism`, angle: `TAL Transporter`,
+        stem: `A 67-year-old man with decompensated HFrEF receives IV furosemide. In which nephron segment and via which transporter does furosemide exert its primary natriuretic effect?`,
+        choices: [
+          `Thick ascending limb of Henle via inhibition of NKCC2`,
+          `Early distal convoluted tubule via inhibition of NCCT`,
+          `Proximal convoluted tubule via inhibition of Na+/H+ antiporter`
+        ],
+        correct: 0,
+        shortAnswer: `TAL NKCC2 Inhibition`,
+        clue: `The "diluting segment" reabsorbs ~25% of filtered sodium and is impermeable to water.`,
+        dossier: [
+          `Mechanism / Target: Loop diuretics reversibly inhibit the luminal Na+/K+/2Cl- cotransporter (NKCC2) in the water-impermeable thick ascending limb (TAL), abolishing the corticopapillary medullary osmotic gradient.`,
+          `Clinical Presentation: Produces the highest-efficacy diuresis ("high-ceiling" diuretics) even at reduced GFR.`,
+          `Key Labs / Electrolytes: Marked natriuresis, chloruresis, kaliuresis, and loss of urinary concentrating ability.`,
+          `Contraindications / Adverse Effects: Hypovolemia, hypokalemia, hypomagnesemia, hypocalcemia, metabolic alkalosis, ototoxicity, and hyperuricemia.`,
+          `Osteopathic / Autonomic Pearl: Bilateral rib raising reduces sympathetic vasoconstriction (T10–T11), aiding renal perfusion in volume-overloaded HF.`,
+          `Distractor Breakdown: NCCT in the DCT is blocked by thiazides; NHE3 in the PCT is not the primary target of loop diuretics.`,
+          `High-Yield Board Takeaway: Loop diuretics block NKCC2 in the TAL and destroy the medullary hypertonic gradient.`
+        ]
+      },
+      {
+        id: 11, sector: 2, entityId: 4, phase: `Mechanism`, angle: `Prostaglandin Link`,
+        stem: `A 71-year-old man with osteoarthritis and HFrEF takes high-dose ibuprofen for knee pain and notices his daily oral furosemide stops relieving his ankle edema. What explains this drug-drug interaction?`,
+        choices: [
+          `NSAIDs block COX-2 prostaglandin synthesis needed to dilate the afferent arteriole`,
+          `Ibuprofen competes with furosemide for binding at the basolateral Na+/K+-ATPase`,
+          `NSAIDs directly upregulate NKCC2 gene transcription in the macula densa`
+        ],
+        correct: 0,
+        shortAnswer: `NSAIDs Block PG Afferent Dilation`,
+        clue: `Loops induce COX-2 prostaglandins that boost renal blood flow; NSAIDs extinguish that effect.`,
+        dossier: [
+          `Mechanism / Target: Loop diuretics stimulate COX-2 expression, generating vasodilatory prostaglandins (PGE2) that dilate the afferent arteriole and enhance renal blood flow and salt delivery; NSAIDs inhibit COX and blunt diuretic efficacy.`,
+          `Clinical Presentation: Diuretic resistance and acute heart failure exacerbation after starting over-the-counter NSAIDs.`,
+          `Key Labs / Electrolytes: Rising creatinine, decreased urine output, and worsening peripheral edema.`,
+          `Contraindications / Adverse Effects: Concurrent NSAID + loop + ACEi ("triple whammy") carries high risk of acute kidney injury.`,
+          `Osteopathic / Autonomic Pearl: Treat musculoskeletal pain with OMT (muscle energy, myofascial release) to reduce chronic NSAID exposure in cardiac/renal patients.`,
+          `Distractor Breakdown: Ibuprofen neither binds Na+/K+-ATPase directly nor induces NKCC2 transcription.`,
+          `High-Yield Board Takeaway: NSAIDs antagonize loop diuretics by inhibiting vasodilatory prostaglandins.`
+        ]
+      },
+      {
+        id: 12, sector: 2, entityId: 4, phase: `Clinical`, angle: `Acute Pulmonary Edema`,
+        stem: `A 69-year-old woman arrives in respiratory distress with BP 168/94 mm Hg, SpO2 86%, bilateral crackles, and S3 gallop. IV furosemide provides rapid dyspnea relief even before substantial urine output occurs. What acute hemodynamic effect contributes?`,
+        choices: [
+          `Prostaglandin-mediated venodilation acutely decreases left ventricular preload`,
+          `Direct beta-1 agonism increases myocardial contractility and stroke volume`,
+          `Efferent arteriolar constriction raises systemic vascular resistance`
+        ],
+        correct: 0,
+        shortAnswer: `Rapid Venodilation Lowers Preload`,
+        clue: `First-line in acute decompensated pulmonary edema—relieves preload fast, though no mortality benefit.`,
+        dossier: [
+          `Mechanism / Target: IV furosemide triggers immediate prostaglandin release causing systemic venodilation (reducing preload within minutes) followed by massive natriuresis.`,
+          `Clinical Presentation: Acute cardiogenic pulmonary edema with orthopnea, pink frothy sputum, and JVD.`,
+          `Key Labs / Electrolytes: Elevated BNP and pulmonary venous congestion on CXR; monitor K+ and Mg2+ after diuresis.`,
+          `Contraindications / Adverse Effects: Loop diuretics improve symptoms rapidly but do NOT reduce long-term mortality in HFrEF (unlike ACEi, beta-blockers, MRAs, SGLT2i).`,
+          `Osteopathic / Autonomic Pearl: Sitting upright + thoracic lymphatic pump is avoided in acute severe pulmonary edema until preload is unloaded.`,
+          `Distractor Breakdown: Furosemide has no beta-1 agonist activity and does not constrict efferent arterioles.`,
+          `High-Yield Board Takeaway: Loops are first-line for acute pulmonary edema via venodilation + rapid diuresis, reducing preload.`
+        ]
+      },
+      {
+        id: 13, sector: 2, entityId: 5, phase: `Mechanism`, angle: `Divalent Cations`,
+        stem: `Why do loop diuretics increase urinary excretion of Ca2+ and Mg2+, whereas thiazide diuretics enhance Ca2+ reabsorption?`,
+        choices: [
+          `Blocking NKCC2 eliminates K+ back-diffusion via ROMK, abolishing the lumen-positive potential`,
+          `Loop diuretics directly chelate ionized calcium inside the proximal convoluted tubule`,
+          `Furosemide inhibits parathyroid hormone receptors on the basolateral TAL membrane`
+        ],
+        correct: 0,
+        shortAnswer: `Loss of Lumen-Positive Potential`,
+        clue: `Without K+ recycling into the lumen via ROMK, paracellular divalent cations lose their electrical push.`,
+        dossier: [
+          `Mechanism / Target: Normally, NKCC2 + luminal K+ efflux through ROMK channels creates a +10 mV lumen-positive voltage that drives paracellular Ca2+ and Mg2+ reabsorption; loops abolish this gradient.`,
+          `Clinical Presentation: Useful therapeutically in acute severe hypercalcemia (combined with normal saline); chronically causes hypomagnesemia and hypocalcemia.`,
+          `Key Labs / Electrolytes: High urinary Ca2+ and Mg2+, low serum Mg2+ (which can cause refractory hypokalemia and Torsades de Pointes).`,
+          `Contraindications / Adverse Effects: Always replete Mg2+ if loop-induced hypokalemia fails to correct with K+ alone.`,
+          `Osteopathic / Autonomic Pearl: Hypomagnesemia/hypocalcemia increases neuromuscular excitability (positive Chvostek/Trousseau signs) and somatic tender points.`,
+          `Distractor Breakdown: Furosemide does not chelate calcium or block PTH receptors.`,
+          `High-Yield Board Takeaway: "Loops Lose Ca2+ and Mg2+" by abolishing the TAL lumen-positive potential.`
+        ]
+      },
+      {
+        id: 14, sector: 2, entityId: 5, phase: `Clinical`, angle: `Acid-Base`,
+        stem: `A 59-year-old man receiving high-dose IV bumetanide develops serum K+ 2.8 mEq/L, HCO3- 34 mEq/L, and pH 7.49. Which combination of mechanisms drives his metabolic alkalosis?`,
+        choices: [
+          `Volume contraction activates RAAS, increasing AT-II PCT HCO3- uptake and collecting duct H+ secretion`,
+          `Direct blockade of intercalated cell H+-ATPase traps protons in the blood`,
+          `Increased lactic acid production stimulates hepatic bicarbonate synthesis`
+        ],
+        correct: 0,
+        shortAnswer: `Contraction Alkalosis via RAAS`,
+        clue: `High distal Na+ delivery + aldosterone + hypokalemia forces collecting duct alpha-intercalated cells to dump H+.`,
+        dossier: [
+          `Mechanism / Target: Volume contraction raises AT-II (boosting PCT Na+/H+ exchange and HCO3- reclamation) and aldosterone; increased distal Na+ + low K+ drives alpha-intercalated H+ secretion ("paradoxical aciduria").`,
+          `Clinical Presentation: Weakness, muscle cramps, and flattened T waves with U waves on ECG.`,
+          `Key Labs / Electrolytes: Hypokalemic, hypochloremic metabolic alkalosis; urinary Cl- > 20 mEq/L while actively taking the diuretic.`,
+          `Contraindications / Adverse Effects: Hypokalemia precipitates digoxin toxicity and ventricular arrhythmias.`,
+          `Osteopathic / Autonomic Pearl: Alkalemia lowers ionized Ca2+, increasing paraspinal myofascial irritability.`,
+          `Distractor Breakdown: Blocking H+-ATPase causes acidosis (seen in K+-sparing diuretics), not alkalosis.`,
+          `High-Yield Board Takeaway: Loop and thiazide diuretics cause hypokalemic contraction metabolic alkalosis.`
+        ]
+      },
+      {
+        id: 15, sector: 2, entityId: 5, phase: `Clinical`, angle: `Hypercalcemia`,
+        stem: `A 64-year-old man with squamous cell lung cancer presents with confusion, constipation, and serum Ca2+ 14.2 mg/dL. After aggressive IV 0.9% NaCl hydration, which diuretic helps enhance calciuresis?`,
+        choices: [
+          `Furosemide`,
+          `Hydrochlorothiazide`,
+          `Spironolactone`
+        ],
+        correct: 0,
+        shortAnswer: `Furosemide (Post-Hydration)`,
+        clue: `Never give it before volume resuscitation, or you worsen renal calcium retention.`,
+        dossier: [
+          `Mechanism / Target: Once euvolemia is restored with IV isotonic saline, furosemide inhibits TAL NKCC2, blocking paracellular Ca2+ reabsorption.`,
+          `Clinical Presentation: Malignancy-associated hypercalcemia (PTHrP-mediated) presenting with "bones, stones, groans, and psychiatric overtones."`,
+          `Key Labs / Electrolytes: Elevated ionized Ca2+, suppressed intact PTH, shortened QT interval on ECG.`,
+          `Contraindications / Adverse Effects: Giving furosemide before saline worsens dehydration and decreases GFR, trapping calcium in the blood.`,
+          `Osteopathic / Autonomic Pearl: Upper thoracic (T1–T4) and mid-thoracic myofascial dysfunctions may reflect pulmonary malignancy viscerosomatics.`,
+          `Distractor Breakdown: Hydrochlorothiazide increases Ca2+ reabsorption and worsens hypercalcemia; spironolactone has minimal effect on acute Ca2+ clearance.`,
+          `High-Yield Board Takeaway: Hydrate with normal saline first, then use furosemide ("Loops Lose Ca2+") if needed.`
+        ]
+      },
+      {
+        id: 16, sector: 2, entityId: 6, phase: `OMT / Toxicity`, angle: `Sulfa Allergy`,
+        stem: `A 62-year-old man with acute decompensated heart failure has a history of Stevens-Johnson syndrome to trimethoprim-sulfamethoxazole. Which loop diuretic is structurally non-sulfonamide and safe to use?`,
+        choices: [
+          `Ethacrynic acid`,
+          `Bumetanide`,
+          `Torsemide`
+        ],
+        correct: 0,
+        shortAnswer: `Ethacrynic Acid (Non-Sulfa)`,
+        clue: `Be "sulfa-less" with Ethics—though watch out for its higher risk to the inner ear.`,
+        dossier: [
+          `Mechanism / Target: Ethacrynic acid is a phenoxyacetic acid derivative that inhibits TAL NKCC2 without containing a sulfonamide moiety.`,
+          `Clinical Presentation: Required in fluid-overloaded patients with severe sulfa hypersensitivity (anaphylaxis or SJS/TEN).`,
+          `Key Labs / Electrolytes: Same electrolyte wasting profile (hypokalemia, hypomagnesemia, hypocalcemia, alkalosis) as furosemide.`,
+          `Contraindications / Adverse Effects: Carries the HIGHEST risk of permanent ototoxicity among all loop diuretics; avoid combining with aminoglycosides.`,
+          `Osteopathic / Autonomic Pearl: Cranial temporal bone/Eustachian dysfunction can coexist with auditory symptoms, though drug-induced stria vascularis toxicity is sensorineural.`,
+          `Distractor Breakdown: Furosemide, bumetanide, and torsemide are all sulfonamide derivatives.`,
+          `High-Yield Board Takeaway: Ethacrynic acid = non-sulfa loop diuretic with the highest ototoxicity.`
+        ]
+      },
+      {
+        id: 17, sector: 2, entityId: 6, phase: `OMT / Toxicity`, angle: `Ototoxicity`,
+        stem: `A 55-year-old man with endocarditis receiving IV gentamicin and high-dose IV furosemide develops tinnitus and bilateral sensorineural hearing loss. Which inner ear structure expresses the shared loop-sensitive transporter?`,
+        choices: [
+          `Stria vascularis of the cochlea (NKCC1)`,
+          `Tympanic membrane squamous epithelium`,
+          `Ossicular chain synovial joints`
+        ],
+        correct: 0,
+        shortAnswer: `Cochlear Stria Vascularis`,
+        clue: `Endolymph potassium composition depends on an isoform of NKCC in the lateral cochlear wall.`,
+        dossier: [
+          `Mechanism / Target: Loop diuretics inhibit NKCC1 in the stria vascularis of the cochlea, disrupting endolymph K+ secretion and endocochlear potential.`,
+          `Clinical Presentation: Dose-dependent tinnitus, vertigo, or reversible/irreversible sensorineural hearing loss—synergistically worsened by aminoglycosides or cisplatin.`,
+          `Key Labs / Electrolytes: Elevated serum creatinine increases drug accumulation and ototoxicity risk during rapid IV bolus.`,
+          `Contraindications / Adverse Effects: Infuse high-dose IV loops slowly rather than rapid push; avoid co-administering with aminoglycosides when possible.`,
+          `Osteopathic / Autonomic Pearl: Temporal bone rocking and OA decompression do not reverse cochlear hair-cell injury, making prevention crucial.`,
+          `Distractor Breakdown: Tympanic membrane and middle ear ossicles cause conductive, not sensorineural, hearing loss.`,
+          `High-Yield Board Takeaway: High-dose IV loops + aminoglycosides synergistically cause sensorineural ototoxicity.`
+        ]
+      },
+      {
+        id: 18, sector: 2, entityId: 6, phase: `OMT / Toxicity`, angle: `Gout & Hypersensitivity`,
+        stem: `Two weeks after starting furosemide, a 60-year-old man develops an erythematous rash, fever, peripheral eosinophilia, and acute kidney injury with white blood cell casts. What is the diagnosis?`,
+        choices: [
+          `Drug-induced acute interstitial nephritis (AIN)`,
+          `Post-streptococcal glomerulonephritis`,
+          `Cholesterol crystal embolization`
+        ],
+        correct: 0,
+        shortAnswer: `Acute Interstitial Nephritis`,
+        clue: `Remember the "OHH DAANG!" mnemonic: Ototoxicity, Hypokalemia, Dehydration, Allergy (sulfa), Alkalosis, Nephritis (interstitial), Gout.`,
+        dossier: [
+          `Mechanism / Target: Sulfonamide loop diuretics (like furosemide) can act as haptens triggering Type IV (and occasionally Type I) hypersensitivity in the renal interstitium.`,
+          `Clinical Presentation: Classic triad of fever, maculopapular rash, and eosinophilia/eosinophiluria developing 1–3 weeks after starting a sulfa drug, NSAID, or beta-lactam.`,
+          `Key Labs / Electrolytes: Rising BUN/Cr, pyuria, WBC casts, and eosinophils on Hansel or Wright stain of urine.`,
+          `Contraindications / Adverse Effects: Discontinue the offending sulfa diuretic immediately; switch to ethacrynic acid if loop diuresis remains essential.`,
+          `Osteopathic / Autonomic Pearl: Bilateral T10–T11 paraspinal boggy texture and tenderness reflect acute renal parenchymal inflammation.`,
+          `Distractor Breakdown: PSGN presents with RBC casts and low C3; cholesterol emboli show livedo reticularis after vascular catheterization.`,
+          `High-Yield Board Takeaway: Sulfa diuretics (loops & thiazides) can cause acute interstitial nephritis with WBC casts.`
+        ]
+      },
+
+      // SECTOR III: Thiazide Diuretics (19-27)
+      {
+        id: 19, sector: 3, entityId: 7, phase: `Mechanism`, angle: `DCT Transport`,
+        stem: `A 54-year-old man is started on chlorthalidone for essential hypertension. How does thiazide blockade of the apical Na+/Cl- cotransporter (NCCT) in the early distal convoluted tubule increase calcium reabsorption?`,
+        choices: [
+          `Lower intracellular Na+ enhances basolateral Na+/Ca2+ antiporter activity`,
+          `Upregulates apical TRPV5 channels via direct aldosterone agonism`,
+          `Increases luminal positive electrical potential in the thick ascending limb`
+        ],
+        correct: 0,
+        shortAnswer: `Enhances Basolateral Na+/Ca2+ Exchange`,
+        clue: `Depleting intracellular Na+ creates a steeper inward Na+ gradient at the basolateral membrane.`,
+        dossier: [
+          `Mechanism / Target: Thiazides inhibit the apical Na+/Cl- cotransporter (NCCT) in the early DCT; lower intracellular Na+ accelerates the basolateral 3Na+/Ca2+ exchanger, pulling Ca2+ into the interstitium and driving apical Ca2+ uptake.`,
+          `Clinical Presentation: First-line mild-to-moderate hypertension therapy (chlorthalidone has a longer half-life and superior cardiovascular data vs HCTZ).`,
+          `Key Labs / Electrolytes: Hypocalciuria (low urine Ca2+), mild hypercalcemia, hypokalemia, and hyponatremia.`,
+          `Contraindications / Adverse Effects: Ineffective when GFR < 30 mL/min (except metolazone); sulfonamide hypersensitivity.`,
+          `Osteopathic / Autonomic Pearl: Suboccipital release (OA-AA) and T10–T11 rib raising support systemic blood pressure homeostasis.`,
+          `Distractor Breakdown: Thiazides do not act as aldosterone agonists or raise TAL lumen-positive potential.`,
+          `High-Yield Board Takeaway: Thiazides block DCT NCCT, lower intracellular Na+, and increase Ca2+ reabsorption.`
+        ]
+      },
+      {
+        id: 20, sector: 3, entityId: 7, phase: `Clinical`, angle: `Nephrolithiasis`,
+        stem: `A 41-year-old man with recurrent calcium oxalate kidney stones has a 24-hour urine calcium of 380 mg/day with normal serum calcium and PTH (idiopathic hypercalciuria). Which medication prevents stone recurrence?`,
+        choices: [
+          `Hydrochlorothiazide`,
+          `Furosemide`,
+          `Acetazolamide`
+        ],
+        correct: 0,
+        shortAnswer: `Hydrochlorothiazide (Hypocalciuric)`,
+        clue: `Keep calcium in the blood and bones rather than dumping it into the urine.`,
+        dossier: [
+          `Mechanism / Target: Thiazides stimulate both DCT basolateral Na+/Ca2+ exchange and mild volume depletion-induced passive proximal Ca2+ reabsorption, markedly reducing urinary Ca2+ excretion.`,
+          `Clinical Presentation: Prevention of recurrent idiopathic hypercalciuric calcium oxalate or calcium phosphate nephrolithiasis.`,
+          `Key Labs / Electrolytes: Reduced 24-hour urine calcium; maintains or slightly increases bone mineral density in postmenopausal women with osteoporosis.`,
+          `Contraindications / Adverse Effects: Avoid in pre-existing hypercalcemia (e.g., primary hyperparathyroidism) to prevent worsening hypercalcemic crisis.`,
+          `Osteopathic / Autonomic Pearl: Anterior renal Chapman point (1 inch superior and lateral to umbilicus) is often tender during stone risk flares.`,
+          `Distractor Breakdown: Furosemide causes hypercalciuria and worsens stones; acetazolamide alkalinizes urine and promotes calcium phosphate stones.`,
+          `High-Yield Board Takeaway: Thiazides treat idiopathic hypercalciuria / calcium stones and benefit osteoporosis.`
+        ]
+      },
+      {
+        id: 21, sector: 3, entityId: 7, phase: `Clinical`, angle: `Loop Resistance`,
+        stem: `A 72-year-old man with HFrEF on high-dose IV furosemide develops refractory edema due to compensatory hypertrophy of the distal convoluted tubule ("braking phenomenon"). Adding which thiazide-like diuretic works even at low GFR to restore diuresis?`,
+        choices: [
+          `Metolazone`,
+          `Mannitol`,
+          `Triamterene`
+        ],
+        correct: 0,
+        shortAnswer: `Metolazone (Sequential Nephron Block)`,
+        clue: `Oral agent routinely paired 30 minutes before IV furosemide in loop-resistant heart failure.`,
+        dossier: [
+          `Mechanism / Target: Chronic loop therapy delivers excess Na+ to the DCT, causing DCT epithelial hypertrophy; metolazone blocks DCT NCCT ("sequential nephron blockade") and retains efficacy even when GFR < 30 mL/min.`,
+          `Clinical Presentation: Severe diuretic-resistant heart failure volume overload.`,
+          `Key Labs / Electrolytes: Can trigger massive, rapid potassium and magnesium wasting plus sharp rises in creatinine—monitor BMP daily.`,
+          `Contraindications / Adverse Effects: High risk of profound hypokalemia, hyponatremia, and pre-renal azotemia if not monitored closely.`,
+          `Osteopathic / Autonomic Pearl: Thoracic and pelvic diaphragm myofascial release supports lymphatic return in refractory peripheral edema.`,
+          `Distractor Breakdown: Mannitol is contraindicated in CHF; triamterene is a weak diuretic that alone will not break loop resistance.`,
+          `High-Yield Board Takeaway: Metolazone + loop diuretic achieves sequential nephron blockade in diuretic-resistant HF.`
+        ]
+      },
+      {
+        id: 22, sector: 3, entityId: 8, phase: `OMT / Toxicity`, angle: `HyperGLUC`,
+        stem: `Six months after starting hydrochlorothiazide, a 58-year-old man presents with an acutely swollen, erythematous first metatarsophalangeal joint (podagra), fasting glucose 134 mg/dL, and LDL 175 mg/dL. Which mechanism explains his acute arthritis?`,
+        choices: [
+          `Volume contraction and competition at PCT OAT transporters decrease uric acid excretion`,
+          `Direct inhibition of xanthine oxidase raises intracellular hypoxanthine crystals`,
+          `Thiazides shift intracellular potassium out in exchange for urate influx`
+        ],
+        correct: 0,
+        shortAnswer: `Decreased PCT Uric Acid Clearance`,
+        clue: `Remember "HyperGLUC": Glycemia, Lipidemia, Uricemia, Calcemia.`,
+        dossier: [
+          `Mechanism / Target: Thiazides (and loops) compete with uric acid for organic anion transporters (OATs) in the PCT and induce hypovolemia that increases proximal urate reabsorption.`,
+          `Clinical Presentation: Acute gout flare (negatively birefringent needle-shaped monosodium urate crystals) alongside worsening glycemic and lipid control.`,
+          `Key Labs / Electrolytes: Hyperuricemia, hyperglycemia (impaired pancreatic insulin release due to hypokalemia), hyperlipidemia, and mild hypercalcemia.`,
+          `Contraindications / Adverse Effects: Avoid thiazides in patients with frequent gout; consider losartan (uricosuric ARB) or amlodipine for HTN instead.`,
+          `Osteopathic / Autonomic Pearl: Avoid direct high-velocity OMT over an acutely inflamed gouty joint.`,
+          `Distractor Breakdown: Thiazides do not inhibit xanthine oxidase (that is allopurinol/febuxostat).`,
+          `High-Yield Board Takeaway: Thiazides cause HyperGLUC—hyperGlycemia, hyperLipidemia, hyperUricemia (gout), hyperCalcemia.`
+        ]
+      },
+      {
+        id: 23, sector: 3, entityId: 8, phase: `OMT / Toxicity`, angle: `Hyponatremia`,
+        stem: `A 79-year-old woman (50 kg) starts HCTZ 25 mg daily for hypertension and presents 10 days later with nausea, gait instability, and serum Na+ 118 mEq/L. Why do thiazides cause hyponatremia more frequently than loop diuretics?`,
+        choices: [
+          `They impair urinary dilution in the DCT while preserving medullary hypertonicity for ADH-driven water reabsorption`,
+          `They directly stimulate posterior pituitary V2 receptors to retain free water`,
+          `They abolish the corticopapillary osmotic gradient in the renal medulla`
+        ],
+        correct: 0,
+        shortAnswer: `Impaired Dilution + Intact Medulla`,
+        clue: `Unlike loops, thiazides leave the medullary hypertonic gradient intact so collecting duct water uptake continues.`,
+        dossier: [
+          `Mechanism / Target: Thiazides block NaCl reabsorption in the cortical diluting segment (DCT) without disrupting the hypertonic medulla; hypovolemia also triggers ADH release, causing continued free water reabsorption and hyponatremia.`,
+          `Clinical Presentation: Elderly thin females are classic victims of severe thiazide-induced hyponatremia presenting with confusion, falls, or seizures.`,
+          `Key Labs / Electrolytes: Serum Na+ < 125 mEq/L, low serum osmolality, inappropriately elevated urine osmolality, and hypokalemia.`,
+          `Contraindications / Adverse Effects: Discontinue thiazide; correct chronic hyponatremia slowly (< 8–10 mEq/L per 24h) to avoid osmotic demyelination syndrome.`,
+          `Osteopathic / Autonomic Pearl: Balance and gait instability require fall-risk screening; avoid aggressive cervical HVLA in acute hyponatremic encephalopathy.`,
+          `Distractor Breakdown: Thiazides do not directly activate V2 receptors or abolish the medullary gradient (loops do).`,
+          `High-Yield Board Takeaway: Thiazides preserve the medullary gradient while blocking cortical dilution, causing hyponatremia.`
+        ]
+      },
+      {
+        id: 24, sector: 3, entityId: 8, phase: `Clinical`, angle: `Drug Selection`,
+        stem: `A 51-year-old Black man with stage 1 hypertension (144/90 mm Hg) and no diabetes or CKD is prescribed a thiazide-like diuretic over HCTZ because it has a much longer half-life and stronger cardiovascular outcome data. Which drug was chosen?`,
+        choices: [
+          `Chlorthalidone`,
+          `Indapamide`,
+          `Bumetanide`
+        ],
+        correct: 0,
+        shortAnswer: `Chlorthalidone`,
+        clue: `Preferred in landmark hypertension trials (ALLHAT) with a 40–60 hour half-life.`,
+        dossier: [
+          `Mechanism / Target: Thiazide-like diuretic inhibiting DCT NCCT with a long half-life (40–60 h vs 6–15 h for HCTZ) and mild carbonic anhydrase inhibition.`,
+          `Clinical Presentation: Superior 24-hour ambulatory blood pressure control and proven reduction in stroke and heart failure events.`,
+          `Key Labs / Electrolytes: Monitor K+ and Na+ carefully as chlorthalidone causes slightly more hypokalemia than equivalent-dose HCTZ.`,
+          `Contraindications / Adverse Effects: Sulfa allergy, hypokalemia, hyponatremia, and HyperGLUC profile.`,
+          `Osteopathic / Autonomic Pearl: Addressing T1–T4 cardiac and T10–T11 renal viscerosomatics complements pharmacologic BP control.`,
+          `Distractor Breakdown: Indapamide is a thiazide-like agent but chlorthalidone is the classic long-half-life ALLHAT agent; bumetanide is a loop diuretic.`,
+          `High-Yield Board Takeaway: Chlorthalidone is preferred over HCTZ for sustained BP lowering and CV outcome reduction.`
+        ]
+      },
+      {
+        id: 25, sector: 3, entityId: 9, phase: `Clinical`, angle: `Paradoxical Effect`,
+        stem: `A 36-year-old man with bipolar I disorder on long-term lithium develops 6 L/day of dilute polyuria and polydipsia unresponsive to desmopressin. How does hydrochlorothiazide paradoxically reduce his urine output?`,
+        choices: [
+          `Mild volume depletion increases proximal tubular Na+ and water reabsorption, reducing distal delivery`,
+          `HCTZ acts as a direct V2 receptor agonist on principal cells`,
+          `HCTZ blocks lithium entry into principal cells through ENaC`
+        ],
+        correct: 0,
+        shortAnswer: `Volume Depletion Boosts PCT Uptake`,
+        clue: `Wait—blocking ENaC directly is amiloride's trick; thiazides work upstream in the PCT via hypovolemia.`,
+        dossier: [
+          `Mechanism / Target: In nephrogenic diabetes insipidus (NDI), collecting duct cells ignore ADH. Thiazides induce mild hypovolemia, stimulating avid proximal convoluted tubule Na+ and water reabsorption so far less filtrate reaches the collecting duct.`,
+          `Clinical Presentation: Polyuria, polydipsia, and nocturia in a patient on lithium or demeclocycline.`,
+          `Key Labs / Electrolytes: Urine osmolality < 300 mOsm/kg failing to rise > 50% after desmopressin administration.`,
+          `Contraindications / Adverse Effects: Caution! Thiazides decrease renal lithium clearance and can precipitate lithium toxicity unless lithium dose is lowered.`,
+          `Osteopathic / Autonomic Pearl: Posterior Chapman reflex point for kidney lies in the T12–L1 intertransverse space.`,
+          `Distractor Breakdown: Thiazides do not bind V2 receptors; amiloride (not HCTZ) blocks lithium entry via ENaC.`,
+          `High-Yield Board Takeaway: Thiazides paradoxically treat nephrogenic DI by increasing PCT water reabsorption—but watch lithium levels!`
+        ]
+      },
+      {
+        id: 26, sector: 3, entityId: 9, phase: `OMT / Toxicity`, angle: `Drug Interaction`,
+        stem: `Two weeks after starting HCTZ for hypertension, a 45-year-old woman taking lithium carbonate develops coarse hand tremor, ataxia, dysarthria, and confusion. What caused her lithium toxicity?`,
+        choices: [
+          `Thiazide-induced volume depletion increases proximal reabsorption of lithium alongside sodium`,
+          `Thiazides displace lithium from plasma albumin binding sites`,
+          `Thiazides inhibit hepatic CYP2D6 metabolism of lithium`
+        ],
+        correct: 0,
+        shortAnswer: `Increased Proximal Lithium Reabsorption`,
+        clue: `The proximal tubule treats Li+ almost identically to Na+ whenever volume drops.`,
+        dossier: [
+          `Mechanism / Target: Because lithium is handled like Na+ in the PCT, thiazide-induced hypovolemia triggers compensatory proximal Na+ and Li+ reabsorption, reducing Li+ clearance and raising serum levels.`,
+          `Clinical Presentation: Acute-on-chronic lithium toxicity: coarse tremor, hyperreflexia, ataxia, nausea/vomiting, and confusion.`,
+          `Key Labs / Electrolytes: Serum lithium > 1.5–2.0 mEq/L; check renal function and TSH.`,
+          `Contraindications / Adverse Effects: NSAIDs and ACE inhibitors also raise lithium levels; hemodialysis is required for severe toxicity.`,
+          `Osteopathic / Autonomic Pearl: Rule out drug toxicity before attributing new ataxia/dysarthria to cervical somatic dysfunction.`,
+          `Distractor Breakdown: Lithium is not protein-bound and is not hepatically metabolized by CYP enzymes.`,
+          `High-Yield Board Takeaway: Thiazides (and NSAIDs/ACEi) increase proximal Li+ reabsorption and precipitate lithium toxicity.`
+        ]
+      },
+      {
+        id: 27, sector: 3, entityId: 9, phase: `Clinical`, angle: `Gout vs Calcium`,
+        stem: `A 53-year-old man with hypertension, osteopenia, and recurrent calcium stones is on chlorthalidone, while his brother with hypertension and recurrent gout is switched off chlorthalidone. Which lab finding distinguishes chlorthalidone's bone-protective effect?`,
+        choices: [
+          `Decreased urinary calcium excretion with preserved or slightly elevated serum calcium`,
+          `Increased urinary phosphate excretion driven by secondary hyperparathyroidism`,
+          `Suppression of osteoblast RANKL via direct vitamin D agonism`
+        ],
+        correct: 0,
+        shortAnswer: `Hypocalciuria & Positive Ca2+ Balance`,
+        clue: `Retaining calcium at the kidney preserves skeletal mineralization over time.`,
+        dossier: [
+          `Mechanism / Target: Thiazides reduce renal calcium wasting (hypocalciuria), maintaining a positive total body calcium balance and decreasing bone turnover.`,
+          `Clinical Presentation: Reduced hip and vertebral fracture risk in elderly osteopenic/osteoporotic patients on chronic thiazide therapy.`,
+          `Key Labs / Electrolytes: Low 24-hour urine calcium, normal/high-normal serum Ca2+, and stable PTH.`,
+          `Contraindications / Adverse Effects: Monitor serum uric acid in gout-prone patients and potassium in elderly patients.`,
+          `Osteopathic / Autonomic Pearl: Gentle myofascial release and low-force muscle energy are preferred over HVLA in osteoporotic patients.`,
+          `Distractor Breakdown: Thiazides do not cause secondary hyperparathyroidism or act as vitamin D receptor agonists.`,
+          `High-Yield Board Takeaway: Thiazides protect bone density and prevent calcium stones by decreasing urinary Ca2+ excretion.`
+        ]
+      },
+
+      // SECTOR IV: K+-Sparing Diuretics & Vaptans (28-36)
+      {
+        id: 28, sector: 4, entityId: 10, phase: `Mechanism`, angle: `ENaC Blockade`,
+        stem: `A 19-year-old man has severe hypertension (178/104 mm Hg), hypokalemia (2.9 mEq/L), metabolic alkalosis, and BOTH undetectable plasma renin activity AND undetectable serum aldosterone. Which medication directly treats the underlying channelopathy?`,
+        choices: [
+          `Amiloride or triamterene`,
+          `Spironolactone`,
+          `Fludrocortisone`
+        ],
+        correct: 0,
+        shortAnswer: `Amiloride / Triamterene (Liddle)`,
+        clue: `Aldosterone is already suppressed—blocking the mineralocorticoid receptor won't silence constitutively active ENaCs.`,
+        dossier: [
+          `Mechanism / Target: Liddle syndrome is an autosomal dominant gain-of-function mutation preventing ubiquitination/degradation of collecting duct ENaC channels. Amiloride and triamterene directly plug luminal ENaC pores.`,
+          `Clinical Presentation: Early-onset severe hypertension, hypokalemia, and metabolic alkalosis mimicking hyperaldosteronism ("pseudohyperaldosteronism").`,
+          `Key Labs / Electrolytes: Low serum K+, high HCO3-, suppressed renin, and suppressed aldosterone (differentiates from Conn syndrome).`,
+          `Contraindications / Adverse Effects: Risk of hyperkalemia and Type 4 RTA; triamterene can rarely form radiolucent kidney stones.`,
+          `Osteopathic / Autonomic Pearl: Sympathetic normalization (T10–T11) helps adjunctive BP control, though direct ENaC blockade is definitive.`,
+          `Distractor Breakdown: Spironolactone fails in Liddle syndrome because ENaC is constitutively active independent of aldosterone; fludrocortisone worsens it.`,
+          `High-Yield Board Takeaway: Treat Liddle syndrome (high BP, low K+, low renin, low aldosterone) with amiloride or triamterene.`
+        ]
+      },
+      {
+        id: 29, sector: 4, entityId: 10, phase: `Clinical`, angle: `Lithium NDI`,
+        stem: `A 39-year-old woman on lithium for bipolar disorder develops polyuria and polydipsia. Which potassium-sparing diuretic prevents lithium from entering collecting duct principal cells without raising serum lithium levels?`,
+        choices: [
+          `Amiloride`,
+          `Furosemide`,
+          `Hydrochlorothiazide`
+        ],
+        correct: 0,
+        shortAnswer: `Amiloride Blocks Li+ via ENaC`,
+        clue: `Lithium sneaks into principal cells through the exact same luminal sodium channel.`,
+        dossier: [
+          `Mechanism / Target: Lithium enters collecting duct principal cells via apical ENaC channels and disrupts Gs/adenylyl cyclase/AQP2 signaling. Amiloride blocks ENaC, halting lithium uptake and preserving ADH sensitivity.`,
+          `Clinical Presentation: Preferred first-line therapy for lithium-induced nephrogenic diabetes insipidus.`,
+          `Key Labs / Electrolytes: Urine osmolality rises as AQP2 trafficking recovers; serum lithium remains stable (unlike thiazides).`,
+          `Contraindications / Adverse Effects: Monitor serum K+ for hyperkalemia, especially if combined with ACE inhibitors or renal impairment.`,
+          `Osteopathic / Autonomic Pearl: Bilateral T10–T11 somatic dysfunction may accompany chronic renal concentrating stress.`,
+          `Distractor Breakdown: Furosemide worsens polyuria; HCTZ helps NDI but raises serum lithium risk.`,
+          `High-Yield Board Takeaway: Amiloride is the drug of choice for lithium-induced nephrogenic DI because it blocks Li+ entry through ENaC.`
+        ]
+      },
+      {
+        id: 30, sector: 4, entityId: 10, phase: `Mechanism`, angle: `Collecting Duct Potentials`,
+        stem: `How do potassium-sparing diuretics (amiloride, spironolactone) cause potassium retention in the cortical collecting tubule?`,
+        choices: [
+          `Inhibiting Na+ reabsorption eliminates the lumen-negative electrical potential that drives K+ and H+ secretion`,
+          `Directly activating basolateral Na+/K+-ATPase to pump K+ back into peritubular capillaries`,
+          `Stimulating H+/K+-ATPase in beta-intercalated cells to absorb luminal K+`
+        ],
+        correct: 0,
+        shortAnswer: `Eliminates Lumen-Negative Potential`,
+        clue: `Normally, positively charged Na+ leaving the lumen leaves behind a negative charge that pulls K+ and H+ out.`,
+        dossier: [
+          `Mechanism / Target: Principal cell Na+ uptake via ENaC creates a lumen-negative potential attracting K+ secretion (via ROMK) and alpha-intercalated H+ secretion. Blocking ENaC or aldosterone removes this electrical driving force.`,
+          `Clinical Presentation: Used to prevent diuretic-induced hypokalemia or treat hyperaldosteronism.`,
+          `Key Labs / Electrolytes: Elevated serum K+ and reduced urinary K+ and H+ excretion.`,
+          `Contraindications / Adverse Effects: Life-threatening hyperkalemia when combined with CKD, ACEi, ARBs, or beta-blockers.`,
+          `Osteopathic / Autonomic Pearl: Hyperkalemia alters cardiac conduction; evaluate T1–T4 cardiac sympathetics carefully only once electrolytes are stabilized.`,
+          `Distractor Breakdown: Aldosterone actually stimulates basolateral Na+/K+-ATPase, so blocking it reduces—not activates—pump activity.`,
+          `High-Yield Board Takeaway: Blocking CCD Na+ uptake removes the lumen-negative voltage, sparing K+ and retaining H+.`
+        ]
+      },
+      {
+        id: 31, sector: 4, entityId: 11, phase: `Clinical`, angle: `Heart Failure Mortality`,
+        stem: `A 65-year-old man with NYHA Class III HFrEF (LVEF 28%) remains symptomatic on lisinopril, carvedilol, and furosemide. Serum K+ is 4.1 mEq/L and eGFR is 55 mL/min. Adding spironolactone provides which proven long-term benefit?`,
+        choices: [
+          `Decreases mortality by preventing aldosterone-mediated myocardial fibrosis and remodeling`,
+          `Rapidly increases left ventricular preload via venoconstriction`,
+          `Prevents progression of bilateral renal artery stenosis`
+        ],
+        correct: 0,
+        shortAnswer: `Reduces HF Mortality & Remodeling`,
+        clue: `Unlike loop diuretics, mineralocorticoid receptor antagonists prolong survival in HFrEF.`,
+        dossier: [
+          `Mechanism / Target: Spironolactone and eplerenone competitively antagonize intracellular mineralocorticoid receptors, blocking aldosterone-induced cardiac fibroblast proliferation, collagen deposition, and remodeling.`,
+          `Clinical Presentation: Indicated in symptomatic HFrEF (EF <= 35%), primary/secondary hyperaldosteronism (Conn syndrome), and cirrhotic ascites.`,
+          `Key Labs / Electrolytes: Check baseline and serial serum K+ (< 5.0 mEq/L) and creatinine; avoid if eGFR < 30 mL/min.`,
+          `Contraindications / Adverse Effects: Hyperkalemia, normal anion gap metabolic acidosis, and anti-androgenic effects with spironolactone.`,
+          `Osteopathic / Autonomic Pearl: Addressing T1–T4 cardiac and T10–T11 renal viscerosomatics supports autonomic balance alongside GDMT.`,
+          `Distractor Breakdown: MRAs reduce preload and mortality; they do not treat renal artery stenosis.`,
+          `High-Yield Board Takeaway: Spironolactone/eplerenone prevent myocardial remodeling and reduce mortality in HFrEF.`
+        ]
+      },
+      {
+        id: 32, sector: 4, entityId: 11, phase: `OMT / Toxicity`, angle: `Endocrine Side Effects`,
+        stem: `A 63-year-old man with HFrEF develops painful bilateral gynecomastia and erectile dysfunction after 4 months on spironolactone. Switching to eplerenone resolves his breast tenderness because eplerenone lacks activity at which sites?`,
+        choices: [
+          `Androgen/progesterone receptors and 17-alpha-hydroxylase`,
+          `Glucocorticoid receptors and 21-hydroxylase`,
+          `Estrogen beta-receptors and aromatase`
+        ],
+        correct: 0,
+        shortAnswer: `No Anti-Androgen / 17α-OHase Effect`,
+        clue: `Think of PCOS hirsutism—spironolactone treats androgen excess precisely because it is non-selective.`,
+        dossier: [
+          `Mechanism / Target: Spironolactone is a non-selective synthetic steroid that blocks androgen/progesterone receptors and inhibits 17-alpha-hydroxylase, lowering testosterone synthesis; eplerenone is a selective MR antagonist.`,
+          `Clinical Presentation: Gynecomastia, decreased libido, and menstrual irregularities on spironolactone (useful intentionally in PCOS hirsutism).`,
+          `Key Labs / Electrolytes: Both drugs share identical risk of hyperkalemia and Type 4 RTA.`,
+          `Contraindications / Adverse Effects: Switch to eplerenone if gynecomastia develops while maintaining HFrEF mortality benefit.`,
+          `Osteopathic / Autonomic Pearl: Bilateral breast/anterior chest wall tenderness from gynecomastia should be distinguished from T1–T4 cardiac Chapman points (2nd intercostal space).`,
+          `Distractor Breakdown: Neither drug primarily targets 21-hydroxylase or aromatase.`,
+          `High-Yield Board Takeaway: Spironolactone causes gynecomastia (blocks androgen R + 17α-hydroxylase); eplerenone spares androgen receptors.`
+        ]
+      },
+      {
+        id: 33, sector: 4, entityId: 11, phase: `Clinical`, angle: `Acid-Base`,
+        stem: `A 68-year-old man with diabetic nephropathy taking lisinopril and spironolactone presents with pH 7.31, HCO3- 17 mEq/L, Na+ 138 mEq/L, Cl- 111 mEq/L, and K+ 6.1 mEq/L. Which renal tubular acidosis is present?`,
+        choices: [
+          `Type 4 RTA (hypoaldosteronism / aldosterone blockade)`,
+          `Type 1 RTA (distal H+ secretion defect with hypokalemia)`,
+          `Type 2 RTA (proximal HCO3- wasting with hypokalemia)`
+        ],
+        correct: 0,
+        shortAnswer: `Type 4 RTA (Hyperkalemic NAGMA)`,
+        clue: `Anion gap = 138 - (111 + 17) = 10; this is the ONLY RTA associated with hyperkalemia.`,
+        dossier: [
+          `Mechanism / Target: Aldosterone deficiency or blockade (spironolactone, ACEi, diabetic hyporeninemic hypoaldosteronism) impairs collecting duct alpha-intercalated H+-ATPase and reduces NH3/NH4+ buffering due to hyperkalemia.`,
+          `Clinical Presentation: Usually asymptomatic lab abnormality or hyperkalemic peaked T waves on ECG.`,
+          `Key Labs / Electrolytes: Normal anion gap metabolic acidosis (NAGMA) + HYPERKALEMIA (Type 4 is the only hyperkalemic RTA; urine pH < 5.5).`,
+          `Contraindications / Adverse Effects: Stop K+-sparing diuretics and ACEi/ARBs if K+ > 5.5 mEq/L; treat acute hyperkalemia urgently if ECG changes exist.`,
+          `Osteopathic / Autonomic Pearl: Assess T10–T11 paraspinal tissue texture in diabetic nephropathy patients.`,
+          `Distractor Breakdown: Type 1 (distal) and Type 2 (proximal) RTAs both present with HYPOkalemia.`,
+          `High-Yield Board Takeaway: Type 4 RTA = hypoaldosteronism/K+-sparing drugs = NAGMA + hyperkalemia.`
+        ]
+      },
+      {
+        id: 34, sector: 4, entityId: 12, phase: `Mechanism`, angle: `SIADH Vaptans`,
+        stem: `A 66-year-old man with small cell lung cancer has euvolemic hyponatremia (Na+ 121 mEq/L, urine osmolality 540 mOsm/kg) refractory to fluid restriction. He is started on tolvaptan. What is its molecular target?`,
+        choices: [
+          `Competitive antagonism of renal collecting duct V2 receptors, preventing AQP2 insertion`,
+          `Blockade of hypothalamic supraoptic nucleus ADH synthesis`,
+          `Inhibition of proximal tubule aquaporin-1 constitutive water channels`
+        ],
+        correct: 0,
+        shortAnswer: `Collecting Duct V2 Antagonist`,
+        clue: `-Vaptans act like "vaporizers" that clear pure free water without dumping electrolytes.`,
+        dossier: [
+          `Mechanism / Target: Tolvaptan (oral, V2-selective) and conivaptan (IV, V1a/V2) antagonize V2 receptors on collecting duct principal cells, decreasing cAMP/PKA-mediated insertion of aquaporin-2 channels.`,
+          `Clinical Presentation: Euvolemic or hypervolemic hyponatremia (SIADH, refractory CHF) unresponsive to fluid restriction.`,
+          `Key Labs / Electrolytes: Produces pure aquaresis (free water excretion) that lowers urine osmolality and raises serum Na+.`,
+          `Contraindications / Adverse Effects: Contraindicated in hypovolemic hyponatremia; overly rapid Na+ correction (> 8–10 mEq/L/24h) causes osmotic demyelination syndrome (locked-in syndrome). Tolvaptan carries hepatotoxicity warning.`,
+          `Osteopathic / Autonomic Pearl: Watch for central pontine myelinolysis signs (dysarthria, quadriparesis) rather than attributing new weakness to somatic dysfunction.`,
+          `Distractor Breakdown: Vaptans do not block hypothalamic ADH synthesis or PCT aquaporin-1.`,
+          `High-Yield Board Takeaway: Vaptans block V2 receptors in SIADH, promoting aquaresis; avoid rapid Na+ correction.`
+        ]
+      },
+      {
+        id: 35, sector: 4, entityId: 12, phase: `Clinical`, angle: `K+ Binders`,
+        stem: `A 70-year-old man with CKD stage 4 on an ARB has chronic asymptomatic hyperkalemia (K+ 5.7 mEq/L) without ECG changes. Which colonic cation-exchange agent binds K+ in the GI tract in exchange for Ca2+ without causing intestinal necrosis?`,
+        choices: [
+          `Patiromer`,
+          `Sodium polystyrene sulfonate (Kayexalate)`,
+          `Sevelamer`
+        ],
+        correct: 0,
+        shortAnswer: `Patiromer (GI K+ Binder)`,
+        clue: `Newer outpatient K+ binders (patiromer, sodium zirconium cyclosilicate) avoid Kayexalate's colonic necrosis risk.`,
+        dossier: [
+          `Mechanism / Target: Patiromer is a non-absorbed polymer that binds K+ in the colon in exchange for Ca2+, increasing fecal potassium excretion (sodium zirconium cyclosilicate exchanges H+/Na+ for K+).`,
+          `Clinical Presentation: Chronic hyperkalemia management in CKD/HFrEF allowing continuation of life-saving RAAS inhibitors.`,
+          `Key Labs / Electrolytes: Gradual reduction in serum K+ over hours to days; patiromer can also bind Mg2+ and cause hypomagnesemia.`,
+          `Contraindications / Adverse Effects: GI upset, hypokalemia, hypomagnesemia; separate administration from other oral drugs by 3 hours to prevent binding.`,
+          `Osteopathic / Autonomic Pearl: Colonic motility is governed by T10–L2 (descending/sigmoid sympathetics) and vagus/S2–S4 parasympathetics.`,
+          `Distractor Breakdown: Sodium polystyrene sulfonate (Kayexalate) carries risk of colonic necrosis; sevelamer is a non-absorbable phosphate binder.`,
+          `High-Yield Board Takeaway: Patiromer and sodium zirconium cyclosilicate safely bind colonic K+ in exchange for cations.`
+        ]
+      },
+      {
+        id: 36, sector: 4, entityId: 12, phase: `OMT / Toxicity`, angle: `Osmotic Demyelination`,
+        stem: `A patient with chronic SIADH (baseline Na+ 114 mEq/L) receives conivaptan plus 3% hypertonic saline, raising serum Na+ to 132 mEq/L within 18 hours. Four days later she develops pseudobulbar palsy and spastic quadriparesis. What happened?`,
+        choices: [
+          `Osmotic demyelination syndrome (central pontine myelinolysis)`,
+          `Uncal herniation from cerebral edema`,
+          `Wernicke encephalopathy from thiamine depletion`
+        ],
+        correct: 0,
+        shortAnswer: `Osmotic Demyelination Syndrome`,
+        clue: `"From low to high, your pons will die; from high to low, your brain will blow."`,
+        dossier: [
+          `Mechanism / Target: Rapid correction of chronic hyponatremia (> 8–10 mEq/L in 24h) pulls water out of adapted brain astrocytes/oligodendrocytes faster than they can re-accumulate organic osmolytes, causing pontine demyelination.`,
+          `Clinical Presentation: Delayed (2–6 days) dysarthria, dysphagia, paraparesis/quadriparesis, and "locked-in" syndrome.`,
+          `Key Labs / Electrolytes: Jump of 18 mEq/L in 18h far exceeds the safe 8 mEq/L per 24h ceiling; T2-hyperintense central pons on MRI.`,
+          `Contraindications / Adverse Effects: Never combine vaptans with hypertonic saline outside emergency protocols; use desmopressin clamp if overcorrection occurs.`,
+          `Osteopathic / Autonomic Pearl: Cranial nerves V, VII, IX, X, XII deficits reflect pontomedullary tract injury, not upper cervical OA somatic dysfunction.`,
+          `Distractor Breakdown: Cerebral edema occurs from rapid lowering of hypernatremia, not raising hyponatremia; Wernicke causes ophthalmoplegia/ataxia/confusion.`,
+          `High-Yield Board Takeaway: Correct chronic hyponatremia <= 8 mEq/L per 24h to prevent osmotic demyelination.`
+        ]
+      },
+
+      // SECTOR V: RAAS, Nephrotoxins & OMT (37-45)
+      {
+        id: 37, sector: 5, entityId: 13, phase: `Mechanism`, angle: `Glomerular Hemodynamics`,
+        stem: `A 61-year-old man with diabetic nephropathy starts lisinopril. How does ACE inhibition slow glomerulosclerosis and reduce proteinuria?`,
+        choices: [
+          `Reduces AT-II, preferentially dilating the efferent arteriole and lowering intraglomerular pressure`,
+          `Constricts the afferent arteriole via increased bradykinin release`,
+          `Directly blocks podocyte slit diaphragm albumin filtration pores`
+        ],
+        correct: 0,
+        shortAnswer: `Dilates Efferent Arteriole (↓ Pgc)`,
+        clue: `Relaxing the outflow pipe drops glomerular filtration pressure and slows basement membrane thickening.`,
+        dossier: [
+          `Mechanism / Target: ACE inhibitors block conversion of AT-I to AT-II; removing AT-II preferentially dilates the glomerular efferent arteriole, lowering intraglomerular capillary pressure and filtration fraction.`,
+          `Clinical Presentation: First-line renoprotection in diabetic nephropathy (microalbuminuria) and HFrEF.`,
+          `Key Labs / Electrolytes: Modest (< 30%) transient rise in creatinine is expected and protective; monitor for hyperkalemia.`,
+          `Contraindications / Adverse Effects: Teratogenic (fetal renal dysplasia/Potter sequence), dry cough, angioedema (elevated bradykinin), hyperkalemia, and AKI in bilateral RAS.`,
+          `Osteopathic / Autonomic Pearl: Direct SNS beta-1 stimulation at the JGA triggers renin release; T10–T11 rib raising dampens excessive renal sympathetic tone.`,
+          `Distractor Breakdown: Bradykinin causes vasodilation (not constriction); ACEi do not physically plug slit diaphragms.`,
+          `High-Yield Board Takeaway: ACEi/ARBs dilate the efferent arteriole, reducing intraglomerular pressure and proteinuria.`
+        ]
+      },
+      {
+        id: 38, sector: 5, entityId: 13, phase: `OMT / Toxicity`, angle: `Bilateral RAS`,
+        stem: `A 73-year-old man with diffuse peripheral vascular disease starts ramipril for hypertension. Five days later his creatinine jumps from 1.2 to 3.4 mg/dL with oliguria. What underlying condition explains this acute renal failure?`,
+        choices: [
+          `Bilateral renal artery stenosis dependent on AT-II efferent constriction`,
+          `Unilateral renal vein thrombosis`,
+          `IgA nephropathy triggered by bradykinin`
+        ],
+        correct: 0,
+        shortAnswer: `Bilateral Renal Artery Stenosis`,
+        clue: `When inflow is choked on both sides, the kidney relies on pinching the exit (efferent) to keep GFR alive.`,
+        dossier: [
+          `Mechanism / Target: In bilateral RAS (or stenosis in a solitary kidney), reduced afferent pressure stimulates renin/AT-II to constrict the efferent arteriole and preserve GFR. Blocking AT-II drops efferent resistance and collapses GFR.`,
+          `Clinical Presentation: Persistent rise in creatinine (> 30%) shortly after starting an ACEi or ARB, often with abdominal bruit and flash pulmonary edema.`,
+          `Key Labs / Electrolytes: Sharp BUN/Cr elevation and hyperkalemia; renal artery duplex ultrasound or MRA confirms stenosis.`,
+          `Contraindications / Adverse Effects: ACE inhibitors, ARBs, and aliskiren are all contraindicated in bilateral RAS and pregnancy.`,
+          `Osteopathic / Autonomic Pearl: Auscultate lateral to the umbilicus for renal bruits before deep visceral myofascial techniques.`,
+          `Distractor Breakdown: Renal vein thrombosis causes nephrotic-range proteinuria/flank pain; bradykinin does not trigger IgA nephropathy.`,
+          `High-Yield Board Takeaway: Persistent Cr surge after starting ACEi/ARB = suspect bilateral renal artery stenosis.`
+        ]
+      },
+      {
+        id: 39, sector: 5, entityId: 13, phase: `Clinical`, angle: `Bradykinin & ARBs`,
+        stem: `A 57-year-old woman on enalapril develops lip and tongue swelling requiring airway protection. After recovery, which antihypertensive class preserves RAAS blockade without elevating bradykinin?`,
+        choices: [
+          `Angiotensin II receptor blockers (losartan, valsartan)`,
+          `Direct renin inhibitor (aliskiren) combined with enalapril`,
+          `Sacubitril (neprilysin inhibitor) monotherapy`
+        ],
+        correct: 0,
+        shortAnswer: `ARBs (No Bradykinin Accumulation)`,
+        clue: `ACE is identical to kininase II; blocking AT1 receptors downstream leaves bradykinin breakdown intact.`,
+        dossier: [
+          `Mechanism / Target: ARBs (-sartans) selectively block AT1 receptors without inhibiting ACE (kininase II), preserving normal bradykinin degradation.`,
+          `Clinical Presentation: Safe alternative for patients with ACEi-induced dry cough (use with caution in prior severe ACEi angioedema, though cross-reactivity is very low).`,
+          `Key Labs / Electrolytes: Still carries risk of hyperkalemia, hypotension, and fetal renal teratogenicity ("CATCHH" minus Cough).`,
+          `Contraindications / Adverse Effects: Never combine ACEi + ARB or ACEi + aliskiren (dual RAAS blockade increases hyperkalemia/AKI); never combine ACEi within 36h of sacubitril.`,
+          `Osteopathic / Autonomic Pearl: Angioedema is an airway emergency; do not delay epinephrine/airway management for OMT.`,
+          `Distractor Breakdown: Sacubitril inhibits neprilysin and actually raises bradykinin; combining aliskiren + ACEi is contraindicated.`,
+          `High-Yield Board Takeaway: ARBs block AT1 receptors without increasing bradykinin, avoiding ACEi cough and angioedema.`
+        ]
+      },
+      {
+        id: 40, sector: 5, entityId: 14, phase: `OMT / Toxicity`, angle: `Calcineurin Nephrotoxicity`,
+        stem: `A 49-year-old kidney transplant recipient maintained on tacrolimus develops rising creatinine, hypertension, and hyperkalemia without rejection on biopsy. Histopathology shows isometric tubular vacuolization and striped interstitial fibrosis. What is the vascular mechanism?`,
+        choices: [
+          `Direct afferent arteriolar vasoconstriction reducing renal blood flow and GFR`,
+          `Immune complex deposition along the glomerular basement membrane`,
+          `Efferent arteriolar dilation via prostacyclin overproduction`
+        ],
+        correct: 0,
+        shortAnswer: `Afferent Arteriolar Vasoconstriction`,
+        clue: `Calcineurin inhibitors (cyclosporine, tacrolimus) clamp down the inflow arteriole via endothelin/thromboxane.`,
+        dossier: [
+          `Mechanism / Target: Cyclosporine and tacrolimus increase endothelin-1 and thromboxane A2 while decreasing NO/prostacyclin, causing severe afferent arteriolar vasoconstriction and chronic ischemic tubulointerstitial injury.`,
+          `Clinical Presentation: Acute reversible GFR drop or chronic allograft nephropathy, hypertension, hyperkalemia, and hyperuricemia.`,
+          `Key Labs / Electrolytes: Elevated trough tacrolimus/cyclosporine levels, rising Cr, hyperkalemia, hypomagnesemia, and arteriolar hyalinosis on biopsy.`,
+          `Contraindications / Adverse Effects: Avoid CYP3A4 inhibitors (azoles, macrolides, grapefruit) that spike calcineurin levels; tacrolimus also causes neurotoxicity and diabetes.`,
+          `Osteopathic / Autonomic Pearl: Transplanted kidneys sit in the iliac fossa without native T10–T11 sympathetic reinnervation.`,
+          `Distractor Breakdown: Neither IC glomerulonephritis nor efferent dilation explains calcineurin nephrotoxicity.`,
+          `High-Yield Board Takeaway: Cyclosporine and tacrolimus cause dose-dependent afferent arteriolar vasoconstriction and nephrotoxicity.`
+        ]
+      },
+      {
+        id: 41, sector: 5, entityId: 14, phase: `OMT / Toxicity`, angle: `Tubular ATN`,
+        stem: `A 63-year-old man receiving IV gentamicin for enterococcal endocarditis develops non-oliguric AKI on day 7 with muddy brown granular casts on urinalysis. Which nephron segment is primarily injured?`,
+        choices: [
+          `Proximal convoluted tubule (direct uptake via megalin)`,
+          `Thin descending limb of Henle`,
+          `Cortical collecting duct alpha-intercalated cells`
+        ],
+        correct: 0,
+        shortAnswer: `Proximal Convoluted Tubule ATN`,
+        clue: `Aminoglycosides, cisplatin, and amphotericin B all cause nephrotoxic acute tubular necrosis (ATN).`,
+        dossier: [
+          `Mechanism / Target: Polycationic aminoglycosides bind megalin receptors on PCT apical membranes, accumulate in lysosomes, and induce mitochondrial apoptosis and acute tubular necrosis.`,
+          `Clinical Presentation: Typically non-oliguric AKI appearing 5–10 days after starting therapy; cisplatin (prevented by saline + amifostine) and vancomycin/amphotericin B also cause ATN.`,
+          `Key Labs / Electrolytes: Muddy brown granular casts, FENa > 2%, urine Na+ > 40 mEq/L, and BUN:Cr ratio < 15:1.`,
+          `Contraindications / Adverse Effects: Also causes irreversible cochlear/vestibular ototoxicity and neuromuscular blockade; monitor troughs and extend dosing intervals.`,
+          `Osteopathic / Autonomic Pearl: T10–T11 viscerosomatic facilitation and renal lymphatic congestion accompany acute tubular injury.`,
+          `Distractor Breakdown: Thin descending limb and collecting duct are not the primary megalin-mediated aminoglycoside injury sites.`,
+          `High-Yield Board Takeaway: Aminoglycosides accumulate in PCT cells to cause ATN with muddy brown granular casts.`
+        ]
+      },
+      {
+        id: 42, sector: 5, entityId: 14, phase: `Clinical`, angle: `Uricosuric Pharmacology`,
+        stem: `A 56-year-old man with chronic gout and normal renal function (uric acid underexcretor) starts probenecid. How does probenecid lower serum uric acid, and why must it be avoided in patients with uric acid kidney stones?`,
+        choices: [
+          `Inhibits PCT URAT1 reabsorption, increasing urinary uric acid excretion`,
+          `Inhibits hepatic xanthine oxidase, decreasing uric acid synthesis`,
+          `Converts uric acid into water-soluble allantoin`
+        ],
+        correct: 0,
+        shortAnswer: `Blocks PCT URAT1 (Uricosuric)`,
+        clue: `It blocks tubular organic acid secretion/reabsorption—and also boosts plasma penicillin levels!`,
+        dossier: [
+          `Mechanism / Target: Probenecid inhibits URAT1 and OAT transporters in the PCT, blocking uric acid reabsorption (increasing uricosuria) while also inhibiting tubular secretion of penicillins, methotrexate, and NSAIDs.`,
+          `Clinical Presentation: Chronic gout prophylaxis in uric acid underexcretors with GFR > 50 mL/min and no history of nephrolithiasis.`,
+          `Key Labs / Electrolytes: Lower serum urate paired with markedly elevated 24-hour urine uric acid.`,
+          `Contraindications / Adverse Effects: Contraindicated in uric acid stone formers, renal insufficiency, and uric acid overproducers; ensure high fluid intake to prevent stone precipitation.`,
+          `Osteopathic / Autonomic Pearl: Monitor for renal colic viscerosomatics (T10–L2) if urinary uric acid spikes.`,
+          `Distractor Breakdown: Allopurinol/febuxostat inhibit xanthine oxidase; rasburicase/pegloticase convert urate to allantoin.`,
+          `High-Yield Board Takeaway: Probenecid blocks PCT URAT1 (uricosuric) and blocks tubular secretion of penicillins/MTX.`
+        ]
+      },
+      {
+        id: 43, sector: 5, entityId: 15, phase: `OMT / Toxicity`, angle: `Sympathetic Inn.`,
+        stem: `A 47-year-old man passes a left ureteral calculus and presents with acute paraspinal muscle hypertonicity and warmth on structural exam. Which spinal cord levels supply preganglionic sympathetic fibers to the kidneys?`,
+        choices: [
+          `T10–T11 (lesser splanchnic nerve)`,
+          `T1–T4 (cardiopulmonary splanchnics)`,
+          `S2–S4 (pelvic splanchnic nerves)`
+        ],
+        correct: 0,
+        shortAnswer: `T10–T11 (Lesser Splanchnic)`,
+        clue: `Kidneys map right around the umbilicus (T10–T11), while upper/lower ureters extend down to L1–L2.`,
+        dossier: [
+          `Mechanism / Target: Renal sympathetic preganglionic fibers originate at T10–T11 (traveling via the lesser splanchnic nerve to the aorticorenal ganglion); upper ureters map to T10–T11 and lower ureters to T12–L2.`,
+          `Clinical Presentation: Acute viscerosomatic reflex shows boggy, warm, hypertonic paraspinal tissues at T10–T11 (ipsilateral to the affected kidney).`,
+          `Key Labs / Electrolytes: Sympathetic beta-1 stimulation directly increases JGA renin release and afferent arteriolar tone.`,
+          `Contraindications / Adverse Effects: Avoid aggressive HVLA over acute visceral inflammation or suspected pyelonephritis/abscess; use gentle rib raising or myofascial release.`,
+          `Osteopathic / Autonomic Pearl: T10–T11 = Kidney/Upper Ureter; T12–L2 = Lower Ureter/Bladder sympathetics.`,
+          `Distractor Breakdown: T1–T4 supplies heart/lungs; S2–S4 supplies parasympathetic innervation to distal colon, bladder, and lower ureters—NOT the kidneys.`,
+          `High-Yield Board Takeaway: Renal sympathetic innervation = T10–T11 (lesser splanchnic); rib raising normalizes sympathetic tone.`
+        ]
+      },
+      {
+        id: 44, sector: 5, entityId: 15, phase: `OMT / Toxicity`, angle: `Parasympathetic Inn.`,
+        stem: `On COMLEX-USA osteopathic structural exam, a patient with chronic kidney disease demonstrates OA-AA somatic dysfunction alongside T10–T11 paraspinal restriction. Which nerve provides parasympathetic innervation to the kidneys and upper ureters?`,
+        choices: [
+          `Vagus nerve (CN X)`,
+          `Pelvic splanchnic nerves (S2–S4)`,
+          `Phrenic nerve (C3–C5)`
+        ],
+        correct: 0,
+        shortAnswer: `Vagus Nerve (CN X · OA-AA)`,
+        clue: `The vagus carries parasympathetic tone down through the celiac/aorticorenal plexuses to the kidneys.`,
+        dossier: [
+          `Mechanism / Target: Parasympathetic fibers to the kidneys and upper ureters travel via the vagus nerve (CN X), which exits the jugular foramen between the occiput and temporal bone and passes near C1–C2.`,
+          `Clinical Presentation: Cranial base / OA-AA (C0–C2) somatic dysfunction commonly accompanies chronic visceral vagal facilitation.`,
+          `Key Labs / Electrolytes: Vagal modulation counterbalances sympathetic JGA activation and renal vasoconstriction.`,
+          `Contraindications / Adverse Effects: Perform gentle suboccipital inhibition (OA release) after ruling out cervical instability or vertebrobasilar insufficiency.`,
+          `Osteopathic / Autonomic Pearl: OA, AA, and C2 somatic dysfunctions treat vagal (CN X) parasympathetic outflow to foregut, midgut, and kidneys.`,
+          `Distractor Breakdown: S2–S4 pelvic splanchnics supply the bladder, lower ureters, and hindgut; phrenic nerve supplies the diaphragm.`,
+          `High-Yield Board Takeaway: Renal parasympathetics = Vagus nerve (CN X), treated via OA-AA / suboccipital release.`
+        ]
+      },
+      {
+        id: 45, sector: 5, entityId: 15, phase: `OMT / Toxicity`, angle: `Chapman Points`,
+        stem: `During an osteopathic screening exam of a patient with acute pyelonephritis, you palpate pea-sized, gangliform myofascial nodules on the anterior and posterior abdominal/back wall. Where are the anterior and posterior renal Chapman reflex points located?`,
+        choices: [
+          `Anterior: 1 inch superior & lateral to umbilicus; Posterior: T12–L1 intertransverse space`,
+          `Anterior: Tip of right 12th rib; Posterior: T5–T6 intertransverse space`,
+          `Anterior: Pubic symphysis superior border; Posterior: L4–L5 transverse processes`
+        ],
+        correct: 0,
+        shortAnswer: `Ant: 1" Sup/Lat Umbilicus · Post: T12–L1`,
+        clue: `Anterior bladder is periumbilical, whereas anterior kidney sits slightly higher and lateral to the navel.`,
+        dossier: [
+          `Mechanism / Target: Chapman reflex points are neurolymphatic visceral-somatic manifestations of sympathetic/lymphatic stasis.`,
+          `Clinical Presentation: Anterior kidney point: 1 inch superior and 1 inch lateral to the umbilicus (bilaterally); Posterior kidney point: T12–L1 intertransverse space midway between spinous and transverse processes.`,
+          `Key Labs / Electrolytes: Associated with pyuria, WBC casts, and flank CVA tenderness in acute pyelonephritis.`,
+          `Contraindications / Adverse Effects: Treat with gentle rotary myofascial pressure (20–30 seconds) until tissue texture softens; never replace antibiotics with OMT.`,
+          `Osteopathic / Autonomic Pearl: Contrast Kidney (1" sup/lat to umbilicus; post T12–L1) with Adrenal (2" sup, 1" lat to umbilicus; post T11–T12) and Bladder (periumbilical; post L2).`,
+          `Distractor Breakdown: Pubic symphysis/L4–L5 maps to reproductive/pelvic structures; tip of 12th rib is appendix/cecum region.`,
+          `High-Yield Board Takeaway: Anterior Kidney Chapman = 1" sup/lat to umbilicus; Posterior = T12–L1 intertransverse space.`
+        ]
+      }
+    ];
+
+    /* Application State */
+    let activeDeck = [];
+    let currentGateIdx = 0;
+    let currentLane = 1;
+    let targetLane = 1;
+    let hp = 100;
+    let xp = 0;
+    let streak = 0;
+    let masteredMap = {};
+    let missedIds = {};
+    let sectorFilter = 'ALL';
+    let phaseFilter = 'ALL';
+    let isHintsVisible = false;
+    let isMenuOpen = false;
+    let isModalOpen = false;
+    let isTimerEnabled = false;
+    let timerSeconds = 50;
+    let timerInterval = null;
+    let metaFadeTimeout = null;
+
+    /* Audio State */
+    let audioCtx = null;
+    let isMasterSoundOn = true;
+    let isSfxOn = true;
+    let isBgmOn = false;
+    let bgmGain = null;
+    let bgmVolume = 0.4;
+    let bgmOscTimer = null;
+    let customAudioEl = null;
+
+    /* 3D Synthwave Canvas State */
+    const canvas = document.getElementById('xr-canvas');
+    const ctx = canvas ? canvas.getContext('2d') : null;
+    let animId = null;
+    let craftXNorm = 0;
+    let craftTilt = 0;
+    let floorOffset = 0;
+    const particles = [];
+    for (let i = 0; i < 150; i++) {
+      particles.push({
+        x: (Math.random() - 0.5) * 2.2,
+        y: (Math.random() - 0.5) * 1.4,
+        z: Math.random() * 1.0 + 0.05,
+        size: Math.random() * 2.6 + 1.4
+      });
+    }
+
+    function initCanvasSize() {
+      if (!canvas) return;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function getCurrentTheme() {
+      const q = activeDeck[currentGateIdx] || QUESTIONS[0];
+      return LO_VISUAL_THEMES[q.entityId] || LO_VISUAL_THEMES[1];
+    }
+
+    function renderLoop() {
+      if (!ctx || !canvas) return;
+      const w = canvas.width;
+      const h = canvas.height;
+      const theme = getCurrentTheme();
+
+      // Deep midnight-navy void
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
+      bgGrad.addColorStop(0, '#070812');
+      bgGrad.addColorStop(0.52, '#0d1024');
+      bgGrad.addColorStop(1, '#090a14');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      const horizonY = h * 0.44;
+      const vanishX = w * 0.5;
+
+      // 150 crisp 3D square pixel-dust particles
+      ctx.fillStyle = theme.dustHex;
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.z -= 0.0045;
+        if (p.z <= 0.04) {
+          p.z = 1.0;
+          p.x = (Math.random() - 0.5) * 2.2;
+          p.y = (Math.random() - 0.5) * 1.3;
+        }
+        const scale = 1 / p.z;
+        const px = vanishX + p.x * w * 0.35 * scale;
+        const py = horizonY + p.y * h * 0.25 * scale;
+        const sz = Math.max(1.5, Math.min(6, p.size * scale * 0.55));
+        ctx.globalAlpha = Math.min(0.85, (1 - p.z) * 0.9);
+        ctx.fillRect(Math.round(px), Math.round(py), Math.round(sz), Math.round(sz));
+      }
+      ctx.globalAlpha = 1;
+
+      // Infinite full-width wireframe floor
+      floorOffset = (floorOffset + 0.018) % 1;
+      ctx.strokeStyle = `rgba(${theme.gridRgb}, 0.24)`;
+      ctx.lineWidth = 1;
+      for (let i = -12; i <= 12; i++) {
+        const bottomX = vanishX + i * (w * 0.14);
+        ctx.beginPath();
+        ctx.moveTo(vanishX, horizonY);
+        ctx.lineTo(bottomX, h);
+        ctx.stroke();
+      }
+      for (let j = 0; j < 14; j++) {
+        const t = (j + floorOffset) / 14;
+        const y = horizonY + Math.pow(t, 2.2) * (h - horizonY);
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+
+      // 3 Teal Perspective Track Rails
+      const laneOffsets = [-1, 0, 1];
+      const railColors = ['rgba(255,45,120,0.45)', 'rgba(0,255,204,0.55)', 'rgba(255,224,74,0.45)'];
+      const cardRects = [0, 1, 2].map(idx => {
+        const el = document.getElementById(`lane-card-${idx}`);
+        return el ? el.getBoundingClientRect() : null;
+      });
+
+      for (let i = 0; i < 3; i++) {
+        const rect = cardRects[i];
+        const targetBottomX = rect ? (rect.left + rect.width / 2) : (vanishX + laneOffsets[i] * w * 0.26);
+        const topX = vanishX + laneOffsets[i] * (w * 0.04);
+
+        ctx.strokeStyle = i === targetLane ? '#00ffcc' : 'rgba(0, 255, 204, 0.35)';
+        ctx.lineWidth = i === targetLane ? 2.5 : 1.5;
+        ctx.beginPath();
+        ctx.moveTo(topX, horizonY);
+        ctx.lineTo(targetBottomX, h);
+        ctx.stroke();
+
+        // 1:1 Portal Fusion directly onto the 3 centered answer cards
+        if (rect && rect.width > 0) {
+          const portalColors = ['#ff2d78', '#00ffcc', '#ffe04a'];
+          ctx.save();
+          ctx.strokeStyle = portalColors[i];
+          ctx.lineWidth = i === targetLane ? 2.5 : 1.2;
+          ctx.shadowColor = portalColors[i];
+          ctx.shadowBlur = i === targetLane ? 18 : 6;
+          ctx.globalAlpha = i === targetLane ? 0.85 : 0.35;
+          ctx.strokeRect(rect.left - 2, rect.top - 2, rect.width + 4, rect.height + 4);
+          ctx.restore();
+        }
+      }
+
+      // Smoothly glide/bank solid geometric teal diamond craft toward targetLane
+      const desiredNorm = targetLane === 0 ? -1 : targetLane === 2 ? 1 : 0;
+      const diff = desiredNorm - craftXNorm;
+      craftXNorm += diff * 0.16;
+      craftTilt += (diff * 0.45 - craftTilt) * 0.2;
+
+      const centerCard = cardRects[1];
+      const leftCard = cardRects[0];
+      const rightCard = cardRects[2];
+      let craftX = vanishX + craftXNorm * (w * 0.25);
+      if (leftCard && centerCard && rightCard && leftCard.width > 0) {
+        const lx = leftCard.left + leftCard.width / 2;
+        const cx = centerCard.left + centerCard.width / 2;
+        const rx = rightCard.left + rightCard.width / 2;
+        if (craftXNorm < 0) {
+          craftX = cx + (cx - lx) * craftXNorm;
+        } else {
+          craftX = cx + (rx - cx) * craftXNorm;
+        }
+      }
+      const craftY = h - 46;
+
+      ctx.save();
+      ctx.translate(craftX, craftY);
+      ctx.rotate(craftTilt);
+      ctx.shadowColor = '#00ffcc';
+      ctx.shadowBlur = 16;
+      ctx.fillStyle = '#00ffcc';
+      ctx.strokeStyle = '#e8e0f0';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(0, -22);
+      ctx.lineTo(18, 4);
+      ctx.lineTo(0, 14);
+      ctx.lineTo(-18, 4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Inner core facet
+      ctx.fillStyle = '#0a0a12';
+      ctx.beginPath();
+      ctx.moveTo(0, -11);
+      ctx.lineTo(7, 2);
+      ctx.lineTo(0, 7);
+      ctx.lineTo(-7, 2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      animId = requestAnimationFrame(renderLoop);
+    }
+
+    /* Steering & Active Mouse-Surfing */
+    function setTargetLane(laneIdx, playSound) {
+      const clamped = Math.max(0, Math.min(2, laneIdx));
+      if (clamped !== targetLane && playSound) {
+        playSfx('steer');
+      }
+      targetLane = clamped;
+      currentLane = clamped;
+      for (let i = 0; i < 3; i++) {
+        const card = document.getElementById(`lane-card-${i}`);
+        if (card) card.classList.toggle('is-targeted', i === clamped);
+      }
+    }
+
+    function bindMouseSurfing() {
+      for (let i = 0; i < 3; i++) {
+        const card = document.getElementById(`lane-card-${i}`);
+        if (!card) continue;
+        card.addEventListener('mouseenter', function () {
+          if (!isModalOpen && !isMenuOpen) setTargetLane(i, true);
+        });
+        card.addEventListener('mousemove', function () {
+          if (!isModalOpen && !isMenuOpen && targetLane !== i) setTargetLane(i, true);
+        });
+      }
+      document.addEventListener('mousemove', function (e) {
+        if (isModalOpen || isMenuOpen) return;
+        const w = window.innerWidth;
+        if (w <= 0) return;
+        const xRatio = e.clientX / w;
+        const nextLane = xRatio < 0.36 ? 0 : xRatio > 0.64 ? 2 : 1;
+        if (nextLane !== targetLane) {
+          setTargetLane(nextLane, true);
+        }
+      });
+    }
+
+    /* Deck Building & Gate Rendering */
+    function buildActiveDeck(shouldShuffle) {
+      let filtered = QUESTIONS.filter(q => {
+        if (sectorFilter === 'MISSED') {
+          if (!missedIds[q.id]) return false;
+        } else if (sectorFilter !== 'ALL') {
+          if (String(q.sector) !== String(sectorFilter)) return false;
+        }
+        if (phaseFilter !== 'ALL' && q.phase !== phaseFilter) return false;
+        return true;
+      });
+      if (filtered.length === 0) {
+        filtered = QUESTIONS.slice();
+        if (sectorFilter === 'MISSED') {
+          sectorFilter = 'ALL';
+          const sel = document.getElementById('sector-filter-select');
+          if (sel) sel.value = 'ALL';
+          showMenuToast(`No missed gates recorded yet — showing all 45 gates.`);
+        }
+      }
+      activeDeck = filtered.slice();
+      if (shouldShuffle) {
+        for (let i = activeDeck.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const tmp = activeDeck[i];
+          activeDeck[i] = activeDeck[j];
+          activeDeck[j] = tmp;
+        }
+      }
+      currentGateIdx = 0;
+    }
+
+    let currentShuffledChoices = [];
+    let currentCorrectLane = 0;
+
+    function loadCurrentGate() {
+      if (activeDeck.length === 0) buildActiveDeck(false);
+      if (currentGateIdx >= activeDeck.length) currentGateIdx = 0;
+      const q = activeDeck[currentGateIdx];
+      const entity = ENTITIES.find(e => e.id === q.entityId) || ENTITIES[0];
+      const theme = LO_VISUAL_THEMES[q.entityId] || LO_VISUAL_THEMES[1];
+
+      // Shuffle choices deterministically/randomly per gate load so correct lane varies
+      const indexed = q.choices.map((txt, idx) => ({ txt, isCorrect: idx === q.correct }));
+      for (let i = indexed.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const t = indexed[i];
+        indexed[i] = indexed[j];
+        indexed[j] = t;
+      }
+      currentShuffledChoices = indexed;
+      currentCorrectLane = indexed.findIndex(c => c.isCorrect);
+
+      const stemEl = document.getElementById('q-stem-text');
+      const clueEl = document.getElementById('q-clue-text');
+      if (stemEl) stemEl.textContent = q.stem;
+      if (clueEl) clueEl.textContent = q.clue;
+
+      for (let i = 0; i < 3; i++) {
+        const laneEl = document.getElementById(`lane-${i}-text`);
+        if (laneEl) laneEl.textContent = indexed[i] ? indexed[i].txt : '';
+      }
+
+      const bSector = document.getElementById('badge-sector');
+      const bEntity = document.getElementById('badge-entity');
+      const bAngle = document.getElementById('badge-angle');
+      const bPhase = document.getElementById('badge-phase');
+      const bCorridor = document.getElementById('badge-corridor');
+
+      if (bSector) bSector.textContent = `SECTOR ${['I','II','III','IV','V'][q.sector - 1]}`;
+      if (bEntity) bEntity.textContent = `${entity.name.toUpperCase()}`;
+      if (bAngle) bAngle.textContent = q.angle.toUpperCase();
+      if (bPhase) bPhase.textContent = q.phase.toUpperCase();
+      if (bCorridor) bCorridor.textContent = `CORRIDOR: ${theme.tag}`;
+
+      // 3-Second Auto-Hiding Metadata (metaFadeMs: 3000)
+      const metaBar = document.getElementById('q-meta-bar');
+      if (metaBar) {
+        metaBar.classList.remove('is-faded');
+        if (metaFadeTimeout) clearTimeout(metaFadeTimeout);
+        metaFadeTimeout = setTimeout(function () {
+          metaBar.classList.add('is-faded');
+        }, 3000);
+      }
+
+      updateTelemetryHUD();
+      resetGateTimer();
+    }
+
+    function updateTelemetryHUD() {
+      const hpEl = document.getElementById('hud-hp');
+      const xpEl = document.getElementById('hud-xp');
+      const stEl = document.getElementById('hud-streak');
+      const gtEl = document.getElementById('hud-gate');
+      if (hpEl) hpEl.textContent = String(hp);
+      if (xpEl) xpEl.textContent = String(xp);
+      if (stEl) stEl.textContent = String(streak);
+      if (gtEl) gtEl.textContent = `${currentGateIdx + 1}/${activeDeck.length}`;
+    }
+
+    /* Timer Logic */
+    function resetGateTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerSeconds = 50;
+      syncTimerControlsUI();
+      if (!isTimerEnabled || isModalOpen) return;
+      timerInterval = setInterval(function () {
+        if (isModalOpen || isMenuOpen) return;
+        timerSeconds -= 1;
+        syncTimerControlsUI();
+        if (timerSeconds <= 0) {
+          clearInterval(timerInterval);
+          handleTimeoutOutcome();
+        }
+      }, 1000);
+    }
+
+    function syncTimerControlsUI() {
+      const chip = document.getElementById('hud-timer-chip');
+      const val = document.getElementById('hud-timer');
+      const menuBtn = document.getElementById('menu-timer-btn');
+      if (chip) chip.classList.toggle('is-hidden', !isTimerEnabled);
+      if (val) val.textContent = `${timerSeconds}s`;
+      if (menuBtn) {
+        menuBtn.textContent = isTimerEnabled ? `⏱ 50s Timer: ON [T]` : `⏱ 50s Timer: OFF [T]`;
+        menuBtn.classList.toggle('is-active', isTimerEnabled);
+      }
+    }
+
+    function toggleTimerMode() {
+      isTimerEnabled = !isTimerEnabled;
+      resetGateTimer();
+      playSfx('steer');
+      persistAppState();
+    }
+
+    function startTimedRunFromMenu() {
+      isTimerEnabled = true;
+      if (isMenuOpen) toggleMenuDrawer();
+      buildActiveDeck(false);
+      hp = 100;
+      streak = 0;
+      loadCurrentGate();
+      persistAppState();
+    }
+
+    /* Commit & Outcome Dossier */
+    function commitLane(laneIdx) {
+      if (isModalOpen) return;
+      setTargetLane(laneIdx, false);
+      if (timerInterval) clearInterval(timerInterval);
+
+      const q = activeDeck[currentGateIdx];
+      if (!q) return;
+      const chosen = currentShuffledChoices[laneIdx];
+      const isCorrect = Boolean(chosen && chosen.isCorrect);
+
+      if (isCorrect) {
+        streak += 1;
+        xp += 100 + Math.min(streak * 15, 150);
+        hp = Math.min(100, hp + 5);
+        masteredMap[q.id] = true;
+        delete missedIds[q.id];
+        playSfx('correct');
+        openOutcomeModal('CORRECT', q, chosen ? chosen.txt : '');
+      } else {
+        streak = 0;
+        hp = Math.max(0, hp - 20);
+        missedIds[q.id] = true;
+        playSfx('wrong');
+        openOutcomeModal('INCORRECT', q, chosen ? chosen.txt : '');
+        if (hp <= 0) hp = 100; // Auto-stabilize telemetry after damage log
+      }
+      updateTelemetryHUD();
+      renderSkillTree();
+      persistAppState();
+    }
+
+    function handleTimeoutOutcome() {
+      if (isModalOpen) return;
+      const q = activeDeck[currentGateIdx];
+      if (!q) return;
+      streak = 0;
+      hp = Math.max(0, hp - 15);
+      missedIds[q.id] = true;
+      playSfx('wrong');
+      openOutcomeModal('TIME\'S UP', q, `No corridor committed within 50s`);
+      if (hp <= 0) hp = 100;
+      updateTelemetryHUD();
+      renderSkillTree();
+      persistAppState();
+    }
+
+    function openOutcomeModal(statusLabel, q, pickedText) {
+      if (!q) return;
+      isModalOpen = true;
+      const modal = document.getElementById('outcome-modal');
+      const banner = document.getElementById('outcome-banner');
+      const stemEl = document.getElementById('outcome-stem');
+      const pickEl = document.getElementById('your-pick-text');
+      const pickBox = document.getElementById('your-pick-box');
+      const corrEl = document.getElementById('correct-pick-text');
+      const listEl = document.getElementById('dossier-lines');
+      const scrollBody = document.getElementById('outcome-scroll-body');
+
+      if (banner) {
+        banner.textContent = `${statusLabel} — ${q.shortAnswer}`;
+        banner.className = 'outcome-status-banner ' + (statusLabel === 'CORRECT' ? 'is-correct' : statusLabel === 'INCORRECT' ? 'is-incorrect' : 'is-timeout');
+      }
+      if (stemEl) stemEl.textContent = q.stem;
+      if (pickEl) pickEl.textContent = pickedText;
+      if (pickBox) {
+        pickBox.className = 'choice-box ' + (statusLabel === 'CORRECT' ? 'is-right' : 'is-wrong');
+      }
+      if (corrEl) corrEl.textContent = q.choices[q.correct];
+
+      if (listEl) {
+        listEl.innerHTML = '';
+        q.dossier.forEach(line => {
+          const div = document.createElement('div');
+          div.className = 'dossier-line amboss-scan-target';
+          const colonIdx = line.indexOf(':');
+          if (colonIdx > -1) {
+            const head = line.slice(0, colonIdx + 1);
+            const body = line.slice(colonIdx + 1);
+            const strong = document.createElement('strong');
+            strong.textContent = `• ${head}`;
+            div.appendChild(strong);
+            div.appendChild(document.createTextNode(body));
+          } else {
+            div.textContent = `• ${line}`;
+          }
+          listEl.appendChild(div);
+        });
+      }
+
+      if (scrollBody) scrollBody.scrollTop = 0;
+      if (modal) modal.classList.add('is-open');
+    }
+
+    function scrollOutcomeModal(delta) {
+      const body = document.getElementById('outcome-scroll-body');
+      if (!body) return;
+      if (typeof body.scrollBy === 'function') {
+        body.scrollBy({ top: delta, behavior: 'smooth' });
+      } else {
+        body.scrollTop += delta;
+      }
+    }
+
+    function continueRunner() {
+      const modal = document.getElementById('outcome-modal');
+      if (modal) modal.classList.remove('is-open');
+      isModalOpen = false;
+      currentGateIdx = (currentGateIdx + 1) % activeDeck.length;
+      loadCurrentGate();
+      persistAppState();
+    }
+
+    /* Hints & Menu Controls */
+    function syncHintsUI() {
+      const app = document.getElementById('xr-app');
+      const menuBtn = document.getElementById('menu-hints-btn');
+      if (app) {
+        app.classList.toggle('hints-visible', isHintsVisible);
+        app.classList.toggle('hints-hidden', !isHintsVisible);
+      }
+      if (menuBtn) {
+        menuBtn.textContent = isHintsVisible ? `💡 Hints: ON [H]` : `💡 Hints: OFF [H]`;
+        menuBtn.classList.toggle('is-active', isHintsVisible);
+      }
+    }
+
+    function toggleHintsBar() {
+      isHintsVisible = !isHintsVisible;
+      syncHintsUI();
+      playSfx('steer');
+      persistAppState();
+    }
+
+    function toggleMenuDrawer() {
+      isMenuOpen = !isMenuOpen;
+      const drawer = document.getElementById('top-menu-drawer');
+      const backdrop = document.getElementById('drawer-backdrop');
+      const btn = document.getElementById('menu-toggle-btn');
+      if (drawer) drawer.classList.toggle('is-open', isMenuOpen);
+      if (backdrop) backdrop.classList.toggle('is-open', isMenuOpen);
+      if (btn) btn.setAttribute('aria-expanded', String(isMenuOpen));
+      playSfx('steer');
+    }
+
+    function skipCurrentQuestion() {
+      if (isModalOpen) return;
+      currentGateIdx = (currentGateIdx + 1) % activeDeck.length;
+      loadCurrentGate();
+      playSfx('steer');
+      persistAppState();
+    }
+
+    function skipFromMenu() {
+      if (isMenuOpen) toggleMenuDrawer();
+      skipCurrentQuestion();
+    }
+
+    function openCodexFromMenu() {
+      if (isMenuOpen) toggleMenuDrawer();
+      openCodex();
+    }
+
+    function openCodex() {
+      const modal = document.getElementById('codex-modal');
+      if (modal) modal.classList.add('is-open');
+      isModalOpen = true;
+      renderCodexTable();
+    }
+
+    function closeCodex() {
+      const modal = document.getElementById('codex-modal');
+      if (modal) modal.classList.remove('is-open');
+      isModalOpen = false;
+      resetGateTimer();
+    }
+
+    function renderCodexTable() {
+      const tbody = document.getElementById('codex-tbody');
+      const searchEl = document.getElementById('codex-search');
+      if (!tbody) return;
+      const term = (searchEl ? searchEl.value : '').toLowerCase().trim();
+      tbody.innerHTML = '';
+
+      QUESTIONS.forEach(q => {
+        const ent = ENTITIES.find(e => e.id === q.entityId) || ENTITIES[0];
+        const status = masteredMap[q.id] ? 'Mastered' : missedIds[q.id] ? 'Missed' : 'Pending';
+        const pearl = q.dossier[6] || '';
+        const haystack = `${q.id} ${ent.name} ${q.angle} ${q.shortAnswer} ${q.choices[q.correct]} ${pearl}`.toLowerCase();
+        if (term && !haystack.includes(term)) return;
+
+        const tr = document.createElement('tr');
+        const cells = [
+          `#${q.id}`,
+          `S${q.sector} · ${ent.short}`,
+          `${q.angle} (${q.phase})`,
+          q.shortAnswer,
+          status,
+          pearl
+        ];
+        cells.forEach(val => {
+          const td = document.createElement('td');
+          td.className = 'amboss-scan-target';
+          td.textContent = val;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
+    function restartOrdered() {
+      buildActiveDeck(false);
+      loadCurrentGate();
+      showMenuToast(`Deck restarted in ordered sequence (${activeDeck.length} gates).`);
+      persistAppState();
+    }
+
+    function shuffleDeck() {
+      buildActiveDeck(true);
+      loadCurrentGate();
+      showMenuToast(`Deck shuffled (${activeDeck.length} gates).`);
+      persistAppState();
+    }
+
+    function handleResetMastery(btn) {
+      if (!btn) return;
+      if (btn.dataset.armed !== 'true') {
+        btn.dataset.armed = 'true';
+        btn.textContent = `⚠ Confirm Reset?`;
+        setTimeout(function () {
+          if (btn.dataset.armed === 'true') {
+            btn.dataset.armed = 'false';
+            btn.textContent = `🗑 Reset Mastery`;
+          }
+        }, 4000);
+        return;
+      }
+      btn.dataset.armed = 'false';
+      btn.textContent = `🗑 Reset Mastery`;
+      masteredMap = {};
+      missedIds = {};
+      xp = 0;
+      streak = 0;
+      hp = 100;
+      updateTelemetryHUD();
+      renderSkillTree();
+      showMenuToast(`Mastery, missed gates, and XP reset.`);
+      persistAppState();
+    }
+
+    function onSectorFilterChange(val) {
+      sectorFilter = val;
+      buildActiveDeck(false);
+      loadCurrentGate();
+      persistAppState();
+    }
+
+    function setPhaseFilter(phase) {
+      phaseFilter = phase;
+      document.querySelectorAll('.phase-pill').forEach(p => {
+        p.classList.toggle('is-active', p.dataset.phase === phase);
+      });
+      buildActiveDeck(false);
+      loadCurrentGate();
+      persistAppState();
+    }
+
+    function renderSkillTree() {
+      const grid = document.getElementById('skill-tree-grid');
+      const jumpSel = document.getElementById('entity-jump-select');
+      if (jumpSel && jumpSel.options.length === 0) {
+        ENTITIES.forEach(e => {
+          const opt = document.createElement('option');
+          opt.value = String(e.id);
+          opt.textContent = `S${e.sector} · E${e.id}: ${e.name}`;
+          jumpSel.appendChild(opt);
+        });
+      }
+      if (!grid) return;
+      grid.innerHTML = '';
+      ENTITIES.forEach(ent => {
+        const entityQs = QUESTIONS.filter(q => q.entityId === ent.id);
+        const doneCount = entityQs.filter(q => masteredMap[q.id]).length;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'skill-node' + (doneCount === entityQs.length ? ' is-mastered' : '');
+        btn.onclick = function () { jumpToEntity(String(ent.id)); };
+
+        const tDiv = document.createElement('div');
+        tDiv.className = 'skill-node-title';
+        tDiv.textContent = `${ent.id}. ${ent.short}`;
+        const mDiv = document.createElement('div');
+        mDiv.className = 'skill-node-meta';
+        mDiv.textContent = `S${ent.sector} · ${doneCount}/${entityQs.length}`;
+
+        btn.appendChild(tDiv);
+        btn.appendChild(mDiv);
+        grid.appendChild(btn);
+      });
+    }
+
+    function jumpToEntity(entityIdStr) {
+      const targetId = Number(entityIdStr);
+      sectorFilter = 'ALL';
+      phaseFilter = 'ALL';
+      const secSel = document.getElementById('sector-filter-select');
+      if (secSel) secSel.value = 'ALL';
+      document.querySelectorAll('.phase-pill').forEach(p => {
+        p.classList.toggle('is-active', p.dataset.phase === 'ALL');
+      });
+      buildActiveDeck(false);
+      const idx = activeDeck.findIndex(q => q.entityId === targetId);
+      if (idx >= 0) currentGateIdx = idx;
+      loadCurrentGate();
+      if (isMenuOpen) toggleMenuDrawer();
+      persistAppState();
+    }
+
+    function showMenuToast(msg) {
+      const el = document.getElementById('menu-toast');
+      if (!el) return;
+      el.textContent = msg;
+      setTimeout(function () {
+        if (el.textContent === msg) el.textContent = '';
+      }, 3200);
+    }
+
+    /* Web Audio SFX & Procedural Synthwave BGM */
+    function ensureAudioCtx() {
+      if (!audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) audioCtx = new AC();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playSfx(type) {
+      if (!isMasterSoundOn || !isSfxOn) return;
+      const ac = ensureAudioCtx();
+      if (!ac) return;
+      const now = ac.currentTime;
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.connect(gain);
+      gain.connect(ac.destination);
+
+      if (type === 'steer') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(340, now);
+        osc.frequency.exponentialRampToValueAtTime(520, now + 0.05);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+        osc.start(now);
+        osc.stop(now + 0.07);
+      } else if (type === 'correct') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, now);
+        osc.frequency.setValueAtTime(659.25, now + 0.08);
+        osc.frequency.setValueAtTime(783.99, now + 0.16);
+        gain.gain.setValueAtTime(0.09, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+        osc.start(now);
+        osc.stop(now + 0.33);
+      } else {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(190, now);
+        osc.frequency.exponentialRampToValueAtTime(95, now + 0.25);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.26);
+        osc.start(now);
+        osc.stop(now + 0.27);
+      }
+    }
+
+    function toggleMasterAudio() {
+      isMasterSoundOn = !isMasterSoundOn;
+      const btn = document.getElementById('audio-master-btn');
+      if (btn) {
+        btn.textContent = isMasterSoundOn ? `🔊 Master: ON` : `🔇 Master: OFF`;
+        btn.classList.toggle('is-active', isMasterSoundOn);
+      }
+      if (!isMasterSoundOn && customAudioEl) customAudioEl.pause();
+      if (bgmGain) bgmGain.gain.value = isMasterSoundOn && isBgmOn ? bgmVolume * 0.14 : 0;
+    }
+
+    function toggleSfx() {
+      isSfxOn = !isSfxOn;
+      const btn = document.getElementById('audio-sfx-btn');
+      if (btn) {
+        btn.textContent = isSfxOn ? `⚡ SFX: ON` : `⚡ SFX: OFF`;
+        btn.classList.toggle('is-active', isSfxOn);
+      }
+    }
+
+    function toggleBgm() {
+      isBgmOn = !isBgmOn;
+      const btn = document.getElementById('audio-bgm-btn');
+      if (btn) {
+        btn.textContent = isBgmOn ? `🎵 Synth BGM: ON` : `🎵 Synth BGM: OFF`;
+        btn.classList.toggle('is-active', isBgmOn);
+      }
+      if (isBgmOn && isMasterSoundOn) {
+        startProceduralBgm();
+      } else {
+        stopProceduralBgm();
+      }
+    }
+
+    function startProceduralBgm() {
+      stopProceduralBgm();
+      const ac = ensureAudioCtx();
+      if (!ac) return;
+      bgmGain = ac.createGain();
+      bgmGain.gain.value = bgmVolume * 0.12;
+      bgmGain.connect(ac.destination);
+      const notes = [110, 110, 130.81, 146.83, 110, 164.81, 146.83, 130.81];
+      let step = 0;
+      bgmOscTimer = setInterval(function () {
+        if (!isBgmOn || !isMasterSoundOn) return;
+        const now = ac.currentTime;
+        const osc = ac.createOscillator();
+        const noteGain = ac.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(notes[step % notes.length], now);
+        noteGain.gain.setValueAtTime(0.35, now);
+        noteGain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
+        osc.connect(noteGain);
+        noteGain.connect(bgmGain);
+        osc.start(now);
+        osc.stop(now + 0.24);
+        step += 1;
+      }, 250);
+    }
+
+    function stopProceduralBgm() {
+      if (bgmOscTimer) {
+        clearInterval(bgmOscTimer);
+        bgmOscTimer = null;
+      }
+    }
+
+    function loadCustomAudio(input) {
+      if (!input || !input.files || !input.files[0]) return;
+      const file = input.files[0];
+      if (customAudioEl) customAudioEl.pause();
+      const url = URL.createObjectURL(file);
+      customAudioEl = new Audio(url);
+      customAudioEl.loop = true;
+      customAudioEl.volume = bgmVolume;
+      if (isMasterSoundOn) customAudioEl.play();
+      showMenuToast(`Loaded track: ${file.name}`);
+    }
+
+    function onBgmVolumeChange(val) {
+      bgmVolume = Number(val) / 100;
+      if (bgmGain) bgmGain.gain.value = isMasterSoundOn && isBgmOn ? bgmVolume * 0.12 : 0;
+      if (customAudioEl) customAudioEl.volume = bgmVolume;
+    }
+
+    /* Keyboard Hotkeys */
+    document.addEventListener('keydown', function (e) {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) return;
+      const key = e.key.toLowerCase();
+
+      if (key === 'escape') {
+        if (document.getElementById('codex-modal')?.classList.contains('is-open')) {
+          closeCodex();
+        } else if (isMenuOpen) {
+          toggleMenuDrawer();
+        }
+        return;
+      }
+
+      if (document.getElementById('outcome-modal')?.classList.contains('is-open')) {
+        if (key === ' ' || key === 'enter') {
+          e.preventDefault();
+          continueRunner();
+        } else if (key === 'arrowup') {
+          e.preventDefault();
+          scrollOutcomeModal(-140);
+        } else if (key === 'arrowdown') {
+          e.preventDefault();
+          scrollOutcomeModal(140);
+        }
+        return;
+      }
+
+      if (isModalOpen) return;
+
+      if (key === '1') {
+        setTargetLane(0, true);
+      } else if (key === '2') {
+        setTargetLane(1, true);
+      } else if (key === '3') {
+        setTargetLane(2, true);
+      } else if (key === 's') {
+        skipCurrentQuestion();
+      } else if (key === 'arrowleft' || key === 'a') {
+        setTargetLane(targetLane - 1, true);
+      } else if (key === 'arrowright' || key === 'd') {
+        setTargetLane(targetLane + 1, true);
+      } else if (key === ' ' || key === 'enter') {
+        e.preventDefault();
+        commitLane(targetLane);
+      } else if (key === 'h') {
+        toggleHintsBar();
+      } else if (key === 'c') {
+        openCodex();
+      } else if (key === 't') {
+        toggleTimerMode();
+      } else if (key === 'm') {
+        toggleMenuDrawer();
+      }
+    });
+
+    /* State Persistence via notebookAppApi */
+    async function persistAppState() {
+      if (!window.notebookAppApi || !window.notebookAppApi.setAppState) return;
+      try {
+        await window.notebookAppApi.setAppState({
+          currentGateIdx,
+          hp,
+          xp,
+          streak,
+          masteredMap,
+          missedIds,
+          sectorFilter,
+          phaseFilter,
+          isHintsVisible,
+          isTimerEnabled
+        });
+      } catch (err) {
+        // Safe non-blocking fallback
+      }
+    }
+
+    async function initApp() {
+      initCanvasSize();
+      window.addEventListener('resize', initCanvasSize);
+      bindMouseSurfing();
+
+      if (window.notebookAppApi && window.notebookAppApi.getAppState) {
+        try {
+          const saved = await window.notebookAppApi.getAppState();
+          if (saved) {
+            if (typeof saved.hp === 'number') hp = saved.hp;
+            if (typeof saved.xp === 'number') xp = saved.xp;
+            if (typeof saved.streak === 'number') streak = saved.streak;
+            if (saved.masteredMap) masteredMap = saved.masteredMap;
+            if (saved.missedIds) missedIds = saved.missedIds;
+            if (saved.sectorFilter) sectorFilter = saved.sectorFilter;
+            if (saved.phaseFilter) phaseFilter = saved.phaseFilter;
+            if (typeof saved.isHintsVisible === 'boolean') isHintsVisible = saved.isHintsVisible;
+            if (typeof saved.isTimerEnabled === 'boolean') isTimerEnabled = saved.isTimerEnabled;
+            if (typeof saved.currentGateIdx === 'number') currentGateIdx = saved.currentGateIdx;
+          }
+        } catch (err) {
+          // Proceed with defaults
+        }
+      }
+
+      const secSel = document.getElementById('sector-filter-select');
+      if (secSel) secSel.value = sectorFilter;
+      document.querySelectorAll('.phase-pill').forEach(p => {
+        p.classList.toggle('is-active', p.dataset.phase === phaseFilter);
+      });
+
+      const savedGate = currentGateIdx;
+      buildActiveDeck(false);
+      currentGateIdx = Math.min(savedGate, Math.max(0, activeDeck.length - 1));
+
+      syncHintsUI();
+      syncTimerControlsUI();
+      renderSkillTree();
+      setTargetLane(1, false);
+      loadCurrentGate();
+
+      if (animId) cancelAnimationFrame(animId);
+      renderLoop();
+
+      if (window.notebookAppApi && window.notebookAppApi.notifyAppReady) {
+        window.notebookAppApi.notifyAppReady();
+      }
+    }
+
+    initApp();
+  </script>
+</body>
+</html>

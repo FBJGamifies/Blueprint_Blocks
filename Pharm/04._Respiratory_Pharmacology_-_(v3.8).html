@@ -1,0 +1,3456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="artifact-type" content="tool">
+<meta name="design-style" content="neon_noir">
+<title>Respiratory Pharmacology — XR 3-Lane Diagnostic Runner</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --background: #0a0a12;
+  --surface-container-low: #111118;
+  --surface-container: #141422;
+  --surface-container-high: #1e1e30;
+  --on-surface: #e8e0f0;
+  --on-surface-variant: #a098b0;
+  --outline: #5a5068;
+  --outline-variant: #302840;
+  --primary: #ff2d78;
+  --on-primary: #1a0010;
+  --primary-container: #b3004e;
+  --on-primary-container: #ffe0ec;
+  --secondary: #00ffcc;
+  --tertiary: #ffe04a;
+  --error: #ff4444;
+  --on-error: #1a0000;
+  --data-1: #ff2d78;
+  --data-2: #00ffcc;
+  --data-3: #ffe04a;
+  --data-4: #b388ff;
+  --data-context: #6e6680;
+  --positive: #00e69d;
+  --warning: #ffe04a;
+  --focus: #ff2d78;
+
+  --font-headline: 'Sora', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-label: 'Space Mono', monospace;
+
+  --rounded: 0.125rem;
+  --rounded-lg: 0.25rem;
+  --rounded-full: 0.75rem;
+
+  --glow-text: 0 0 8px currentColor;
+  --glow-primary: 0 0 16px color-mix(in srgb, var(--primary) 40%, transparent);
+  --glow-secondary: 0 0 16px color-mix(in srgb, var(--secondary) 35%, transparent);
+  --glow-tertiary: 0 0 16px color-mix(in srgb, var(--tertiary) 35%, transparent);
+  --neon-border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 50%, transparent);
+  --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+
+  --game-body-size: 0.94rem;
+  --modal-body-size: 0.92rem;
+  --modal-headline-size: 1.08rem;
+  --card-gap: 0.85rem;
+  --card-pad-y: 0.85rem;
+  --card-pad-x: 0.8rem;
+  --card-min-h: 7.4rem;
+  --stem-font-size: clamp(0.88rem, 0.8rem + 0.35vw, 1.03rem);
+  --card-font-size: clamp(0.8rem, 0.74rem + 0.25vw, 0.92rem);
+}
+
+#xr-app.hints-visible {
+  --card-gap: 0.65rem;
+  --card-pad-y: 0.55rem;
+  --card-pad-x: 0.65rem;
+  --card-min-h: 5.4rem;
+  --stem-font-size: clamp(0.8rem, 0.74rem + 0.28vw, 0.94rem);
+  --card-font-size: clamp(0.75rem, 0.7rem + 0.2vw, 0.85rem);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overflow-x: clip;
+  background-color: var(--background);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: var(--game-body-size);
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+}
+button, input, select { font-family: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+#xr-app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--background);
+}
+
+/* BAND 1: ULTRA-SLIM TOP MINI BAR */
+.top-mini-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: 0.32rem 0.65rem;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  z-index: 40;
+}
+.menu-mini-btn {
+  flex: 0 0 auto;
+  background: var(--surface-container);
+  color: var(--secondary);
+  border: 1px solid color-mix(in srgb, var(--secondary) 45%, transparent);
+  border-radius: var(--rounded);
+  padding: 0.28rem 0.65rem;
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  min-height: 32px;
+  transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+}
+.menu-mini-btn:hover,
+.menu-mini-btn.is-active {
+  border-color: var(--secondary);
+  background: var(--surface-container-high);
+  box-shadow: var(--glow-secondary);
+  text-shadow: var(--glow-text);
+}
+.mini-telemetry {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.42rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--on-surface-variant);
+}
+.mini-telemetry::-webkit-scrollbar { display: none; }
+.tele-chip {
+  white-space: nowrap;
+  padding: 0.16rem 0.45rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  color: var(--on-surface);
+}
+.tele-chip.is-hp { border-color: color-mix(in srgb, var(--positive) 45%, transparent); color: var(--positive); }
+.tele-chip.is-hp.is-low { border-color: var(--error); color: var(--error); }
+.tele-chip.is-xp { border-color: color-mix(in srgb, var(--secondary) 40%, transparent); color: var(--secondary); }
+.tele-chip.is-streak { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+.tele-chip.is-timer.is-urgent { border-color: var(--error); color: var(--error); }
+
+/* MENU DRAWER */
+.menu-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--background) 75%, transparent);
+  backdrop-filter: blur(4px);
+  z-index: 90;
+  display: none;
+}
+.menu-drawer-backdrop.is-open { display: block; }
+#top-menu-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(430px, 92vw);
+  background: var(--surface-container);
+  border-right: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  z-index: 100;
+  transform: translateX(-105%);
+  transition: transform var(--dur-short) var(--ease-out);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#top-menu-drawer.is-open { transform: translateX(0); }
+.drawer-head {
+  flex: 0 0 auto;
+  padding: 0.85rem 1rem;
+  background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+.drawer-kicker {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  text-shadow: var(--glow-text);
+  margin-bottom: 0.2rem;
+}
+.drawer-title {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--on-surface);
+  line-height: 1.2;
+}
+.drawer-scroll {
+  flex: 1 1 0;
+  overflow-y: auto;
+  padding: 0.85rem 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.drawer-section {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  padding: 0.65rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.drawer-section-label {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+.drawer-btn-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+.btn-neon {
+  background: var(--surface-container);
+  color: var(--primary);
+  border: var(--neon-border-lit);
+  border-radius: var(--rounded);
+  padding: 0.42rem 0.65rem;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  min-height: 36px;
+  transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+}
+.btn-neon:hover, .btn-neon.is-active {
+  border-color: var(--primary);
+  background: var(--surface-container-high);
+  box-shadow: var(--glow-primary);
+  text-shadow: var(--glow-text);
+}
+.btn-neon.is-cyan {
+  color: var(--secondary);
+  border-color: color-mix(in srgb, var(--secondary) 45%, transparent);
+}
+.btn-neon.is-cyan:hover, .btn-neon.is-cyan.is-active {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+}
+.btn-neon.is-yellow {
+  color: var(--tertiary);
+  border-color: color-mix(in srgb, var(--tertiary) 45%, transparent);
+}
+.btn-neon.is-yellow:hover, .btn-neon.is-yellow.is-active {
+  border-color: var(--tertiary);
+  box-shadow: var(--glow-tertiary);
+}
+.drawer-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+}
+.drawer-field label {
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--on-surface-variant);
+}
+.drawer-select {
+  width: 100%;
+  background: var(--surface-container);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  padding: 0.42rem 1.8rem 0.42rem 0.55rem;
+  font-size: 0.78rem;
+}
+.drawer-select:focus { border-color: var(--primary); box-shadow: var(--glow-primary); }
+.phase-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.phase-pill {
+  flex: 1 1 auto;
+  background: var(--surface-container);
+  color: var(--on-surface-variant);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.3rem 0.45rem;
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+}
+.phase-pill.is-active {
+  color: var(--secondary);
+  border-color: var(--secondary);
+  background: var(--surface-container-high);
+  box-shadow: var(--glow-secondary);
+}
+.skill-tree-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+.skill-node-btn {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.35rem 0.4rem;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+.skill-node-btn:hover, .skill-node-btn.is-active {
+  border-color: var(--secondary);
+  background: var(--surface-container-high);
+}
+.skill-node-btn.is-mastered { border-color: var(--positive); }
+.skill-node-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--on-surface);
+  line-height: 1.2;
+}
+.skill-node-meta {
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  color: var(--on-surface-variant);
+}
+.hotkey-guide {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  color: var(--on-surface-variant);
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.45rem 0.6rem;
+  line-height: 1.5;
+}
+.audio-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  color: var(--on-surface-variant);
+}
+.audio-slider-row input[type="range"] { flex: 1; accent-color: var(--secondary); }
+.inline-toast {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  color: var(--tertiary);
+  min-height: 1em;
+}
+
+/* BAND 2: TOP QUESTION STAGE WITH 3-SEC AUTO-HIDING METADATA */
+.question-stage {
+  flex: 0 0 auto;
+  padding: 0.42rem 0.85rem 0.38rem;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.28rem;
+}
+.question-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem;
+  max-height: 3.5rem;
+  opacity: 1;
+  overflow: hidden;
+  transition: opacity var(--dur-long) var(--ease-out), max-height var(--dur-long) var(--ease-out), margin var(--dur-long) var(--ease-out);
+}
+.question-meta-row.is-faded {
+  opacity: 0;
+  max-height: 0;
+  margin: 0;
+  pointer-events: none;
+}
+.meta-badge {
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.14rem 0.45rem;
+  border-radius: var(--rounded);
+  border: 1px solid color-mix(in srgb, var(--primary) 45%, transparent);
+  color: var(--primary);
+  background: var(--surface-container);
+}
+.meta-badge.is-angle { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+.meta-badge.is-phase { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+.meta-badge.is-corridor { border-color: color-mix(in srgb, var(--data-4) 45%, transparent); color: var(--data-4); }
+.question-stem-box {
+  width: min(980px, 100%);
+  text-align: center;
+}
+.question-stem {
+  margin: 0;
+  text-align: center;
+  font-size: var(--stem-font-size);
+  font-weight: 500;
+  color: var(--on-surface);
+  line-height: 1.42;
+}
+
+/* BAND 3: 3D VIEWPORT + 3 CENTERED ANSWER CARDS */
+.viewport-shell {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  background: var(--background);
+  overflow: hidden;
+}
+#xr-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+.lane-overlay-container {
+  position: absolute;
+  top: 52%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(1120px, calc(100% - 1.5rem));
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--card-gap);
+  z-index: 10;
+  pointer-events: none;
+  transition: gap var(--dur-short) var(--ease-out);
+}
+.lane-dom-card {
+  --lane-color: var(--secondary);
+  pointer-events: auto;
+  position: relative;
+  background: color-mix(in srgb, var(--surface-container) 82%, transparent);
+  backdrop-filter: blur(8px);
+  border: 1px solid color-mix(in srgb, var(--lane-color) 42%, transparent);
+  border-radius: var(--rounded-lg);
+  padding: var(--card-pad-y) var(--card-pad-x);
+  min-height: var(--card-min-h);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  gap: 0.32rem;
+  transition: transform var(--dur-micro) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), min-height var(--dur-short) var(--ease-out), padding var(--dur-short) var(--ease-out);
+}
+.lane-dom-card.lane-0 { --lane-color: var(--primary); }
+.lane-dom-card.lane-1 { --lane-color: var(--secondary); }
+.lane-dom-card.lane-2 { --lane-color: var(--tertiary); }
+.lane-dom-card.is-targeted,
+.lane-dom-card:hover {
+  border-color: var(--lane-color);
+  background: color-mix(in srgb, var(--surface-container-high) 90%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--lane-color) 45%, transparent), inset 0 0 12px color-mix(in srgb, var(--lane-color) 16%, transparent);
+  transform: translateY(-2px);
+}
+.lane-dom-card.is-fused {
+  border-width: 1px;
+}
+.lane-dom-card.is-selected {
+  box-shadow: 0 0 24px color-mix(in srgb, var(--lane-color) 65%, transparent);
+}
+.lane-card-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+.lane-key-label {
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lane-color);
+  text-shadow: var(--glow-text);
+}
+.lane-choice-body {
+  width: 100%;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: var(--card-font-size);
+  font-weight: 600;
+  color: var(--on-surface);
+  line-height: 1.32;
+}
+.fusion-lock-tag {
+  font-family: var(--font-label);
+  font-size: 0.58rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+  opacity: 0.72;
+}
+.vignette-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 15;
+  opacity: 0;
+  transition: opacity var(--dur-short) var(--ease-out);
+}
+.vignette-overlay.is-correct {
+  opacity: 1;
+  box-shadow: inset 0 0 54px color-mix(in srgb, var(--positive) 55%, transparent);
+}
+.vignette-overlay.is-wrong {
+  opacity: 1;
+  box-shadow: inset 0 0 54px color-mix(in srgb, var(--error) 55%, transparent);
+}
+.heal-toast {
+  position: absolute;
+  top: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
+  background: var(--surface-container-high);
+  border: 1px solid var(--positive);
+  color: var(--positive);
+  box-shadow: var(--glow-secondary);
+  padding: 0.28rem 0.75rem;
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 25;
+  transition: opacity var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out);
+}
+.heal-toast.is-shown {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* BAND 4: BOTTOM HINTS BAR (HIDDEN BY DEFAULT) */
+#hints-bar {
+  flex: 0 0 auto;
+  background: var(--surface-container-low);
+  border-top: 1px solid color-mix(in srgb, var(--tertiary) 45%, transparent);
+  padding: 0.45rem 0.9rem;
+  z-index: 25;
+  text-align: center;
+  max-height: 16dvh;
+  overflow-y: auto;
+}
+#xr-app.hints-hidden #hints-bar { display: none; }
+#xr-app.hints-visible #hints-bar { display: block; }
+.hints-inner {
+  width: min(960px, 100%);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  text-align: center;
+}
+.hints-kicker {
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--tertiary);
+}
+.hints-text {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--on-surface);
+  text-align: center;
+  line-height: 1.35;
+}
+
+/* MODALS (OUTCOME DOSSIER, CODEX, RUN SUMMARY) */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--background) 82%, transparent);
+  backdrop-filter: blur(6px);
+  z-index: 120;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem;
+}
+.modal-backdrop.is-open { display: flex; }
+#outcome-popup-modal,
+#codex-modal,
+#run-summary-modal {
+  width: 82vw;
+  height: 84vh;
+  max-width: 1120px;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-align: center;
+  font-size: var(--modal-body-size);
+}
+.popup-header {
+  flex-shrink: 0;
+  background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 0.55rem 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.popup-header-centered { justify-content: center; flex-wrap: wrap; }
+.popup-verdict {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: var(--modal-headline-size);
+  font-weight: 800;
+  text-align: center;
+}
+.popup-verdict.is-correct { color: var(--positive); }
+.popup-verdict.is-wrong { color: var(--error); }
+.popup-verdict.is-cyan { color: var(--secondary); }
+.popup-question-pin {
+  flex-shrink: 0;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 0.5rem 0.9rem;
+  text-align: center;
+}
+.popup-question-pin-label {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--secondary);
+  margin-bottom: 0.18rem;
+}
+.popup-question-pin-text {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--on-surface);
+  text-align: center;
+  line-height: 1.38;
+}
+.popup-scroll-body {
+  flex: 1 1 0;
+  overflow-y: auto;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.72rem;
+  text-align: center;
+}
+.dossier-block {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  padding: 0.68rem 0.85rem;
+  text-align: center;
+}
+.dossier-block.is-highlight {
+  border-color: color-mix(in srgb, var(--secondary) 40%, transparent);
+}
+.dossier-block-title {
+  margin: 0 0 0.42rem;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--secondary);
+  text-align: center;
+}
+.choice-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.choice-box {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.55rem 0.65rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.22rem;
+}
+.choice-box.is-correct { border-color: var(--positive); }
+.choice-box.is-wrong { border-color: var(--error); }
+.choice-box-label {
+  font-family: var(--font-label);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+.choice-box-text {
+  font-weight: 700;
+  font-size: 0.86rem;
+  color: var(--on-surface);
+  text-align: center;
+}
+.dossier-line {
+  margin: 0.22rem 0;
+  text-align: center;
+  color: var(--on-surface);
+  line-height: 1.45;
+}
+.angles-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+.angle-mini-card {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.55rem 0.6rem;
+  text-align: center;
+}
+.angle-mini-title {
+  margin: 0 0 0.3rem;
+  font-family: var(--font-label);
+  font-size: 0.67rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--tertiary);
+  text-align: center;
+}
+.popup-footer {
+  flex-shrink: 0;
+  background: var(--surface-container-high);
+  border-top: 1px solid var(--outline-variant);
+  padding: 0.55rem 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* LOOT CODEX */
+.codex-toolbar {
+  flex-shrink: 0;
+  padding: 0.65rem 0.85rem;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.codex-search {
+  width: 100%;
+  background: var(--surface-container);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  padding: 0.45rem 0.65rem;
+  color: var(--on-surface);
+  font-size: 0.84rem;
+}
+.codex-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem;
+}
+.codex-table-wrap {
+  flex: 1 1 0;
+  overflow: auto;
+  padding: 0.55rem 0.75rem;
+}
+.codex-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  text-align: left;
+}
+.codex-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-container-high);
+  color: var(--secondary);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--outline);
+}
+.codex-table td {
+  padding: 0.48rem 0.5rem;
+  border-bottom: 1px solid var(--outline-variant);
+  vertical-align: top;
+  color: var(--on-surface);
+}
+.codex-table tr:nth-child(even) td { background: var(--surface-container-low); }
+
+.summary-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.summary-stat-card {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  padding: 0.75rem 0.5rem;
+}
+.summary-stat-val {
+  font-family: var(--font-headline);
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--secondary);
+}
+.summary-stat-lbl {
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+
+@media (max-width: 640px) {
+  .choice-compare-grid, .angles-grid, .summary-stats-grid { grid-template-columns: 1fr; }
+}
+
+/* =========================================================
+   RESPONSIVE BREAKPOINT 1: PORTRAIT PHONES (<= 600px)
+   ========================================================= */
+@media (max-width: 600px) {
+  :root {
+    --card-gap: 0.45rem;
+    --card-pad-y: 0.48rem;
+    --card-pad-x: 0.55rem;
+    --card-min-h: 3.1rem;
+    --stem-font-size: 0.84rem;
+    --card-font-size: 0.8rem;
+  }
+  #xr-app.hints-visible {
+    --card-gap: 0.34rem;
+    --card-pad-y: 0.34rem;
+    --card-pad-x: 0.5rem;
+    --card-min-h: 2.55rem;
+    --stem-font-size: 0.77rem;
+    --card-font-size: 0.74rem;
+  }
+  .tele-chip.is-xp { display: none; }
+  .lane-overlay-container {
+    top: 48%;
+    grid-template-columns: 1fr;
+    width: calc(100% - 1rem);
+  }
+  .lane-card-head, .lane-key-label { display: none; }
+  #hints-bar { padding: 0.26rem 0.6rem; max-height: 20dvh; }
+  .hints-text { font-size: 0.78rem; line-height: 1.3; }
+  #outcome-popup-modal,
+  #codex-modal,
+  #run-summary-modal {
+    width: 96vw;
+    height: 92dvh;
+    max-height: 92dvh;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE BREAKPOINT 2: LANDSCAPE PHONES
+   NEVER FIRES ON TABLETS (>= 744px TALL) OR DESKTOPS
+   ========================================================= */
+@media (max-height: 500px) and (pointer: coarse) {
+  :root {
+    --card-gap: 0.45rem;
+    --card-pad-y: 0.32rem;
+    --card-pad-x: 0.45rem;
+    --card-min-h: 3.1rem;
+    --stem-font-size: 0.76rem;
+    --card-font-size: 0.73rem;
+  }
+  #xr-app.hints-visible {
+    --card-min-h: 2.5rem;
+    --stem-font-size: 0.7rem;
+    --card-font-size: 0.68rem;
+  }
+  .top-mini-bar { padding: 0.18rem 0.5rem; }
+  .question-stage { padding: 0.22rem 0.6rem; }
+  .lane-overlay-container { top: 53%; width: calc(100% - 1rem); }
+  .fusion-lock-tag { display: none; }
+  #hints-bar { padding: 0.2rem 0.5rem; max-height: 18dvh; }
+  .hints-text { font-size: 0.7rem; }
+}
+
+/* =========================================================
+   RESPONSIVE BREAKPOINT 3: DESKTOP-MODE SAFETY NET FOR TALL PHONES
+   NEVER FIRES ON TABLETS (PORTRAIT ~10/16 OR LANDSCAPE 16/10)
+   ========================================================= */
+@media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+  html { font-size: 200%; }
+  .tele-chip.is-xp { display: none; }
+  .lane-overlay-container {
+    top: 48%;
+    grid-template-columns: 1fr;
+    width: calc(100% - 1rem);
+  }
+  .lane-card-head, .lane-key-label { display: none; }
+  #outcome-popup-modal,
+  #codex-modal,
+  #run-summary-modal {
+    width: 96vw;
+    height: 92dvh;
+    max-height: 92dvh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+<div id="xr-app" class="hints-hidden">
+  <!-- BAND 1: ULTRA-SLIM TOP BAR (SMALL MENU BUTTON + COMPACT READOUTS ONLY) -->
+  <div class="top-mini-bar">
+    <button type="button" class="menu-mini-btn" id="menu-toggle-btn" onclick="toggleMenuDrawer()" aria-expanded="false" aria-controls="top-menu-drawer">☰ MENU</button>
+    <div class="mini-telemetry" aria-label="Game Status">
+      <span class="tele-chip is-hp" id="hp-chip">HP <span id="hp-text">100</span></span>
+      <span class="tele-chip is-xp">XP <span id="xp-text">0</span></span>
+      <span class="tele-chip is-streak">⚡ <span id="streak-text">0</span></span>
+      <span class="tele-chip">Gate <span id="gate-text">1/45</span></span>
+      <span class="tele-chip is-timer" id="timer-chip">⏱ <span id="timer-text">OFF</span></span>
+    </div>
+  </div>
+
+  <!-- BAND 2: TOP QUESTION + 3-SECOND AUTO-HIDING METADATA -->
+  <div class="question-stage">
+    <div class="question-meta-row" id="question-meta-row">
+      <span class="meta-badge" id="lo-badge">SECTOR I • SABA</span>
+      <span class="meta-badge is-angle" id="angle-badge">PRESENTATION → DIAGNOSIS</span>
+      <span class="meta-badge is-phase" id="phase-badge">PHASE 1: PHARMACODYNAMICS</span>
+      <span class="meta-badge is-corridor" id="corridor-badge">BETA-2 CORRIDOR</span>
+    </div>
+    <div class="question-stem-box">
+      <p class="question-stem amboss-scan-target" id="q-stem-text">Loading diagnostic corridor…</p>
+    </div>
+  </div>
+
+  <!-- BAND 3: CENTER 3D XR VIEWPORT + 3 CENTERED ANSWER CARDS -->
+  <div class="viewport-shell" id="viewport-shell">
+    <canvas id="xr-canvas" aria-label="3D Perspective Diagnostic Corridor"></canvas>
+    <div class="lane-overlay-container" id="lane-overlay-container">
+      <div id="lane-0-card" class="lane-dom-card lane-0" role="button" tabindex="0"
+        onmouseenter="previewLaneTarget(0)" onmousemove="previewLaneTarget(0)" onpointerenter="previewLaneTarget(0)" onfocus="previewLaneTarget(0)"
+        onclick="selectLaneAndResolve(0)"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(0);}">
+        <div class="lane-card-head"><span class="lane-key-label">[1 / A / ←]</span></div>
+        <div class="lane-choice-body" onmouseenter="previewLaneTarget(0)" onmousemove="previewLaneTarget(0)"><span id="lane-0-text" class="amboss-scan-target">Option A</span></div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+      <div id="lane-1-card" class="lane-dom-card lane-1" role="button" tabindex="0"
+        onmouseenter="previewLaneTarget(1)" onmousemove="previewLaneTarget(1)" onpointerenter="previewLaneTarget(1)" onfocus="previewLaneTarget(1)"
+        onclick="selectLaneAndResolve(1)"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(1);}">
+        <div class="lane-card-head"><span class="lane-key-label">[2 / W / ↑]</span></div>
+        <div class="lane-choice-body" onmouseenter="previewLaneTarget(1)" onmousemove="previewLaneTarget(1)"><span id="lane-1-text" class="amboss-scan-target">Option B</span></div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+      <div id="lane-2-card" class="lane-dom-card lane-2" role="button" tabindex="0"
+        onmouseenter="previewLaneTarget(2)" onmousemove="previewLaneTarget(2)" onpointerenter="previewLaneTarget(2)" onfocus="previewLaneTarget(2)"
+        onclick="selectLaneAndResolve(2)"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(2);}">
+        <div class="lane-card-head"><span class="lane-key-label">[3 / D / →]</span></div>
+        <div class="lane-choice-body" onmouseenter="previewLaneTarget(2)" onmousemove="previewLaneTarget(2)"><span id="lane-2-text" class="amboss-scan-target">Option C</span></div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+    </div>
+    <div class="vignette-overlay" id="vignette-overlay"></div>
+    <div class="heal-toast" id="heal-toast">✚ STREAK BONUS +25 HP</div>
+  </div>
+
+  <!-- BAND 4: BOTTOM HINTS BAR (TOGGLE WITH [H] OR MENU) -->
+  <div id="hints-bar" aria-live="polite">
+    <div class="hints-inner">
+      <span class="hints-kicker">TACTICAL HINT [H]</span>
+      <p class="hints-text amboss-scan-target" id="q-clue-text">Hint loading…</p>
+    </div>
+  </div>
+</div>
+
+<!-- MENU DRAWER -->
+<div class="menu-drawer-backdrop" id="menu-backdrop" onclick="toggleMenuDrawer()"></div>
+<aside id="top-menu-drawer" aria-label="Mission Control Drawer" aria-hidden="true">
+  <div class="drawer-head">
+    <div>
+      <div class="drawer-kicker" id="drawer-kicker">RESPIRATORY PHARMACOLOGY • COMLEX-USA / USMLE</div>
+      <h1 class="drawer-title" id="drawer-title">Respiratory Pharmacology — XR 3-Lane Diagnostic Runner</h1>
+    </div>
+    <button type="button" class="btn-neon is-cyan" onclick="toggleMenuDrawer()">✕ Close</button>
+  </div>
+  <div class="drawer-scroll">
+    <div class="drawer-section">
+      <span class="drawer-section-label">Mission Controls</span>
+      <div class="drawer-btn-grid">
+        <button type="button" class="btn-neon is-yellow" id="menu-hints-btn" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+        <button type="button" class="btn-neon is-cyan" onclick="openCodexFromMenu()">📖 Loot Codex [C]</button>
+        <button type="button" class="btn-neon" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+        <button type="button" class="btn-neon is-cyan" id="menu-timer-btn" onclick="toggleTimerFromMenu()">⏱ 50s Timer: OFF [T]</button>
+        <button type="button" class="btn-neon is-yellow" onclick="startTimedRunFromMenu()">▶ Start 50s Timed Run</button>
+        <button type="button" class="btn-neon is-cyan" onclick="restartDeckFromMenu(false)">↺ Restart Ordered</button>
+        <button type="button" class="btn-neon" onclick="restartDeckFromMenu(true)">🔀 Shuffle Deck</button>
+        <button type="button" class="btn-neon" id="reset-mastery-btn" onclick="handleResetMastery(this)">🗑 Reset Mastery</button>
+      </div>
+      <div class="inline-toast" id="menu-toast"></div>
+    </div>
+
+    <div class="drawer-section">
+      <span class="drawer-section-label">50s Timer Rule</span>
+      <div class="drawer-field">
+        <label for="timesup-mode-select">Time's Up Mode</label>
+        <select id="timesup-mode-select" class="drawer-select" onchange="setTimesUpMode(this.value)">
+          <option value="wrong">Time's Up = Wrong → Review Screen</option>
+          <option value="hold">Hold at 0s (Allow Late Answer)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <span class="drawer-section-label">Audio Suite (Web Audio + Custom)</span>
+      <div class="drawer-btn-grid">
+        <button type="button" class="btn-neon is-cyan is-active" id="master-sound-btn" onclick="toggleMasterSound()">🔊 Master Sound: ON</button>
+        <button type="button" class="btn-neon is-cyan is-active" id="sfx-toggle-btn" onclick="toggleSfx()">⚡ SFX: ON</button>
+        <button type="button" class="btn-neon" id="bgm-toggle-btn" onclick="toggleZombiesBgm()">🎵 Zombies BGM: OFF</button>
+        <button type="button" class="btn-neon is-yellow" onclick="document.getElementById('custom-bgm-input')?.click()">📂 Load MP3/WAV</button>
+      </div>
+      <input type="file" id="custom-bgm-input" accept="audio/*" style="display:none" onchange="handleCustomBgmFile(this)">
+      <div class="audio-slider-row">
+        <label for="bgm-volume-slider">BGM Vol</label>
+        <input type="range" id="bgm-volume-slider" min="0" max="100" value="35" oninput="setBgmVolume(this.value)">
+        <span id="bgm-vol-label">35%</span>
+      </div>
+      <div class="inline-toast" id="audio-status-label">Procedural Kino-inspired synth ready.</div>
+    </div>
+
+    <div class="drawer-section">
+      <span class="drawer-section-label">Deck & Skill Tree Filters</span>
+      <div class="drawer-field">
+        <label for="sector-filter">Dungeon Sector / Missed Gates</label>
+        <select id="sector-filter" class="drawer-select" onchange="applyDeckFilters()">
+          <option value="all">All 5 Sectors (45 Gates)</option>
+          <option value="missed">🎯 Missed Gates Only (0)</option>
+          <option value="sector_1">Sector I — Bronchodilators & Beta-Agonists</option>
+          <option value="sector_2">Sector II — ICS, Systemic Steroids & PDE-4i</option>
+          <option value="sector_3">Sector III — Leukotriene Modifiers & Mast Cell</option>
+          <option value="sector_4">Sector IV — Biologics, Methylxanthines & PAH</option>
+          <option value="sector_5">Sector V — Mucolytics, Antitussives & Resp OMT</option>
+        </select>
+      </div>
+      <div class="drawer-field">
+        <label for="angle-filter">Diagnostic Angle</label>
+        <select id="angle-filter" class="drawer-select" onchange="applyDeckFilters()">
+          <option value="all">All 3 Angles</option>
+          <option value="Presentation -> Diagnosis">Presentation → Diagnosis</option>
+          <option value="Mechanism -> Pathophysiology">Mechanism → Pathophysiology</option>
+          <option value="Hallmarks -> Management">Hallmarks → Management</option>
+        </select>
+      </div>
+      <div class="drawer-field">
+        <label for="compartment-filter">Pharmacologic / OMT Domain</label>
+        <select id="compartment-filter" class="drawer-select" onchange="applyDeckFilters()">
+          <option value="all">All Domains</option>
+          <option value="autonomic_bronchodilator">Autonomic Bronchodilators</option>
+          <option value="steroid_pde4">Steroids & PDE-4 Anti-Inflammatory</option>
+          <option value="eicosanoid_mast">Eicosanoid & Mast Cell Modulators</option>
+          <option value="biologic_xanthine_pah">Biologics, Xanthines & PAH</option>
+          <option value="mucus_cough_omt">Mucolytics, Antitussives & OMT</option>
+        </select>
+      </div>
+      <div class="drawer-field">
+        <label for="age-filter">Patient Population</label>
+        <select id="age-filter" class="drawer-select" onchange="applyDeckFilters()">
+          <option value="all">All Populations</option>
+          <option value="all_ages">All Ages (Asthma / OMT)</option>
+          <option value="pediatric">Pediatric / CF / Allergen</option>
+          <option value="adult_elderly">Adult / COPD / AERD / PAH</option>
+        </select>
+      </div>
+      <div class="drawer-field">
+        <label for="behavior-filter">Primary Mechanism Class</label>
+        <select id="behavior-filter" class="drawer-select" onchange="applyDeckFilters()">
+          <option value="all">All Mechanism Classes</option>
+          <option value="gpcr_cyclic_nucleotide">GPCR / cAMP / cGMP Signaling</option>
+          <option value="nuclear_transcription">Nuclear / Transcriptional / PDE-4</option>
+          <option value="mediator_blockade">Mediator / Biologic / Mast Cell</option>
+          <option value="clearance_neuro_omt">Mucociliary / Central / OMT Reflex</option>
+        </select>
+      </div>
+      <div>
+        <div class="drawer-section-label" style="margin-bottom:0.35rem;">Phase Mix (30% / 35% / 35%)</div>
+        <div class="phase-pill-row">
+          <button type="button" class="phase-pill is-active" data-phase="all" onclick="setPhaseFilter('all')">All (45)</button>
+          <button type="button" class="phase-pill" data-phase="Phase 1: Pharmacodynamics & Receptors" onclick="setPhaseFilter('Phase 1: Pharmacodynamics & Receptors')">P1 30%</button>
+          <button type="button" class="phase-pill" data-phase="Phase 2: Kinetics, Biomarkers & Diagnostics" onclick="setPhaseFilter('Phase 2: Kinetics, Biomarkers & Diagnostics')">P2 35%</button>
+          <button type="button" class="phase-pill" data-phase="Phase 3: Clinical Management & OMT" onclick="setPhaseFilter('Phase 3: Clinical Management & OMT')">P3 35%</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <span class="drawer-section-label">15-Entity Skill Tree (Tap to Focus)</span>
+      <div class="skill-tree-grid" id="skill-tree-grid"></div>
+    </div>
+
+    <div class="hotkey-guide">
+      Controls: [1 / 2 / 3] or [A / W / D] or [← / ↑ / →] Select Lane • Cursor Surf Banks Ship • [H] Hints • [M] Menu • [C] Codex • [S] Skip • [T] 50s Timer • [▲/▼] Scroll Modal • [Space / Enter] Continue
+    </div>
+  </div>
+</aside>
+
+<!-- 7-PART OUTCOME DOSSIER MODAL -->
+<div class="modal-backdrop" id="outcome-backdrop" role="dialog" aria-modal="true" aria-labelledby="outcome-verdict">
+  <div id="outcome-popup-modal">
+    <div class="popup-header popup-header-centered">
+      <h2 class="popup-verdict" id="outcome-verdict">✔ CORRECT — Short Answer</h2>
+      <span class="meta-badge" id="outcome-xp-delta">+100 XP</span>
+      <span class="meta-badge is-phase" id="outcome-hp-delta">+5 HP</span>
+    </div>
+    <div class="popup-question-pin">
+      <span class="popup-question-pin-label" id="outcome-lo-ref">Original Board Vignette</span>
+      <p class="popup-question-pin-text amboss-scan-target" id="outcome-question-text"></p>
+    </div>
+    <div class="popup-scroll-body" id="outcome-scroll-body">
+      <div class="dossier-block is-highlight">
+        <h3 class="dossier-block-title">1. Your Choice vs. Correct Answer</h3>
+        <div class="choice-compare-grid">
+          <div class="choice-box" id="your-choice-box">
+            <span class="choice-box-label">Your Choice</span>
+            <span class="choice-box-text amboss-scan-target" id="your-choice-text"></span>
+          </div>
+          <div class="choice-box is-correct" id="correct-choice-box">
+            <span class="choice-box-label">Correct Answer</span>
+            <span class="choice-box-text amboss-scan-target" id="correct-choice-text"></span>
+          </div>
+        </div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">2. Board Rationale & Distractor Exclusion</h3>
+        <div id="dossier-explanation" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">3. Second-Order Board Logic</h3>
+        <div id="dossier-second-order" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">4. Phase 1 — Pharmacodynamics & Receptor Mechanism</h3>
+        <div id="dossier-phase-1" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">5. Phase 2 — Kinetics, Toxicities & Lab Hallmarks</h3>
+        <div id="dossier-phase-2" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">6. Phase 3 — Clinical Management & Guild Master's Secret</h3>
+        <div id="dossier-phase-3" class="amboss-scan-target"></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">7. 3-Phase Mastery Dossier</h3>
+        <div class="angles-grid">
+          <div class="angle-mini-card">
+            <h4 class="angle-mini-title">Phase 1 • Mechanisms</h4>
+            <div id="dossier-angle-1" class="amboss-scan-target"></div>
+          </div>
+          <div class="angle-mini-card">
+            <h4 class="angle-mini-title">Phase 2 • Hallmarks</h4>
+            <div id="dossier-angle-2" class="amboss-scan-target"></div>
+          </div>
+          <div class="angle-mini-card">
+            <h4 class="angle-mini-title">Phase 3 • Management</h4>
+            <div id="dossier-angle-3" class="amboss-scan-target"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="popup-footer">
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(-180)">▲ Up</button>
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(180)">▼ Down</button>
+      <button type="button" class="btn-neon" id="continue-runner-btn" onclick="continueToNextGate()">▶ Continue Runner [Space / Enter]</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6-COLUMN LOOT CODEX MODAL -->
+<div class="modal-backdrop" id="codex-backdrop" role="dialog" aria-modal="true" aria-labelledby="codex-title">
+  <div id="codex-modal">
+    <div class="popup-header">
+      <h2 class="popup-verdict is-cyan" id="codex-title">Master Raid Loot Codex (15 Entities)</h2>
+      <button type="button" class="btn-neon is-cyan" onclick="closeCodex()">✕ Close [Esc]</button>
+    </div>
+    <div class="codex-toolbar">
+      <input type="text" id="codex-search-input" class="codex-search" placeholder="Search drug, receptor, toxicity, or OMT reflex…" oninput="renderCodexTable()">
+      <div class="codex-filter-row" id="codex-sector-pills">
+        <button type="button" class="phase-pill is-active" data-sector="all" onclick="setCodexSector('all')">All Sectors</button>
+        <button type="button" class="phase-pill" data-sector="sector_1" onclick="setCodexSector('sector_1')">I • Bronchodilators</button>
+        <button type="button" class="phase-pill" data-sector="sector_2" onclick="setCodexSector('sector_2')">II • ICS & PDE-4i</button>
+        <button type="button" class="phase-pill" data-sector="sector_3" onclick="setCodexSector('sector_3')">III • LT & Mast Cell</button>
+        <button type="button" class="phase-pill" data-sector="sector_4" onclick="setCodexSector('sector_4')">IV • Biologics & PAH</button>
+        <button type="button" class="phase-pill" data-sector="sector_5" onclick="setCodexSector('sector_5')">V • Mucolytics & OMT</button>
+      </div>
+    </div>
+    <div class="codex-table-wrap">
+      <table class="codex-table">
+        <thead>
+          <tr>
+            <th>Entity & Sector</th>
+            <th>Etiology / Class</th>
+            <th>Phase 1: Mechanism</th>
+            <th>Phase 2: Hallmarks / Kinetics</th>
+            <th>Phase 3: Clinical Use</th>
+            <th>Management & Guild Secret</th>
+          </tr>
+        </thead>
+        <tbody id="codex-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- RUN SUMMARY MODAL -->
+<div class="modal-backdrop" id="summary-backdrop" role="dialog" aria-modal="true" aria-labelledby="summary-title">
+  <div id="run-summary-modal">
+    <div class="popup-header popup-header-centered">
+      <h2 class="popup-verdict is-cyan" id="summary-title">Diagnostic Corridor Complete</h2>
+    </div>
+    <div class="popup-scroll-body">
+      <div class="summary-stats-grid">
+        <div class="summary-stat-card"><div class="summary-stat-val" id="sum-score">0%</div><div class="summary-stat-lbl">Accuracy</div></div>
+        <div class="summary-stat-card"><div class="summary-stat-val" id="sum-xp">0</div><div class="summary-stat-lbl">Run XP</div></div>
+        <div class="summary-stat-card"><div class="summary-stat-val" id="sum-streak">0</div><div class="summary-stat-lbl">Best Streak</div></div>
+        <div class="summary-stat-card"><div class="summary-stat-val" id="sum-missed">0</div><div class="summary-stat-lbl">Missed Gates</div></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">Debriefing</h3>
+        <p class="dossier-line" id="sum-debrief-text">• Corridor telemetry recorded.</p>
+      </div>
+    </div>
+    <div class="popup-footer">
+      <button type="button" class="btn-neon is-yellow" onclick="reviewMissedFromSummary()">🎯 Drill Missed Gates</button>
+      <button type="button" class="btn-neon is-cyan" onclick="restartFromSummary(false)">↺ Restart Ordered</button>
+      <button type="button" class="btn-neon" onclick="restartFromSummary(true)">🔀 Shuffle & Run</button>
+    </div>
+  </div>
+</div>
+
+<api-shim></api-shim>
+<script>
+const GAME_CONFIG = {
+  title: `Respiratory Pharmacology — XR 3-Lane Diagnostic Runner`,
+  kicker: `RESPIRATORY PHARMACOLOGY • COMLEX-USA / USMLE`,
+  timerSeconds: 50,
+  metaFadeMs: 3000
+};
+
+const LO_VISUAL_THEMES = {
+  1: { corridor: `SABA ADENYLYL CYCLASE CORRIDOR`, dustHex: `#ff2d78`, gridRgb: `0, 255, 204` },
+  2: { corridor: `LABA LONG-TAIL RECEPTOR LANE`, dustHex: `#00ffcc`, gridRgb: `255, 45, 120` },
+  3: { corridor: `M3 ANTAGONIST VAGAL VAULT`, dustHex: `#ffe04a`, gridRgb: `0, 255, 204` },
+  4: { corridor: `ICS TRANSREPRESSION GRID`, dustHex: `#b388ff`, gridRgb: `179, 136, 255` },
+  5: { corridor: `STATUS ASTHMATICUS PULSE BAY`, dustHex: `#ff2d78`, gridRgb: `255, 224, 74` },
+  6: { corridor: `PDE-4 COPD INFLAMMATION TUNNEL`, dustHex: `#00ffcc`, gridRgb: `0, 255, 204` },
+  7: { corridor: `CYSLT1 AERD BLOCKADE RAIL`, dustHex: `#ffe04a`, gridRgb: `255, 45, 120` },
+  8: { corridor: `5-LOX HEPATIC MONITOR SECTOR`, dustHex: `#ff2d78`, gridRgb: `179, 136, 255` },
+  9: { corridor: `MAST CELL CHLORIDE STABILIZER`, dustHex: `#00ffcc`, gridRgb: `0, 255, 204` },
+  10: { corridor: `IG-E & IL-4/5 BIOLOGIC NEXUS`, dustHex: `#b388ff`, gridRgb: `255, 45, 120` },
+  11: { corridor: `THEOPHYLLINE CYP1A2 NARROW-TI`, dustHex: `#ffe04a`, gridRgb: `255, 224, 74` },
+  12: { corridor: `PAH ENDOTHELIN-CGMP-PGI2 AXIS`, dustHex: `#00ffcc`, gridRgb: `0, 255, 204` },
+  13: { corridor: `DISULFIDE & DNA MUCOLYTIC LAB`, dustHex: `#ff2d78`, gridRgb: `179, 136, 255` },
+  14: { corridor: `MEDULLARY COUGH REFLEX VECTOR`, dustHex: `#ffe04a`, gridRgb: `0, 255, 204` },
+  15: { corridor: `T2-T7 & OA-AA RESPIRATORY OMT`, dustHex: `#00ffcc`, gridRgb: `255, 224, 74` }
+};
+
+const CODEX_DATA = [
+  {
+    lo: 1, sector: `sector_1`, tag: `I • SABA`, compartment: `autonomic_bronchodilator`, ageGroup: `all_ages`, behavior: `gpcr_cyclic_nucleotide`,
+    entity: `SABA (Albuterol, Levalbuterol)`, badgeMeta: `Sector I • Rescue Bronchodilator`,
+    etiology: `Selective short-acting beta-2 adrenergic agonists; racemic albuterol vs R-enantiomer levalbuterol.`,
+    pathogenesis: `Gs-coupled beta-2 stimulation activates adenylyl cyclase → ↑cAMP → PKA activation → myosin light-chain kinase phosphorylation & ↓intracellular Ca2+ → bronchial smooth muscle relaxation.`,
+    hallmarks: `Onset <5 min, duration 4–6 h; drives K+ intracellularly via Na+/K+-ATPase (hypokalemia), tremor (skeletal beta-2), tachycardia/arrhythmia (beta-1 spillover), and beta-2 receptor downregulation (tachyphylaxis).`,
+    clinical: `First-line rescue inhaler for acute bronchospasm, acute asthma exacerbation, and exercise-induced bronchospasm (15 min pre-exercise).`,
+    management: `Monitor K+ and ECG if nebulized continuously; switch to ICS-formoterol MART or add ICS if SABA needed >2 days/week. Guild Master's Secret: Beta-2 agonists shift K+ into cells—also used acutely in hyperkalemia!`
+  },
+  {
+    lo: 2, sector: `sector_1`, tag: `I • LABA`, compartment: `autonomic_bronchodilator`, ageGroup: `all_ages`, behavior: `gpcr_cyclic_nucleotide`,
+    entity: `LABA (Salmeterol, Formoterol)`, badgeMeta: `Sector I • Controller Bronchodilator`,
+    etiology: `Lipophilic long-acting beta-2 agonists; salmeterol (slow onset) vs formoterol (fast onset, partial/full agonist).`,
+    pathogenesis: `Lipophilic side chain anchors in cell membrane for ≥12 h sustained Gs → adenylyl cyclase → ↑cAMP bronchodilation.`,
+    hallmarks: `Salmeterol onset ~15–20 min (maintenance only); Formoterol onset <5 min (usable in SMART/MART ICS-formoterol regimen). Boxed warning: ↑asthma-related death if used as monotherapy in asthma.`,
+    clinical: `Step-up controller therapy in persistent asthma (ALWAYS paired with ICS) and maintenance bronchodilation in COPD (LABA monotherapy acceptable in COPD).`,
+    management: `NEVER prescribe LABA monotherapy in asthma without an ICS; tachyphylaxis develops if overused without steroid-mediated beta-2 receptor resynthesis. Guild Master's Secret: Formoterol is the ONLY classic LABA fast enough for both rescue & maintenance (MART).`
+  },
+  {
+    lo: 3, sector: `sector_1`, tag: `I • SAMA/LAMA`, compartment: `autonomic_bronchodilator`, ageGroup: `adult_elderly`, behavior: `gpcr_cyclic_nucleotide`,
+    entity: `Muscarinic Antagonists (Ipratropium, Tiotropium)`, badgeMeta: `Sector I • Anticholinergic`,
+    etiology: `Quaternary ammonium antimuscarinics (ipratropium SAMA; tiotropium LAMA) that do not cross the BBB.`,
+    pathogenesis: `Competitive antagonism of M3 Gq receptors on airway smooth muscle & submucosal glands → ↓IP3/DAG → ↓intracellular Ca2+ → bronchodilation & ↓mucus secretion.`,
+    hallmarks: `Tiotropium dissociates very slowly from M3 (24 h duration); minimal systemic anticholinergic effects unless sprayed in eyes (acute angle-closure glaucoma) or absorbed (xerostomia, urinary retention).`,
+    clinical: `First-line maintenance therapy in COPD (tiotropium reduces exacerbations); ipratropium combined with albuterol in severe acute asthma or COPD exacerbations.`,
+    management: `Avoid nebulizer mist contacting eyes in patients with narrow angles; screen for BPH urinary retention. Guild Master's Secret: Quaternary amine charge keeps ipratropium/tiotropium trapped locally in the airway.`
+  },
+  {
+    lo: 4, sector: `sector_2`, tag: `II • ICS`, compartment: `steroid_pde4`, ageGroup: `all_ages`, behavior: `nuclear_transcription`,
+    entity: `Inhaled Corticosteroids (Fluticasone, Budesonide, Beclomethasone)`, badgeMeta: `Sector II • Asthma Foundation`,
+    etiology: `Lipophilic glucocorticoid receptor agonists delivered via MDI/DPI with high first-pass hepatic inactivation.`,
+    pathogenesis: `Bind cytosolic GR → translocate to nucleus → recruit HDAC2 to deacetylate histones & transrepress NF-kB/AP-1 → ↓IL-4, IL-5, IL-13, eosinophil survival & upregulate beta-2 receptor expression.`,
+    hallmarks: `Oropharyngeal candidiasis (thrush—white scrapable plaques), dysphonia (vocal cord myopathy), minimal HPA suppression at low-moderate doses.`,
+    clinical: `First-line daily controller for all persistent asthma (and step 1 PRN ICS-formoterol); added to LABA/LAMA in COPD patients with ≥300 eosinophils/µL or frequent exacerbations.`,
+    management: `Use spacer device and rinse/gargle water after every inhalation; treat thrush with topical nystatin or clotrimazole. Guild Master's Secret: ICS prevents LABA tachyphylaxis by upregulating beta-2 receptor transcription!`
+  },
+  {
+    lo: 5, sector: `sector_2`, tag: `II • Systemic Steroids`, compartment: `steroid_pde4`, ageGroup: `all_ages`, behavior: `nuclear_transcription`,
+    entity: `Systemic Corticosteroids (Prednisone, Methylprednisolone)`, badgeMeta: `Sector II • Exacerbation Rescue`,
+    etiology: `Oral prednisone/prednisolone or IV methylprednisolone for severe acute airway inflammation.`,
+    pathogenesis: `Inhibit phospholipase A2 (via lipocortin-1/annexin-1), blocking both COX and LOX; suppress NF-kB cytokine storm and induce eosinophil apoptosis while causing neutrophil demargination.`,
+    hallmarks: `Neutrophilic leukocytosis (demargination without left shift), hyperglycemia (gluconeogenesis/insulin resistance), hypokalemia, hypertension, peptic ulcer risk, osteoporosis/avascular necrosis chronically.`,
+    clinical: `Acute severe asthma exacerbation (status asthmaticus) and acute COPD exacerbations; takes 4–6 h for genomic onset so always pair with SABA immediately.`,
+    management: `Short bursts (<7–14 days) usually require no taper; chronic use requires taper to prevent adrenal crisis + PPI/calcium-vit D prophylaxis. Guild Master's Secret: Steroids cause neutrophilia + eosinopenia + lymphopenia on CBC!`
+  },
+  {
+    lo: 6, sector: `sector_2`, tag: `II • PDE-4i`, compartment: `steroid_pde4`, ageGroup: `adult_elderly`, behavior: `nuclear_transcription`,
+    entity: `PDE-4 Inhibitor (Roflumilast)`, badgeMeta: `Sector II • Severe COPD Add-On`,
+    etiology: `Oral selective phosphodiesterase-4 inhibitor targeting inflammatory cells in severe COPD.`,
+    pathogenesis: `Inhibits PDE-4 in neutrophils, macrophages, and airway smooth muscle → ↓cAMP breakdown → ↑cAMP → ↓TNF-alpha, IL-8, and neutrophil chemotaxis/elastase release.`,
+    hallmarks: `Not an acute bronchodilator; adverse effects include diarrhea, nausea, weight loss, insomnia, and psychiatric symptoms (depression/suicidality). Contraindicated in moderate-to-severe liver impairment.`,
+    clinical: `Add-on maintenance therapy for severe COPD (FEV1 <50%) with chronic bronchitis phenotype and frequent exacerbations despite LABA/LAMA/ICS.`,
+    management: `Monitor weight and mood/suicidal ideation; avoid strong CYP3A4/1A2 inducers like rifampin. Guild Master's Secret: Roflumilast is strictly for COPD chronic bronchitis—NEVER for asthma or acute rescue!`
+  },
+  {
+    lo: 7, sector: `sector_3`, tag: `III • LTRA`, compartment: `eicosanoid_mast`, ageGroup: `adult_elderly`, behavior: `mediator_blockade`,
+    entity: `CysLT1 Antagonists (Montelukast, Zafirlukast)`, badgeMeta: `Sector III • AERD & Oral Controller`,
+    etiology: `Oral selective cysteinyl leukotriene-1 (CysLT1) receptor antagonists ("-lukast").`,
+    pathogenesis: `Competitively block LTC4, LTD4, LTE4 binding at CysLT1 receptors on airway smooth muscle and endothelium → ↓bronchoconstriction, ↓vascular permeability, and ↓mucus secretion.`,
+    hallmarks: `Black box warning: neuropsychiatric events (agitation, vivid dreams, depression, suicidality); rare association with EGPA (Churg-Strauss) unmasking during steroid taper; zafirlukast inhibits CYP2C9 (↑warfarin).`,
+    clinical: `Aspirin-exacerbated respiratory disease (AERD/Samter triad: asthma + nasal polyps + ASA sensitivity), allergic rhinitis, and mild persistent asthma/EIB oral alternative.`,
+    management: `Screen for mood/behavioral changes; inferior to ICS as primary asthma controller. Guild Master's Secret: In AERD, COX-1 blockade shunts arachidonic acid down 5-LOX—CysLT1 antagonists block the resulting leukotriene surge!`
+  },
+  {
+    lo: 8, sector: `sector_3`, tag: `III • 5-LOX Inhibitor`, compartment: `eicosanoid_mast`, ageGroup: `adult_elderly`, behavior: `mediator_blockade`,
+    entity: `5-Lipoxygenase Inhibitor (Zileuton)`, badgeMeta: `Sector III • Upstream Leukotriene Block`,
+    etiology: `Oral direct 5-lipoxygenase (5-LOX) enzyme inhibitor blocking all leukotriene synthesis.`,
+    pathogenesis: `Inhibits 5-LOX conversion of arachidonic acid → 5-HPETE → LTA4, halting synthesis of both LTB4 (neutrophil chemoattractant) and CysLTs (LTC4/D4/E4).`,
+    hallmarks: `Dose-limiting hepatotoxicity (↑ALT/AST transaminases); inhibits CYP1A2 (↑theophylline and ↑warfarin levels); QID/BID dosing limits adherence.`,
+    clinical: `Alternative chronic controller in mild-to-moderate persistent asthma and refractory AERD when CysLT1 blockade is insufficient.`,
+    management: `Check baseline and periodic LFTs (monthly ×3, then q2–3mo first year); discontinue if ALT >3× ULN. Guild Master's Secret: Unlike "-lukasts", Zileuton also blocks LTB4-driven neutrophil chemotaxis!`
+  },
+  {
+    lo: 9, sector: `sector_3`, tag: `III • Mast Cell`, compartment: `eicosanoid_mast`, ageGroup: `pediatric`, behavior: `mediator_blockade`,
+    entity: `Mast Cell Stabilizers (Cromolyn sodium, Nedocromil)`, badgeMeta: `Sector III • Degranulation Prophylaxis`,
+    etiology: `Inhaled chromone prophylactic agents acting on sensitized airway mast cells.`,
+    pathogenesis: `Block delayed Cl- channels on mast cell membranes → prevent Ca2+-triggered degranulation → inhibit release of histamine, tryptase, and leukotrienes.`,
+    hallmarks: `Zero direct bronchodilator effect (useless in acute attack); excellent safety profile (mild cough/throat irritation); short duration requiring QID dosing.`,
+    clinical: `Prophylaxis prior to known allergen exposure or exercise-induced bronchospasm (alternative to SABA/ICS in children); also used for allergic conjunctivitis and mastocytosis.`,
+    management: `Administer 15–30 minutes before trigger or as regular maintenance; never use as rescue therapy. Guild Master's Secret: Cromolyn is safe in pregnancy/pediatrics, but completely ineffective once histamine is already released!`
+  },
+  {
+    lo: 10, sector: `sector_4`, tag: `IV • Biologics`, compartment: `biologic_xanthine_pah`, ageGroup: `all_ages`, behavior: `mediator_blockade`,
+    entity: `Respiratory Biologics (Omalizumab, Mepolizumab, Benralizumab, Dupilumab)`, badgeMeta: `Sector IV • Severe Asthma mAbs`,
+    etiology: `Subcutaneous monoclonal antibodies targeting IgE or Type-2 eosinophilic cytokines.`,
+    pathogenesis: `Omalizumab binds Fc of free IgE (blocking FcεRI mast-cell binding); Mepolizumab binds IL-5; Benralizumab binds IL-5Rα (ADCC eosinophil depletion); Dupilumab blocks IL-4Rα (inhibiting IL-4 & IL-13).`,
+    hallmarks: `Omalizumab requires elevated serum IgE + perennial allergen skin test (anaphylaxis observation risk); Mepolizumab/Benralizumab target blood eosinophils ≥150–300/µL; Dupilumab also treats nasal polyps & atopic dermatitis (watch transient eosinophilia).`,
+    clinical: `Step 5–6 add-on for severe refractory allergic or eosinophilic asthma unresponsive to high-dose ICS + LABA.`,
+    management: `Check baseline IgE or peripheral eosinophil count to match phenotype; monitor 2 h post-omalizumab for anaphylaxis. Guild Master's Secret: Dupilumab blocks BOTH IL-4 (IgE class switching) and IL-13 (mucus/AHR) via shared IL-4Rα!`
+  },
+  {
+    lo: 11, sector: `sector_4`, tag: `IV • Methylxanthine`, compartment: `biologic_xanthine_pah`, ageGroup: `adult_elderly`, behavior: `gpcr_cyclic_nucleotide`,
+    entity: `Methylxanthines (Theophylline, Aminophylline)`, badgeMeta: `Sector IV • Narrow TI Bronchodilator`,
+    etiology: `Plant-derived methylxanthine bronchodilator metabolized extensively by hepatic CYP1A2.`,
+    pathogenesis: `Non-selective PDE inhibition (↑cAMP/cGMP → bronchodilation) + adenosine A1/A2 receptor antagonism (↑diaphragm contractility, CNS stimulation, cardiac chronotropy).`,
+    hallmarks: `Narrow therapeutic index (5–15 µg/mL); toxicity (>20 µg/mL) causes nausea/vomiting, tremors, refractory arrhythmias, and status epilepticus; CYP1A2 inhibitors (ciprofloxacin, fluvoxamine, zileuton, cimetidine) spike levels; smoking/phenytoin induce CYP1A2.`,
+    clinical: `Rarely used third-line maintenance in refractory COPD/asthma due to toxicity and drug interactions.`,
+    management: `Monitor serum levels closely; treat overdose with activated charcoal, beta-blockers (esmolol for tachyarrhythmia/hypokalemia), and benzodiazepines for seizures. Guild Master's Secret: Ciprofloxacin + Theophylline = classic board CYP1A2 toxicity trap!`
+  },
+  {
+    lo: 12, sector: `sector_4`, tag: `IV • PAH Vasodilators`, compartment: `biologic_xanthine_pah`, ageGroup: `adult_elderly`, behavior: `gpcr_cyclic_nucleotide`,
+    entity: `PAH Rx (Bosentan, Sildenafil/Tadalafil, Epoprostenol/Iloprost)`, badgeMeta: `Sector IV • Pulmonary Vascular Axis`,
+    etiology: `Targeted pulmonary arterial vasodilators across Endothelin, NO–cGMP, and Prostacyclin pathways.`,
+    pathogenesis: `Bosentan/ambrisentan block ETA/ETB receptors (↓vasoconstriction); Sildenafil/tadalafil inhibit PDE-5 (↑cGMP); Epoprostenol/iloprost/treprostinil activate IP receptors (↑cAMP + antiplatelet).`,
+    hallmarks: `Bosentan causes hepatotoxicity (REMS LFTs monthly) & severe teratogenicity; PDE-5i cause flushing/headache/cyanopsia and fatal hypotension with nitrates; Epoprostenol has t1/2 ~3–5 min (continuous IV pump—abrupt stop causes rebound PH crisis).`,
+    clinical: `WHO Group 1 Pulmonary Arterial Hypertension (PAH); epoprostenol improves survival in severe NYHA Class III–IV PAH.`,
+    management: `Perform acute vasoreactivity testing first (if positive, use CCBs like nifedipine); never combine PDE-5i with nitrates or riociguat. Guild Master's Secret: Epoprostenol interruption causes lethal rebound pulmonary hypertensive crisis within minutes!`
+  },
+  {
+    lo: 13, sector: `sector_5`, tag: `V • Mucolytics`, compartment: `mucus_cough_omt`, ageGroup: `pediatric`, behavior: `clearance_neuro_omt`,
+    entity: `Mucolytics (N-Acetylcysteine, Dornase alfa)`, badgeMeta: `Sector V • Mucus & Clearance`,
+    etiology: `Nebulized/oral sulfhydryl donor (NAC) and recombinant human DNase I (dornase alfa).`,
+    pathogenesis: `N-acetylcysteine donates free sulfhydryl (-SH) groups to cleave disulfide (S–S) bonds in mucin glycoproteins (and replenishes hepatic glutathione in APAP overdose); Dornase alfa hydrolyzes viscous extracellular neutrophil DNA in purulent CF sputum.`,
+    hallmarks: `Inhaled NAC smells like rotten eggs and can trigger reflex bronchospasm in asthmatics (pre-treat with SABA); Dornase alfa specifically targets DNA-rich CF sputum (↑FEV1, ↓exacerbations).`,
+    clinical: `Dornase alfa is standard daily nebulized therapy in Cystic Fibrosis; NAC is IV/oral antidote for acetaminophen toxicity and occasional mucolytic in thick secretions.`,
+    management: `Administer SABA prior to inhaled NAC in hyperreactive airways; never mix dornase alfa with other nebulizer drugs. Guild Master's Secret: Cystic fibrosis mucus viscosity comes largely from dead neutrophil DNA—dornase alfa digests DNA, NOT mucin!`
+  },
+  {
+    lo: 14, sector: `sector_5`, tag: `V • Antitussives`, compartment: `mucus_cough_omt`, ageGroup: `all_ages`, behavior: `clearance_neuro_omt`,
+    entity: `Antitussives (Dextromethorphan, Codeine)`, badgeMeta: `Sector V • Central Cough Suppressants`,
+    etiology: `Centrally acting cough suppressants targeting the medullary cough center (NTS).`,
+    pathogenesis: `Dextromethorphan (D-isomer of levorphanol) antagonizes NMDA glutamate receptors and acts as a sigma-1 agonist without classic analgesia; Codeine (prodrug metabolized via CYP2D6 to morphine) activates µ-opioid receptors.`,
+    hallmarks: `Dextromethorphan abuse causes dissociative hallucinations (ketamine-like) and precipitates serotonin syndrome with SSRIs/MAOIs; Codeine causes constipation, respiratory depression, and unpredictable toxicity in CYP2D6 ultrarapid metabolizers.`,
+    clinical: `Short-term symptomatic suppression of dry, non-productive cough (avoid in productive pneumonia/bronchiectasis where clearance is needed).`,
+    management: `Avoid dextromethorphan with MAOIs/SSRIs; avoid codeine in children <12 or post-tonsillectomy (FDA boxed warning); reverse overdose with naloxone. Guild Master's Secret: Dextromethorphan + SSRI/linezolid = classic board Serotonin Syndrome vignette!`
+  },
+  {
+    lo: 15, sector: `sector_5`, tag: `V • Respiratory OMT`, compartment: `mucus_cough_omt`, ageGroup: `all_ages`, behavior: `clearance_neuro_omt`,
+    entity: `Respiratory OMT (T2–T7, OA–AA, Lymphatics, Ribs & Chapman)`, badgeMeta: `Sector V • COMLEX Dimension 1`,
+    etiology: `Osteopathic viscerosomatic reflexes, lymphatic drainage, and rib mechanics integrated with respiratory care.`,
+    pathogenesis: `Lung/bronchi sympathetics arise from T2–T7 (upper lobes T2–T4, lower lobes T5–T7); parasympathetics travel via CN X (vagus) modulated at OA/AA/C2; rib raising normalizes sympathetic tone & chest wall excursion; thoracic inlet release precedes thoracic pump.`,
+    hallmarks: `Anterior Chapman points for lung/bronchi at 2nd–4th intercostal spaces (3rd/4th ICS upper/lower lung, 2nd ICS bronchus); posterior Chapman points at T2–T4 spinous/transverse processes; inhalation dysfunction = bucket/pump-handle ribs stuck up (treat bottom rib first); exhalation = stuck down (treat top rib first).`,
+    clinical: `Adjunct in asthma, COPD, and pneumonia (thoracic pump + rib raising ↓LOS and ↑lymphatic clearance; contraindicated in acute unstable fracture, pneumothorax, or metastatic bone/abscess).`,
+    management: `Always open the thoracic inlet (Sibson fascia) BEFORE applying thoracic/pedal lymphatic pump; avoid aggressive pump in severe CHF/unstable sepsis. Guild Master's Secret: Treat the thoracic inlet FIRST so lymph actually has a drain!`
+  }
+];
+
+const ALL_QUESTIONS = [
+  // LO 1: SABA
+  {
+    id: `RP01-Q1`, lo: 1, sector: `sector_1`, compartment: `autonomic_bronchodilator`, ageGroup: `all_ages`, behavior: `gpcr_cyclic_nucleotide`,
+    loTitle: `Sector I • SABA (Albuterol, Levalbuterol)`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical Management & OMT`,
+    shortAnswer: `Continuous nebulized albuterol`,
+    stem: `A 19-year-old woman with asthma arrives in the ED with wheezing, accessory muscle use, and peak expiratory flow 45% predicted. She has used her rescue inhaler 10 times today without relief. Which immediate bronchodilator is indicated alongside systemic corticosteroids?`,
+    clue: `Acute status asthmaticus demands rapid-acting beta-2 adrenergic bronchodilation within minutes.`,
+    choices: [`Continuous nebulized albuterol`, `Oral montelukast 10 mg`, `Inhaled salmeterol DPI`],
+    correctIndex: 0,
+    explanation: `Correct: Nebulized albuterol (SABA) provides immediate (<5 min) beta-2 bronchodilation in acute severe asthma. Distractor exclusion: Montelukast lacks acute bronchodilator rescue activity, and salmeterol has a slow onset (~15–20 min) unsuitable for acute rescue.`,
+    secondOrderClue: `Acute severe bronchospasm + peak flow <50% → immediate SABA + systemic steroid (+ ipratropium if severe).`,
+    phase1Pearl: `Albuterol selectively activates Gs-coupled beta-2 receptors → ↑cAMP → PKA → ↓MLCK activity and smooth muscle relaxation.`,
+    phase2Hallmark: `Onset <5 minutes; repeated nebulized doses frequently induce hypokalemia and fine skeletal muscle tremor.`,
+    phase3Secret: `Guild Master's Secret: If a patient uses SABA >2 days/week, step up to ICS-formoterol or daily ICS controller.`
+  },
+  {
+    id: `RP01-Q2`, lo: 1, sector: `sector_1`, compartment: `autonomic_bronchodilator`, ageGroup: `all_ages`, behavior: `gpcr_cyclic_nucleotide`,
+    loTitle: `Sector I • SABA (Albuterol, Levalbuterol)`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pharmacodynamics & Receptors`,
+    shortAnswer: `PKA phosphorylation of MLCK`,
+    stem: `A 24-year-old man inhales albuterol 15 minutes before a 5K run to prevent exercise-induced bronchospasm. Activation of beta-2 receptors on bronchial smooth muscle produces relaxation primarily through which downstream intracellular event?`,
+    clue: `Trace Gs → adenylyl cyclase → cAMP → PKA and its effect on contractile myosin enzymes.`,
+    choices: [`PKA phosphorylation of MLCK`, `PLC activation releasing IP3`, `cGMP activation of PKG`],
+    correctIndex: 0,
+    explanation: `Correct: Beta-2 Gs signaling elevates cAMP and activates PKA, which phosphorylates and inactivates myosin light-chain kinase (MLCK) while sequestering Ca2+. Distractor exclusion: PLC/IP3 mediates M3-driven bronchoconstriction, whereas cGMP/PKG mediates nitric oxide/PDE-5 vascular dilation.`,
+    secondOrderClue: `Beta-2 agonist = Gs → ↑cAMP → PKA inhibits MLCK → bronchodilation.`,
+    phase1Pearl: `PKA also stimulates Na+/K+-ATPase and SERCA Ca2+ reuptake, lowering cytosolic Ca2+.`,
+    phase2Hallmark: `Skeletal muscle beta-2 Na+/K+-ATPase stimulation causes intracellular K+ shift and fine tremor.`,
+    phase3Secret: `Guild Master's Secret: Nebulized albuterol is an emergency temporizing therapy for acute hyperkalemia!`
+  },
+  {
+    id: `RP01-Q3`, lo: 1, sector: `sector_1`, compartment: `autonomic_bronchodilator`, ageGroup: `all_ages`, behavior: `gpcr_cyclic_nucleotide`,
+    loTitle: `Sector I • SABA (Albuterol, Levalbuterol)`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Kinetics, Biomarkers & Diagnostics`,
+    shortAnswer: `Serum potassium 2.9 mEq/L`,
+    stem: `A 32-year-old man receives high-dose continuous nebulized albuterol over 3 hours for an asthma exacerbation. He develops palpitations, hand tremor, and U waves on telemetry. Which laboratory abnormality explains these new findings?`,
+    clue: `Beta-2 stimulation drives an extracellular cation into skeletal muscle cells via Na+/K+-ATPase.`,
+    choices: [`Serum potassium 2.9 mEq/L`, `Serum sodium 122 mEq/L`, `Serum calcium 12.1 mg/dL`],
+    correctIndex: 0,
+    explanation: `Correct: Excessive beta-2 stimulation drives K+ into cells via Na+/K+-ATPase, producing hypokalemia (U waves, palpitations) alongside beta-2 tremor. Distractor exclusion: SABAs do not cause SIADH hyponatremia or hypercalcemia.`,
+    secondOrderClue: `Continuous SABA + U waves + tremor = beta-2-mediated intracellular K+ shift (hypokalemia).`,
+    phase1Pearl: `Beta-2 agonists activate cAMP-dependent Na+/K+-ATPase pumps in skeletal muscle and liver.`,
+    phase2Hallmark: `ECG shows flattened T waves and prominent U waves; mild lactic acidosis may also occur.`,
+    phase3Secret: `Guild Master's Secret: Check serum K+ during prolonged continuous SABA therapy and recheck before discharging.`
+  },
+
+  // LO 2: LABA
+  {
+    id: `RP02-Q1`, lo: 2, sector: `sector_1`, compartment: `autonomic_bronchodilator`, ageGroup: `all_ages`, behavior: `gpcr_cyclic_nucleotide`,
+    loTitle: `Sector I • LABA (Salmeterol, Formoterol)`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical Management & OMT`,
+    shortAnswer: `Increased asthma-related mortality`,
+    stem: `A 27-year-old woman with moderate persistent asthma stops her inhaled fluticasone because of hoarseness and continues using inhaled salmeterol alone twice daily. Why must salmeterol monotherapy be discontinued immediately in this patient?`,
+    clue: `Recall the FDA boxed warning regarding long-acting beta-2 agonists without inhaled steroids in asthma.`,
+    choices: [`Increased asthma-related mortality`, `Severe hepatotoxicity risk`, `Irreversible pulmonary fibrosis`],
+    correctIndex: 0,
+    explanation: `Correct: LABA monotherapy in asthma masks underlying airway inflammation while promoting beta-2 receptor downregulation, carrying a boxed warning for increased asthma-related death. Distractor exclusion: Hepatotoxicity belongs to zileuton/bosentan, and pulmonary fibrosis is associated with amiodarone/bleomycin/busulfan.`,
+    secondOrderClue: `Asthma + LABA without ICS = unmasked eosinophilic inflammation + severe fatal exacerbation risk.`,
+    phase1Pearl: `Chronic LABA exposure without steroids causes beta-arrestin-mediated receptor internalization (tachyphylaxis).`,
+    phase2Hallmark: `ICS restores beta-2 receptor gene transcription, preserving bronchodilator responsiveness.`,
+    phase3Secret: `Guild Master's Secret: LABA monotherapy is safe in COPD, NEVER in asthma!`
+  },
+  {
+    id: `RP02-Q2`, lo: 2, sector: `sector_1`, compartment: `autonomic_bronchodilator`, ageGroup: `all_ages`, behavior: `gpcr_cyclic_nucleotide`,
+    loTitle: `Sector I • LABA (Salmeterol, Formoterol)`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pharmacodynamics & Receptors`,
+    shortAnswer: `Lipophilic membrane anchoring`,
+    stem: `A 58-year-old man with COPD switches from albuterol QID to twice-daily salmeterol. What structural property accounts for salmeterol's 12-hour bronchodilator duration compared with albuterol?`,
+    clue: `Think about how the elongated nonpolar tail interacts with the lipid bilayer near the beta-2 binding pocket.`,
+    choices: [`Lipophilic membrane anchoring`, `Irreversible covalent receptor binding`, `Enterohepatic recirculation`],
+    correctIndex: 0,
+    explanation: `Correct: Salmeterol contains a long lipophilic aliphatic side chain that partitions into the lipid bilayer ("exosite") near the beta-2 receptor, producing sustained ≥12 h activation. Distractor exclusion: LABAs bind reversibly (not covalently) and act locally via inhalation rather than enterohepatic cycling.`,
+    secondOrderClue: `Lipophilic side chain → membrane depot near beta-2 receptor → 12-hour bronchodilation.`,
+    phase1Pearl: `Salmeterol has slow onset (~15–20 min) due to membrane partitioning, whereas formoterol has rapid onset (<5 min).`,
+    phase2Hallmark: `Duration of action ≥12 hours permits BID maintenance dosing (vs ultra-LABAs like vilanterol/olodaterol QD).`,
+    phase3Secret: `Guild Master's Secret: Formoterol + budesonide serves as BOTH controller and rescue in GINA SMART/MART regimens.`
+  },
+  {
+    id: `RP02-Q3`, lo: 2, sector: `sector_1`, compartment: `autonomic_bronchodilator`, ageGroup: `all_ages`, behavior: `gpcr_cyclic_nucleotide`,
+    loTitle: `Sector I • LABA (Salmeterol, Formoterol)`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 3: Clinical Management & OMT`,
+    shortAnswer: `Budesonide-formoterol MART inhaler`,
+    stem: `A 22-year-old man with mild-to-moderate persistent asthma wants a single inhaler that provides both daily anti-inflammatory control and rapid symptom relief when wheezing occurs. Which regimen fulfills GINA Track 1 guidelines?`,
+    clue: `Only one classic LABA combines rapid <5 min onset with 12-hour maintenance duration alongside an ICS.`,
+    choices: [`Budesonide-formoterol MART inhaler`, `Fluticasone-salmeterol plus montelukast`, `Tiotropium monotherapy inhaler`],
+    correctIndex: 0,
+    explanation: `Correct: Budesonide-formoterol (ICS-formoterol) works for both maintenance and reliever therapy (MART) because formoterol has rapid (<5 min) onset. Distractor exclusion: Salmeterol is too slow for rescue relief, and tiotropium monotherapy lacks anti-inflammatory control in asthma.`,
+    secondOrderClue: `Single inhaler for maintenance + rescue in asthma = ICS + Formoterol (rapid-onset LABA).`,
+    phase1Pearl: `Every rescue puff of ICS-formoterol delivers anti-inflammatory steroid simultaneously with rapid beta-2 dilation.`,
+    phase2Hallmark: `GINA Track 1 reduces severe exacerbations compared with SABA-only rescue.`,
+    phase3Secret: `Guild Master's Secret: Never use fluticasone-salmeterol as a rescue inhaler—salmeterol onset is too slow!`
+  },
+
+  // LO 3: Muscarinic Antagonists
+  {
+    id: `RP03-Q1`, lo: 3, sector: `sector_1`, compartment: `autonomic_bronchodilator`, ageGroup: `adult_elderly`, behavior: `gpcr_cyclic_nucleotide`,
+    loTitle: `Sector I • Muscarinic Antagonists`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 2: Kinetics, Biomarkers & Diagnostics`,
+    shortAnswer: `Tiotropium (LAMA)`,
+    stem: `A 67-year-old man with a 45-pack-year smoking history has chronic productive cough, dyspnea on exertion, and FEV1/FVC of 0.58 with minimal eosinophils (80/µL). Which once-daily inhaled agent is preferred first-line maintenance to reduce COPD exacerbations?`,
+    clue: `Vagal M3 tone is the dominant reversible component of airflow limitation in COPD.`,
+    choices: [`Tiotropium (LAMA)`, `Inhaled budesonide monotherapy`, `Oral zileuton`],
+    correctIndex: 0,
+    explanation: `Correct: Long-acting muscarinic antagonists (tiotropium) are cornerstone first-line maintenance therapy in COPD, reducing dyspnea and exacerbations. Distractor exclusion: ICS monotherapy is contraindicated in COPD (↑pneumonia risk without bronchodilation), and zileuton is for asthma.`,
+    secondOrderClue: `COPD maintenance + low eosinophils → LAMA (tiotropium) or LAMA + LABA.`,
+    phase1Pearl: `M3 antagonism blocks parasympathetic vagal tone, reducing both airway smooth muscle constriction and mucus secretion.`,
+    phase2Hallmark: `Tiotropium exhibits very slow dissociation from M3 receptors, giving 24-hour once-daily coverage.`,
+    phase3Secret: `Guild Master's Secret: Add ICS to LAMA/LABA in COPD mainly when blood eosinophils are ≥300/µL or ≥2 exacerbations/yr.`
+  },
+  {
+    id: `RP03-Q2`, lo: 3, sector: `sector_1`, compartment: `autonomic_bronchodilator`, ageGroup: `adult_elderly`, behavior: `gpcr_cyclic_nucleotide`,
+    loTitle: `Sector I • Muscarinic Antagonists`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pharmacodynamics & Receptors`,
+    shortAnswer: `M3 Gq/IP3-DAG blockade`,
+    stem: `A 71-year-old man with acute COPD exacerbation receives nebulized ipratropium bromide. Why does ipratropium avoid central nervous system delirium compared with atropine?`,
+    clue: `Compare the molecular charge of ipratropium/tiotropium with tertiary amine atropine.`,
+    choices: [`Quaternary amine blocks BBB entry`, `Selective M1 CNS sparing`, `Rapid plasma esterase cleavage`],
+    correctIndex: 0,
+    explanation: `Correct: Ipratropium and tiotropium are permanently charged quaternary ammonium compounds that poorly cross lipid membranes and cannot penetrate the blood-brain barrier. Distractor exclusion: They are non-selective muscarinic antagonists (not M1-sparing) and rely on poor absorption rather than esterase cleavage.`,
+    secondOrderClue: `Quaternary ammonium (-ium: ipratropium, tiotropium) = local airway action, zero CNS anticholinergic delirium.`,
+    phase1Pearl: `Blocking M3 Gq receptors prevents PLC-mediated IP3/Ca2+ release, decreasing vagal bronchoconstriction and mucus.`,
+    phase2Hallmark: `Minimal systemic absorption; main side effects are dry mouth and bitter taste.`,
+    phase3Secret: `Guild Master's Secret: Quaternary amines stay local—unless nebulizer mist blows directly into the eyes!`
+  },
+  {
+    id: `RP03-Q3`, lo: 3, sector: `sector_1`, compartment: `autonomic_bronchodilator`, ageGroup: `adult_elderly`, behavior: `gpcr_cyclic_nucleotide`,
+    loTitle: `Sector I • Muscarinic Antagonists`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Kinetics, Biomarkers & Diagnostics`,
+    shortAnswer: `Acute angle-closure glaucoma`,
+    stem: `A 74-year-old woman receiving continuous face-mask nebulized ipratropium plus albuterol for severe COPD develops sudden unilateral eye pain, halos around lights, nausea, and a fixed mid-dilated pupil. What complication occurred?`,
+    clue: `Poorly sealed nebulizer masks allow antimuscarinic mist to cause mydriasis and block trabecular outflow.`,
+    choices: [`Acute angle-closure glaucoma`, `Beta-2-induced optic neuritis`, `Steroid-induced subcapsular cataract`],
+    correctIndex: 0,
+    explanation: `Correct: Nebulized ipratropium mist contacting the cornea causes pupillary dilation (mydriasis) and precipitates acute angle-closure glaucoma in predisposed eyes. Distractor exclusion: Albuterol does not cause acute optic neuritis, and cataracts develop chronically over months/years.`,
+    secondOrderClue: `Nebulized ipratropium + eye pain + halos + mid-dilated pupil = acute angle-closure glaucoma.`,
+    phase1Pearl: `Local M3 blockade on iris sphincter and ciliary muscle narrows the iridocorneal drainage angle.`,
+    phase2Hallmark: `Tonometry shows markedly elevated intraocular pressure (>30–50 mmHg) with corneal edema.`,
+    phase3Secret: `Guild Master's Secret: Use a mouthpiece instead of a loose face mask when nebulizing ipratropium in elderly patients!`
+  },
+
+  // LO 4: Inhaled Corticosteroids
+  {
+    id: `RP04-Q1`, lo: 4, sector: `sector_2`, compartment: `steroid_pde4`, ageGroup: `all_ages`, behavior: `nuclear_transcription`,
+    loTitle: `Sector II • Inhaled Corticosteroids (ICS)`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 2: Kinetics, Biomarkers & Diagnostics`,
+    shortAnswer: `Oropharyngeal candidiasis (thrush)`,
+    stem: `A 14-year-old boy recently started high-dose inhaled fluticasone for persistent asthma. Two weeks later, he presents with painless white, curd-like plaques on his soft palate and buccal mucosa that scrape off easily, revealing erythematous bases. What caused this lesion?`,
+    clue: `Local mucosal immunosuppression in the oropharynx promotes fungal overgrowth when patients skip rinsing.`,
+    choices: [`Oropharyngeal candidiasis (thrush)`, `Oral hairy leukoplakia`, `Herpes simplex gingivostomatitis`],
+    correctIndex: 0,
+    explanation: `Correct: Local deposition of inhaled corticosteroids suppresses mucosal cell-mediated immunity, causing Candida albicans thrush (scrapable white plaques). Distractor exclusion: Oral hairy leukoplakia (EBV) is non-scrapable on lateral tongue, and HSV causes painful vesicles/ulcers.`,
+    secondOrderClue: `ICS inhaler + scrapable white oral plaques = Candida thrush → treat with nystatin & add spacer + rinse.`,
+    phase1Pearl: `ICS suppresses local T-helper cytokine signaling in pharyngeal epithelium without systemic immunosuppression.`,
+    phase2Hallmark: `KOH prep reveals pseudohyphae and budding yeast; dysphonia (vocal cord adductor myopathy) may co-occur.`,
+    phase3Secret: `Guild Master's Secret: Always counsel patients to use a valved holding chamber (spacer) and rinse/spit after every ICS puff!`
+  },
+  {
+    id: `RP04-Q2`, lo: 4, sector: `sector_2`, compartment: `steroid_pde4`, ageGroup: `all_ages`, behavior: `nuclear_transcription`,
+    loTitle: `Sector II • Inhaled Corticosteroids (ICS)`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pharmacodynamics & Receptors`,
+    shortAnswer: `HDAC2 recruitment & NF-kB block`,
+    stem: `A 30-year-old woman begins daily inhaled budesonide for mild persistent asthma. Over 3 weeks, her bronchial hyperresponsiveness and sputum eosinophils decline dramatically. Which nuclear mechanism mediates this anti-inflammatory effect?`,
+    clue: `Glucocorticoid receptors recruit an epigenetic enzyme to silence pro-inflammatory cytokine genes.`,
+    choices: [`HDAC2 recruitment & NF-kB block`, `Direct CysLT1 receptor antagonism`, `Histone acetyltransferase activation`],
+    correctIndex: 0,
+    explanation: `Correct: Activated glucocorticoid receptors recruit histone deacetylase-2 (HDAC2) to deacetylate histones and transrepress NF-kB/AP-1, silencing IL-4, IL-5, IL-13, and chemokine transcription. Distractor exclusion: ICS does not bind CysLT1 directly, and HAT activation promotes (not represses) inflammatory transcription.`,
+    secondOrderClue: `ICS → cytosolic GR → nucleus → HDAC2 recruitment + NF-kB transrepression → ↓eosinophils & AHR.`,
+    phase1Pearl: `Oxidative stress in heavy smokers/severe COPD inhibits HDAC2, explaining relative steroid resistance in COPD.`,
+    phase2Hallmark: `Also increases transcription of anti-inflammatory annexin-1 (lipocortin-1) and beta-2 adrenergic receptors.`,
+    phase3Secret: `Guild Master's Secret: Low-dose theophylline experimentally restores HDAC2 activity in steroid-resistant COPD!`
+  },
+  {
+    id: `RP04-Q3`, lo: 4, sector: `sector_2`, compartment: `steroid_pde4`, ageGroup: `all_ages`, behavior: `nuclear_transcription`,
+    loTitle: `Sector II • Inhaled Corticosteroids (ICS)`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 3: Clinical Management & OMT`,
+    shortAnswer: `Topical nystatin + spacer use`,
+    stem: `A 41-year-old teacher on fluticasone-salmeterol develops hoarseness and white pharyngeal plaques. She needs to maintain asthma control while resolving her symptoms. What is the best management?`,
+    clue: `Treat the fungal overgrowth locally and reduce oropharyngeal drug deposition without stopping controller therapy.`,
+    choices: [`Topical nystatin + spacer use`, `Stop ICS and use salmeterol alone`, `Start oral fluconazole + prednisone`],
+    correctIndex: 0,
+    explanation: `Correct: Treat thrush with topical nystatin (or clotrimazole troches), add a spacer/rinse routine, and continue ICS therapy. Distractor exclusion: Stopping ICS leaves fatal LABA monotherapy, and systemic fluconazole/prednisone is unnecessary and counterproductive.`,
+    secondOrderClue: `ICS thrush → topical antifungal + spacer + rinse/spit (never drop ICS leaving LABA alone).`,
+    phase1Pearl: `Spacers capture large aerosol particles that would otherwise impact the posterior pharynx.`,
+    phase2Hallmark: `High first-pass hepatic metabolism of swallowed fluticasone/budesonide minimizes systemic HPA suppression.`,
+    phase3Secret: `Guild Master's Secret: Ciclesonide is a prodrug activated by lung esterases—lowest rate of oral thrush!`
+  },
+
+  // LO 5: Systemic Corticosteroids
+  {
+    id: `RP05-Q1`, lo: 5, sector: `sector_2`, compartment: `steroid_pde4`, ageGroup: `all_ages`, behavior: `nuclear_transcription`,
+    loTitle: `Sector II • Systemic Corticosteroids`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical Management & OMT`,
+    shortAnswer: `IV methylprednisolone`,
+    stem: `A 26-year-old man with status asthmaticus is speaking in single words, has a silent chest on auscultation, and SpO2 89% despite three back-to-back nebulized albuterol-ipratropium treatments. Beyond preparing for airway support, which medication is mandatory immediately to halt late-phase airway edema?`,
+    clue: `Systemic glucocorticoids require 4–6 hours for genomic effect, so give early in severe refractory exacerbations.`,
+    choices: [`IV methylprednisolone`, `Inhaled cromolyn sodium`, `IV aminophylline bolus`],
+    correctIndex: 0,
+    explanation: `Correct: Systemic corticosteroids (IV methylprednisolone or oral prednisone if able to swallow) are essential in severe asthma exacerbations to suppress late-phase inflammation and restore beta-2 responsiveness. Distractor exclusion: Cromolyn has zero role in acute attacks, and aminophylline adds toxicity without proven benefit over SABA + steroids.`,
+    secondOrderClue: `Status asthmaticus + silent chest → SABA + ipratropium + IV methylprednisolone (+ IV MgSO4 if refractory).`,
+    phase1Pearl: `Systemic steroids reverse beta-2 receptor downregulation within hours and reduce mucosal edema/mucus plugging.`,
+    phase2Hallmark: `Genomic anti-inflammatory onset takes 4–6 hours; peak clinical improvement occurs over 6–24 hours.`,
+    phase3Secret: `Guild Master's Secret: Oral prednisone has equal bioavailability to IV methylprednisolone if the patient can swallow safely!`
+  },
+  {
+    id: `RP05-Q2`, lo: 5, sector: `sector_2`, compartment: `steroid_pde4`, ageGroup: `all_ages`, behavior: `nuclear_transcription`,
+    loTitle: `Sector II • Systemic Corticosteroids`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pharmacodynamics & Receptors`,
+    shortAnswer: `Phospholipase A2 inhibition`,
+    stem: `A 64-year-old woman hospitalized for a COPD exacerbation receives IV methylprednisolone. By inducing synthesis of annexin-1 (lipocortin-1), systemic corticosteroids simultaneously suppress production of both prostaglandins and leukotrienes by inhibiting which enzyme?`,
+    clue: `This enzyme sits at the top of the arachidonic acid cascade above both COX and 5-LOX.`,
+    choices: [`Phospholipase A2`, `Cyclooxygenase-2 only`, `5-Lipoxygenase activating protein`],
+    correctIndex: 0,
+    explanation: `Correct: Corticosteroids induce lipocortin-1 (annexin-1), which inhibits phospholipase A2 (PLA2), blocking release of arachidonic acid from membrane phospholipids and suppressing both COX (prostaglandins) and LOX (leukotrienes). Distractor exclusion: Inhibiting COX-2 or 5-LOX alone blocks only one branch.`,
+    secondOrderClue: `Steroids → lipocortin-1 → inhibits PLA2 → blocks BOTH prostaglandin & leukotriene pathways.`,
+    phase1Pearl: `Simultaneously represses NF-kB transcription of TNF-alpha, IL-1, IL-6, and adhesion molecules (VCAM-1/ICAM-1).`,
+    phase2Hallmark: `Decreased endothelial adhesion molecules causes circulating neutrophilia via demargination.`,
+    phase3Secret: `Guild Master's Secret: Look for high WBC (neutrophils) + near-zero eosinophils on CBC after starting prednisone!`
+  },
+  {
+    id: `RP05-Q3`, lo: 5, sector: `sector_2`, compartment: `steroid_pde4`, ageGroup: `all_ages`, behavior: `nuclear_transcription`,
+    loTitle: `Sector II • Systemic Corticosteroids`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Kinetics, Biomarkers & Diagnostics`,
+    shortAnswer: `Neutrophil demargination`,
+    stem: `A 59-year-old man admitted for severe asthma improves markedly 24 hours after starting IV methylprednisolone. He is afebrile with clear chest imaging, yet his WBC rises from 8,200 to 16,400/µL with 88% mature neutrophils and 0% eosinophils. What explains this CBC change?`,
+    clue: `Glucocorticoids downregulate endothelial selectins/integrins, releasing marginated granulocytes into the bloodstream.`,
+    choices: [`Neutrophil demargination`, `Occult Pseudomonas bacteremia`, `Bone marrow myeloid leukemia`],
+    correctIndex: 0,
+    explanation: `Correct: Glucocorticoids decrease neutrophil adhesion molecule expression and margination, releasing pooled neutrophils into circulating blood while inducing eosinophil apoptosis. Distractor exclusion: Afebrile clinical improvement with mature neutrophils (no bands/left shift) argues against occult sepsis or leukemia.`,
+    secondOrderClue: `Afebrile patient on steroids + ↑mature neutrophils + ↓eosinophils = steroid-induced demargination.`,
+    phase1Pearl: `Steroids inhibit L-selectin and integrin-mediated margination while delaying neutrophil apoptosis.`,
+    phase2Hallmark: `Expect concurrent hyperglycemia (gluconeogenesis + peripheral insulin resistance) in hospitalized patients.`,
+    phase3Secret: `Guild Master's Secret: A 5-day prednisone burst (40–50 mg/day) for COPD/asthma exacerbation does NOT require a taper!`
+  },
+
+  // LO 6: PDE-4 Inhibitor
+  {
+    id: `RP06-Q1`, lo: 6, sector: `sector_2`, compartment: `steroid_pde4`, ageGroup: `adult_elderly`, behavior: `nuclear_transcription`,
+    loTitle: `Sector II • PDE-4 Inhibitor (Roflumilast)`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical Management & OMT`,
+    shortAnswer: `Roflumilast`,
+    stem: `A 68-year-old man with severe COPD (FEV1 38% predicted) and chronic bronchitis has 3 hospitalizations this year despite triple therapy with tiotropium, salmeterol, and fluticasone. Which oral add-on agent reduces exacerbations in this phenotype?`,
+    clue: `Select the oral anti-inflammatory phosphodiesterase inhibitor approved specifically for severe COPD with chronic bronchitis.`,
+    choices: [`Roflumilast`, `Omalizumab`, `Montelukast`],
+    correctIndex: 0,
+    explanation: `Correct: Roflumilast (oral selective PDE-4 inhibitor) is indicated as add-on maintenance in severe COPD with chronic bronchitis and recurrent exacerbations despite maximal inhaled therapy. Distractor exclusion: Omalizumab is for allergic asthma, and montelukast lacks efficacy in COPD.`,
+    secondOrderClue: `Severe COPD (FEV1 <50%) + chronic bronchitis + frequent exacerbations on triple therapy → add Roflumilast.`,
+    phase1Pearl: `PDE-4 inhibition raises intracellular cAMP inside neutrophils and macrophages, suppressing TNF-alpha and IL-8.`,
+    phase2Hallmark: `Does NOT act as a rapid bronchodilator; clinical benefit is fewer exacerbations over months.`,
+    phase3Secret: `Guild Master's Secret: Roflumilast is strictly for COPD chronic bronchitis—NEVER prescribe for acute rescue or asthma!`
+  },
+  {
+    id: `RP06-Q2`, lo: 6, sector: `sector_2`, compartment: `steroid_pde4`, ageGroup: `adult_elderly`, behavior: `nuclear_transcription`,
+    loTitle: `Sector II • PDE-4 Inhibitor (Roflumilast)`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pharmacodynamics & Receptors`,
+    shortAnswer: `Selective PDE-4 inhibition (↑cAMP)`,
+    stem: `A 66-year-old woman begins roflumilast for refractory chronic bronchitis. Unlike theophylline, roflumilast avoids cardiac arrhythmias and adenosine antagonism because it selectively targets which enzyme predominant in inflammatory leukocytes?`,
+    clue: `Which cyclic nucleotide phosphodiesterase isoform degrades cAMP inside neutrophils, eosinophils, and macrophages?`,
+    choices: [`Phosphodiesterase-4 (PDE-4)`, `Phosphodiesterase-5 (PDE-5)`, `Phosphodiesterase-3 (PDE-3)`],
+    correctIndex: 0,
+    explanation: `Correct: Roflumilast selectively inhibits PDE-4 (predominant in inflammatory cells and airway tissue), raising cAMP without inhibiting PDE-3 (cardiac) or antagonizing adenosine receptors. Distractor exclusion: PDE-5 degrades cGMP in pulmonary/penile vasculature (sildenafil), and PDE-3 increases cardiac contractility (milrinone).`,
+    secondOrderClue: `PDE-4 = leukocyte cAMP breakdown → roflumilast ↓neutrophilic COPD inflammation.`,
+    phase1Pearl: `Elevated leukocyte cAMP activates PKA, suppressing NF-kB release of inflammatory cytokines and matrix metalloproteinases.`,
+    phase2Hallmark: `Converted via CYP3A4/1A2 to active metabolite roflumilast N-oxide.`,
+    phase3Secret: `Guild Master's Secret: Contraindicated in Child-Pugh B/C liver disease and with strong CYP3A4/1A2 inducers!`
+  },
+  {
+    id: `RP06-Q3`, lo: 6, sector: `sector_2`, compartment: `steroid_pde4`, ageGroup: `adult_elderly`, behavior: `nuclear_transcription`,
+    loTitle: `Sector II • PDE-4 Inhibitor (Roflumilast)`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Kinetics, Biomarkers & Diagnostics`,
+    shortAnswer: `Weight loss, diarrhea & depression`,
+    stem: `A 65-year-old man started on roflumilast 6 weeks ago returns reporting chronic watery diarrhea, a 6-kg unintentional weight loss, insomnia, and worsening depressed mood with passive suicidal thoughts. What is the appropriate action?`,
+    clue: `PDE-4 inhibitors share GI and CNS psychiatric adverse effects that require prompt drug discontinuation.`,
+    choices: [`Discontinue roflumilast immediately`, `Add loperamide and double the dose`, `Switch to theophylline for mood stability`],
+    correctIndex: 0,
+    explanation: `Correct: Roflumilast commonly causes GI upset (diarrhea, nausea), significant weight loss, and psychiatric adverse events (depression, anxiety, suicidal ideation), requiring discontinuation. Distractor exclusion: Escalating dose worsens toxicity, and theophylline causes CNS excitation/arrhythmias.`,
+    secondOrderClue: `Roflumilast + diarrhea + weight loss + depression/suicidality → stop drug immediately.`,
+    phase1Pearl: `Central PDE-4 inhibition alters hypothalamic appetite signaling and limbic cAMP pathways.`,
+    phase2Hallmark: `Monitor body weight at every visit and screen carefully for history of depression before prescribing.`,
+    phase3Secret: `Guild Master's Secret: Never prescribe roflumilast to an already cachectic COPD patient or one with active depression!`
+  },
+
+  // LO 7: CysLT1 Antagonists
+  {
+    id: `RP07-Q1`, lo: 7, sector: `sector_3`, compartment: `eicosanoid_mast`, ageGroup: `adult_elderly`, behavior: `mediator_blockade`,
+    loTitle: `Sector III • CysLT1 Antagonists (Montelukast)`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical Management & OMT`,
+    shortAnswer: `Montelukast (CysLT1 antagonist)`,
+    stem: `A 36-year-old man with adult-onset asthma and recurrent bilateral nasal polyps develops severe wheezing and rhinorrhea 45 minutes after taking ibuprofen for a headache. Which targeted oral medication specifically blocks the mediator surge driving this syndrome?`,
+    clue: `Samter triad (AERD) is driven by COX-1 inhibition shunting arachidonic acid toward cysteinyl leukotrienes.`,
+    choices: [`Montelukast (CysLT1 antagonist)`, `Omalizumab (anti-IgE mAb)`, `Ipratropium (M3 antagonist)`],
+    correctIndex: 0,
+    explanation: `Correct: Aspirin-exacerbated respiratory disease (AERD/Samter triad) results from COX-1 blockade shunting arachidonic acid into the 5-LOX pathway; montelukast blocks CysLT1 receptors activated by LTC4/D4/E4. Distractor exclusion: AERD is non-IgE-mediated (omalizumab is not primary mediator blocker), and ipratropium does not block leukotrienes.`,
+    secondOrderClue: `Asthma + nasal polyps + NSAID/ASA-triggered bronchospasm = AERD → treat with montelukast/zileuton + ICS.`,
+    phase1Pearl: `COX-1 inhibition removes PGE2 brake on 5-LOX, causing massive CysLT release (LTC4, LTD4, LTE4).`,
+    phase2Hallmark: `Elevated urinary LTE4 levels during NSAID challenge confirm excessive cysteinyl leukotriene production.`,
+    phase3Secret: `Guild Master's Secret: Selective COX-2 inhibitors (celecoxib) are usually tolerated in AERD because COX-1 drives the shunt!`
+  },
+  {
+    id: `RP07-Q2`, lo: 7, sector: `sector_3`, compartment: `eicosanoid_mast`, ageGroup: `adult_elderly`, behavior: `mediator_blockade`,
+    loTitle: `Sector III • CysLT1 Antagonists (Montelukast)`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pharmacodynamics & Receptors`,
+    shortAnswer: `CysLT1 receptor blockade (LTD4)`,
+    stem: `A 12-year-old girl takes oral montelukast every evening for allergic rhinitis and mild persistent asthma. Which physiologic effect directly results from selective antagonism of the CysLT1 receptor?`,
+    clue: `Think about the actions of LTC4, LTD4, and LTE4 (formerly SRS-A) on bronchial smooth muscle and vessels.`,
+    choices: [`↓Bronchoconstriction & mucus edema`, `↓LTB4 neutrophil chemotaxis`, `Direct mast cell membrane stabilization`],
+    correctIndex: 0,
+    explanation: `Correct: Montelukast and zafirlukast block LTD4/LTC4/LTE4 at CysLT1 receptors, reducing bronchoconstriction, microvascular permeability, and mucus secretion. Distractor exclusion: LTB4 acts at BLT1 (blocked upstream by zileuton, not "-lukasts"), and cromolyn stabilizes mast cells.`,
+    secondOrderClue: `Montelukast/Zafirlukast = CysLT1 receptor blockers → block LTC4/D4/E4 (NOT LTB4).`,
+    phase1Pearl: `LTD4 is the highest-affinity agonist at the Gq-coupled CysLT1 receptor on airway smooth muscle.`,
+    phase2Hallmark: `Zafirlukast inhibits CYP2C9 (raising warfarin/INR), whereas montelukast has fewer CYP interactions.`,
+    phase3Secret: `Guild Master's Secret: Remember "-lukast" = Leukotriene receptor antagonist; oral once-daily dosing boosts pediatric adherence!`
+  },
+  {
+    id: `RP07-Q3`, lo: 7, sector: `sector_3`, compartment: `eicosanoid_mast`, ageGroup: `adult_elderly`, behavior: `mediator_blockade`,
+    loTitle: `Sector III • CysLT1 Antagonists (Montelukast)`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Kinetics, Biomarkers & Diagnostics`,
+    shortAnswer: `Neuropsychiatric black box warning`,
+    stem: `A 16-year-old boy started on montelukast 3 weeks ago for mild asthma and allergic rhinitis develops new severe nightmares, nocturnal agitation, and depressed mood. What is the FDA boxed warning associated with this drug?`,
+    clue: `Montelukast carries a prominent CNS behavioral safety warning requiring drug cessation if mood symptoms emerge.`,
+    choices: [`Serious neuropsychiatric events`, `Fulminant hepatic necrosis`, `QTc prolongation & torsades`],
+    correctIndex: 0,
+    explanation: `Correct: Montelukast carries an FDA boxed warning for serious neuropsychiatric events (agitation, vivid dreams/nightmares, depression, suicidal thoughts/behavior). Distractor exclusion: Hepatotoxicity is classic for zileuton/bosentan, and QTc prolongation is not a boxed warning of montelukast.`,
+    secondOrderClue: `Montelukast + nightmares/agitation/depression → neuropsychiatric boxed warning → stop montelukast.`,
+    phase1Pearl: `Central CysLT1 signaling alterations may underlie sleep and mood disturbances in susceptible patients.`,
+    phase2Hallmark: `Also watch for rare EGPA (Churg-Strauss vasculitis) unmasking when oral steroids are tapered after starting LTRAs.`,
+    phase3Secret: `Guild Master's Secret: For allergic rhinitis alone, intranasal steroids are preferred over montelukast due to neuropsychiatric risk!`
+  },
+
+  // LO 8: 5-LOX Inhibitor (Zileuton)
+  {
+    id: `RP08-Q1`, lo: 8, sector: `sector_3`, compartment: `eicosanoid_mast`, ageGroup: `adult_elderly`, behavior: `mediator_blockade`,
+    loTitle: `Sector III • 5-LOX Inhibitor (Zileuton)`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 2: Kinetics, Biomarkers & Diagnostics`,
+    shortAnswer: `Zileuton-induced hepatotoxicity`,
+    stem: `A 44-year-old woman with severe AERD unresponsive to montelukast starts a new oral leukotriene modifier. Two months later, routine labs show AST 240 U/L and ALT 310 U/L (baseline normal). Which drug caused this transaminitis?`,
+    clue: `This upstream leukotriene synthesis inhibitor requires baseline and serial liver function monitoring.`,
+    choices: [`Zileuton`, `Montelukast`, `Cromolyn sodium`],
+    correctIndex: 0,
+    explanation: `Correct: Zileuton directly inhibits 5-lipoxygenase and causes asymptomatic transaminase elevation or hepatotoxicity in ~2–5% of patients, requiring serial LFT monitoring. Distractor exclusion: Montelukast rarely causes significant transaminitis compared with zileuton, and cromolyn has virtually no hepatic toxicity.`,
+    secondOrderClue: `Upstream 5-LOX inhibitor + ALT/AST >3× ULN → Zileuton hepatotoxicity.`,
+    phase1Pearl: `Zileuton chelates the active-site iron of 5-lipoxygenase, halting leukotriene biosynthesis.`,
+    phase2Hallmark: `Check LFTs before starting, monthly for 3 months, then every 2–3 months during year 1.`,
+    phase3Secret: `Guild Master's Secret: Zileuton also inhibits CYP1A2—watch out if the patient also takes theophylline or warfarin!`
+  },
+  {
+    id: `RP08-Q2`, lo: 8, sector: `sector_3`, compartment: `eicosanoid_mast`, ageGroup: `adult_elderly`, behavior: `mediator_blockade`,
+    loTitle: `Sector III • 5-LOX Inhibitor (Zileuton)`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pharmacodynamics & Receptors`,
+    shortAnswer: `Blocks both LTB4 & CysLTs`,
+    stem: `A 49-year-old man with neutrophilic airway inflammation switches from montelukast to zileuton. How does zileuton's mechanism differ from montelukast within the arachidonic acid cascade?`,
+    clue: `Compare blocking the enzyme 5-lipoxygenase versus blocking only the downstream CysLT1 receptor.`,
+    choices: [`Inhibits 5-LOX, blocking LTB4 too`, `Blocks PLA2 and COX-1 enzymes`, `Antagonizes histamine H1 receptors`],
+    correctIndex: 0,
+    explanation: `Correct: By inhibiting 5-lipoxygenase (5-LOX), zileuton blocks formation of LTA4, eliminating synthesis of BOTH LTB4 (potent neutrophil chemoattractant) and cysteinyl leukotrienes (LTC4/D4/E4). Distractor exclusion: Steroids inhibit PLA2, NSAIDs inhibit COX, and H1 antagonists block histamine.`,
+    secondOrderClue: `Zileuton inhibits 5-LOX → blocks LTB4 (neutrophil chemotaxis) AND LTC4/D4/E4.`,
+    phase1Pearl: `LTB4 is a powerful chemoattractant for neutrophils; CysLT1 blockers leave LTB4 signaling intact.`,
+    phase2Hallmark: `Suppresses urinary LTE4 and neutrophil migration into inflamed airways.`,
+    phase3Secret: `Guild Master's Secret: Remember "Zi-LOX-ton" blocks 5-LOX upstream of ALL leukotrienes!`
+  },
+  {
+    id: `RP08-Q3`, lo: 8, sector: `sector_3`, compartment: `eicosanoid_mast`, ageGroup: `adult_elderly`, behavior: `mediator_blockade`,
+    loTitle: `Sector III • 5-LOX Inhibitor (Zileuton)`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Kinetics, Biomarkers & Diagnostics`,
+    shortAnswer: `CYP1A2 inhibition (↑theophylline)`,
+    stem: `A 62-year-old man taking chronic theophylline for refractory airway obstruction is started on zileuton. Four days later, he develops nausea, tachycardia, and tremulousness with a serum theophylline of 26 µg/mL. What mechanism caused this toxicity?`,
+    clue: `Zileuton impairs hepatic clearance of theophylline and R-warfarin via a specific CYP enzyme.`,
+    choices: [`CYP1A2 inhibition by zileuton`, `Renal tubular secretion competition`, `Protein-binding displacement`],
+    correctIndex: 0,
+    explanation: `Correct: Zileuton is a potent CYP1A2 inhibitor that decreases hepatic clearance of theophylline (and warfarin/propranolol), precipitating narrow-therapeutic-index toxicity. Distractor exclusion: Theophylline is cleared hepatically via CYP1A2 rather than renal tubular competition or albumin displacement.`,
+    secondOrderClue: `Zileuton + Theophylline → CYP1A2 inhibition → ↑theophylline >20 µg/mL → cut theophylline dose 50%!`,
+    phase1Pearl: `CYP1A2 is the primary metabolic enzyme for both theophylline and R-warfarin.`,
+    phase2Hallmark: `Theophylline therapeutic window is 5–15 µg/mL; >20 µg/mL causes arrhythmias and seizures.`,
+    phase3Secret: `Guild Master's Secret: Halve the theophylline dose proactively whenever adding zileuton or ciprofloxacin!`
+  },
+
+  // LO 9: Mast Cell Stabilizers
+  {
+    id: `RP09-Q1`, lo: 9, sector: `sector_3`, compartment: `eicosanoid_mast`, ageGroup: `pediatric`, behavior: `mediator_blockade`,
+    loTitle: `Sector III • Mast Cell Stabilizers (Cromolyn)`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical Management & OMT`,
+    shortAnswer: `Cromolyn sodium prophylaxis`,
+    stem: `A 9-year-old boy with cat-allergy-triggered asthma visits his grandmother's house for the weekend. His parents want a non-steroidal inhaled medication he can take 20 minutes before arrival to prevent immediate wheezing. Which agent fits best?`,
+    clue: `Choose a mast cell stabilizer used strictly prophylactically before predictable allergen or exercise triggers.`,
+    choices: [`Cromolyn sodium`, `Ipratropium bromide`, `Oral prednisone`],
+    correctIndex: 0,
+    explanation: `Correct: Inhaled cromolyn sodium prevents mast cell degranulation when given 15–30 minutes prior to predictable allergen exposure or exercise, with minimal toxicity in children. Distractor exclusion: Ipratropium does not block IgE-mediated mast cell degranulation, and oral prednisone is reserved for acute exacerbations.`,
+    secondOrderClue: `Pediatric pre-exposure allergy/exercise prophylaxis + non-steroidal = Cromolyn sodium.`,
+    phase1Pearl: `Prevents both early-phase (histamine/tryptase) and late-phase allergic airway responses when given before antigen.`,
+    phase2Hallmark: `Has zero direct bronchodilator activity and takes weeks for full chronic baseline effect.`,
+    phase3Secret: `Guild Master's Secret: Cromolyn is useless once wheezing starts—must be given BEFORE mast cell degranulation!`
+  },
+  {
+    id: `RP09-Q2`, lo: 9, sector: `sector_3`, compartment: `eicosanoid_mast`, ageGroup: `pediatric`, behavior: `mediator_blockade`,
+    loTitle: `Sector III • Mast Cell Stabilizers (Cromolyn)`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pharmacodynamics & Receptors`,
+    shortAnswer: `Inhibits mast cell degranulation`,
+    stem: `A 10-year-old girl with allergic asthma uses nebulized nedocromil before soccer practice. How does this agent prevent release of preformed histamine and tryptase after allergen cross-linking of IgE?`,
+    clue: `Chromones alter chloride channel flux across sensitized mast cell membranes to block granule exocytosis.`,
+    choices: [`Blocks Cl- channels & degranulation`, `Neutralizes circulating free IgE`, `Stimulates beta-2 adenylyl cyclase`],
+    correctIndex: 0,
+    explanation: `Correct: Cromolyn and nedocromil block delayed Cl- channels on mast cells, preventing Ca2+-dependent granule fusion and release of histamine, tryptase, and leukotrienes. Distractor exclusion: Omalizumab binds free IgE, and SABAs/LABAs stimulate beta-2 adenylyl cyclase.`,
+    secondOrderClue: `Chromones (cromolyn/nedocromil) = block mast cell Cl- flux → prevent histamine/leukotriene exocytosis.`,
+    phase1Pearl: `Also inhibits sensory C-fiber nerve activation and eosinophil recruitment in allergic mucosa.`,
+    phase2Hallmark: `Very poorly absorbed orally (<1%), making oral cromolyn useful locally in systemic mastocytosis GI symptoms.`,
+    phase3Secret: `Guild Master's Secret: Cromolyn ocular drops treat vernal/allergic conjunctivitis via the exact same mast cell stabilization!`
+  },
+  {
+    id: `RP09-Q3`, lo: 9, sector: `sector_3`, compartment: `eicosanoid_mast`, ageGroup: `pediatric`, behavior: `mediator_blockade`,
+    loTitle: `Sector III • Mast Cell Stabilizers (Cromolyn)`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 3: Clinical Management & OMT`,
+    shortAnswer: `Switch to albuterol rescue`,
+    stem: `A 13-year-old boy arrives in the urgent care clinic with acute expiratory wheezing and dyspnea after running outdoors. He mistakenly took two puffs of cromolyn sodium 10 minutes ago without improvement. What is the immediate next step?`,
+    clue: `Mast cell stabilizers cannot relax contracted bronchial smooth muscle or reverse released histamine.`,
+    choices: [`Administer inhaled albuterol (SABA)`, `Repeat cromolyn every 5 minutes`, `Give oral zileuton immediately`],
+    correctIndex: 0,
+    explanation: `Correct: Cromolyn has zero bronchodilator effect once mediators are released; acute bronchospasm requires an inhaled SABA (albuterol) to relax bronchial smooth muscle immediately. Distractor exclusion: Repeating cromolyn or giving zileuton will not reverse acute bronchoconstriction.`,
+    secondOrderClue: `Acute wheezing after cromolyn failure = mast cells already degranulated → give SABA immediately!`,
+    phase1Pearl: `Beta-2 agonism actively relaxes constricted smooth muscle downstream of histamine/leukotriene release.`,
+    phase2Hallmark: `Cromolyn's QID dosing requirement and lower efficacy have led ICS to replace it for chronic maintenance.`,
+    phase3Secret: `Guild Master's Secret: Never prescribe cromolyn as a rescue inhaler—patients must always carry a SABA or ICS-formoterol!`
+  },
+
+  // LO 10: Biologics
+  {
+    id: `RP10-Q1`, lo: 10, sector: `sector_4`, compartment: `biologic_xanthine_pah`, ageGroup: `all_ages`, behavior: `mediator_blockade`,
+    loTitle: `Sector IV • Respiratory Biologics`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 2: Kinetics, Biomarkers & Diagnostics`,
+    shortAnswer: `Mepolizumab / Benralizumab (anti-IL-5)`,
+    stem: `A 46-year-old woman with severe asthma continues having 4 exacerbations yearly despite high-dose fluticasone-salmeterol and tiotropium. Labs show peripheral blood eosinophils of 540 cells/µL and normal serum IgE. Which targeted biologic class directly reduces eosinophil survival?`,
+    clue: `Look for the cytokine driving eosinophil maturation, bone marrow release, and survival.`,
+    choices: [`Anti-IL-5 / IL-5Rα mAb (mepolizumab)`, `Anti-IgE mAb (omalizumab)`, `Anti-TNF-alpha mAb (infliximab)`],
+    correctIndex: 0,
+    explanation: `Correct: Mepolizumab/reslizumab (anti-IL-5) and benralizumab (anti-IL-5Rα) target eosinophil differentiation and survival, making them ideal for severe eosinophilic asthma (eosinophils ≥150–300/µL). Distractor exclusion: Omalizumab targets allergic asthma with elevated IgE/perennial allergen sensitization, and anti-TNF-alpha worsens infection without helping asthma.`,
+    secondOrderClue: `Severe asthma on high-dose ICS-LABA + blood eosinophils ≥300/µL → anti-IL-5 (mepolizumab/benralizumab).`,
+    phase1Pearl: `IL-5 is the primary cytokine driving eosinophil maturation, chemotaxis, and survival; benralizumab also induces NK-cell ADCC.`,
+    phase2Hallmark: `Check baseline blood eosinophils and FeNO to phenotype Type-2 severe asthma prior to biologic selection.`,
+    phase3Secret: `Guild Master's Secret: Dupilumab (anti-IL-4Rα) is preferred if the patient ALSO has chronic rhinosinusitis with nasal polyps or eczema!`
+  },
+  {
+    id: `RP10-Q2`, lo: 10, sector: `sector_4`, compartment: `biologic_xanthine_pah`, ageGroup: `all_ages`, behavior: `mediator_blockade`,
+    loTitle: `Sector IV • Respiratory Biologics`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pharmacodynamics & Receptors`,
+    shortAnswer: `Binds free IgE Fc region`,
+    stem: `A 29-year-old man with severe dust-mite allergic asthma and serum IgE 320 IU/mL starts subcutaneous omalizumab. How does omalizumab prevent mast cell activation without triggering degranulation itself?`,
+    clue: `It binds the exact domain on circulating IgE that normally docks onto mast cell FcεRI receptors.`,
+    choices: [`Binds Fc portion of free IgE`, `Cross-links FcεRI on mast cells`, `Blocks IL-4Rα receptor subunit`],
+    correctIndex: 0,
+    explanation: `Correct: Omalizumab binds the Fc region (Cε3 domain) of free circulating IgE, preventing IgE from binding FcεRI on mast cells/basophils without cross-linking cell-bound IgE. Distractor exclusion: Cross-linking FcεRI would trigger anaphylaxis, and dupilumab blocks IL-4Rα.`,
+    secondOrderClue: `Omalizumab = binds Fc of FREE IgE → prevents mast cell sensitization + downregulates FcεRI.`,
+    phase1Pearl: `Over time, lowered free IgE causes mast cells and basophils to internalize surface FcεRI receptors.`,
+    phase2Hallmark: `Dosed by body weight and baseline total IgE (30–700 IU/mL); total serum IgE transiently rises due to IgE-omalizumab complexes.`,
+    phase3Secret: `Guild Master's Secret: Observe patients in clinic after omalizumab injections—boxed warning for delayed anaphylaxis!`
+  },
+  {
+    id: `RP10-Q3`, lo: 10, sector: `sector_4`, compartment: `biologic_xanthine_pah`, ageGroup: `all_ages`, behavior: `mediator_blockade`,
+    loTitle: `Sector IV • Respiratory Biologics`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 3: Clinical Management & OMT`,
+    shortAnswer: `Dupilumab (anti-IL-4Rα)`,
+    stem: `A 38-year-old woman with refractory Type-2 asthma (FeNO 65 ppb, eosinophils 350/µL) also has severe atopic dermatitis and recurrent nasal polyps. Which single biologic blocks both IL-4 and IL-13 signaling to treat all three conditions?`,
+    clue: `IL-4 and IL-13 share a common alpha receptor subunit targeted by one monoclonal antibody.`,
+    choices: [`Dupilumab`, `Benralizumab`, `Roflumilast`],
+    correctIndex: 0,
+    explanation: `Correct: Dupilumab binds IL-4Rα, blocking both IL-4 (Th2 differentiation, IgE class switching) and IL-13 (mucus hypersecretion, airway hyperresponsiveness), treating severe asthma, atopic dermatitis, and CRSwNP. Distractor exclusion: Benralizumab only targets IL-5Rα (not approved for eczema), and roflumilast is for COPD.`,
+    secondOrderClue: `Severe asthma + atopic dermatitis + nasal polyps + ↑FeNO → Dupilumab (anti-IL-4Rα).`,
+    phase1Pearl: `IL-13 induces inducible nitric oxide synthase (iNOS) in airway epithelium, explaining why FeNO drops sharply on dupilumab.`,
+    phase2Hallmark: `Watch for transient peripheral hypereosinophilia (due to blocked tissue migration) and rare conjunctivitis.`,
+    phase3Secret: `Guild Master's Secret: Avoid dupilumab if baseline blood eosinophils are >1,500/µL due to EGPA/hypereosinophilic risk!`
+  },
+
+  // LO 11: Methylxanthines
+  {
+    id: `RP11-Q1`, lo: 11, sector: `sector_4`, compartment: `biologic_xanthine_pah`, ageGroup: `adult_elderly`, behavior: `gpcr_cyclic_nucleotide`,
+    loTitle: `Sector IV • Methylxanthines (Theophylline)`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 2: Kinetics, Biomarkers & Diagnostics`,
+    shortAnswer: `Theophylline toxicity (CYP1A2)`,
+    stem: `A 70-year-old man on chronic theophylline for COPD is prescribed ciprofloxacin for a urinary tract infection. Three days later he develops intractable vomiting, tremor, multifocal atrial tachycardia (148/min), and a generalized tonic-clonic seizure. What precipitated this crisis?`,
+    clue: `Fluoroquinolones like ciprofloxacin strongly inhibit the hepatic cytochrome clearing methylxanthines.`,
+    choices: [`Ciprofloxacin CYP1A2 inhibition`, `Increased renal K+ wasting`, `Muscarinic M3 hyperstimulation`],
+    correctIndex: 0,
+    explanation: `Correct: Ciprofloxacin inhibits CYP1A2, spiking serum theophylline into the toxic range (>20 µg/mL) and causing GI distress, arrhythmias, and refractory seizures. Distractor exclusion: K+ wasting does not cause seizures, and theophylline does not stimulate M3 receptors.`,
+    secondOrderClue: `Theophylline + ciprofloxacin/erythromycin/cimetidine → CYP1A2 inhibition → vomiting, arrhythmia, seizures.`,
+    phase1Pearl: `Adenosine A1 receptor blockade in brain and heart drives seizures and tachyarrhythmias during overdose.`,
+    phase2Hallmark: `Narrow therapeutic index (5–15 µg/mL); toxicity also causes hypokalemia and metabolic acidosis.`,
+    phase3Secret: `Guild Master's Secret: Conversely, smoking (polycyclic hydrocarbons) INDUCES CYP1A2—smokers need higher theophylline doses!`
+  },
+  {
+    id: `RP11-Q2`, lo: 11, sector: `sector_4`, compartment: `biologic_xanthine_pah`, ageGroup: `adult_elderly`, behavior: `gpcr_cyclic_nucleotide`,
+    loTitle: `Sector IV • Methylxanthines (Theophylline)`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pharmacodynamics & Receptors`,
+    shortAnswer: `PDE inhibition + adenosine block`,
+    stem: `A 63-year-old patient with refractory COPD receives low-dose oral theophylline. In addition to non-selectively inhibiting phosphodiesterase to elevate cAMP, bronchodilation and CNS/cardiac side effects are mediated by antagonism of which receptor?`,
+    clue: `Endogenous purine nucleoside accumulation normally causes bronchoconstriction and AV nodal slowing.`,
+    choices: [`Adenosine (A1 / A2) receptors`, `Histamine H1 receptors`, `Alpha-1 adrenergic receptors`],
+    correctIndex: 0,
+    explanation: `Correct: Methylxanthines (theophylline, caffeine) non-selectively inhibit PDE (↑cAMP) AND competitively antagonize adenosine A1/A2 receptors, preventing adenosine-induced bronchoconstriction while causing CNS/cardiac toxicity. Distractor exclusion: Theophylline does not block H1 or alpha-1 receptors.`,
+    secondOrderClue: `Theophylline = non-selective PDEi (↑cAMP) + Adenosine receptor antagonist.`,
+    phase1Pearl: `Adenosine antagonism also explains why aminophylline reverses dipyridamole/regadenoson stress-test bronchospasm.`,
+    phase2Hallmark: `Enhances diaphragmatic contractility and mucociliary clearance at low serum concentrations.`,
+    phase3Secret: `Guild Master's Secret: If a patient on regadenoson/adenosine stress test develops severe bronchospasm, rescue with aminophylline!`
+  },
+  {
+    id: `RP11-Q3`, lo: 11, sector: `sector_4`, compartment: `biologic_xanthine_pah`, ageGroup: `adult_elderly`, behavior: `gpcr_cyclic_nucleotide`,
+    loTitle: `Sector IV • Methylxanthines (Theophylline)`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 3: Clinical Management & OMT`,
+    shortAnswer: `Charcoal, benzodiazepine & esmolol`,
+    stem: `A 69-year-old man presents 2 hours after an accidental double-dose ingestion of sustained-release theophylline with serum level 42 µg/mL, SVT at 165/min, K+ 2.8 mEq/L, and agitation. After airway protection and lorazepam, which combination treats his intoxication and arrhythmia?`,
+    clue: `Use multi-dose GI decontamination and block beta-adrenergic-driven SVT/hypokalemia.`,
+    choices: [`Multi-dose charcoal + esmolol`, `Whole-bowel irrigation + atropine`, `Sodium bicarbonate + adenosine`],
+    correctIndex: 0,
+    explanation: `Correct: Multi-dose activated charcoal enhances gut dialysis clearance of sustained-release theophylline, while short-acting beta-blockade (esmolol) treats SVT and intracellular K+ shift (with hemodialysis if >80–100 µg/mL or refractory seizures). Distractor exclusion: Atropine worsens tachycardia, and adenosine is blocked by theophylline.`,
+    secondOrderClue: `Theophylline overdose → benzodiazepines (seizures) + multi-dose charcoal + esmolol (adenosine won't work!).`,
+    phase1Pearl: `Beta-blockade reverses catecholamine surge driven by PDE inhibition and adenosine antagonism.`,
+    phase2Hallmark: `Hemodialysis is indicated for life-threatening seizures, refractory hypotension, or levels >80–100 µg/mL.`,
+    phase3Secret: `Guild Master's Secret: Adenosine fails in theophylline toxicity because theophylline blocks adenosine receptors!`
+  },
+
+  // LO 12: PAH Vasodilators
+  {
+    id: `RP12-Q1`, lo: 12, sector: `sector_4`, compartment: `biologic_xanthine_pah`, ageGroup: `adult_elderly`, behavior: `gpcr_cyclic_nucleotide`,
+    loTitle: `Sector IV • PAH Vasodilators`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 2: Kinetics, Biomarkers & Diagnostics`,
+    shortAnswer: `Bosentan (Endothelin-1 antagonist)`,
+    stem: `A 34-year-old woman with idiopathic pulmonary arterial hypertension (WHO Group 1) starts a new oral vasodilator under a strict REMS program requiring monthly pregnancy tests and monthly liver enzyme panels. Which drug is she taking?`,
+    clue: `Endothelin receptor antagonists carry dual boxed warnings for hepatotoxicity and teratogenicity.`,
+    choices: [`Bosentan`, `Sildenafil`, `Epoprostenol`],
+    correctIndex: 0,
+    explanation: `Correct: Bosentan (dual ETA/ETB endothelin-1 receptor antagonist) requires strict REMS monitoring for hepatotoxicity (monthly LFTs) and embryofetal toxicity (monthly pregnancy testing + dual contraception). Distractor exclusion: Sildenafil and epoprostenol do not require monthly LFT REMS monitoring.`,
+    secondOrderClue: `PAH + monthly LFTs + monthly pregnancy test REMS = Bosentan (endothelin-1 antagonist).`,
+    phase1Pearl: `Blocks vasoconstrictive and mitogenic endothelin-1 signaling at ETA and ETB receptors on pulmonary vascular smooth muscle.`,
+    phase2Hallmark: `Ambrisentan and macitentan have lower hepatotoxicity rates than bosentan, but remain strictly teratogenic.`,
+    phase3Secret: `Guild Master's Secret: Never give bosentan to a pregnant woman or anyone with baseline transaminases >3× ULN!`
+  },
+  {
+    id: `RP12-Q2`, lo: 12, sector: `sector_4`, compartment: `biologic_xanthine_pah`, ageGroup: `adult_elderly`, behavior: `gpcr_cyclic_nucleotide`,
+    loTitle: `Sector IV • PAH Vasodilators`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pharmacodynamics & Receptors`,
+    shortAnswer: `PDE-5 inhibition (↑cGMP)`,
+    stem: `A 47-year-old man with scleroderma-associated PAH improves his 6-minute walk distance after starting oral tadalafil. Which intracellular second messenger accumulates in pulmonary arterial smooth muscle to induce vasodilation?`,
+    clue: `Nitric oxide activates soluble guanylyl cyclase; tadalafil and sildenafil prevent degradation of its product.`,
+    choices: [`cGMP via PDE-5 inhibition`, `cAMP via IP receptor activation`, `IP3 depletion via ETA blockade`],
+    correctIndex: 0,
+    explanation: `Correct: Sildenafil and tadalafil selectively inhibit PDE-5, preventing breakdown of cGMP generated by nitric oxide–guanylyl cyclase signaling, activating PKG to relax pulmonary vascular smooth muscle. Distractor exclusion: IP receptor agonists (epoprostenol) raise cAMP, and bosentan blocks ETA/ETB.`,
+    secondOrderClue: `Sildenafil/Tadalafil → PDE-5 inhibition → ↑cGMP → pulmonary vasodilation.`,
+    phase1Pearl: `Riociguat directly stimulates soluble guanylyl cyclase (sGC), also increasing cGMP independently of NO.`,
+    phase2Hallmark: `Sildenafil may cause blue-green visual tint (cyanopsia) from weak PDE-6 retinal inhibition.`,
+    phase3Secret: `Guild Master's Secret: NEVER combine sildenafil/tadalafil with nitrates or riociguat—risk of lethal hypotension!`
+  },
+  {
+    id: `RP12-Q3`, lo: 12, sector: `sector_4`, compartment: `biologic_xanthine_pah`, ageGroup: `adult_elderly`, behavior: `gpcr_cyclic_nucleotide`,
+    loTitle: `Sector IV • PAH Vasodilators`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 3: Clinical Management & OMT`,
+    shortAnswer: `Continuous IV epoprostenol`,
+    stem: `A 31-year-old woman with severe NYHA Class IV idiopathic PAH and right ventricular failure fails oral combination therapy and has a negative acute vasoreactivity test. Which prostacyclin analog requires a continuous central venous infusion pump and carries mortality-reducing benefit?`,
+    clue: `Its plasma half-life is only 3–5 minutes; abrupt pump interruption causes fatal rebound pulmonary hypertension.`,
+    choices: [`IV epoprostenol (PGI2 analog)`, `Oral nifedipine high-dose`, `Inhaled nitric oxide home tank`],
+    correctIndex: 0,
+    explanation: `Correct: Continuous IV epoprostenol (prostacyclin I2 analog activating IP receptors → ↑cAMP + ↓platelet aggregation) is the gold standard for severe NYHA Class IV PAH and improves survival. Distractor exclusion: CCBs (nifedipine) are used only if acute vasoreactivity testing is positive, and inhaled NO is hospital-only.`,
+    secondOrderClue: `Severe Class IV PAH + negative vasoreactivity → continuous IV epoprostenol (t1/2 ~3–5 min).`,
+    phase1Pearl: `Epoprostenol binds Gs-coupled IP receptors on pulmonary arterioles (↑cAMP) and inhibits platelet clumping.`,
+    phase2Hallmark: `Common side effects: jaw pain, flushing, headache, diarrhea; catheter sepsis and rebound PH if stopped.`,
+    phase3Secret: `Guild Master's Secret: Never clamp or pause an epoprostenol line—keep a backup pump and ice-packed cassette ready!`
+  },
+
+  // LO 13: Mucolytics
+  {
+    id: `RP13-Q1`, lo: 13, sector: `sector_5`, compartment: `mucus_cough_omt`, ageGroup: `pediatric`, behavior: `clearance_neuro_omt`,
+    loTitle: `Sector V • Mucolytics (NAC, Dornase alfa)`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical Management & OMT`,
+    shortAnswer: `Nebulized dornase alfa`,
+    stem: `A 15-year-old boy with cystic fibrosis has thick purulent sputum colonized with Pseudomonas aeruginosa and declining FEV1. Which daily nebulized medication specifically reduces sputum viscosity by degrading extracellular neutrophil debris?`,
+    clue: `CF sputum thickens primarily from DNA strands released by degenerating neutrophils.`,
+    choices: [`Dornase alfa (rhDNase I)`, `Hypertonic saline 0.9%`, `Inhaled codeine phosphate`],
+    correctIndex: 0,
+    explanation: `Correct: Dornase alfa (recombinant human DNase I) cleaves viscous extracellular DNA released by dead neutrophils in purulent CF airways, improving FEV1 and lowering exacerbations. Distractor exclusion: Normal saline (0.9%) does not draw water osmotically like 7% hypertonic saline, and codeine impairs secretion clearance.`,
+    secondOrderClue: `Cystic fibrosis + purulent sputum → nebulized dornase alfa cleaves neutrophil DNA.`,
+    phase1Pearl: `Purulent CF airway inflammation releases massive polymers of neutrophil DNA that tangle with mucin.`,
+    phase2Hallmark: `Improves pulmonary function (FEV1) and reduces pulmonary exacerbations; minimal toxicity (mild voice alteration).`,
+    phase3Secret: `Guild Master's Secret: Pair dornase alfa with chest physiotherapy / OMT rib raising and lymphatic drainage!`
+  },
+  {
+    id: `RP13-Q2`, lo: 13, sector: `sector_5`, compartment: `mucus_cough_omt`, ageGroup: `pediatric`, behavior: `clearance_neuro_omt`,
+    loTitle: `Sector V • Mucolytics (NAC, Dornase alfa)`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pharmacodynamics & Receptors`,
+    shortAnswer: `Cleaves mucin disulfide bonds`,
+    stem: `A 52-year-old man with bronchiectasis and tenacious mucoid plugs receives nebulized N-acetylcysteine (NAC). By what biochemical mechanism does NAC liquefy thick mucus (aside from its role in acetaminophen overdose)?`,
+    clue: `Think about the reactive sulfur moiety on cysteine interacting with cross-linked mucin glycoproteins.`,
+    choices: [`Free sulfhydryl cleaves S–S bonds`, `Hydrolyzes extracellular DNA strands`, `Stimulates CFTR chloride secretion`],
+    correctIndex: 0,
+    explanation: `Correct: N-acetylcysteine contains a free sulfhydryl (-SH) group that reduces and cleaves disulfide (S–S) cross-links within mucoprotein polymers, lowering mucus viscosity. Distractor exclusion: Dornase alfa cleaves DNA, and ivacaftor/elexacaftor modulate CFTR.`,
+    secondOrderClue: `N-acetylcysteine = free -SH group → breaks mucin S–S disulfide bonds (and restores hepatic glutathione).`,
+    phase1Pearl: `In acetaminophen toxicity, NAC replenishes hepatic glutathione stores to detoxify NAPQI.`,
+    phase2Hallmark: `Nebulized NAC has a characteristic sulfur ("rotten egg") odor.`,
+    phase3Secret: `Guild Master's Secret: Always pre-treat hyperreactive airways with albuterol before nebulizing NAC to prevent bronchospasm!`
+  },
+  {
+    id: `RP13-Q3`, lo: 13, sector: `sector_5`, compartment: `mucus_cough_omt`, ageGroup: `pediatric`, behavior: `clearance_neuro_omt`,
+    loTitle: `Sector V • Mucolytics (NAC, Dornase alfa)`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Kinetics, Biomarkers & Diagnostics`,
+    shortAnswer: `NAC-induced reflex bronchospasm`,
+    stem: `A 25-year-old woman with asthma and mucus plugging receives nebulized N-acetylcysteine alone and immediately develops coughing, chest tightness, and diffuse expiratory wheezing. How should this complication be prevented before future doses?`,
+    clue: `Inhaled sulfhydryl aerosols irritate airway sensory nerves unless bronchial smooth muscle is relaxed beforehand.`,
+    choices: [`Pre-treat with nebulized albuterol`, `Switch to oral dextromethorphan`, `Mix NAC with dornase alfa`],
+    correctIndex: 0,
+    explanation: `Correct: Inhaled NAC frequently triggers irritant reflex bronchospasm in asthmatic patients; pre-treatment with a SABA (albuterol) prevents acute airway constriction. Distractor exclusion: Cough suppression worsens mucus retention, and dornase alfa should not be mixed in the same nebulizer cup with other drugs.`,
+    secondOrderClue: `Inhaled NAC + acute wheezing = irritant bronchospasm → pre-treat with SABA.`,
+    phase1Pearl: `Acidic sulfur-containing aerosol stimulates airway C-fiber irritant reflexes.`,
+    phase2Hallmark: `Drop in FEV1 immediately post-nebulization confirms reactive bronchospasm.`,
+    phase3Secret: `Guild Master's Secret: In asthmatics, avoid inhaled NAC altogether unless SABA pre-treatment is onboard!`
+  },
+
+  // LO 14: Antitussives
+  {
+    id: `RP14-Q1`, lo: 14, sector: `sector_5`, compartment: `mucus_cough_omt`, ageGroup: `all_ages`, behavior: `clearance_neuro_omt`,
+    loTitle: `Sector V • Antitussives (Dextromethorphan, Codeine)`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 2: Kinetics, Biomarkers & Diagnostics`,
+    shortAnswer: `Serotonin syndrome`,
+    stem: `A 28-year-old man taking fluoxetine for depression consumes high doses of over-the-counter cough syrup containing dextromethorphan for 2 days. He presents to the ED with temperature 39.4°C, diaphoresis, agitation, hyperreflexia, and inducible ankle clonus. What is the diagnosis?`,
+    clue: `Combining an SSRI with a serotonergic NMDA-antagonist cough suppressant precipitates autonomic and neuromuscular excess.`,
+    choices: [`Serotonin syndrome`, `Neuroleptic malignant syndrome`, `Anticholinergic toxidrome`],
+    correctIndex: 0,
+    explanation: `Correct: Dextromethorphan inhibits serotonin reuptake and increases 5-HT release; combining it with SSRIs/MAOIs precipitates serotonin syndrome (hyperthermia, diaphoresis, agitation, hyperreflexia/clonus). Distractor exclusion: NMS presents with "lead-pipe" rigidity and hyporeflexia after dopamine blockers, and anticholinergic toxicity causes dry skin without clonus.`,
+    secondOrderClue: `SSRI/MAOI + Dextromethorphan + hyperthermia + clonus = Serotonin syndrome → treat with cyproheptadine + benzos.`,
+    phase1Pearl: `Excess central 5-HT1A/5-HT2A activation drives neuromuscular hyperexcitability (clonus, hyperreflexia).`,
+    phase2Hallmark: `High-dose dextromethorphan alone acts like ketamine (dissociation, nystagmus) via NMDA antagonism.`,
+    phase3Secret: `Guild Master's Secret: Manage serotonin syndrome with cooling, benzodiazepines, and cyproheptadine (5-HT2 blocker)!`
+  },
+  {
+    id: `RP14-Q2`, lo: 14, sector: `sector_5`, compartment: `mucus_cough_omt`, ageGroup: `all_ages`, behavior: `clearance_neuro_omt`,
+    loTitle: `Sector V • Antitussives (Dextromethorphan, Codeine)`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pharmacodynamics & Receptors`,
+    shortAnswer: `NMDA glutamate antagonism`,
+    stem: `A 35-year-old woman takes dextromethorphan for a persistent dry post-viral cough. Unlike codeine, dextromethorphan suppresses the medullary cough center without causing significant analgesia or constipation at therapeutic doses primarily through which action?`,
+    clue: `It is the D-isomer of a synthetic opioid analog that targets an excitatory amino acid receptor and sigma-1 site.`,
+    choices: [`NMDA antagonism & sigma-1 agonism`, `Peripheral M3 receptor blockade`, `Mu-opioid receptor full agonism`],
+    correctIndex: 0,
+    explanation: `Correct: Dextromethorphan (D-isomer of levorphanol) suppresses the medullary cough reflex via NMDA glutamate receptor antagonism and sigma-1 agonism, with minimal mu-opioid analgesia at normal doses. Distractor exclusion: L-isomers bind mu-opioid receptors (like codeine/morphine), and M3 blockade is antimuscarinic.`,
+    secondOrderClue: `Dextromethorphan = D-isomer → NMDA antagonist + sigma-1 agonist → central cough suppression.`,
+    phase1Pearl: `Bupropion-dextromethorphan (Auvelity) leverages CYP2D6 inhibition by bupropion + NMDA antagonism for rapid antidepressant effect.`,
+    phase2Hallmark: `Overdose can exhibit mild opioid toxidrome responsive to naloxone plus dissociative nystagmus.`,
+    phase3Secret: `Guild Master's Secret: Never suppress a productive wet cough in pneumonia/bronchiectasis—retain airway clearance!`
+  },
+  {
+    id: `RP14-Q3`, lo: 14, sector: `sector_5`, compartment: `mucus_cough_omt`, ageGroup: `all_ages`, behavior: `clearance_neuro_omt`,
+    loTitle: `Sector V • Antitussives (Dextromethorphan, Codeine)`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Kinetics, Biomarkers & Diagnostics`,
+    shortAnswer: `CYP2D6 ultrarapid metabolism`,
+    stem: `An 8-year-old child given oral codeine for post-tonsillectomy cough and pain develops pinpoint pupils, bradypnea (RR 6/min), and somnolence. Which pharmacogenetic mechanism explains this fatal FDA-warned toxicity?`,
+    clue: `Codeine is an inactive prodrug converted to its potent active metabolite by a polymorphic hepatic enzyme.`,
+    choices: [`CYP2D6 ultrarapid conversion to morphine`, `UGT1A1 deficiency delaying clearance`, `CYP3A4 induction by codeine`],
+    correctIndex: 0,
+    explanation: `Correct: Codeine is a prodrug O-demethylated by CYP2D6 into morphine; CYP2D6 ultrarapid metabolizers generate dangerously high morphine levels, causing respiratory depression (especially in children post-tonsillectomy/OSA). Distractor exclusion: UGT1A1 conjugates bilirubin/irinotecan, and codeine does not induce CYP3A4.`,
+    secondOrderClue: `Child + codeine + pinpoint pupils/bradypnea = CYP2D6 ultrarapid metabolizer → morphine toxicity → give naloxone.`,
+    phase1Pearl: `Conversely, CYP2D6 poor metabolizers (or patients on fluoxetine/bupropion) get zero analgesia/antitussive benefit from codeine.`,
+    phase2Hallmark: `Classic opioid triad: miosis, CNS depression, and respiratory depression (<12 breaths/min).`,
+    phase3Secret: `Guild Master's Secret: Codeine is CONTRAINDICATED in children <12 years and in all pediatric post-tonsillectomy patients!`
+  },
+
+  // LO 15: Respiratory OMT
+  {
+    id: `RP15-Q1`, lo: 15, sector: `sector_5`, compartment: `mucus_cough_omt`, ageGroup: `all_ages`, behavior: `clearance_neuro_omt`,
+    loTitle: `Sector V • Respiratory OMT`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 2: Kinetics, Biomarkers & Diagnostics`,
+    shortAnswer: `T2–T7 sympathetics & 3rd/4th ICS`,
+    stem: `A 54-year-old man hospitalized with right lower lobe pneumonia undergoes an osteopathic structural exam. On palpation, you note boggy paraspinal tissue texture changes from T5–T7 and shotty pea-sized anterior nodules. Where are the anterior Chapman points for the lower lung located?`,
+    clue: `Bronchus is at the 2nd ICS; upper lung is at the 3rd ICS; lower lung is one intercostal space below.`,
+    choices: [`4th intercostal space near sternum`, `2nd intercostal space on sternum`, `6th intercostal space midclavicular`],
+    correctIndex: 0,
+    explanation: `Correct: Anterior Chapman reflex points for the lower lung lie in the 4th intercostal space adjacent to the sternum (3rd ICS = upper lung; 2nd ICS = bronchus), correlating with T5–T7 viscerosomatic lower-lung sympathetics. Distractor exclusion: 2nd ICS corresponds to bronchus/heart, and 6th ICS right/left corresponds to liver/spleen.`,
+    secondOrderClue: `Lung sympathetics T2–T7 (upper T2–T4, lower T5–T7) • Anterior Chapman: 2nd ICS bronchus, 3rd ICS upper, 4th ICS lower.`,
+    phase1Pearl: `Visceral pulmonary afferents synapse at T2–T7 dorsal horns, creating paraspinal hypertonicity/boggy tissue texture.`,
+    phase2Hallmark: `Posterior pulmonary Chapman points sit between the transverse and spinous processes of T2–T4.`,
+    phase3Secret: `Guild Master's Secret: Pair T2–T7 rib raising (sympathetic normalization) with OA/AA suboccipital release (vagal balance)!`
+  },
+  {
+    id: `RP15-Q2`, lo: 15, sector: `sector_5`, compartment: `mucus_cough_omt`, ageGroup: `all_ages`, behavior: `clearance_neuro_omt`,
+    loTitle: `Sector V • Respiratory OMT`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 3: Clinical Management & OMT`,
+    shortAnswer: `Release thoracic inlet first`,
+    stem: `A 61-year-old woman with resolving community-acquired pneumonia is cleared for adjunctive osteopathic lymphatic techniques to mobilize interstitial fluid and enhance immune clearance. Before performing a thoracic lymphatic pump, which structure MUST be treated first?`,
+    clue: `Always clear the terminal venous drainage bottleneck beneath the clavicles before pumping distal lymph upward.`,
+    choices: [`Thoracic inlet (Sibson fascia)`, `Pedal lymphatic pump`, `Sacral base rocking`],
+    correctIndex: 0,
+    explanation: `Correct: Myofascial release of the thoracic inlet (CT junction, 1st rib, manubrium, Sibson fascia) MUST precede thoracic or pedal lymphatic pumps so the thoracic duct and right lymphatic duct can drain freely into the subclavian veins. Distractor exclusion: Pumping distal lymph against a restricted thoracic inlet causes congestion.`,
+    secondOrderClue: `Lymphatic OMT sequence = 1) Thoracic inlet release → 2) Diaphragm doming → 3) Thoracic/pedal pump.`,
+    phase1Pearl: `Left thoracic duct drains the lower body and left thorax into the left venous angle; right lymphatic duct drains the right upper thorax.`,
+    phase2Hallmark: `Also balance parasympathetics via OA/AA release (CN X vagus exits jugular foramen) to thin tenacious bronchial secretions.`,
+    phase3Secret: `Guild Master's Secret: Avoid vigorous thoracic pump in rib fracture, severe osteoporosis, pneumothorax, or metastatic bone disease!`
+  },
+  {
+    id: `RP15-Q3`, lo: 15, sector: `sector_5`, compartment: `mucus_cough_omt`, ageGroup: `all_ages`, behavior: `clearance_neuro_omt`,
+    loTitle: `Sector V • Respiratory OMT`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 3: Clinical Management & OMT`,
+    shortAnswer: `Treat lowest restricted rib (R6)`,
+    stem: `A 48-year-old man with COPD presents with hyperinflated lung fields and ribs 3–6 on the right moving freely upward during inhalation but failing to return downward during full exhalation. Which key rib should be treated first using muscle energy?`,
+    clue: `For an inhalation somatic dysfunction (stuck UP, won't go down), identify the bottom-most rib of the group.`,
+    choices: [`Right rib 6 (inhalation dysfunction)`, `Right rib 3 (exhalation dysfunction)`, `Right rib 1 (pump-handle restriction)`],
+    correctIndex: 0,
+    explanation: `Correct: Ribs 3–6 move freely into inhalation and fail to descend in exhalation, defining an inhalation somatic dysfunction ("stuck up"); for inhalation dysfunctions, always treat the BOTTOM rib (Rib 6) first, engaging pectoralis minor/intercostals. Distractor exclusion: Treating the top rib first applies to exhalation dysfunctions ("stuck down").`,
+    secondOrderClue: `Inhalation SD = stuck UP → treat BOTTOM rib first • Exhalation SD = stuck DOWN → treat TOP rib first.`,
+    phase1Pearl: `Ribs 1–5 primarily exhibit pump-handle (AP) motion; ribs 6–10 exhibit bucket-handle (transverse) motion; ribs 11–12 caliper motion.`,
+    phase2Hallmark: `During muscle energy for Rib 6 inhalation SD, resist inhalation while using exhalation forces (pectoralis minor/latissimus/iliocostalis depending on rib level).`,
+    phase3Secret: `Guild Master's Secret: Memory trick — "Inhalation = Bottom (I-B), Exhalation = Top (E-T)" like "E.T."!`
+  }
+];
+
+let deck = [];
+let deckIndex = 0;
+let hp = 100;
+let xp = 0;
+let streak = 0;
+let bestXp = 0;
+let bestStreak = 0;
+let masteredLos = {};
+let missedIds = [];
+let sessionCorrect = 0;
+let sessionTotal = 0;
+let phaseFilter = `all`;
+let currentLane = 1;
+let targetLane = 1;
+let hasChosenLane = false;
+let isModalOpen = false;
+let isMenuOpen = false;
+let isRunFinished = false;
+let isHintsVisible = false;
+let isTimerActive = false;
+let timerSecondsLeft = GAME_CONFIG.timerSeconds;
+let timerIntervalId = null;
+let timesUpMode = `wrong`;
+let metaFadeTimeoutId = null;
+let animFrameId = null;
+let particleTime = 0;
+let trackScrollOffset = 0;
+let portalApproach = 0;
+let isStoppedAtGate = false;
+let portalFlareTimer = 0;
+let lastSteerSfxTime = 0;
+let craftVisualLane = 1;
+let ship = { x: 0, tilt: 0, initialized: false };
+let portalHitboxes = [];
+let shuffledChoiceMap = [0, 1, 2];
+
+let masterSoundOn = true;
+let sfxOn = true;
+let audioCtx = null;
+let isBgmPlaying = false;
+let bgmVolume = 0.35;
+let customBgmAudio = null;
+let customBgmUrl = null;
+let customBgmName = ``;
+const bgmNodes = {
+  masterGain: null,
+  droneOsc1: null,
+  droneOsc2: null,
+  lfoOsc: null,
+  noteIntervalId: null,
+  stepIndex: 0
+};
+
+const PARALLAX_PARTICLES = Array.from({ length: 150 }, (_, idx) => ({
+  angle: ((idx * 137.5) % 360) * (Math.PI / 180),
+  rad: 0.14 + ((idx * 31) % 100) / 100,
+  z: (idx / 150),
+  speed: 0.24 + ((idx * 17) % 10) * 0.035,
+  size: 1.5 + (idx % 3) * 0.9
+}));
+
+function getCurrentQuestion() {
+  if (!deck.length) return ALL_QUESTIONS[0];
+  return deck[Math.min(deckIndex, deck.length - 1)] || ALL_QUESTIONS[0];
+}
+
+function getThemeForLo(lo) {
+  return LO_VISUAL_THEMES[lo] || LO_VISUAL_THEMES[1];
+}
+
+function getComboMultiplier() {
+  return Math.min(3.0, 1.0 + streak * 0.25);
+}
+
+function ensureAudioContext() {
+  if (!audioCtx) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (Ctx) audioCtx = new Ctx();
+  }
+  if (audioCtx && audioCtx.state === `suspended`) {
+    audioCtx.resume().catch(() => {});
+  }
+  return audioCtx;
+}
+
+function playSfx(type) {
+  if (!masterSoundOn || !sfxOn) return;
+  const ctx = ensureAudioContext();
+  if (!ctx) return;
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  if (type === `steer`) {
+    osc.type = `triangle`;
+    osc.frequency.setValueAtTime(340, now);
+    osc.frequency.exponentialRampToValueAtTime(520, now + 0.045);
+    gain.gain.setValueAtTime(0.045, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
+    osc.start(now);
+    osc.stop(now + 0.06);
+  } else if (type === `correct`) {
+    osc.type = `sine`;
+    osc.frequency.setValueAtTime(523.25, now);
+    osc.frequency.setValueAtTime(659.25, now + 0.07);
+    osc.frequency.setValueAtTime(783.99, now + 0.14);
+    gain.gain.setValueAtTime(0.11, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.34);
+    osc.start(now);
+    osc.stop(now + 0.35);
+  } else {
+    osc.type = `sawtooth`;
+    osc.frequency.setValueAtTime(210, now);
+    osc.frequency.exponentialRampToValueAtTime(95, now + 0.25);
+    gain.gain.setValueAtTime(0.09, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+    osc.start(now);
+    osc.stop(now + 0.29);
+  }
+}
+
+function stopProceduralBgm() {
+  if (bgmNodes.noteIntervalId) {
+    clearInterval(bgmNodes.noteIntervalId);
+    bgmNodes.noteIntervalId = null;
+  }
+  [`droneOsc1`, `droneOsc2`, `lfoOsc`].forEach((k) => {
+    try { if (bgmNodes[k]) bgmNodes[k].stop(); } catch (e) {}
+    bgmNodes[k] = null;
+  });
+  if (customBgmAudio) {
+    try { customBgmAudio.pause(); } catch (e) {}
+  }
+  isBgmPlaying = false;
+}
+
+function startProceduralBgm() {
+  if (!masterSoundOn) return;
+  stopProceduralBgm();
+  if (customBgmUrl && customBgmAudio) {
+    customBgmAudio.volume = bgmVolume;
+    customBgmAudio.loop = true;
+    customBgmAudio.play().catch(() => {});
+    isBgmPlaying = true;
+    return;
+  }
+  const ctx = ensureAudioContext();
+  if (!ctx) return;
+  const master = ctx.createGain();
+  master.gain.value = bgmVolume * 0.28;
+  master.connect(ctx.destination);
+  bgmNodes.masterGain = master;
+
+  const d1 = ctx.createOscillator();
+  const d2 = ctx.createOscillator();
+  d1.type = `sawtooth`;
+  d2.type = `triangle`;
+  d1.frequency.value = 55; // A1 eerie zombie drone
+  d2.frequency.value = 82.41; // E2
+  const filter = ctx.createBiquadFilter();
+  filter.type = `lowpass`;
+  filter.frequency.value = 260;
+  d1.connect(filter);
+  d2.connect(filter);
+  filter.connect(master);
+  d1.start();
+  d2.start();
+  bgmNodes.droneOsc1 = d1;
+  bgmNodes.droneOsc2 = d2;
+
+  // Kino-inspired eerie minor arpeggio pulse (D minor / A minor Phrygian motif)
+  const notes = [220, 261.63, 329.63, 349.23, 329.63, 261.63, 246.94, 196.0];
+  bgmNodes.stepIndex = 0;
+  bgmNodes.noteIntervalId = setInterval(() => {
+    if (!isBgmPlaying || !masterSoundOn || !audioCtx) return;
+    const now = audioCtx.currentTime;
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = `triangle`;
+    o.frequency.value = notes[bgmNodes.stepIndex % notes.length];
+    bgmNodes.stepIndex++;
+    g.gain.setValueAtTime(0.001, now);
+    g.gain.linearRampToValueAtTime(bgmVolume * 0.16, now + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
+    o.connect(g);
+    g.connect(audioCtx.destination);
+    o.start(now);
+    o.stop(now + 0.44);
+  }, 460);
+  isBgmPlaying = true;
+}
+
+function syncAudioUI() {
+  const mBtn = document.getElementById(`master-sound-btn`);
+  const sBtn = document.getElementById(`sfx-toggle-btn`);
+  const bBtn = document.getElementById(`bgm-toggle-btn`);
+  const lbl = document.getElementById(`audio-status-label`);
+  if (mBtn) {
+    mBtn.textContent = masterSoundOn ? `🔊 Master Sound: ON` : `🔇 Master Sound: OFF`;
+    mBtn.classList.toggle(`is-active`, masterSoundOn);
+  }
+  if (sBtn) {
+    sBtn.textContent = sfxOn ? `⚡ SFX: ON` : `⚡ SFX: OFF`;
+    sBtn.classList.toggle(`is-active`, sfxOn);
+  }
+  if (bBtn) {
+    bBtn.textContent = isBgmPlaying ? `🎵 Zombies BGM: ON` : `🎵 Zombies BGM: OFF`;
+    bBtn.classList.toggle(`is-active`, isBgmPlaying);
+  }
+  if (lbl) {
+    lbl.textContent = customBgmName ? `Loaded track: ${customBgmName}` : `Procedural Kino-inspired synth ready.`;
+  }
+}
+
+function toggleMasterSound() {
+  masterSoundOn = !masterSoundOn;
+  if (!masterSoundOn && isBgmPlaying) stopProceduralBgm();
+  syncAudioUI();
+  persistAppState();
+}
+
+function toggleSfx() {
+  sfxOn = !sfxOn;
+  if (sfxOn) playSfx(`steer`);
+  syncAudioUI();
+  persistAppState();
+}
+
+function toggleZombiesBgm() {
+  if (isBgmPlaying) {
+    stopProceduralBgm();
+  } else {
+    if (!masterSoundOn) masterSoundOn = true;
+    startProceduralBgm();
+  }
+  syncAudioUI();
+}
+
+function setBgmVolume(val) {
+  bgmVolume = Math.max(0, Math.min(1, Number(val) / 100));
+  const lbl = document.getElementById(`bgm-vol-label`);
+  if (lbl) lbl.textContent = `${Math.round(bgmVolume * 100)}%`;
+  if (bgmNodes.masterGain && audioCtx) {
+    bgmNodes.masterGain.gain.setValueAtTime(bgmVolume * 0.28, audioCtx.currentTime);
+  }
+  if (customBgmAudio) customBgmAudio.volume = bgmVolume;
+}
+
+function handleCustomBgmFile(input) {
+  const file = input?.files?.[0];
+  if (!file) return;
+  if (customBgmUrl) URL.revokeObjectURL(customBgmUrl);
+  customBgmUrl = URL.createObjectURL(file);
+  customBgmName = file.name;
+  customBgmAudio = new Audio(customBgmUrl);
+  if (!masterSoundOn) masterSoundOn = true;
+  startProceduralBgm();
+  syncAudioUI();
+}
+
+function initDynamicSelectors() {
+  document.title = GAME_CONFIG.title;
+  const titleEl = document.getElementById(`drawer-title`);
+  const kickerEl = document.getElementById(`drawer-kicker`);
+  const codexTitle = document.getElementById(`codex-title`);
+  if (titleEl) titleEl.textContent = GAME_CONFIG.title;
+  if (kickerEl) kickerEl.textContent = GAME_CONFIG.kicker;
+  if (codexTitle) codexTitle.textContent = `Master Raid Loot Codex (${CODEX_DATA.length} Entities)`;
+  renderSkillTreeGrid();
+  renderCodexTable();
+}
+
+function renderSkillTreeGrid() {
+  const grid = document.getElementById(`skill-tree-grid`);
+  if (!grid) return;
+  grid.innerHTML = CODEX_DATA.map((item) => {
+    const mastered = Boolean(masteredLos[item.lo]);
+    return `<button type="button" class="skill-node-btn ${mastered ? `is-mastered` : ``}" onclick="focusSkillNode(${item.lo})">
+      <span class="skill-node-title">${item.tag}</span>
+      <span class="skill-node-meta">${mastered ? `✔ Mastered` : `LO ${item.lo}`}</span>
+    </button>`;
+  }).join(``);
+}
+
+function focusSkillNode(lo) {
+  const sf = document.getElementById(`sector-filter`);
+  if (sf) sf.value = `all`;
+  deck = ALL_QUESTIONS.filter((q) => q.lo === lo);
+  deckIndex = 0;
+  isRunFinished = false;
+  if (isMenuOpen) toggleMenuDrawer();
+  prepareNextGate();
+}
+
+function syncMissedOptionLabel() {
+  const sf = document.getElementById(`sector-filter`);
+  if (!sf) return;
+  const opt = sf.querySelector(`option[value="missed"]`);
+  if (opt) opt.textContent = `🎯 Missed Gates Only (${missedIds.length})`;
+}
+
+function buildDeck(shouldShuffle) {
+  const sectorVal = document.getElementById(`sector-filter`)?.value || `all`;
+  const angleVal = document.getElementById(`angle-filter`)?.value || `all`;
+  const compVal = document.getElementById(`compartment-filter`)?.value || `all`;
+  const ageVal = document.getElementById(`age-filter`)?.value || `all`;
+  const behVal = document.getElementById(`behavior-filter`)?.value || `all`;
+
+  let list = ALL_QUESTIONS.filter((q) => {
+    if (sectorVal === `missed` && !missedIds.includes(q.id)) return false;
+    if (sectorVal !== `all` && sectorVal !== `missed` && q.sector !== sectorVal) return false;
+    if (angleVal !== `all` && q.angle !== angleVal) return false;
+    if (compVal !== `all` && q.compartment !== compVal) return false;
+    if (ageVal !== `all` && q.ageGroup !== ageVal) return false;
+    if (behVal !== `all` && q.behavior !== behVal) return false;
+    if (phaseFilter !== `all` && q.phaseFocus !== phaseFilter) return false;
+    return true;
+  });
+
+  if (!list.length) {
+    list = [...ALL_QUESTIONS];
+    const toast = document.getElementById(`menu-toast`);
+    if (toast) toast.textContent = `No gates matched that filter—loaded full 45-gate deck.`;
+  }
+  if (shouldShuffle) {
+    list = [...list];
+    for (let i = list.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [list[i], list[j]] = [list[j], list[i]];
+    }
+  }
+  deck = list;
+  deckIndex = 0;
+  sessionCorrect = 0;
+  sessionTotal = 0;
+  isRunFinished = false;
+}
+
+function applyDeckFilters() {
+  buildDeck(false);
+  updateTelemetryUI();
+  prepareNextGate();
+  persistAppState();
+}
+
+function setPhaseFilter(phaseVal) {
+  phaseFilter = phaseVal;
+  document.querySelectorAll(`.phase-pill[data-phase]`).forEach((btn) => {
+    btn.classList.toggle(`is-active`, btn.dataset.phase === phaseVal);
+  });
+  applyDeckFilters();
+}
+
+function toggleMenuDrawer() {
+  isMenuOpen = !isMenuOpen;
+  const drawer = document.getElementById(`top-menu-drawer`);
+  const backdrop = document.getElementById(`menu-backdrop`);
+  const btn = document.getElementById(`menu-toggle-btn`);
+  if (drawer) {
+    drawer.classList.toggle(`is-open`, isMenuOpen);
+    drawer.setAttribute(`aria-hidden`, String(!isMenuOpen));
+  }
+  if (backdrop) backdrop.classList.toggle(`is-open`, isMenuOpen);
+  if (btn) {
+    btn.classList.toggle(`is-active`, isMenuOpen);
+    btn.setAttribute(`aria-expanded`, String(isMenuOpen));
+  }
+}
+
+function syncHintsUI() {
+  const app = document.getElementById(`xr-app`);
+  const menuBtn = document.getElementById(`menu-hints-btn`);
+  if (app) {
+    app.classList.toggle(`hints-visible`, isHintsVisible);
+    app.classList.toggle(`hints-hidden`, !isHintsVisible);
+  }
+  if (menuBtn) {
+    menuBtn.textContent = isHintsVisible ? `💡 Hints: ON [H]` : `💡 Hints: OFF [H]`;
+    menuBtn.classList.toggle(`is-active`, isHintsVisible);
+  }
+}
+
+function toggleHintsBar() {
+  isHintsVisible = !isHintsVisible;
+  syncHintsUI();
+  playSfx(`steer`);
+  persistAppState();
+}
+
+function openCodexFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  openCodex();
+}
+
+function skipFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  skipCurrentQuestion();
+}
+
+function restartDeckFromMenu(shuffle) {
+  hp = 100;
+  xp = 0;
+  streak = 0;
+  buildDeck(shuffle);
+  updateTelemetryUI();
+  prepareNextGate();
+  if (isMenuOpen) toggleMenuDrawer();
+  persistAppState();
+}
+
+function handleResetMastery(btn) {
+  if (!btn) return;
+  if (btn.dataset.armed !== `true`) {
+    btn.dataset.armed = `true`;
+    btn.textContent = `⚠ Tap Again to Confirm`;
+    return;
+  }
+  btn.dataset.armed = `false`;
+  btn.textContent = `🗑 Reset Mastery`;
+  masteredLos = {};
+  missedIds = [];
+  bestXp = 0;
+  bestStreak = 0;
+  syncMissedOptionLabel();
+  renderSkillTreeGrid();
+  const toast = document.getElementById(`menu-toast`);
+  if (toast) toast.textContent = `Mastery & missed gates cleared.`;
+  persistAppState();
+}
+
+function setTimesUpMode(mode) {
+  timesUpMode = mode;
+  persistAppState();
+}
+
+function syncTimerControlsUI() {
+  const chip = document.getElementById(`timer-chip`);
+  const tText = document.getElementById(`timer-text`);
+  const mBtn = document.getElementById(`menu-timer-btn`);
+  if (tText) tText.textContent = isTimerActive ? `${timerSecondsLeft}s` : `OFF`;
+  if (chip) chip.classList.toggle(`is-urgent`, isTimerActive && timerSecondsLeft <= 10);
+  if (mBtn) {
+    mBtn.textContent = isTimerActive ? `⏱ 50s Timer: ON [T]` : `⏱ 50s Timer: OFF [T]`;
+    mBtn.classList.toggle(`is-active`, isTimerActive);
+  }
+}
+
+function stopQuestionTimer() {
+  if (timerIntervalId) {
+    clearInterval(timerIntervalId);
+    timerIntervalId = null;
+  }
+}
+
+function startQuestionTimer() {
+  stopQuestionTimer();
+  timerSecondsLeft = GAME_CONFIG.timerSeconds;
+  syncTimerControlsUI();
+  if (!isTimerActive) return;
+  timerIntervalId = setInterval(() => {
+    if (isModalOpen || isMenuOpen || isRunFinished) return;
+    timerSecondsLeft = Math.max(0, timerSecondsLeft - 1);
+    syncTimerControlsUI();
+    if (timerSecondsLeft === 0) {
+      stopQuestionTimer();
+      if (timesUpMode === `wrong`) {
+        resolveGate(currentLane, true);
+      }
+    }
+  }, 1000);
+}
+
+function toggleTimerFromMenu() {
+  isTimerActive = !isTimerActive;
+  if (isTimerActive) startQuestionTimer();
+  else stopQuestionTimer();
+  syncTimerControlsUI();
+  persistAppState();
+}
+
+function startTimedRunFromMenu() {
+  isTimerActive = true;
+  hp = 100;
+  xp = 0;
+  streak = 0;
+  buildDeck(true);
+  updateTelemetryUI();
+  if (isMenuOpen) toggleMenuDrawer();
+  prepareNextGate();
+  persistAppState();
+}
+
+function updateTelemetryUI() {
+  const hpEl = document.getElementById(`hp-text`);
+  const hpChip = document.getElementById(`hp-chip`);
+  const xpEl = document.getElementById(`xp-text`);
+  const stEl = document.getElementById(`streak-text`);
+  const gEl = document.getElementById(`gate-text`);
+  if (hpEl) hpEl.textContent = String(hp);
+  if (hpChip) hpChip.classList.toggle(`is-low`, hp <= 35);
+  if (xpEl) xpEl.textContent = String(xp);
+  if (stEl) stEl.textContent = String(streak);
+  if (gEl) gEl.textContent = `${Math.min(deckIndex + 1, Math.max(1, deck.length))}/${Math.max(1, deck.length)}`;
+  syncTimerControlsUI();
+}
+
+function updateLaneHighlight() {
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`lane-${i}-card`);
+    if (card) {
+      card.classList.toggle(`is-targeted`, i === targetLane);
+      card.classList.toggle(`is-selected`, hasChosenLane && i === currentLane);
+    }
+  }
+}
+
+function previewLaneTarget(laneIndex) {
+  if (isModalOpen || isMenuOpen || isRunFinished) return;
+  if (laneIndex < 0 || laneIndex > 2) return;
+  if (targetLane !== laneIndex || currentLane !== laneIndex) {
+    targetLane = laneIndex;
+    currentLane = laneIndex;
+    updateLaneHighlight();
+    const now = performance.now();
+    if (now - lastSteerSfxTime > 95) {
+      lastSteerSfxTime = now;
+      playSfx(`steer`);
+    }
+  }
+}
+
+function triggerMetaAutoFade() {
+  const row = document.getElementById(`question-meta-row`);
+  if (!row) return;
+  if (metaFadeTimeoutId) clearTimeout(metaFadeTimeoutId);
+  row.classList.remove(`is-faded`);
+  metaFadeTimeoutId = setTimeout(() => {
+    row.classList.add(`is-faded`);
+  }, GAME_CONFIG.metaFadeMs);
+}
+
+function prepareNextGate() {
+  const q = getCurrentQuestion();
+  const theme = getThemeForLo(q.lo);
+  hasChosenLane = false;
+  portalApproach = 0;
+  isStoppedAtGate = false;
+  targetLane = 1;
+  currentLane = 1;
+
+  // Shuffle 3 portal indices at runtime
+  shuffledChoiceMap = [0, 1, 2];
+  for (let i = 2; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffledChoiceMap[i], shuffledChoiceMap[j]] = [shuffledChoiceMap[j], shuffledChoiceMap[i]];
+  }
+
+  const loBadge = document.getElementById(`lo-badge`);
+  const angBadge = document.getElementById(`angle-badge`);
+  const phBadge = document.getElementById(`phase-badge`);
+  const corBadge = document.getElementById(`corridor-badge`);
+  const stemEl = document.getElementById(`q-stem-text`);
+  const clueEl = document.getElementById(`q-clue-text`);
+  if (loBadge) loBadge.textContent = q.loTitle;
+  if (angBadge) angBadge.textContent = q.angle.toUpperCase();
+  if (phBadge) phBadge.textContent = q.phaseFocus.toUpperCase();
+  if (corBadge) corBadge.textContent = theme.corridor;
+  if (stemEl) stemEl.textContent = q.stem;
+  if (clueEl) clueEl.textContent = q.clue;
+
+  for (let i = 0; i < 3; i++) {
+    const tEl = document.getElementById(`lane-${i}-text`);
+    const card = document.getElementById(`lane-${i}-card`);
+    if (tEl) tEl.textContent = q.choices[shuffledChoiceMap[i]];
+    if (card) card.classList.remove(`is-fused`, `is-selected`);
+  }
+
+  const vig = document.getElementById(`vignette-overlay`);
+  if (vig) vig.classList.remove(`is-correct`, `is-wrong`);
+
+  updateLaneHighlight();
+  updateTelemetryUI();
+  triggerMetaAutoFade();
+  startQuestionTimer();
+}
+
+function selectLaneAndResolve(laneIndex) {
+  if (isModalOpen || isMenuOpen || isRunFinished || hasChosenLane) return;
+  previewLaneTarget(laneIndex);
+  hasChosenLane = true;
+  portalFlareTimer = 0.22;
+  updateLaneHighlight();
+  resolveGate(laneIndex, false);
+}
+
+function skipCurrentQuestion() {
+  if (isModalOpen || isRunFinished) return;
+  stopQuestionTimer();
+  deckIndex++;
+  if (deckIndex >= deck.length) {
+    openRunSummary();
+  } else {
+    prepareNextGate();
+  }
+}
+
+function showHealToast() {
+  const toast = document.getElementById(`heal-toast`);
+  if (!toast) return;
+  toast.classList.add(`is-shown`);
+  setTimeout(() => toast.classList.remove(`is-shown`), 2100);
+}
+
+function resolveGate(chosenLane, isTimesUp) {
+  stopQuestionTimer();
+  const q = getCurrentQuestion();
+  const mappedIdx = shuffledChoiceMap[chosenLane];
+  const isCorrect = !isTimesUp && mappedIdx === q.correctIndex;
+  sessionTotal++;
+
+  let xpDelta = 0;
+  let hpDeltaLabel = `+0 HP`;
+  const vig = document.getElementById(`vignette-overlay`);
+
+  if (isCorrect) {
+    sessionCorrect++;
+    streak++;
+    xpDelta = Math.round(100 * getComboMultiplier());
+    xp += xpDelta;
+    if (xp > bestXp) bestXp = xp;
+    if (streak > bestStreak) bestStreak = streak;
+    let hpGain = 5;
+    if (streak > 0 && streak % 4 === 0) {
+      hpGain += 25;
+      showHealToast();
+    }
+    hp = Math.min(100, hp + hpGain);
+    hpDeltaLabel = `+${hpGain} HP`;
+    masteredLos[q.lo] = true;
+    missedIds = missedIds.filter((id) => id !== q.id);
+    if (vig) vig.classList.add(`is-correct`);
+    playSfx(`correct`);
+  } else {
+    streak = 0;
+    hp = Math.max(0, hp - 15);
+    hpDeltaLabel = `-15 HP`;
+    if (!missedIds.includes(q.id)) missedIds.push(q.id);
+    if (vig) vig.classList.add(`is-wrong`);
+    playSfx(`wrong`);
+  }
+
+  syncMissedOptionLabel();
+  renderSkillTreeGrid();
+  updateTelemetryUI();
+  populateOutcomeModal(q, chosenLane, isCorrect, xpDelta, hpDeltaLabel, isTimesUp);
+  persistAppState();
+}
+
+function renderDossierBullets(el, lines) {
+  if (!el) return;
+  const items = (Array.isArray(lines) ? lines : [lines])
+    .flatMap((line) => String(line || ``).split(/\n|<br\s*\/?>/i))
+    .map((line) => line.replace(/^\s*[•\-\*]\s*/, ``).trim())
+    .filter(Boolean);
+  el.innerHTML = items.map((line) => `<p class="dossier-line">• ${line}</p>`).join(``);
+}
+
+function populateOutcomeModal(q, chosenLane, isCorrect, xpDelta, hpDeltaLabel, isTimesUp) {
+  isModalOpen = true;
+  const verdictEl = document.getElementById(`outcome-verdict`);
+  const xpEl = document.getElementById(`outcome-xp-delta`);
+  const hpEl = document.getElementById(`outcome-hp-delta`);
+  const loRef = document.getElementById(`outcome-lo-ref`);
+  const qText = document.getElementById(`outcome-question-text`);
+  const yourBox = document.getElementById(`your-choice-box`);
+  const yourText = document.getElementById(`your-choice-text`);
+  const corText = document.getElementById(`correct-choice-text`);
+
+  if (verdictEl) {
+    verdictEl.classList.remove(`is-correct`, `is-wrong`, `is-cyan`);
+    if (isTimesUp) {
+      verdictEl.textContent = `⏱ TIME'S UP — ${q.shortAnswer}`;
+      verdictEl.classList.add(`is-wrong`);
+    } else if (isCorrect) {
+      verdictEl.textContent = `✔ CORRECT — ${q.shortAnswer}`;
+      verdictEl.classList.add(`is-correct`);
+    } else {
+      verdictEl.textContent = `✖ INCORRECT — ${q.shortAnswer}`;
+      verdictEl.classList.add(`is-wrong`);
+    }
+  }
+  if (xpEl) xpEl.textContent = `+${xpDelta} XP`;
+  if (hpEl) hpEl.textContent = hpDeltaLabel;
+  if (loRef) loRef.textContent = `${q.loTitle} • ${q.angle}`;
+  if (qText) qText.textContent = q.stem;
+
+  const chosenAnswerText = isTimesUp ? `No selection (Timer expired)` : q.choices[shuffledChoiceMap[chosenLane]];
+  if (yourText) yourText.textContent = chosenAnswerText;
+  if (yourBox) {
+    yourBox.classList.toggle(`is-correct`, isCorrect);
+    yourBox.classList.toggle(`is-wrong`, !isCorrect);
+  }
+  if (corText) corText.textContent = q.choices[q.correctIndex];
+
+  renderDossierBullets(document.getElementById(`dossier-explanation`), q.explanation);
+  renderDossierBullets(document.getElementById(`dossier-second-order`), q.secondOrderClue);
+  renderDossierBullets(document.getElementById(`dossier-phase-1`), q.phase1Pearl);
+  renderDossierBullets(document.getElementById(`dossier-phase-2`), q.phase2Hallmark);
+  renderDossierBullets(document.getElementById(`dossier-phase-3`), q.phase3Secret);
+
+  const entity = CODEX_DATA.find((c) => c.lo === q.lo);
+  renderDossierBullets(document.getElementById(`dossier-angle-1`), [
+    q.phase1Pearl,
+    entity ? entity.pathogenesis : ``
+  ]);
+  renderDossierBullets(document.getElementById(`dossier-angle-2`), [
+    q.phase2Hallmark,
+    entity ? entity.hallmarks : ``
+  ]);
+  renderDossierBullets(document.getElementById(`dossier-angle-3`), [
+    q.phase3Secret,
+    entity ? entity.management : ``
+  ]);
+
+  const scrollBody = document.getElementById(`outcome-scroll-body`);
+  if (scrollBody) scrollBody.scrollTop = 0;
+
+  const backdrop = document.getElementById(`outcome-backdrop`);
+  if (backdrop) backdrop.classList.add(`is-open`);
+}
+
+function scrollOutcomeBody(deltaY) {
+  const el = document.getElementById(`outcome-scroll-body`);
+  if (!el) return;
+  if (typeof el.scrollBy === `function`) {
+    el.scrollBy({ top: deltaY, behavior: `smooth` });
+  } else {
+    el.scrollTop += deltaY;
+  }
+}
+
+function continueToNextGate() {
+  const backdrop = document.getElementById(`outcome-backdrop`);
+  if (backdrop) backdrop.classList.remove(`is-open`);
+  isModalOpen = false;
+  if (hp <= 0) {
+    openRunSummary();
+    return;
+  }
+  deckIndex++;
+  if (deckIndex >= deck.length) {
+    openRunSummary();
+  } else {
+    prepareNextGate();
+  }
+}
+
+let codexSectorFilter = `all`;
+function setCodexSector(sector) {
+  codexSectorFilter = sector;
+  document.querySelectorAll(`#codex-sector-pills .phase-pill`).forEach((btn) => {
+    btn.classList.toggle(`is-active`, btn.dataset.sector === sector);
+  });
+  renderCodexTable();
+}
+
+function openCodex() {
+  isModalOpen = true;
+  renderCodexTable();
+  document.getElementById(`codex-backdrop`)?.classList.add(`is-open`);
+}
+
+function closeCodex() {
+  document.getElementById(`codex-backdrop`)?.classList.remove(`is-open`);
+  isModalOpen = false;
+}
+
+function renderCodexTable() {
+  const tbody = document.getElementById(`codex-tbody`);
+  if (!tbody) return;
+  const query = (document.getElementById(`codex-search-input`)?.value || ``).trim().toLowerCase();
+  const rows = CODEX_DATA.filter((r) => {
+    if (codexSectorFilter !== `all` && r.sector !== codexSectorFilter) return false;
+    if (!query) return true;
+    const blob = `${r.entity} ${r.badgeMeta} ${r.etiology} ${r.pathogenesis} ${r.hallmarks} ${r.clinical} ${r.management}`.toLowerCase();
+    return blob.includes(query);
+  });
+  tbody.innerHTML = rows.map((r) => `<tr>
+    <td class="amboss-scan-target"><strong>${r.entity}</strong><br><span style="color:var(--secondary);font-size:0.7rem;">${r.badgeMeta}</span></td>
+    <td class="amboss-scan-target">${r.etiology}</td>
+    <td class="amboss-scan-target">${r.pathogenesis}</td>
+    <td class="amboss-scan-target">${r.hallmarks}</td>
+    <td class="amboss-scan-target">${r.clinical}</td>
+    <td class="amboss-scan-target">${r.management}</td>
+  </tr>`).join(``);
+}
+
+function openRunSummary() {
+  isRunFinished = true;
+  isModalOpen = true;
+  stopQuestionTimer();
+  const acc = sessionTotal ? Math.round((sessionCorrect / sessionTotal) * 100) : 0;
+  const sScore = document.getElementById(`sum-score`);
+  const sXp = document.getElementById(`sum-xp`);
+  const sStr = document.getElementById(`sum-streak`);
+  const sMis = document.getElementById(`sum-missed`);
+  const sDeb = document.getElementById(`sum-debrief-text`);
+  if (sScore) sScore.textContent = `${acc}%`;
+  if (sXp) sXp.textContent = String(xp);
+  if (sStr) sStr.textContent = String(bestStreak);
+  if (sMis) sMis.textContent = String(missedIds.length);
+  if (sDeb) {
+    sDeb.textContent = hp <= 0
+      ? `• Hull HP depleted after ${sessionTotal} gates (${sessionCorrect} correct). Drill missed gates to lock down weak mechanisms.`
+      : `• Corridor cleared: ${sessionCorrect}/${sessionTotal} gates accurate. Best run XP: ${bestXp}.`;
+  }
+  document.getElementById(`summary-backdrop`)?.classList.add(`is-open`);
+}
+
+function reviewMissedFromSummary() {
+  document.getElementById(`summary-backdrop`)?.classList.remove(`is-open`);
+  isModalOpen = false;
+  const sf = document.getElementById(`sector-filter`);
+  if (sf && missedIds.length) sf.value = `missed`;
+  hp = 100;
+  xp = 0;
+  streak = 0;
+  buildDeck(false);
+  prepareNextGate();
+}
+
+function restartFromSummary(shuffle) {
+  document.getElementById(`summary-backdrop`)?.classList.remove(`is-open`);
+  isModalOpen = false;
+  const sf = document.getElementById(`sector-filter`);
+  if (sf && sf.value === `missed`) sf.value = `all`;
+  hp = 100;
+  xp = 0;
+  streak = 0;
+  buildDeck(shuffle);
+  prepareNextGate();
+}
+
+// =========================================================================
+// ACTIVE MOUSE SURFING, HOVER & KEYBOARD CONTROLS
+// =========================================================================
+function handleCanvasPointer(evt) {
+  if (isModalOpen || isMenuOpen || isRunFinished) return;
+  const canvas = document.getElementById(`xr-canvas`);
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const cx = evt.clientX - rect.left;
+  const cy = evt.clientY - rect.top;
+  for (let i = 0; i < portalHitboxes.length; i++) {
+    const b = portalHitboxes[i];
+    if (cx >= b.x && cx <= b.x + b.w && cy >= b.y && cy <= b.y + b.h) {
+      selectLaneAndResolve(b.lane);
+      return;
+    }
+  }
+  if (cy >= rect.height * 0.42) {
+    const lane = Math.min(2, Math.max(0, Math.floor((cx / Math.max(1, rect.width)) * 3)));
+    selectLaneAndResolve(lane);
+  }
+}
+
+function handleCanvasHover(evt) {
+  if (isModalOpen || isMenuOpen || isRunFinished) return;
+  const canvas = document.getElementById(`xr-canvas`);
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const cx = evt.clientX - rect.left;
+  const cy = evt.clientY - rect.top;
+  for (let i = 0; i < portalHitboxes.length; i++) {
+    const b = portalHitboxes[i];
+    if (cx >= b.x && cx <= b.x + b.w && cy >= b.y && cy <= b.y + b.h) {
+      previewLaneTarget(b.lane);
+      return;
+    }
+  }
+  if (cy >= rect.height * 0.45) {
+    const lane = Math.min(2, Math.max(0, Math.floor((cx / Math.max(1, rect.width)) * 3)));
+    previewLaneTarget(lane);
+  }
+}
+
+function handleKeyControls(e) {
+  const activeTag = document.activeElement ? document.activeElement.tagName : ``;
+  if (activeTag === `INPUT` || activeTag === `SELECT` || activeTag === `TEXTAREA`) return;
+
+  const outcomeOpen = document.getElementById(`outcome-backdrop`)?.classList.contains(`is-open`);
+  const codexOpen = document.getElementById(`codex-backdrop`)?.classList.contains(`is-open`);
+
+  if (outcomeOpen) {
+    if (e.key === `ArrowUp`) { e.preventDefault(); scrollOutcomeBody(-160); return; }
+    if (e.key === `ArrowDown`) { e.preventDefault(); scrollOutcomeBody(160); return; }
+    if (e.key === ` ` || e.key === `Enter`) { e.preventDefault(); continueToNextGate(); return; }
+  }
+  if (codexOpen && e.key === `Escape`) {
+    e.preventDefault();
+    closeCodex();
+    return;
+  }
+
+  const key = e.key.toLowerCase();
+  if (key === `m`) { e.preventDefault(); toggleMenuDrawer(); return; }
+  if (key === `h`) { e.preventDefault(); toggleHintsBar(); return; }
+  if (key === `c`) {
+    e.preventDefault();
+    if (codexOpen) closeCodex(); else openCodex();
+    return;
+  }
+  if (isModalOpen || isMenuOpen || isRunFinished) return;
+  if (key === `s`) { e.preventDefault(); skipCurrentQuestion(); return; }
+  if (key === `t`) { e.preventDefault(); toggleTimerFromMenu(); return; }
+
+  if (key === `1` || key === `a` || e.key === `ArrowLeft`) {
+    e.preventDefault();
+    selectLaneAndResolve(0);
+  } else if (key === `2` || key === `w` || e.key === `ArrowUp`) {
+    e.preventDefault();
+    selectLaneAndResolve(1);
+  } else if (key === `3` || key === `d` || e.key === `ArrowRight`) {
+    e.preventDefault();
+    selectLaneAndResolve(2);
+  }
+}
+
+// =========================================================================
+// 3D XR RUNNER CANVAS RENDERER (SYNTHWAVE WIREFRAME VOID + 1:1 PORTAL FUSION)
+// =========================================================================
+function drawPixelStarfield(ctx, cssW, cssH, vpX, horizonY, theme, dt, warpMult) {
+  const spreadX = cssW * 0.62;
+  const spreadY = cssH * 0.56;
+  ctx.fillStyle = theme.dustHex || `#00ffcc`;
+  for (let i = 0; i < PARALLAX_PARTICLES.length; i++) {
+    const p = PARALLAX_PARTICLES[i];
+    p.z -= dt * p.speed * warpMult;
+    if (p.z <= 0.02) p.z = 1.0;
+    const invZ = 1 / p.z;
+    const px = vpX + Math.cos(p.angle) * p.rad * spreadX * invZ * 0.35;
+    const py = horizonY + Math.sin(p.angle) * p.rad * spreadY * invZ * 0.32;
+    if (px < -10 || px > cssW + 10 || py < -10 || py > cssH + 10) continue;
+    const sq = Math.max(1.2, Math.min(4.2, p.size * (1.25 - p.z)));
+    ctx.globalAlpha = Math.min(0.85, (1 - p.z) * 0.9);
+    ctx.fillRect(Math.round(px), Math.round(py), sq, sq);
+  }
+  ctx.globalAlpha = 1;
+}
+
+let lastFrameTime = performance.now();
+function renderRunnerFrame(now) {
+  const dt = Math.min(0.05, Math.max(0.001, (now - lastFrameTime) / 1000));
+  lastFrameTime = now;
+  particleTime += dt;
+
+  const canvas = document.getElementById(`xr-canvas`);
+  if (!canvas) { animFrameId = requestAnimationFrame(renderRunnerFrame); return; }
+  const rect = canvas.getBoundingClientRect();
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const cssW = Math.max(320, rect.width);
+  const cssH = Math.max(200, rect.height);
+  if (canvas.width !== Math.round(cssW * dpr) || canvas.height !== Math.round(cssH * dpr)) {
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+  }
+
+  const ctx = canvas.getContext(`2d`);
+  if (!ctx) { animFrameId = requestAnimationFrame(renderRunnerFrame); return; }
+  ctx.save();
+  ctx.scale(dpr, dpr);
+
+  // 1. Deep midnight-navy void
+  ctx.fillStyle = `#0a0a12`;
+  ctx.fillRect(0, 0, cssW, cssH);
+
+  const q = getCurrentQuestion();
+  const theme = getThemeForLo(q.lo);
+  const isPortraitCompact = cssW <= 600;
+  const vpX = cssW * 0.5;
+  const horizonY = cssH * (isPortraitCompact ? 0.50 : 0.57);
+  const floorH = cssH - horizonY;
+
+  if (portalFlareTimer > 0) portalFlareTimer = Math.max(0, portalFlareTimer - dt);
+  if (!isModalOpen && !isMenuOpen && !isRunFinished) {
+    if (portalApproach < 1) {
+      portalApproach = Math.min(1, portalApproach + dt * 1.45);
+      trackScrollOffset = (trackScrollOffset + dt * 1.6) % 1;
+    } else {
+      trackScrollOffset = (trackScrollOffset + dt * 0.45) % 1;
+      if (!isStoppedAtGate) {
+        isStoppedAtGate = true;
+        for (let i = 0; i < 3; i++) {
+          document.getElementById(`lane-${i}-card`)?.classList.add(`is-fused`);
+        }
+      }
+    }
+  }
+
+  // 2. 150 crisp 3D square pixel-dust particles
+  drawPixelStarfield(ctx, cssW, cssH, vpX, horizonY, theme, dt, isStoppedAtGate ? 0.45 : 1.35);
+
+  // 3. Infinite wireframe floor
+  const gridRgb = theme.gridRgb || `0, 255, 204`;
+  ctx.strokeStyle = `rgba(${gridRgb}, 0.24)`;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let i = -8; i <= 8; i++) {
+    ctx.moveTo(vpX + i * 22, horizonY);
+    ctx.lineTo(vpX + i * (cssW * 0.16), cssH);
+  }
+  const hLines = 9;
+  for (let j = 0; j < hLines; j++) {
+    const p = ((j / hLines) + trackScrollOffset / hLines) % 1;
+    const y = horizonY + Math.pow(p, 1.8) * floorH;
+    ctx.moveTo(0, y);
+    ctx.lineTo(cssW, y);
+  }
+  ctx.stroke();
+
+  // 4. 3 Teal perspective rails
+  const railBotSpread = isPortraitCompact ? cssW * 0.44 : cssW * 0.27;
+  ctx.strokeStyle = `rgba(0, 255, 204, 0.52)`;
+  ctx.lineWidth = 2;
+  for (let lane = 0; lane < 3; lane++) {
+    const laneOffset = lane - 1;
+    const topX = vpX + laneOffset * 28;
+    const botX = vpX + laneOffset * railBotSpread;
+    ctx.beginPath();
+    ctx.moveTo(topX, horizonY);
+    ctx.lineTo(botX, cssH);
+    ctx.stroke();
+  }
+
+  // 5. 1:1 Portal Fusion tracking live card DOM rects
+  const laneColors = [`#ff2d78`, `#00ffcc`, `#ffe04a`];
+  const shellRect = canvas.getBoundingClientRect();
+  portalHitboxes = [];
+  const easeApproach = 1 - Math.pow(1 - portalApproach, 3);
+  for (let lane = 0; lane < 3; lane++) {
+    const card = document.getElementById(`lane-${lane}-card`);
+    if (!card) continue;
+    const cr = card.getBoundingClientRect();
+    const targetBoxW = cr.width;
+    const targetBoxH = cr.height;
+    const targetBoxX = cr.left - shellRect.left;
+    const targetBoxY = cr.top - shellRect.top;
+
+    const startW = 44;
+    const startH = 26;
+    const startX = vpX + (lane - 1) * 32 - startW / 2;
+    const startY = horizonY - startH * 0.8;
+
+    const boxX = startX + (targetBoxX - startX) * easeApproach;
+    const boxY = startY + (targetBoxY - startY) * easeApproach;
+    const boxW = startW + (targetBoxW - startW) * easeApproach;
+    const boxH = startH + (targetBoxH - startH) * easeApproach;
+    portalHitboxes.push({ lane, x: boxX, y: boxY, w: boxW, h: boxH });
+
+    const isTargeted = lane === targetLane;
+    const isFusedNow = portalApproach >= 0.96;
+    ctx.save();
+    ctx.strokeStyle = laneColors[lane];
+    ctx.fillStyle = laneColors[lane];
+    ctx.lineWidth = isTargeted ? 2.5 : 1.5;
+    ctx.shadowColor = laneColors[lane];
+    ctx.shadowBlur = isTargeted ? 18 : 8;
+    ctx.globalAlpha = isTargeted ? 0.14 : 0.05;
+    ctx.fillRect(boxX - 3, boxY - 3, boxW + 6, boxH + 6);
+    ctx.globalAlpha = isTargeted ? 0.98 : (isFusedNow ? 0.82 : 0.72);
+    ctx.strokeRect(boxX - 2, boxY - 2, boxW + 4, boxH + 4);
+    ctx.restore();
+  }
+
+  // 6. Active Mouse Surfing & Fluid Ship Banking (60 FPS interpolation)
+  const craftY = cssH * (isPortraitCompact ? 0.91 : 0.93);
+  const craftT = Math.max(0, Math.min(1, (craftY - horizonY) / Math.max(1, floorH)));
+  const targetRailTop = vpX + (targetLane - 1) * 28;
+  const targetRailBot = vpX + (targetLane - 1) * railBotSpread;
+  const targetX = targetRailTop + (targetRailBot - targetRailTop) * craftT;
+  if (!ship.initialized) {
+    ship.x = targetX;
+    ship.initialized = true;
+  }
+  ship.x += (targetX - ship.x) * 0.18;
+  ship.tilt = (targetX - ship.x) * 0.06;
+  craftVisualLane += (targetLane - craftVisualLane) * Math.min(1, dt * 14);
+
+  const hoverBob = Math.sin(particleTime * 4.5) * 2;
+  const bankTilt = Math.max(-0.42, Math.min(0.42, ship.tilt * 0.08));
+  const craftHalfW = isPortraitCompact ? 30 : 46;
+  const craftHalfH = isPortraitCompact ? 32 : 48;
+
+  ctx.save();
+  ctx.translate(ship.x, craftY + hoverBob);
+  ctx.rotate(bankTilt);
+  ctx.shadowColor = `#00ffcc`;
+  ctx.shadowBlur = 16;
+  ctx.fillStyle = `rgba(0, 255, 204, 0.28)`;
+  ctx.strokeStyle = `#00ffcc`;
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.moveTo(0, -craftHalfH * 0.55);
+  ctx.lineTo(craftHalfW * 0.55, 0);
+  ctx.lineTo(0, craftHalfH * 0.35);
+  ctx.lineTo(-craftHalfW * 0.55, 0);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Inner core diamond
+  ctx.fillStyle = `#e8e0f0`;
+  ctx.beginPath();
+  ctx.moveTo(0, -craftHalfH * 0.25);
+  ctx.lineTo(craftHalfW * 0.2, 0);
+  ctx.lineTo(0, craftHalfH * 0.16);
+  ctx.lineTo(-craftHalfW * 0.2, 0);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  ctx.restore();
+  animFrameId = requestAnimationFrame(renderRunnerFrame);
+}
+
+// =========================================================================
+// STATE PERSISTENCE (GEMINI NOTEBOOK SHIM API) & INITIALIZATION
+// =========================================================================
+async function persistAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.setAppState !== `function`) return;
+  try {
+    await window.notebookAppApi.setAppState({
+      bestXp,
+      bestStreak,
+      masteredLos,
+      missedIds,
+      isHintsVisible,
+      isTimerActive,
+      timesUpMode,
+      phaseFilter,
+      masterSoundOn,
+      sfxOn,
+      sectorFilter: document.getElementById(`sector-filter`)?.value || `all`,
+      angleFilter: document.getElementById(`angle-filter`)?.value || `all`,
+      compartmentFilter: document.getElementById(`compartment-filter`)?.value || `all`,
+      ageFilter: document.getElementById(`age-filter`)?.value || `all`,
+      behaviorFilter: document.getElementById(`behavior-filter`)?.value || `all`
+    });
+  } catch (e) {}
+}
+
+async function restoreAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.getAppState !== `function`) return;
+  try {
+    const s = await window.notebookAppApi.getAppState();
+    if (!s) return;
+    if (typeof s.bestXp === `number`) bestXp = s.bestXp;
+    if (typeof s.bestStreak === `number`) bestStreak = s.bestStreak;
+    if (s.masteredLos && typeof s.masteredLos === `object`) masteredLos = s.masteredLos;
+    if (Array.isArray(s.missedIds)) missedIds = s.missedIds;
+    if (typeof s.isHintsVisible === `boolean`) isHintsVisible = s.isHintsVisible;
+    if (typeof s.isTimerActive === `boolean`) isTimerActive = s.isTimerActive;
+    if (typeof s.timesUpMode === `string`) timesUpMode = s.timesUpMode;
+    if (typeof s.phaseFilter === `string`) phaseFilter = s.phaseFilter;
+    if (typeof s.masterSoundOn === `boolean`) masterSoundOn = s.masterSoundOn;
+    if (typeof s.sfxOn === `boolean`) sfxOn = s.sfxOn;
+
+    const mapIds = [
+      [`sector-filter`, s.sectorFilter],
+      [`angle-filter`, s.angleFilter],
+      [`compartment-filter`, s.compartmentFilter],
+      [`age-filter`, s.ageFilter],
+      [`behavior-filter`, s.behaviorFilter],
+      [`timesup-mode-select`, s.timesUpMode]
+    ];
+    mapIds.forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el && val) el.value = val;
+    });
+    document.querySelectorAll(`.phase-pill[data-phase]`).forEach((btn) => {
+      btn.classList.toggle(`is-active`, btn.dataset.phase === phaseFilter);
+    });
+  } catch (e) {}
+}
+
+async function initRunnerGame() {
+  initDynamicSelectors();
+  await restoreAppState();
+  syncHintsUI();
+  syncAudioUI();
+  syncMissedOptionLabel();
+  renderSkillTreeGrid();
+  buildDeck(false);
+  updateTelemetryUI();
+  prepareNextGate();
+
+  const canvas = document.getElementById(`xr-canvas`);
+  if (canvas) {
+    canvas.addEventListener(`click`, handleCanvasPointer);
+    canvas.addEventListener(`mousemove`, handleCanvasHover);
+    canvas.addEventListener(`pointermove`, handleCanvasHover);
+  }
+  window.addEventListener(`keydown`, handleKeyControls);
+
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  animFrameId = requestAnimationFrame(renderRunnerFrame);
+
+  if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === `function`) {
+    window.notebookAppApi.notifyAppReady();
+  }
+}
+
+if (document.readyState === `loading`) {
+  window.addEventListener(`DOMContentLoaded`, initRunnerGame);
+} else {
+  initRunnerGame();
+}
+</script>
+</body>
+</html>
