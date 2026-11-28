@@ -1,0 +1,2715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="artifact-type" content="tool">
+<meta name="design-style" content="neon_noir">
+<title>General Pathology Overview XR Raid</title>
+<style>
+:root {
+  color-scheme: dark;
+
+  /* Neon Noir Surfaces & Base Palette */
+  --background: #0a0a12;
+  --surface-container-low: #111118;
+  --surface-container: #141422;
+  --surface-container-high: #1e1e30;
+  --surface-glass: rgba(17, 17, 28, 0.86);
+  --surface-overlay: rgba(8, 8, 16, 0.88);
+
+  /* Text */
+  --on-surface: #e8e0f0;
+  --on-surface-variant: #a098b0;
+
+  /* Lines */
+  --outline: #5a5068;
+  --outline-variant: #302840;
+
+  /* Neon Accents */
+  --primary: #ff2d78;
+  --on-primary: #1a0010;
+  --primary-container: #b3004e;
+  --on-primary-container: #ffe0ec;
+  --secondary: #00ffcc;
+  --tertiary: #ffe04a;
+  --error: #ff4444;
+  --on-error: #1a0000;
+  --violet: #b388ff;
+
+  /* Semantic & Data Series */
+  --positive: #00ffcc;
+  --warning: #ffe04a;
+  --focus: #ff2d78;
+  --data-1: #ff2d78;
+  --data-2: #00ffcc;
+  --data-3: #ffe04a;
+  --data-4: #b388ff;
+  --data-context: #6e6680;
+
+  /* Typography */
+  --font-headline: 'Sora', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-body: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-label: 'Space Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+  /* Type Scale */
+  --display-size: clamp(1.5rem, 1.2rem + 1.1vw, 2.1rem);
+  --headline-size: clamp(1.15rem, 1rem + 0.5vw, 1.45rem);
+  --subhead-size: clamp(1rem, 0.94rem + 0.25vw, 1.15rem);
+  --body-size: clamp(0.9375rem, 0.9rem + 0.14vw, 1rem);
+  --label-size: 0.75rem;
+
+  /* Radii */
+  --rounded: 0.125rem;
+  --rounded-lg: 0.25rem;
+  --rounded-full: 0.75rem;
+
+  /* Spacing Scale (4pt base) */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+
+  /* Effects */
+  --glow-text: 0 0 8px currentColor;
+  --glow-primary: 0 0 16px color-mix(in srgb, var(--primary) 42%, transparent);
+  --glow-secondary: 0 0 16px color-mix(in srgb, var(--secondary) 38%, transparent);
+  --glow-tertiary: 0 0 16px color-mix(in srgb, var(--tertiary) 38%, transparent);
+  --neon-border: 1px solid color-mix(in srgb, var(--primary) 34%, transparent);
+  --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 58%, transparent);
+  --cyan-border: 1px solid color-mix(in srgb, var(--secondary) 36%, transparent);
+  --gold-border: 1px solid color-mix(in srgb, var(--tertiary) 40%, transparent);
+  --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+  --scanlines: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in srgb, var(--on-surface) 2.5%, transparent) 3px 4px);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: clip;
+  background-color: var(--background);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: var(--body-size);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font-family: inherit; }
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Main 4-Band Cockpit Shell */
+#xr-app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  background-color: var(--background);
+  background-image: var(--scanlines);
+}
+#xr-app.hints-hidden #hints-bar {
+  display: none;
+}
+#xr-app.hints-visible #hints-bar {
+  display: flex;
+}
+
+/* Band 1: Ultra-Slim Top Bar */
+#top-bar {
+  position: relative;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-md);
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  min-height: 44px;
+}
+#menu-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  min-height: 36px;
+  padding: var(--space-xs) var(--space-md);
+  background: var(--surface-container);
+  color: var(--secondary);
+  border: var(--cyan-border);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out);
+}
+#menu-toggle-btn:hover {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+}
+.telemetry-strip {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+.telemetry-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: 0.22rem 0.55rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  color: var(--on-surface);
+  white-space: nowrap;
+}
+.telemetry-chip.is-hp { border-color: color-mix(in srgb, var(--primary) 45%, transparent); color: var(--primary); }
+.telemetry-chip.is-xp { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+.telemetry-chip.is-streak { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+.telemetry-chip.is-gate { color: var(--on-surface-variant); }
+.telemetry-chip.is-timer { border-color: color-mix(in srgb, var(--violet) 45%, transparent); color: var(--violet); }
+.telemetry-chip.is-timer.is-urgent { border-color: var(--error); color: var(--error); box-shadow: var(--glow-primary); }
+
+/* Band 2: Top Question HUD + Auto-Hiding 3s Metadata */
+#question-hud {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-sm) var(--space-lg);
+  background: color-mix(in srgb, var(--surface-container-low) 92%, transparent);
+  border-bottom: 1px solid var(--outline-variant);
+}
+.meta-badge-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-xs);
+  max-height: 80px;
+  opacity: 1;
+  overflow: hidden;
+  transition: opacity var(--dur-long) var(--ease-out), max-height var(--dur-long) var(--ease-out), margin-bottom var(--dur-long) var(--ease-out);
+}
+.meta-badge-row.is-faded {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+}
+.meta-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.16rem 0.5rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+.meta-badge.is-sector { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+.meta-badge.is-phase { border-color: color-mix(in srgb, var(--primary) 45%, transparent); color: var(--primary); }
+.meta-badge.is-corridor { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+.q-stem-wrap {
+  width: min(980px, 100%);
+  min-height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+#q-stem-text {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: clamp(0.95rem, 0.88rem + 0.35vw, 1.12rem);
+  font-weight: 500;
+  line-height: 1.48;
+  color: var(--on-surface);
+  text-align: center;
+  max-width: 72ch;
+}
+#xr-app.hints-visible #q-stem-text {
+  font-size: clamp(0.88rem, 0.84rem + 0.25vw, 1.02rem);
+  line-height: 1.4;
+}
+
+/* Band 3: 3D Synthwave Void & 1:1 Portal Fusion Cards */
+#runner-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 240px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#runner-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1;
+}
+.lane-cards-overlay {
+  position: relative;
+  z-index: 10;
+  width: min(1160px, 95%);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-md);
+  align-items: stretch;
+  justify-content: center;
+  margin-bottom: 10%;
+}
+.lane-dom-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 146px;
+  padding: var(--space-md);
+  background: var(--surface-glass);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded-lg);
+  color: var(--on-surface);
+  cursor: pointer;
+  text-align: center;
+  user-select: none;
+  transition: transform var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+}
+#xr-app.hints-visible .lane-dom-card {
+  min-height: 120px;
+  padding: var(--space-sm) var(--space-md);
+}
+.lane-dom-card[data-lane="0"] {
+  border-color: color-mix(in srgb, var(--primary) 55%, transparent);
+}
+.lane-dom-card[data-lane="1"] {
+  border-color: color-mix(in srgb, var(--secondary) 55%, transparent);
+}
+.lane-dom-card[data-lane="2"] {
+  border-color: color-mix(in srgb, var(--tertiary) 55%, transparent);
+}
+.lane-dom-card[data-lane="0"].is-targeted,
+.lane-dom-card[data-lane="0"]:hover {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+  background: color-mix(in srgb, var(--surface-container-high) 92%, var(--primary) 8%);
+  transform: translateY(-3px);
+}
+.lane-dom-card[data-lane="1"].is-targeted,
+.lane-dom-card[data-lane="1"]:hover {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+  background: color-mix(in srgb, var(--surface-container-high) 92%, var(--secondary) 8%);
+  transform: translateY(-3px);
+}
+.lane-dom-card[data-lane="2"].is-targeted,
+.lane-dom-card[data-lane="2"]:hover {
+  border-color: var(--tertiary);
+  box-shadow: var(--glow-tertiary);
+  background: color-mix(in srgb, var(--surface-container-high) 92%, var(--tertiary) 8%);
+  transform: translateY(-3px);
+}
+.lane-card-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-xs);
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.lane-dom-card[data-lane="0"] .lane-key-label { color: var(--primary); }
+.lane-dom-card[data-lane="1"] .lane-key-label { color: var(--secondary); }
+.lane-dom-card[data-lane="2"] .lane-key-label { color: var(--tertiary); }
+.lane-xp-chip {
+  color: var(--on-surface-variant);
+  font-size: 0.7rem;
+}
+.lane-choice-body {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: clamp(0.88rem, 0.84rem + 0.2vw, 0.98rem);
+  font-weight: 500;
+  line-height: 1.42;
+  color: var(--on-surface);
+}
+
+/* Band 4: Collapsible Bottom Hints Bar [H] */
+#hints-bar {
+  position: relative;
+  z-index: 20;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  background: var(--surface-container);
+  border-top: var(--gold-border);
+  min-height: 50px;
+}
+.hint-tag {
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--tertiary);
+  white-space: nowrap;
+}
+#q-clue-text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--on-surface);
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* Menu Drawer (#top-menu-drawer) */
+#menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--surface-overlay);
+  display: none;
+}
+#menu-backdrop.is-open { display: block; }
+#top-menu-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 60;
+  width: min(440px, 94vw);
+  background: var(--surface-container-low);
+  border-right: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  display: none;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: var(--space-md);
+  gap: var(--space-md);
+}
+#top-menu-drawer.is-open { display: flex; }
+.drawer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  border-bottom: 1px solid var(--outline-variant);
+  padding-bottom: var(--space-sm);
+}
+.drawer-kicker {
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  text-shadow: var(--glow-text);
+  margin-bottom: 0.2rem;
+}
+.drawer-title {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: var(--headline-size);
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--on-surface);
+}
+.drawer-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-sm);
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+}
+.drawer-section-label {
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--on-surface-variant);
+}
+.drawer-btn-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-xs);
+}
+.ctrl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  min-height: 40px;
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+}
+.ctrl-btn:hover {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+}
+.ctrl-btn.is-active {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface-container-low));
+}
+.ctrl-btn.is-danger {
+  border-color: color-mix(in srgb, var(--error) 60%, transparent);
+  color: var(--error);
+}
+.ctrl-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.ctrl-field label {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+.ctrl-select, .ctrl-input {
+  width: 100%;
+  min-height: 38px;
+  padding: 0.4rem 0.65rem;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-size: 0.84rem;
+}
+.phase-mix-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+.phase-pill {
+  flex: 1 1 auto;
+  min-height: 36px;
+  padding: 0.25rem 0.5rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  color: var(--on-surface-variant);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.phase-pill.is-active {
+  border-color: var(--secondary);
+  color: var(--secondary);
+  background: color-mix(in srgb, var(--secondary) 14%, var(--surface-container-low));
+}
+.skill-tree-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-xs);
+  max-height: 280px;
+  overflow-y: auto;
+}
+.skill-node-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  padding: 0.45rem 0.65rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  text-align: left;
+  cursor: pointer;
+}
+.skill-node-btn:hover {
+  border-color: var(--secondary);
+}
+.skill-node-btn.is-current {
+  border-color: var(--primary);
+  box-shadow: var(--neon-inset);
+}
+.skill-node-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--on-surface);
+  line-height: 1.3;
+}
+.skill-node-meta {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  color: var(--on-surface-variant);
+}
+.hotkey-guide {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  color: var(--on-surface-variant);
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.5rem 0.65rem;
+  line-height: 1.5;
+}
+.inline-toast {
+  font-family: var(--font-label);
+  font-size: 0.76rem;
+  color: var(--secondary);
+  min-height: 1.2em;
+}
+
+/* Modals (#outcome-popup-modal and #codex-modal) */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: var(--surface-overlay);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-sm);
+}
+.modal-backdrop.is-open { display: flex; }
+.modal-shell {
+  width: min(960px, 96vw);
+  max-height: 92dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-container-low);
+  border: var(--neon-border-lit);
+  border-radius: var(--rounded-lg);
+  box-shadow: var(--glow-primary);
+  overflow: hidden;
+}
+.popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-container);
+  border-bottom: 1px solid var(--outline-variant);
+}
+#outcome-verdict {
+  font-family: var(--font-headline);
+  font-size: clamp(1rem, 0.92rem + 0.45vw, 1.28rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+#outcome-verdict.is-correct { color: var(--positive); text-shadow: var(--glow-text); }
+#outcome-verdict.is-wrong { color: var(--primary); text-shadow: var(--glow-text); }
+#outcome-verdict.is-timeout { color: var(--warning); text-shadow: var(--glow-text); }
+.outcome-delta-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+.popup-question-pin {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.25rem;
+}
+#outcome-lo-ref {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--secondary);
+}
+#outcome-question-text {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--on-surface);
+  max-width: 78ch;
+  text-align: center;
+}
+.popup-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+.choice-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+.choice-compare-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  gap: 0.25rem;
+}
+.choice-compare-box.is-correct-box {
+  border-color: color-mix(in srgb, var(--positive) 60%, transparent);
+}
+.choice-compare-box.is-wrong-box {
+  border-color: color-mix(in srgb, var(--primary) 65%, transparent);
+}
+.box-kicker {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--on-surface-variant);
+}
+.dossier-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  gap: 0.35rem;
+}
+.dossier-section.is-highlight {
+  border-color: color-mix(in srgb, var(--tertiary) 45%, transparent);
+}
+.dossier-heading {
+  margin: 0;
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--secondary);
+}
+.dossier-section.is-highlight .dossier-heading {
+  color: var(--tertiary);
+}
+.dossier-lines {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  width: 100%;
+}
+.dossier-line {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.48;
+  color: var(--on-surface);
+  max-width: 75ch;
+  text-align: center;
+}
+.angle-dossier-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+.angle-dossier-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  padding: var(--space-sm);
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  gap: 0.3rem;
+}
+.popup-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-container);
+  border-top: 1px solid var(--outline-variant);
+}
+.scroll-btn-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+.btn-primary-neon {
+  min-height: 44px;
+  padding: var(--space-xs) var(--space-lg);
+  background: var(--surface-container-low);
+  color: var(--secondary);
+  border: 1px solid var(--secondary);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: box-shadow var(--dur-micro) var(--ease-out);
+}
+.btn-primary-neon:hover { box-shadow: var(--glow-secondary); }
+
+/* 6-Column Loot Codex Modal */
+.codex-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+.codex-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+.codex-table th, .codex-table td {
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--outline-variant);
+  text-align: left;
+  vertical-align: top;
+}
+.codex-table th {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--secondary);
+  background: var(--surface-container);
+  position: sticky;
+  top: 0;
+}
+.codex-table tr:nth-child(even) td { background: var(--surface-container-low); }
+.codex-table tr:nth-child(odd) td { background: var(--surface-container); }
+
+/* Responsive Phone & Tablet Rules (v3.8 Exact Locks) */
+@media (max-width: 760px) {
+  .choice-compare-grid, .angle-dossier-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  #top-bar { padding: 0.3rem 0.5rem; }
+  .telemetry-chip.is-xp { display: none; }
+  #question-hud { padding: 0.45rem 0.65rem; }
+  .q-stem-wrap { min-height: 50px; }
+  #q-stem-text { font-size: 0.88rem; line-height: 1.38; }
+  .lane-cards-overlay {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+    width: 94%;
+    margin-bottom: 4%;
+  }
+  .lane-dom-card {
+    min-height: 58px;
+    padding: 0.45rem 0.65rem;
+  }
+  .lane-card-head, .lane-key-label { display: none; }
+  .lane-choice-body { font-size: 0.84rem; line-height: 1.32; }
+  #xr-app.hints-visible .lane-dom-card { min-height: 48px; padding: 0.35rem 0.55rem; }
+  #xr-app.hints-visible #q-stem-text { font-size: 0.82rem; }
+  .modal-shell { width: 96vw; max-height: 92dvh; }
+}
+
+@media (max-height: 500px) and (pointer: coarse) {
+  #top-bar { min-height: 34px; padding: 0.15rem 0.5rem; }
+  #question-hud { padding: 0.25rem 0.6rem; }
+  .q-stem-wrap { min-height: 36px; }
+  #q-stem-text { font-size: 0.8rem; line-height: 1.25; }
+  .lane-cards-overlay {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
+    margin-bottom: 2%;
+  }
+  .lane-dom-card { min-height: 76px; padding: 0.35rem; }
+  .lane-choice-body { font-size: 0.76rem; line-height: 1.22; }
+  #hints-bar { min-height: 34px; padding: 0.2rem 0.6rem; }
+}
+
+@media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+  html { font-size: 200%; }
+  .lane-cards-overlay { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div id="xr-app" class="hints-hidden">
+  <!-- Band 1: Ultra-Slim Top Bar (Menu Button + Telemetry Chips Only) -->
+  <header id="top-bar">
+    <button id="menu-toggle-btn" type="button" onclick="toggleMenuDrawer()">&#9776; MENU</button>
+    <div class="telemetry-strip">
+      <span id="chip-hp" class="telemetry-chip is-hp">HP 100/100</span>
+      <span id="chip-xp" class="telemetry-chip is-xp">XP 0</span>
+      <span id="chip-streak" class="telemetry-chip is-streak">&#9889; 0</span>
+      <span id="chip-gate" class="telemetry-chip is-gate">GATE 1/45</span>
+      <span id="chip-timer" class="telemetry-chip is-timer">&#9201; OFF</span>
+    </div>
+  </header>
+
+  <!-- Band 2: Top Question + 3-Second Auto-Hiding Metadata -->
+  <section id="question-hud" aria-live="polite">
+    <div id="meta-badge-row" class="meta-badge-row">
+      <span id="meta-sector" class="meta-badge is-sector">Sector I</span>
+      <span id="meta-angle" class="meta-badge">Entity 1</span>
+      <span id="meta-phase" class="meta-badge is-phase">Phase 1</span>
+      <span id="meta-corridor" class="meta-badge is-corridor">CORRIDOR: CELL ADAPTATION</span>
+    </div>
+    <div class="q-stem-wrap">
+      <p id="q-stem-text" class="amboss-scan-target">Loading pathology raid gate…</p>
+    </div>
+  </section>
+
+  <!-- Band 3: Synthwave 3D Wireframe Void + 1:1 Portal Fusion Answer Cards -->
+  <main id="runner-stage">
+    <canvas id="runner-canvas"></canvas>
+    <div class="lane-cards-overlay" id="lane-cards-overlay">
+      <button id="lane-card-0" class="lane-dom-card" data-lane="0" type="button" onclick="commitLaneSelection(0)">
+        <div class="lane-card-head">
+          <span class="lane-key-label">[1] LEFT GATE</span>
+          <span class="lane-xp-chip">+100 XP</span>
+        </div>
+        <div id="lane-0-text" class="lane-choice-body amboss-scan-target">Option A</div>
+      </button>
+
+      <button id="lane-card-1" class="lane-dom-card is-targeted" data-lane="1" type="button" onclick="commitLaneSelection(1)">
+        <div class="lane-card-head">
+          <span class="lane-key-label">[2] CENTER GATE</span>
+          <span class="lane-xp-chip">+100 XP</span>
+        </div>
+        <div id="lane-1-text" class="lane-choice-body amboss-scan-target">Option B</div>
+      </button>
+
+      <button id="lane-card-2" class="lane-dom-card" data-lane="2" type="button" onclick="commitLaneSelection(2)">
+        <div class="lane-card-head">
+          <span class="lane-key-label">[3] RIGHT GATE</span>
+          <span class="lane-xp-chip">+100 XP</span>
+        </div>
+        <div id="lane-2-text" class="lane-choice-body amboss-scan-target">Option C</div>
+      </button>
+    </div>
+  </main>
+
+  <!-- Band 4: Collapsible Bottom Hints Bar [H] -->
+  <footer id="hints-bar">
+    <span class="hint-tag">HINT [H]:</span>
+    <p id="q-clue-text" class="amboss-scan-target">Clue text</p>
+  </footer>
+</div>
+
+<!-- Menu Drawer (#top-menu-drawer) -->
+<div id="menu-backdrop" onclick="toggleMenuDrawer()"></div>
+<aside id="top-menu-drawer" aria-label="Raid Controls and Skill Tree">
+  <div class="drawer-header">
+    <div>
+      <div class="drawer-kicker">PATHOMA + FIRST AID 2025 + COMLEX-USA</div>
+      <h1 class="drawer-title">General Pathology Overview XR Raid</h1>
+    </div>
+    <button type="button" class="ctrl-btn" onclick="toggleMenuDrawer()">Close</button>
+  </div>
+
+  <div class="drawer-section">
+    <span class="drawer-section-label">Cockpit &amp; Run Actions</span>
+    <div class="drawer-btn-grid">
+      <button id="menu-hints-btn" type="button" class="ctrl-btn" onclick="toggleHintsBar()">Hints: OFF [H]</button>
+      <button id="menu-codex-btn" type="button" class="ctrl-btn" onclick="openCodexFromMenu()">Loot Codex [C]</button>
+      <button type="button" class="ctrl-btn" onclick="skipFromMenu()">Skip Gate [S]</button>
+      <button id="menu-timer-toggle-btn" type="button" class="ctrl-btn" onclick="toggleTimerMode()">50s Timer: OFF [T]</button>
+      <button type="button" class="ctrl-btn" onclick="startTimedRun()">Start 50s Timed Run</button>
+      <button type="button" class="ctrl-btn" onclick="restartOrdered()">Restart Ordered</button>
+      <button type="button" class="ctrl-btn" onclick="shuffleDeck()">Shuffle Deck</button>
+      <button id="reset-mastery-btn" type="button" class="ctrl-btn is-danger" onclick="resetMastery(this)">Reset Mastery</button>
+    </div>
+    <div id="menu-status-toast" class="inline-toast"></div>
+  </div>
+
+  <div class="drawer-section">
+    <span class="drawer-section-label">Audio Synthesis &amp; Custom BGM</span>
+    <div class="drawer-btn-grid">
+      <button id="btn-master-sound" type="button" class="ctrl-btn is-active" onclick="toggleMasterAudio()">Master Sound: ON</button>
+      <button id="btn-sfx-toggle" type="button" class="ctrl-btn is-active" onclick="toggleSfxAudio()">SFX: ON</button>
+      <button id="btn-bgm-toggle" type="button" class="ctrl-btn" onclick="toggleBgmAudio()">Procedural BGM: OFF</button>
+    </div>
+    <div class="ctrl-field">
+      <label for="bgm-vol-slider">BGM Volume (<span id="bgm-vol-readout">35%</span>)</label>
+      <input id="bgm-vol-slider" type="range" min="0" max="100" value="35" oninput="setBgmVolume(this.value)">
+    </div>
+    <div class="ctrl-field">
+      <label for="bgm-file-input">Custom MP3 / WAV Track Loader</label>
+      <input id="bgm-file-input" class="ctrl-input" type="file" accept="audio/*" onchange="loadCustomAudioFile(this)">
+    </div>
+  </div>
+
+  <div class="drawer-section">
+    <span class="drawer-section-label">Sector, Phase Mix &amp; Skill Tree Filters</span>
+    <div class="ctrl-field">
+      <label for="sector-filter-select">Dungeon Sector Filter</label>
+      <select id="sector-filter-select" class="ctrl-select" onchange="onSectorSelectChange(this.value)">
+        <option value="all">All 5 Sectors (45 Gates)</option>
+        <option value="1">Sector I: Adaptations &amp; Cell Injury (1-9)</option>
+        <option value="2">Sector II: Necrosis &amp; Apoptosis (10-18)</option>
+        <option value="3">Sector III: Inflammation &amp; Healing (19-27)</option>
+        <option value="4">Sector IV: Hemodynamics &amp; Shock (28-36)</option>
+        <option value="5">Sector V: Neoplasia &amp; Systemic OMT (37-45)</option>
+        <option value="missed">Missed Gates Only</option>
+      </select>
+    </div>
+    <div class="ctrl-field">
+      <label for="entity-filter-select">Pathology Skill Tree Entity</label>
+      <select id="entity-filter-select" class="ctrl-select" onchange="onEntitySelectChange(this.value)">
+        <option value="all">All 15 Entities</option>
+      </select>
+    </div>
+    <div class="ctrl-field">
+      <label>Phase Mix Filter</label>
+      <div class="phase-mix-row">
+        <button id="phase-pill-all" type="button" class="phase-pill is-active" onclick="setPhaseFilter('all')">All Phases</button>
+        <button id="phase-pill-1" type="button" class="phase-pill" onclick="setPhaseFilter('1')">P1 Pathogenesis</button>
+        <button id="phase-pill-2" type="button" class="phase-pill" onclick="setPhaseFilter('2')">P2 Morphology</button>
+        <button id="phase-pill-3" type="button" class="phase-pill" onclick="setPhaseFilter('3')">P3 Clinical/OMT</button>
+      </div>
+    </div>
+    <div id="skill-tree-grid" class="skill-tree-grid"></div>
+  </div>
+
+  <div class="hotkey-guide">
+    HOTKEYS: [1/2/3] Lock Lane | [Left/Right] Steer | [Enter/Space] Confirm or Continue | [H] Toggle Hints | [C] Loot Codex | [S] Skip Gate | [T] 50s Timer | [Up/Down] Scroll Modal
+  </div>
+</aside>
+
+<!-- Outcome Review Modal (#outcome-popup-modal) -->
+<div id="outcome-popup-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="outcome-verdict">
+  <div class="modal-shell">
+    <div class="popup-header">
+      <div id="outcome-verdict" class="is-correct">&#10004; CORRECT</div>
+      <div class="outcome-delta-row">
+        <span id="outcome-xp-delta" class="telemetry-chip is-xp">+100 XP</span>
+        <span id="outcome-hp-delta" class="telemetry-chip is-hp">+0 HP</span>
+      </div>
+    </div>
+
+    <div class="popup-question-pin">
+      <div id="outcome-lo-ref">Sector I • Entity 1 • Phase 1</div>
+      <p id="outcome-question-text" class="amboss-scan-target"></p>
+    </div>
+
+    <div id="outcome-scroll-body" class="popup-body">
+      <!-- Section 1: Side-by-side comparison -->
+      <div class="choice-compare-grid">
+        <div id="your-choice-box" class="choice-compare-box">
+          <span class="box-kicker">Your Selected Gate</span>
+          <div id="your-choice-text" class="amboss-scan-target"></div>
+        </div>
+        <div id="correct-choice-box" class="choice-compare-box is-correct-box">
+          <span class="box-kicker">Verified Target Gate</span>
+          <div id="correct-choice-text" class="amboss-scan-target"></div>
+        </div>
+      </div>
+
+      <!-- Section 2: Concise Explanation & Distractor Exclusion -->
+      <section class="dossier-section">
+        <h2 class="dossier-heading">Concise Explanation &amp; Distractor Exclusion</h2>
+        <div id="outcome-explanation" class="dossier-lines amboss-scan-target"></div>
+      </section>
+
+      <!-- Section 3: Second-Order Vignette Clue -->
+      <section class="dossier-section is-highlight">
+        <h2 class="dossier-heading">Second-Order Vignette Clue</h2>
+        <div id="outcome-second-order" class="dossier-lines amboss-scan-target"></div>
+      </section>
+
+      <!-- Section 4: Core Mechanism & Pathogenesis Pearls (Phase 1) -->
+      <section class="dossier-section">
+        <h2 class="dossier-heading">Core Mechanism &amp; Pathogenesis Pearls (Phase 1)</h2>
+        <div id="outcome-phase1" class="dossier-lines amboss-scan-target"></div>
+      </section>
+
+      <!-- Section 5: High-Yield Morphology & Structural Hallmarks (Phase 2) -->
+      <section class="dossier-section">
+        <h2 class="dossier-heading">High-Yield Morphology &amp; Structural Hallmarks (Phase 2)</h2>
+        <div id="outcome-phase2" class="dossier-lines amboss-scan-target"></div>
+      </section>
+
+      <!-- Section 6: Guild Master's Secret & Clinical Management (Phase 3) -->
+      <section class="dossier-section is-highlight">
+        <h2 class="dossier-heading">Guild Master's Secret &amp; Clinical Management (Phase 3)</h2>
+        <div id="outcome-phase3" class="dossier-lines amboss-scan-target"></div>
+      </section>
+
+      <!-- Section 7: Complete 3-Phase Topic Dossier -->
+      <div class="angle-dossier-grid">
+        <div class="angle-dossier-card">
+          <h3 class="dossier-heading">Phase 1: Pathogenesis</h3>
+          <div id="dossier-box-1" class="dossier-lines amboss-scan-target"></div>
+        </div>
+        <div class="angle-dossier-card">
+          <h3 class="dossier-heading">Phase 2: Morphology / Histology</h3>
+          <div id="dossier-box-2" class="dossier-lines amboss-scan-target"></div>
+        </div>
+        <div class="angle-dossier-card">
+          <h3 class="dossier-heading">Phase 3: Clinical / Management</h3>
+          <div id="dossier-box-3" class="dossier-lines amboss-scan-target"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="popup-footer">
+      <div class="scroll-btn-group">
+        <button type="button" class="ctrl-btn" onclick="scrollOutcomeBody(-180)">&#9650; Up</button>
+        <button type="button" class="ctrl-btn" onclick="scrollOutcomeBody(180)">&#9660; Down</button>
+      </div>
+      <button type="button" class="btn-primary-neon" onclick="continueRunner()">&#9654; Continue Runner [Space / Enter]</button>
+    </div>
+  </div>
+</div>
+
+<!-- Loot Codex Modal (#codex-modal) -->
+<div id="codex-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="codex-title">
+  <div class="modal-shell">
+    <div class="popup-header">
+      <div id="codex-title" style="font-family:var(--font-headline);font-weight:800;color:var(--secondary);">6-Column Pathology Loot Codex (45 Gates)</div>
+      <div class="scroll-btn-group">
+        <button type="button" class="ctrl-btn" onclick="exportCodexCsv()">Export CSV</button>
+        <button type="button" class="ctrl-btn" onclick="closeCodex()">Close [Esc]</button>
+      </div>
+    </div>
+    <div class="popup-body">
+      <div class="codex-table-wrap">
+        <table class="codex-table">
+          <thead>
+            <tr>
+              <th>Gate</th>
+              <th>Entity &amp; Phase</th>
+              <th>Short Answer</th>
+              <th>Key Mechanism</th>
+              <th>Morphology / Clue</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="codex-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<api-shim></api-shim>
+<script>
+const ENTITIES = [
+  { id: 1, sector: 1, sectorName: `Sector I: Adaptations & Cell Injury`, name: `Hypertrophy & Hyperplasia`, corridor: `ADAPTIVE GROWTH`, rgb: `0, 255, 204`,
+    d1: `• Increased mechanical or hormonal stress drives gene activation & protein synthesis.\n• Permanent cells (myocardium, skeletal muscle, neurons) undergo hypertrophy only.`,
+    d2: `• Concentric LVH shows thickened wall with reduced chamber lumen (parallel sarcomeres).\n• Pathologic endometrial hyperplasia increases gland-to-stroma ratio.`,
+    d3: `• Systemic HTN -> LVH -> eventual decompensated HF; BPH does NOT raise prostate cancer risk.\n• Endometrial hyperplasia (unopposed estrogen) requires biopsy to exclude atypia.` },
+  { id: 2, sector: 1, sectorName: `Sector I: Adaptations & Cell Injury`, name: `Metaplasia, Dysplasia & Atrophy`, corridor: `CELLULAR REPROGRAMMING`, rgb: `255, 45, 120`,
+    d1: `• Metaplasia reprograms tissue stem cells in response to chronic irritant (acid, smoke).\n• Atrophy reduces size via ubiquitin-proteasome & autophagy; reduces number via apoptosis.`,
+    d2: `• Barrett esophagus: nonkeratinized stratified squamous -> intestinal columnar with goblet cells.\n• Dysplasia: pleomorphism, high N:C ratio, clumped chromatin, loss of polarity.`,
+    d3: `• Removing stressor reverses metaplasia and mild/moderate dysplasia; severe dysplasia -> CIS.\n• Myositis ossificans: connective tissue metaplasia to bone in muscle after trauma.` },
+  { id: 3, sector: 1, sectorName: `Sector I: Adaptations & Cell Injury`, name: `Reversible Swelling vs. Membrane Damage`, corridor: `ISCHEMIC THRESHOLD`, rgb: `255, 224, 74`,
+    d1: `• Hypoxia halts oxidative phosphorylation -> low ATP impairs Na+/K+-ATPase and Ca2+ pumps.\n• Membrane rupture triggers massive Ca2+ influx activating phospholipases & endonucleases.`,
+    d2: `• Earliest reversible hallmark: cellular/hydropic swelling, RER ribosomal detachment, blebs.\n• Irreversible hallmarks: plasma membrane disruption, amorphous mitochondrial densities, pyknosis.`,
+    d3: `• Troponin I/T and CK-MB leak into serum only after sarcolemmal membrane integrity fails.\n• Reperfusion generates ROS; neurons die fastest (~3-5 min), skeletal muscle is most resistant.` },
+  { id: 4, sector: 2, sectorName: `Sector II: Necrosis & Apoptosis`, name: `Coagulative, Liquefactive & Gangrenous Necrosis`, corridor: `NECROTIC CORRIDOR`, rgb: `0, 255, 204`,
+    d1: `• Ischemia denatures structural proteins and proteolytic enzymes in most solid organs -> coagulative.\n• Brain ischemia (microglial hydrolases) & bacterial abscesses (neutrophil enzymes) -> liquefactive.`,
+    d2: `• Coagulative: preserved ghost cell outlines, absent nuclei, wedge-shaped pale infarct.\n• Dry gangrene: mummified coagulative ischemia; wet gangrene: superimposed liquefactive infection.`,
+    d3: `• Dual blood supply or venous occlusion (lung, testes, intestine) produces hemorrhagic red infarcts.\n• End-arterial organs (heart, kidney, spleen) form pale wedge infarcts pointing to occlusion.` },
+  { id: 5, sector: 2, sectorName: `Sector II: Necrosis & Apoptosis`, name: `Caseous, Fat & Fibrinoid Necrosis`, corridor: `CALCIFIC & IMMUNE NECROSIS`, rgb: `255, 45, 120`,
+    d1: `• Caseous: macrophage walling-off of TB or systemic fungi combines coagulative & liquefactive.\n• Fat: lipase or trauma releases fatty acids binding Ca2+ (saponification); fibrinoid: type III HSR/HTN.`,
+    d2: `• Caseous: friable cheese-like granulomas; Fat: chalky white, dark blue Ca2+ on H&E.\n• Fibrinoid: bright pink smudgy protein/fibrin deposition inside necrotic vessel wall.`,
+    d3: `• Saponification is dystrophic calcification (normal serum Ca2+); hyperparathyroidism is metastatic.\n• Fibrinoid necrosis characterizes polyarteritis nodosa and malignant hypertension.` },
+  { id: 6, sector: 2, sectorName: `Sector II: Necrosis & Apoptosis`, name: `Intrinsic & Extrinsic Apoptosis`, corridor: `CASPASE CASCADE`, rgb: `179, 136, 255`,
+    d1: `• Intrinsic: DNA damage/hypoxia inactivates Bcl-2 -> Bax/Bak pores leak cytochrome c -> caspases.\n• Extrinsic: FasL-Fas (CD95) or TNF-TNFR; CD8 T-cell perforin/granzyme B activates caspases.`,
+    d2: `• Cell shrinkage, deeply eosinophilic cytoplasm, chromatin condensation, apoptotic bodies.\n• Endonucleases create 180-bp DNA laddering; intact membrane prevents inflammation.`,
+    d3: `• Follicular lymphoma t(14;18) overexpresses Bcl-2 -> blocks apoptosis -> lymphadenopathy.\n• Defective Fas-FasL causes ALPS (failed thymic negative selection, autoimmune cytopenias).` },
+  { id: 7, sector: 3, sectorName: `Sector III: Inflammation & Healing`, name: `Leukocyte Extravasation Cascade`, corridor: `VASCULAR EXTRAVASATION`, rgb: `0, 255, 204`,
+    d1: `• Margination & rolling: endothelial E/P-selectins bind leukocyte Sialyl-Lewis X.\n• Tight adhesion: ICAM-1/VCAM-1 bind integrins (LFA-1/CD18); transmigration via PECAM-1 (CD31).`,
+    d2: `• Postcapillary venules widen junctions via histamine/LT C4-E4; neutrophils peak first (24h).\n• Chemotaxis gradient driven by C5a, LTB4, IL-8, and N-formyl bacterial peptides.`,
+    d3: `• LAD-1 (CD18 integrin defect): delayed umbilical cord separation, recurrent bacterial infections, no pus.\n• Chediak-Higashi (LYST phagolysosome fusion defect): giant granules, albinism, neuropathy.` },
+  { id: 8, sector: 3, sectorName: `Sector III: Inflammation & Healing`, name: `Granulomatous Inflammation & Macrophages`, corridor: `TH1 GRANULOMA CORE`, rgb: `255, 45, 120`,
+    d1: `• Persistent antigen presentation activates CD4+ Th1 cells to secrete IFN-gamma.\n• IFN-gamma classically activates macrophages into epithelioid cells & multinucleated giant cells.`,
+    d2: `• Caseating granulomas (TB, fungi) vs noncaseating granulomas (sarcoidosis, Crohn, berylliosis).\n• Langhans giant cells display horseshoe-arranged peripheral nuclei.`,
+    d3: `• Anti-TNF therapy (infliximab) can reactivate latent TB by disrupting granuloma integrity.\n• Macrophage M2 shift (IL-4, IL-13, IL-10, TGF-beta) promotes fibrosis and resolution.` },
+  { id: 9, sector: 3, sectorName: `Sector III: Inflammation & Healing`, name: `Wound Healing & Aberrant Scars`, corridor: `COLLAGEN REMODELING`, rgb: `255, 224, 74`,
+    d1: `• Granulation tissue (fibroblasts, capillaries, myofibroblasts) fills defect with type III collagen.\n• PDGF, FGF, VEGF drive angiogenesis; TGF-beta drives fibroblast collagen deposition.`,
+    d2: `• Remodeling replaces pliable type III collagen with high-tensile type I via zinc collagenase.\n• Keloid: disorganized type III > I extending beyond wound; Hypertrophic: parallel type III within margin.`,
+    d3: `• S. aureus infection is the #1 cause of delayed wound healing; zinc or vitamin C deficiency impairs scar.\n• Primary intention minimizes scarring; secondary intention relies on myofibroblast contraction.` },
+  { id: 10, sector: 4, sectorName: `Sector IV: Hemodynamics & Shock`, name: `Virchow Triad & Lines of Zahn`, corridor: `THROMBOTIC CASCADE`, rgb: `255, 45, 120`,
+    d1: `• Virchow triad: endothelial damage (exposed collagen/TF), stasis/turbulence, hypercoagulability.\n• Endothelium normally inhibits clotting via PGI2, NO, thrombomodulin, and heparan sulfate.`,
+    d2: `• True antemortem thrombus adheres to vessel wall and shows alternating Lines of Zahn (platelets/fibrin + RBCs).\n• Postmortem clot is gelatinous (chicken fat / currant jelly) without attachment.`,
+    d3: `• Factor V Leiden resists activated protein C cleavage; proximal leg DVT (iliac/femoral/popliteal) -> PE.\n• Treat acute DVT with UFH/LMWH or DOACs (rivaroxaban, apixaban); D-dimer rules out low-risk DVT.` },
+  { id: 11, sector: 4, sectorName: `Sector IV: Hemodynamics & Shock`, name: `Embolism Spectrum`, corridor: `EMBOLIC TRANSIT`, rgb: `0, 255, 204`,
+    d1: `• >95% are thromboemboli from deep leg veins (PE) or left heart (systemic arterial emboli).\n• Fat (long bone fracture), Gas (decompression/central line), Amniotic fluid (labor -> DIC).`,
+    d2: `• Atherosclerotic embolus: needle-shaped cholesterol clefts; Fat embolus: marrow/lipid droplets in lung.\n• Amniotic fluid embolus: fetal squamous cells and keratin debris inside maternal pulmonary vessels.`,
+    d3: `• Fat embolism triad: hypoxemia, neurologic abnormalities, petechial rash on chest/axilla.\n• Caisson disease (nitrogen bubbles) causes bends/chokes -> treat with hyperbaric O2.` },
+  { id: 12, sector: 4, sectorName: `Sector IV: Hemodynamics & Shock`, name: `Shock Hemodynamic Profiles`, corridor: `PERFUSION COLLAPSE`, rgb: `255, 224, 74`,
+    d1: `• Hypovolemic (volume loss), Cardiogenic (pump failure), Obstructive (PE/tamponade), Distributive (sepsis/anaphylaxis).`,
+    d2: `• Cardiogenic: high PCWP, high CVP, low CO, high SVR, cold clammy skin.\n• Early Septic: low PCWP, low CVP, high CO, low SVR, warm dry skin, high SVO2.`,
+    d3: `• Cardiac tamponade: Beck triad (hypotension, JVD, muffled sounds), pulsus paradoxus, electrical alternans.\n• Cardiogenic shock needs pressure/inotropic support (avoid diuretics/tourniquets); sepsis needs fluids + norepinephrine.` },
+  { id: 13, sector: 5, sectorName: `Sector V: Neoplasia & Systemic OMT`, name: `Benign vs. Malignant Biology & Clonality`, corridor: `CLONAL ONCOGENESIS`, rgb: `179, 136, 255`,
+    d1: `• Neoplasia is unregulated, irreversible, monoclonal proliferation (single G6PD isoform or skewed Ig kappa:lambda >6:1).\n• Hyperplasia remains polyclonal (1:1 G6PD, 3:1 kappa:lambda) and regresses when stimulus stops.`,
+    d2: `• Malignant hallmarks: anaplasia (pleomorphism, hyperchromasia, high N:C, atypical mitoses), local invasion, metastasis.\n• Carcinoma in situ exhibits full-thickness dysplasia without basement membrane breach.`,
+    d3: `• Metastasis is the definitive feature distinguishing malignant from benign neoplasms.\n• IHC: Keratin (epithelium), Vimentin (mesenchyme), Desmin (muscle), S-100 (melanoma/Schwann).` },
+  { id: 14, sector: 5, sectorName: `Sector V: Neoplasia & Systemic OMT`, name: `Metastatic Routes, Grading & TNM Staging`, corridor: `TNM STAGING VAULT`, rgb: `255, 45, 120`,
+    d1: `• Carcinomas spread predominantly via lymphatics (exception: renal cell, hepatocellular, follicular thyroid, choriocarcinoma).\n• Sarcomas spread predominantly via hematogenous routes.`,
+    d2: `• Grade measures histologic differentiation; Stage measures anatomic extent (TNM: M > N > T).\n• Stage has greater prognostic value than grade.`,
+    d3: `• Serum tumor markers (PSA, CA-125, AFP, CEA) monitor recurrence/burden; biopsy is required for definitive diagnosis.\n• Oncogenic microbes: HPV 16/18, EBV, HBV/HCV, H. pylori, HHV-8, Schistosoma haematobium.` },
+  { id: 15, sector: 5, sectorName: `Sector V: Neoplasia & Systemic OMT`, name: `Systemic Autonomic OMT & Lymphatic Return`, corridor: `AUTONOMIC & LYMPHATIC`, rgb: `0, 255, 204`,
+    d1: `• Viscerosomatic reflexes map sympathetics (T1-L2) and parasympathetics (CN X vagus OA-AA / C1-C2; S2-S4 pelvic).\n• Thoracic duct drains bilateral lower body & left upper body into left venous angle.`,
+    d2: `• Tissue texture changes (boggy edema, ropiness, hypertonicity) localize paraspinal viscerosomatic facilitation.\n• Restrictive myofascial diaphragm tension impairs thoracic pump pressure gradients.`,
+    d3: `• Sequence: release thoracic inlet (myofascial release) BEFORE thoracic/pedal lymphatic pump.\n• Absolute contraindication to vigorous lymphatic pump: active metastatic malignancy, unstable fracture, acute DVT.` }
+];
+
+const QUESTIONS = [
+  // ENTITY 1: Hypertrophy & Hyperplasia (Gates 1-3)
+  { id: 1, sector: 1, entityId: 1, phase: 1,
+    stem: `A 58-year-old man with untreated essential hypertension develops progressive thickening of the left ventricular wall. Because adult cardiac myocytes are terminally differentiated, which cellular adaptation mediates this increased myocardial mass?`,
+    choices: [`Gene activation increasing contractile protein synthesis and cell size (hypertrophy)`, `Stem cell proliferation doubling cardiac myocyte cell count (hyperplasia)`, `Reprogramming of myocytes into fibrocartilage (metaplasia)`],
+    correct: 0, shortAnswer: `Myocardial hypertrophy`,
+    clue: `Permanent tissues (cardiac muscle, skeletal muscle, neurons) cannot divide to undergo hyperplasia.`,
+    explanation: `• Correct: Permanent cardiac myocytes adapt to pressure overload exclusively via hypertrophy (gene activation, increased protein synthesis, and organelle expansion).\n• Hyperplasia requires stem cell division and occurs in labile/stable tissues (e.g., pregnant uterus smooth muscle).\n• Metaplasia swaps one adult surface/connective cell type for another, not myocardial wall thickening.`,
+    secondOrder: `• Vignette clue: "untreated essential hypertension" + "terminally differentiated" -> concentric LVH via parallel sarcomere addition.`,
+    p1: `• Mechanical stretch + neurohormonal signals (angiotensin II, alpha-adrenergic) activate fetal gene programs.\n• Permanent tissues lack mitotic stem cells, limiting adaptation to hypertrophy.`,
+    p2: `• Thickened LV wall with narrowed chamber lumen; enlarged boxcar nuclei on H&E.`,
+    p3: `• Chronic excessive hypertrophy eventually outgrows capillary supply -> ischemia -> systolic/diastolic heart failure.` },
+
+  { id: 2, sector: 1, entityId: 1, phase: 2,
+    stem: `Endometrial biopsy from a 52-year-old woman with anovulatory cycles and unopposed estrogen exposure demonstrates crowded, back-to-back endometrial glands with minimal intervening stroma. Which adaptation does this morphology represent?`,
+    choices: [`Pathologic hyperplasia`, `Physiologic hypertrophy`, `Cellular atrophy`],
+    correct: 0, shortAnswer: `Pathologic hyperplasia`,
+    clue: `Count of proliferating glandular cells increases under excessive hormonal stimulation.`,
+    explanation: `• Correct: Unopposed estrogen drives excessive stem/progenitor cell proliferation, creating crowded endometrial glands (pathologic hyperplasia).\n• Physiologic hypertrophy increases cell size without increasing glandular cell count.\n• Atrophy shrinks organ mass via apoptosis and protein degradation.`,
+    secondOrder: `• Vignette clue: "unopposed estrogen" + "crowded glands with minimal stroma" -> pathologic hyperplasia carrying malignant risk.`,
+    p1: `• Estrogen-driven proliferation of endometrial stem cells increases total gland number.`,
+    p2: `• Increased gland-to-stroma ratio; atypia (nuclear pleomorphism) predicts progression to carcinoma.`,
+    p3: `• Pathologic endometrial hyperplasia can progress to dysplasia and endometrial adenocarcinoma; BPH is a key exception.` },
+
+  { id: 3, sector: 1, entityId: 1, phase: 3,
+    stem: `A 67-year-old man has urinary hesitancy, weak stream, and a symmetrically enlarged, smooth prostate on digital rectal exam. Biopsy shows nodular proliferation of both stromal and glandular cells without atypia. What is his risk of malignant transformation from this lesion?`,
+    choices: [`No increased risk of prostate adenocarcinoma`, `High obligatory progression to adenocarcinoma`, `Immediate transformation into transitional cell carcinoma`],
+    correct: 0, shortAnswer: `BPH does not raise cancer risk`,
+    clue: `Compare pathologic endometrial hyperplasia against benign prostatic hyperplasia (BPH).`,
+    explanation: `• Correct: Benign prostatic hyperplasia (BPH) is a classic exception among pathologic hyperplasias—it does NOT increase the risk of prostate cancer.\n• Endometrial hyperplasia does carry malignant potential, unlike BPH.\n• Transitional cell carcinoma arises from urothelium, not prostatic periurethral nodules.`,
+    secondOrder: `• Vignette clue: "symmetrically enlarged, smooth prostate" + "nodular stromal/glandular proliferation" -> BPH exception rule.`,
+    p1: `• Dihydrotestosterone (DHT) stimulates periurethral transition zone stromal and epithelial hyperplasia.`,
+    p2: `• Nodular enlargement compressing the prostatic urethra; two-layer benign glands without atypia.`,
+    p3: `• Treat symptoms with alpha-1 blockers (tamsulosin) or 5-alpha-reductase inhibitors (finasteride); reassure about zero malignant progression.` },
+
+  // ENTITY 2: Metaplasia, Dysplasia & Atrophy (Gates 4-6)
+  { id: 4, sector: 1, entityId: 2, phase: 1,
+    stem: `A 49-year-old man with 15 years of gastroesophageal reflux disease undergoes upper endoscopy showing salmon-colored mucosa extending above the gastroesophageal junction. What mechanism explains this epithelial change?`,
+    choices: [`Reprogramming of esophageal stem cells to produce acid-resistant columnar cells`, `Direct transdifferentiation of mature squamous cells without stem cell involvement`, `Ubiquitin-proteasome degradation of squamous intermediate filaments`],
+    correct: 0, shortAnswer: `Stem cell reprogramming (metaplasia)`,
+    clue: `Metaplasia alters differentiation pathways of tissue stem cells to withstand a new stressor.`,
+    explanation: `• Correct: Chronic gastric acid reflux reprograms esophageal stem cells to differentiate into intestinal-type columnar epithelium better suited to resist acid.\n• Mature squamous cells do not directly transdifferentiate; stem cell reprogramming drives metaplasia.\n• Ubiquitin-proteasome cytoskeletal degradation mediates cellular atrophy, not metaplasia.`,
+    secondOrder: `• Vignette clue: "15 years GERD" + "salmon-colored mucosa" -> Barrett esophagus metaplasia.`,
+    p1: `• Acid and bile salts trigger stem cell reprogramming (CDX2 expression) from stratified squamous to columnar epithelium.`,
+    p2: `• Intestinal metaplasia marked by mucin-secreting goblet cells within columnar mucosa.`,
+    p3: `• Persistent acid insult can drive Barrett metaplasia -> dysplasia -> esophageal adenocarcinoma.` },
+
+  { id: 5, sector: 1, entityId: 2, phase: 2,
+    stem: `A cervical biopsy from a 32-year-old woman with persistent high-risk HPV infection shows disordered epithelial maturation involving the lower two-thirds of the epithelium, marked nuclear pleomorphism, clumped chromatin, and an increased nuclear-to-cytoplasmic ratio. How is this finding classified?`,
+    choices: [`Dysplasia (cervical intraepithelial neoplasia)`, `Physiologic hyperplasia`, `Coagulative necrosis`],
+    correct: 0, shortAnswer: `Dysplasia (CIN)`,
+    clue: `Loss of cell uniformity, loss of tissue orientation, and high N:C ratio define precancerous growth.`,
+    explanation: `• Correct: Disordered, precancerous epithelial proliferation with pleomorphism, clumped chromatin, and elevated N:C ratio defines dysplasia (CIN).\n• Hyperplasia maintains normal cellular polarity and uniform nuclear appearance.\n• Coagulative necrosis shows absent nuclei and eosinophilic ghost cells, not hyperchromatic proliferating nuclei.`,
+    secondOrder: `• Vignette clue: "pleomorphism, clumped chromatin, high N:C ratio, partial epithelial thickness" -> reversible vs irreversible dysplasia.`,
+    p1: `• Persistent HPV E6/E7 oncogene expression or chronic irritation disrupts cell-cycle checkpoints.`,
+    p2: `• Loss of basal-to-superficial maturation, hyperchromatic nuclei, atypical mitoses above basal layer.`,
+    p3: `• Mild/moderate dysplasia may regress if stress resolves; full-thickness severe dysplasia becomes carcinoma in situ.` },
+
+  { id: 6, sector: 1, entityId: 2, phase: 3,
+    stem: `After 6 weeks in a long-leg cast for a tibial fracture, a 28-year-old athlete has visibly reduced quadriceps bulk. Which intracellular pathway mediates the decrease in individual skeletal muscle fiber size?`,
+    choices: [`Ubiquitin-proteasome cytoskeleton degradation and lysosomal autophagy`, `BCL-2 overexpression inhibiting mitochondrial pore formation`, `Mesenchymal stem cell conversion into bone (myositis ossificans)`],
+    correct: 0, shortAnswer: `Ubiquitin-proteasome & autophagy`,
+    clue: `Disuse atrophy decreases cell size by tagging proteins for destruction and digesting organelles.`,
+    explanation: `• Correct: Disuse atrophy reduces cell size via ubiquitin-tagging of cytoskeletal/contractile proteins for proteasome degradation plus autophagy inside lysosomes.\n• BCL-2 overexpression blocks apoptosis rather than reducing cell size.\n• Myositis ossificans is connective tissue metaplasia to bone following trauma, not disuse muscle wasting.`,
+    secondOrder: `• Vignette clue: "6 weeks in cast" + "decrease in individual fiber size" -> ubiquitin-proteasome + autophagic vacuoles.`,
+    p1: `• Decreased mechanical load downregulates anabolic signaling and upregulates atrogin-1/MuRF1 ubiquitin ligases.`,
+    p2: `• Shrunken myofibers with autophagic vacuoles fusing with lysosomes; lipofuscin pigment may accumulate.`,
+    p3: `• Physical therapy and progressive loading reverse disuse atrophy by restoring protein synthesis.` },
+
+  // ENTITY 3: Reversible Swelling vs. Membrane Damage (Gates 7-9)
+  { id: 7, sector: 1, entityId: 3, phase: 1,
+    stem: `Within 90 seconds of acute coronary artery occlusion, cardiac myocytes become noncontractile and begin accumulating intracellular sodium and water. What is the immediate biochemical trigger for this reversible change?`,
+    choices: [`ATP depletion impairing Na+/K+-ATPase and Ca2+-ATPase pumps`, `Direct activation of executioner caspase-3 by Fas ligand`, `Lipid peroxidation driven exclusively by Fenton iron overload`],
+    correct: 0, shortAnswer: `ATP depletion -> pump failure`,
+    clue: `Loss of oxygen halts oxidative phosphorylation first, starving membrane ion pumps.`,
+    explanation: `• Correct: Ischemia stops oxidative phosphorylation, depleting ATP and causing Na+/K+-ATPase failure -> intracellular Na+ and water influx.\n• Caspase-3 activation drives programmed apoptosis, not acute ischemic pump failure within 90 seconds.\n• Fenton reaction occurs in iron overload/hemochromatosis, not acute 90-second myocardial ischemia.`,
+    secondOrder: `• Vignette clue: "90 seconds" + "intracellular sodium and water" -> earliest reversible ischemic cascade.`,
+    p1: `• Low ATP forces switch to anaerobic glycolysis -> lactic acid buildup -> low pH -> chromatin clumping.`,
+    p2: `• Cellular/hydropic swelling, plasma membrane blebbing, and RER swelling with ribosomal detachment.`,
+    p3: `• Restoring coronary flow before membrane rupture fully reverses hydropic swelling and contractility.` },
+
+  { id: 8, sector: 1, entityId: 3, phase: 2,
+    stem: `Electron microscopy of ischemic renal tubular epithelium reveals amorphous densities within swollen mitochondria, ruptured lysosomes, and nuclear karyorrhexis. Which single event marks the point of no return into irreversible injury?`,
+    choices: [`Severe damage to plasma, mitochondrial, and lysosomal membranes`, `Detachment of polysomes from rough endoplasmic reticulum`, `Reversible glycogen depletion with cytoplasmic blebbing`],
+    correct: 0, shortAnswer: `Membrane damage (irreversible)`,
+    clue: `Swelling is reversible; structural disruption of lipid bilayers is irreversible.`,
+    explanation: `• Correct: Membrane damage (plasma membrane rupture, mitochondrial inner membrane ETC loss/cytochrome c leak, lysosomal autolysis) defines irreversible cell injury.\n• RER ribosomal detachment and membrane blebbing are hallmarks of reversible cell injury.\n• Glycogen depletion occurs early in anaerobic glycolysis while injury is still reversible.`,
+    secondOrder: `• Vignette clue: "amorphous mitochondrial densities + ruptured lysosomes + karyorrhexis" -> point of no return.`,
+    p1: `• Massive Ca2+ influx activates phospholipases (membrane breakdown), proteases (cytoskeleton), and endonucleases (DNA).`,
+    p2: `• Nuclear degradation sequence: pyknosis (condensation) -> karyorrhexis (fragmentation) -> karyolysis (dissolution).`,
+    p3: `• Loss of plasma membrane integrity releases intracellular biomarkers (e.g., troponin, ALT, amylase) into serum.` },
+
+  { id: 9, sector: 1, entityId: 3, phase: 3,
+    stem: `A 63-year-old man presents 4 hours after crushing substernal chest pain and receives successful percutaneous coronary intervention (PCI). Serum cardiac troponin I rises sharply, and ventricular arrhythmias emerge immediately after reperfusion. Why did troponin leak and arrhythmias appear?`,
+    choices: [`Sarcolemmal rupture leaked troponin; restored O2 generated free radicals`, `Intact myocytes actively exocytosed troponin during hydropic swelling`, `Collateral arterioles caused dry gangrene before PCI`],
+    correct: 0, shortAnswer: `Membrane leak + ROS reperfusion`,
+    clue: `Cytosolic enzymes only escape dead/ruptured myocytes; reoxygenation triggers superoxide bursts.`,
+    explanation: `• Correct: Irreversible sarcolemmal damage leaks troponin into blood, while reoxygenation of damaged mitochondria generates reactive oxygen species (reperfusion injury).\n• Reversible hydropic swelling does not leak structural troponin.\n• Dry gangrene affects distal limbs/bowel, not reperfused myocardium.`,
+    secondOrder: `• Vignette clue: "troponin rises + arrhythmias immediately after PCI" -> membrane lysis + free radical reperfusion injury.`,
+    p1: `• Reperfusion delivers O2 and Ca2+ to injured mitochondria -> superoxide, H2O2, and hydroxyl radical burst.`,
+    p2: `• Reperfused myocardial infarcts become hemorrhagic (contraction band necrosis) from Ca2+ hypercontraction.`,
+    p3: `• Troponin I/T peaks ~24h and remains elevated 7-10 days; CK-MB normalizes in 48-72h (detects reinfarction).` },
+
+  // ENTITY 4: Coagulative, Liquefactive & Gangrenous Necrosis (Gates 10-12)
+  { id: 10, sector: 2, entityId: 4, phase: 1,
+    stem: `A 70-year-old man dies 3 days after an acute renal artery embolus. Autopsy shows a pale, firm, wedge-shaped area in the renal cortex with preserved tubular outlines devoid of nuclei. Why did the tissue remain firm instead of liquefying?`,
+    choices: [`Ischemic acidosis denatured both structural proteins and lysosomal proteolytic enzymes`, `Microglial hydrolases digested the basement membrane`, `Neutrophils neutralized all tissue proteases via myeloperoxidase`],
+    correct: 0, shortAnswer: `Protein & enzyme denaturation`,
+    clue: `Coagulative necrosis preserves tissue architecture temporarily because autolytic enzymes are denatured.`,
+    explanation: `• Correct: Hypoxic acidosis denatures structural proteins and proteolytic enzymes alike, halting enzymatic liquefaction and preserving cell outlines (coagulative necrosis).\n• Microglial enzyme digestion occurs in brain infarction (liquefactive necrosis).\n• Neutrophil enzymes actually cause liquefactive necrosis in bacterial abscesses.`,
+    secondOrder: `• Vignette clue: "renal artery embolus + firm wedge-shaped infarct + ghost outlines" -> coagulative necrosis.`,
+    p1: `• End-arterial occlusion in solid organs (heart, kidney, spleen) causes pale coagulative infarction.`,
+    p2: `• Eosinophilic cytoplasm with preserved tissue architecture and absent nuclei.`,
+    p3: `• Red (hemorrhagic) infarcts instead occur in loose tissues with dual blood supply (lung, bowel) or venous torsion (testis).` },
+
+  { id: 11, sector: 2, entityId: 4, phase: 2,
+    stem: `Brain autopsy of a patient who suffered a middle cerebral artery ischemic stroke 3 weeks prior shows a fluid-filled cystic cavity lined by lipid-laden macrophages (gitter cells) and reactive gliosis. Which type of necrosis occurred?`,
+    choices: [`Liquefactive necrosis`, `Coagulative necrosis`, `Caseous necrosis`],
+    correct: 0, shortAnswer: `Liquefactive necrosis`,
+    clue: `The CNS is the major exception to ischemic coagulative necrosis.`,
+    explanation: `• Correct: Brain infarcts undergo liquefactive necrosis because microglial hydrolytic enzymes and high lipid content rapidly digest parenchyma into liquid cystic cavities.\n• Coagulative necrosis occurs in ischemic infarcts of all solid organs EXCEPT the brain.\n• Caseous necrosis produces cheese-like granulomas in TB and systemic fungi.`,
+    secondOrder: `• Vignette clue: "MCA stroke + fluid-filled cystic cavity + gitter cells" -> CNS liquefactive necrosis.`,
+    p1: `• Microglial lysosomal enzymes digest necrotic neurons and myelin; neutrophils do the same in bacterial abscesses.`,
+    p2: `• Early debris & macrophages -> late cystic cavitation surrounded by astrocytic gliosis.`,
+    p3: `• Liquefactive necrosis also occurs in acute bacterial abscesses and acute pancreatitis parenchyma.` },
+
+  { id: 12, sector: 2, entityId: 4, phase: 3,
+    stem: `A 68-year-old man with poorly controlled diabetes presents with a blackened, mummified great toe (dry gangrene) that suddenly develops foul-smelling purulent drainage, crepitus, and erythema spreading up the forefoot. What pathologic transition has occurred?`,
+    choices: [`Superimposed bacterial infection converting coagulative dry gangrene into liquefactive wet gangrene`, `Conversion of liquefactive necrosis into calcific fat saponification`, `Spontaneous apoptosis clearing necrotic bone without inflammation`],
+    correct: 0, shortAnswer: `Wet gangrene (superimposed liquefaction)`,
+    clue: `Dry gangrene is pure ischemia; wet gangrene adds bacterial neutrophilic digestion.`,
+    explanation: `• Correct: Superimposed bacterial infection recruits neutrophils whose proteolytic enzymes superimpose liquefactive necrosis onto ischemic coagulative tissue (wet gangrene).\n• Fat saponification occurs in pancreas/breast trauma, not infected toes.\n• Apoptosis never clears large ischemic tissue beds or causes purulence.`,
+    secondOrder: `• Vignette clue: "mummified toe -> foul purulent drainage" -> coagulative dry gangrene + liquefactive superinfection.`,
+    p1: `• Chronic limb or mesenteric ischemia causes dry coagulative gangrene; bacterial invasion converts it to wet gangrene.`,
+    p2: `• Dry: sharp demarcation, shrunken dark tissue; Wet: edematous, liquefied exudate, neutrophil infiltration.`,
+    p3: `• Wet gangrene requires urgent broad-spectrum antibiotics and surgical debridement/amputation to prevent sepsis.` },
+
+  // ENTITY 5: Caseous, Fat & Fibrinoid Necrosis (Gates 13-15)
+  { id: 13, sector: 2, entityId: 5, phase: 1,
+    stem: `Wedge resection of an apical cavitary lung lesion from a patient with night sweats and hemoptysis shows soft, friable, white-yellow "cottage cheese-like" debris surrounded by lymphocytes and epithelioid macrophages. Which organism class classically drives this pattern?`,
+    choices: [`Mycobacterium tuberculosis or systemic fungi (e.g., Histoplasma)`, `Streptococcus pyogenes via hyaluronidase`, `Staphylococcus aureus via alpha-toxin abscess`],
+    correct: 0, shortAnswer: `TB / systemic fungi (caseous)`,
+    clue: `Macrophages wall off resistant intracellular pathogens, combining coagulative and liquefactive features.`,
+    explanation: `• Correct: Mycobacterium tuberculosis, systemic fungi (Histoplasma), and Nocardia trigger granulomatous walling-off producing caseous necrosis.\n• S. pyogenes causes spreading cellulitis without caseous granulomas.\n• S. aureus produces pus-filled liquefactive abscesses.`,
+    secondOrder: `• Vignette clue: "apical cavitary lesion + cottage cheese-like debris" -> caseous necrosis.`,
+    p1: `• Delayed type IV hypersensitivity (Th1 -> IFN-gamma) walls off mycobacterial cell wall lipids.`,
+    p2: `• Amorphous granular acellular pink debris rimmed by epithelioid histiocytes and Langhans giant cells.`,
+    p3: `• Order acid-fast stain (Ziehl-Neelsen) and mycobacterial cultures; treat with RIPE regimen.` },
+
+  { id: 14, sector: 2, entityId: 5, phase: 2,
+    stem: `During laparotomy for severe acute pancreatitis, chalky-white deposits are noted across the omentum. Histology reveals outlines of anucleate adipocytes rimmed by basophilic (dark blue) amorphous material. What process explains the dark blue H&E staining?`,
+    choices: [`Saponification of liberated fatty acids with calcium (dystrophic calcification)`, `Hyperparathyroid-induced metastatic calcification of normal adipocytes`, `Fibrin deposition inside damaged pancreatic arterioles`],
+    correct: 0, shortAnswer: `Fat saponification (dystrophic Ca2+)`,
+    clue: `Pancreatic lipase cleaves triglycerides into free fatty acids, which chelate serum calcium.`,
+    explanation: `• Correct: Liberated fatty acids bind calcium (saponification), forming chalky-white soaps that stain dark blue on H&E—a classic example of dystrophic calcification despite normal serum Ca2+.\n• Metastatic calcification requires elevated serum calcium or phosphate depositing in normal tissues.\n• Fibrin deposition in vessel walls is fibrinoid necrosis, staining bright pink.`,
+    secondOrder: `• Vignette clue: "chalky-white omental deposits + dark blue outlines" -> enzymatic fat necrosis & saponification.`,
+    p1: `• Acinar injury releases pancreatic lipase -> triglyceride hydrolysis -> free fatty acids + Ca2+ soaps.`,
+    p2: `• Shadowy outlines of dead fat cells lacking peripheral nuclei with basophilic calcium deposits.`,
+    p3: `• Saponification can consume serum Ca2+, causing hypocalcemia (Chvostek/Trousseau signs) in severe pancreatitis.` },
+
+  { id: 15, sector: 2, entityId: 5, phase: 3,
+    stem: `A 44-year-old man with hepatitis B develops fever, mononeuritis multiplex, and palpable purpura. Renal angiography shows microaneurysms, and biopsy of an inflamed medium-sized artery shows bright pink, smudgy proteinaceous thickening of the vessel wall. What is this vascular lesion?`,
+    choices: [`Fibrinoid necrosis (immune complex deposition in polyarteritis nodosa)`, `Atherosclerotic hyaline arteriolosclerosis`, `Amyloid light-chain deposition showing apple-green birefringence`],
+    correct: 0, shortAnswer: `Fibrinoid necrosis`,
+    clue: `Immune complexes or malignant hypertension force plasma fibrin into damaged vessel walls.`,
+    explanation: `• Correct: Fibrinoid necrosis occurs when immune complexes (type III hypersensitivity, e.g., PAN) or severe shear stress (malignant HTN) damage vessel walls, allowing fibrin/plasma protein leakage that stains bright pink.\n• Hyaline arteriolosclerosis is homogeneous pink thickening from benign HTN/diabetes without necrotizing vasculitis.\n• Amyloidosis requires Congo red apple-green birefringence under polarized light.`,
+    secondOrder: `• Vignette clue: "HBV + mononeuritis multiplex + bright pink vessel wall" -> polyarteritis nodosa fibrinoid necrosis.`,
+    p1: `• Type III HSR immune complexes fix complement, recruiting neutrophils that damage the arterial media.`,
+    p2: `• Bright eosinophilic fibrin-rich ring obliterating smooth muscle architecture of the vessel wall.`,
+    p3: `• PAN spares the lungs; manage with corticosteroids, cyclophosphamide, and HBV antiviral therapy.` },
+
+  // ENTITY 6: Intrinsic & Extrinsic Apoptosis (Gates 16-18)
+  { id: 16, sector: 2, entityId: 6, phase: 1,
+    stem: `A 62-year-old man presents with painless waxing-and-waning cervical lymphadenopathy. Lymph node biopsy demonstrates t(14;18) translocation fusing the Ig heavy chain promoter to BCL2. How does this mutation promote tumorigenesis?`,
+    choices: [`Overexpressed Bcl-2 prevents Bax/Bak pore formation and cytochrome c release`, `Constitutive FasL expression triggers excessive thymocyte apoptosis`, `Activated perforin and granzyme B accelerate DNA laddering`],
+    correct: 0, shortAnswer: `Bcl-2 blocks cytochrome c release`,
+    clue: `Bcl-2 is antiapoptotic ("Be clever, live"); Bax and Bak are proapoptotic.`,
+    explanation: `• Correct: Follicular lymphoma t(14;18) overexpresses antiapoptotic Bcl-2, keeping the outer mitochondrial membrane impermeable and blocking cytochrome c release into the cytosol.\n• FasL triggers extrinsic apoptosis rather than blocking cell death.\n• Perforin/granzyme B are cytotoxic T-cell proapoptotic effectors.`,
+    secondOrder: `• Vignette clue: "painless waxing/waning lymphadenopathy + t(14;18)" -> follicular lymphoma Bcl-2 overexpression.`,
+    p1: `• Intrinsic pathway balances antiapoptotic Bcl-2/Bcl-xL against proapoptotic Bax/Bak sensors.`,
+    p2: `• Intact germinal center follicles populated by centrocytes/centroblasts lacking tingible body macrophages.`,
+    p3: `• Contrast follicular lymphoma (t[14;18] Bcl-2) with Burkitt lymphoma (t[8;14] c-myc proliferation).` },
+
+  { id: 17, sector: 2, entityId: 6, phase: 2,
+    stem: `Gel electrophoresis of DNA extracted from thymocytes undergoing physiologic negative selection reveals discrete bands spaced in multiples of 180 base pairs. Which enzyme class mediates this apoptotic cleavage without triggering adjacent tissue inflammation?`,
+    choices: [`Caspase-activated endonucleases cutting internucleosomal linker DNA`, `Neutrophil elastase released after plasma membrane rupture`, `Mitochondrial superoxide dismutase generating hydrogen peroxide`],
+    correct: 0, shortAnswer: `Caspase-activated endonucleases`,
+    clue: `Apoptosis keeps the plasma membrane intact while chopping chromatin at 180-bp nucleosome intervals.`,
+    explanation: `• Correct: Caspases activate endonucleases that cleave DNA between histones in ~180-bp multiples (DNA laddering), while intact membranes form apoptotic bodies phagocytosed without inflammation.\n• Necrosis causes random DNA smearing and membrane rupture with acute inflammation.\n• Superoxide dismutase detoxifies free radicals rather than cleaving DNA.`,
+    secondOrder: `• Vignette clue: "180-bp DNA laddering + no inflammation" -> ATP-dependent apoptosis.`,
+    p1: `• Thymic medullary negative selection uses Fas (CD95)-FasL extrinsic death receptor signaling.`,
+    p2: `• Cell shrinkage, deeply eosinophilic cytoplasm, pyknosis, karyorrhexis, and membrane-bound apoptotic bodies.`,
+    p3: `• Defective Fas-FasL causes Autoimmune Lymphoproliferative Syndrome (ALPS) with lymphadenopathy and cytopenias.` },
+
+  { id: 18, sector: 2, entityId: 6, phase: 3,
+    stem: `A cytotoxic CD8+ T lymphocyte recognizes a viral peptide presented on MHC class I by a hepatocyte infected with hepatitis B. Which cytotoxic mechanism directly triggers apoptosis of the target hepatocyte?`,
+    choices: [`Perforin forms membrane pores allowing granzyme B to enter and activate caspases`, `CD8+ T cells secrete IgE to crosslink mast cell Fc receptors`, `Target cell Bcl-2 oligomerizes to rupture the plasma membrane`],
+    correct: 0, shortAnswer: `Perforin + granzyme B pathway`,
+    clue: `CD8+ T cells and NK cells share a granule-mediated caspase activation pathway.`,
+    explanation: `• Correct: CD8+ T cells release perforin (forms target membrane pores) and granzyme B (enters pores to cleave and activate executioner caspases), producing apoptotic Councilman bodies in viral hepatitis.\n• Mast cell IgE crosslinking mediates type I anaphylactic reactions, not MHC-I viral killing.\n• Bcl-2 prevents mitochondrial permeability rather than rupturing plasma membranes.`,
+    secondOrder: `• Vignette clue: "CD8+ T cell + MHC-I hepatocyte" -> perforin/granzyme B -> Councilman apoptotic bodies.`,
+    p1: `• Perforin/granzyme B bypasses surface death receptors to directly cleave procaspases and Bid.`,
+    p2: `• Councilman bodies in viral hepatitis represent shrunken, intensely eosinophilic apoptotic hepatocytes.`,
+    p3: `• All three apoptotic pathways (intrinsic, extrinsic, perforin/granzyme) converge on executioner caspases (e.g., caspase-3).` },
+
+  // ENTITY 7: Leukocyte Extravasation Cascade (Gates 19-21)
+  { id: 19, sector: 3, entityId: 7, phase: 1,
+    stem: `During the first minutes of acute bacterial cellulitis, circulating neutrophils slow down and tumble along the postcapillary venular endothelium. Which molecular interaction mediates this rolling step?`,
+    choices: [`Endothelial E-selectin and P-selectin binding leukocyte Sialyl-Lewis X`, `Endothelial ICAM-1 binding leukocyte LFA-1 (CD11a/CD18)`, `Endothelial PECAM-1 (CD31) binding leukocyte PECAM-1`],
+    correct: 0, shortAnswer: `Selectins bind Sialyl-Lewis X`,
+    clue: `Rolling is transient low-affinity tethering driven by Weibel-Palade P-selectin and cytokine-induced E-selectin.`,
+    explanation: `• Correct: Histamine/thrombin mobilize P-selectin from Weibel-Palade bodies and TNF/IL-1 induce E-selectin to bind leukocyte Sialyl-Lewis X carbohydrates (rolling).\n• ICAM-1 + LFA-1 (CD18 integrin) mediates tight adhesion (step 2), not rolling.\n• PECAM-1 (CD31) mediates diapedesis/transmigration (step 3) across interendothelial junctions.`,
+    secondOrder: `• Vignette clue: "tumble along postcapillary venule" -> Step 1 Rolling (Selectins + Sialyl-Lewis X).`,
+    p1: `• Leukocyte extravasation sequence: Margination/Rolling (Selectins) -> Tight Adhesion (Integrins) -> Diapedesis (PECAM-1) -> Migration.`,
+    p2: `• Postcapillary venules show marginated neutrophils and protein-rich exudate (endothelial contraction).`,
+    p3: `• Leukocyte Adhesion Deficiency type 2 (LAD-2) lacks Sialyl-Lewis X (fucosyltransferase defect) -> impaired rolling.` },
+
+  { id: 20, sector: 3, entityId: 7, phase: 2,
+    stem: `A neonate presents at 3 weeks of age with delayed separation of the umbilical cord stump, recurrent non-purulent necrotizing skin infections, and a peripheral WBC count of 48,000/mm3. Biopsy of an infected skin ulcer reveals bacteria with virtually no neutrophils in tissue. What is defective?`,
+    choices: [`CD18 beta-2 integrin subunit (LFA-1/Mac-1) preventing tight adhesion`, `NADPH oxidase preventing respiratory burst`, `PECAM-1 on platelets preventing clot retraction`],
+    correct: 0, shortAnswer: `CD18 integrin defect (LAD-1)`,
+    clue: `High blood neutrophils + zero tissue pus + delayed umbilical cord detachment points to impaired firm adhesion.`,
+    explanation: `• Correct: LAD-1 is an autosomal recessive defect in the CD18 beta-2 integrin subunit (LFA-1), blocking tight adhesion to endothelial ICAM-1 so neutrophils remain trapped in blood (leukocytosis) and cannot enter tissue (no pus).\n• NADPH oxidase deficiency (CGD) allows normal neutrophil migration and pus/granuloma formation.\n• PECAM-1 mediates transmigration, not CD18 LAD-1.`,
+    secondOrder: `• Vignette clue: "delayed umbilical cord separation + high WBC + no pus in biopsy" -> LAD-1 (CD18 integrin).`,
+    p1: `• Chemokines (IL-8, C5a) normally trigger integrin conformational activation to lock onto ICAM-1/VCAM-1.`,
+    p2: `• Tissue biopsy shows bacterial colonies devoid of neutrophilic infiltrate despite profound blood neutrophilia.`,
+    p3: `• Diagnose via flow cytometry showing absent CD18; definitive curative therapy is hematopoietic stem cell transplant.` },
+
+  { id: 21, sector: 3, entityId: 7, phase: 3,
+    stem: `Once neutrophils cross the basement membrane into the interstitium via PECAM-1, they follow a chemical gradient directly toward invading Staphylococcus aureus. Which four mediators serve as the primary neutrophil chemoattractants?`,
+    choices: [`C5a, LTB4, IL-8, and bacterial N-formylmethionine peptides`, `Histamine, bradykinin, PGI2, and nitric oxide`, `IL-10, TGF-beta, thromboxane A2, and prostacyclin`],
+    correct: 0, shortAnswer: `C5a, LTB4, IL-8, bacterial peptides`,
+    clue: `Separate chemotactic signals from vasodilators (NO/PGI2) and anti-inflammatory cytokines (IL-10/TGF-beta).`,
+    explanation: `• Correct: C5a (complement), LTB4 (5-lipoxygenase), IL-8 (macrophage chemokine), and bacterial products (N-formyl peptides) create the chemotactic gradient guiding neutrophils.\n• Histamine, bradykinin, PGI2, and NO mediate vasodilation/permeability/pain, not chemotaxis.\n• IL-10 and TGF-beta terminate inflammation and promote healing.`,
+    secondOrder: `• Vignette clue: "cross basement membrane -> migrate toward bacteria" -> 4 classic neutrophil chemoattractants.`,
+    p1: `• Chemotaxis receptors (GPCRs) polymerize actin at the leading edge to propel neutrophils toward bacteria.`,
+    p2: `• Neutrophils peak within 24 hours, phagocytose opsonized microbes (C3b, IgG), and undergo apoptosis.`,
+    p3: `• Chediak-Higashi syndrome (LYST microtubule defect) impairs chemotaxis and phagolysosome fusion -> giant granules & albinism.` },
+
+  // ENTITY 8: Granulomatous Inflammation & Macrophages (Gates 22-24)
+  { id: 22, sector: 3, entityId: 8, phase: 1,
+    stem: `Following macrophage phagocytosis of an indigestible intracellular pathogen, IL-12 secretion drives naive CD4+ T cells toward a Th1 phenotype. Which Th1 cytokine classically activates macrophages into epithelioid histiocytes?`,
+    choices: [`Interferon-gamma (IFN-gamma)`, `Interleukin-4 (IL-4) and IL-13`, `Interleukin-5 (IL-5)`],
+    correct: 0, shortAnswer: `IFN-gamma (Th1 classical activation)`,
+    clue: `Th1 cells drive proinflammatory granuloma formation; Th2 cells drive M2 repair and eosinophilia.`,
+    explanation: `• Correct: Macrophage IL-12 induces CD4+ Th1 differentiation; Th1 cells secrete IFN-gamma, which classically activates macrophages (M1) into epithelioid cells and giant cells.\n• IL-4 and IL-13 drive Th2 alternative macrophage activation (M2) for tissue repair and anti-inflammatory fibrosis.\n• IL-5 promotes eosinophil maturation and IgA class switching.`,
+    secondOrder: `• Vignette clue: "IL-12 -> Th1 -> epithelioid macrophage transformation" -> IFN-gamma loop.`,
+    p1: `• Macrophage IL-12 <-> Th1 IFN-gamma positive feedback loop sustains granulomatous containment.`,
+    p2: `• Epithelioid macrophages elongate with abundant pink cytoplasm resembling epithelial cells.`,
+    p3: `• IL-12 receptor deficiency causes severe disseminated mycobacterial and BCG infections.` },
+
+  { id: 23, sector: 3, entityId: 8, phase: 2,
+    stem: `Transbronchial lung biopsy from a 34-year-old woman with bilateral hilar lymphadenopathy and hypercalcemia shows tight aggregates of epithelioid macrophages, multinucleated Langhans giant cells, and an outer rim of lymphocytes without central necrosis. Which mechanism explains her hypercalcemia?`,
+    choices: [`Epithelioid macrophages express 1-alpha-hydroxylase converting 25-(OH)D to calcitriol`, `PTHrP secretion by squamous metaplasia of bronchial epithelium`, `Osteolytic bone metastases from small cell lung cancer`],
+    correct: 0, shortAnswer: `Macrophage 1-alpha-hydroxylase (Sarcoidosis)`,
+    clue: `Noncaseating granulomas autonomously activate vitamin D independent of renal PTH feedback.`,
+    explanation: `• Correct: In sarcoidosis, activated epithelioid macrophages inside noncaseating granulomas express 1-alpha-hydroxylase, generating excess 1,25-(OH)2 vitamin D (calcitriol) -> increased gut Ca2+ absorption and hypercalcemia.\n• PTHrP causes hypercalcemia in squamous cell carcinoma, not noncaseating granulomas.\n• Small cell lung cancer is associated with SIADH/ACTH/Lambert-Eaton, not noncaseating granulomas.`,
+    secondOrder: `• Vignette clue: "bilateral hilar adenopathy + noncaseating granulomas + hypercalcemia" -> sarcoidosis.`,
+    p1: `• Persistent unknown antigen triggers Th1 CD4+ T-cell noncaseating granuloma assembly.`,
+    p2: `• Noncaseating granulomas with Langhans giant cells (peripheral horseshoe nuclei) and Schaumann/asteroid bodies.`,
+    p3: `• Elevated ACE levels and CD4:CD8 BAL ratio; treat symptomatic sarcoidosis with corticosteroids.` },
+
+  { id: 24, sector: 3, entityId: 8, phase: 3,
+    stem: `Before initiating infliximab (anti-TNF-alpha) for severe Crohn disease, a gastroenterologist orders an interferon-gamma release assay (IGRA) and chest radiograph. Why is this screening mandatory?`,
+    choices: [`TNF-alpha blockade disrupts granuloma maintenance, risking reactivation of latent tuberculosis`, `Infliximab stimulates neutrophil respiratory burst causing acute lung injury`, `Anti-TNF antibodies cross-react with alveolar basement membranes (Goodpasture)`],
+    correct: 0, shortAnswer: `TNF blockade reactivates latent TB`,
+    clue: `TNF-alpha recruits and maintains the macrophage/lymphocyte collar around dormant mycobacteria.`,
+    explanation: `• Correct: Macrophage-derived TNF-alpha is essential to maintain granuloma architecture; anti-TNF biologics (infliximab, adalimumab, etanercept) dissolve granulomas and can reactivate latent TB or histoplasmosis.\n• Infliximab suppresses rather than stimulates acute inflammatory bursts.\n• Goodpasture syndrome is anti-type IV collagen autoantibodies, unrelated to infliximab.`,
+    secondOrder: `• Vignette clue: "before starting infliximab -> IGRA + CXR" -> TNF-alpha granuloma maintenance.`,
+    p1: `• TNF-alpha sustains chemokine gradients and macrophage adhesion inside mature granulomas.`,
+    p2: `• Breakdown of granuloma collar allows dormant acid-fast bacilli to resume caseating necrosis and cavitation.`,
+    p3: `• Always screen for latent TB and HBV before starting TNF-alpha inhibitors.` },
+
+  // ENTITY 9: Wound Healing & Aberrant Scars (Gates 25-27)
+  { id: 25, sector: 3, entityId: 9, phase: 1,
+    stem: `Five days after a full-thickness surgical laceration heals by secondary intention, the wound bed appears pink, soft, and granular. Which three cellular/structural components constitute this granulation tissue?`,
+    choices: [`Fibroblasts (type III collagen), proliferating capillaries, and myofibroblasts`, `Mature osteocytes, elastic laminae, and type IV collagen`, `Neutrophil extracellular traps, fibrinoid rings, and dense type I collagen`],
+    correct: 0, shortAnswer: `Fibroblasts, capillaries, myofibroblasts`,
+    clue: `Proliferative phase (days 3 to weeks) builds vascularized scaffolding before final collagen remodeling.`,
+    explanation: `• Correct: Granulation tissue consists of fibroblasts depositing pliable type III collagen, newly sprouted capillaries (VEGF/FGF) supplying nutrients, and myofibroblasts contracting the wound.\n• Type IV collagen forms basement membranes; mature bone contains osteocytes.\n• Dense type I collagen replaces type III during the later remodeling phase, not initial granulation.`,
+    secondOrder: `• Vignette clue: "Day 5 + secondary intention + pink granular wound bed" -> granulation tissue triad.`,
+    p1: `• Macrophages secrete PDGF, VEGF, FGF, and TGF-beta to coordinate angiogenesis and fibroplasia.`,
+    p2: `• Edematous vascular stroma with plump fibroblasts and alpha-SMA-positive myofibroblasts.`,
+    p3: `• Note: Chronic Granulomatous Disease (NADPH oxidase defect) is unrelated to granulation tissue.` },
+
+  { id: 26, sector: 3, entityId: 9, phase: 2,
+    stem: `A 54-year-old man with chronic alcohol use disorder, malnutrition, and acrodermatitis enteropathica develops poor wound tensile strength 3 weeks after abdominal laparotomy. Which remodeling step is directly impaired by his trace mineral deficiency?`,
+    choices: [`Zinc-dependent collagenase removal of type III collagen for type I replacement`, `Vitamin K-dependent gamma-carboxylation of cross-linked elastin`, `Iron-dependent degradation of basement membrane laminin`],
+    correct: 0, shortAnswer: `Zinc collagenase (Type III -> Type I)`,
+    clue: `Remodeling requires collagenases (matrix metalloproteinases) to swap pliable type III for strong type I collagen.`,
+    explanation: `• Correct: Matrix metalloproteinases (collagenases) require zinc as an essential cofactor to degrade type III collagen so fibroblasts can lay down high-tensile type I collagen.\n• Vitamin K carboxylates clotting factors (II, VII, IX, X, C, S), not elastin.\n• Vitamin C (not iron degradation) is required for procollagen proline/lysine hydroxylation.`,
+    secondOrder: `• Vignette clue: "acrodermatitis enteropathica + weak scar at week 3" -> zinc cofactor for collagenase.`,
+    p1: `• Remodeling phase (week 1 to 6+ months) achieves ~70-80% of original skin tensile strength via type I collagen.`,
+    p2: `• Type III (pliable, granulation, keloids, uterus, blood vessels) replaced by Type I (bone, skin, tendon, mature scar).`,
+    p3: `• Infection (S. aureus) is #1 overall cause of delayed healing; zinc, vitamin C, and copper deficiencies impair collagen maturation.` },
+
+  { id: 27, sector: 3, entityId: 9, phase: 3,
+    stem: `A 24-year-old woman develops a firm, raised, rubbery nodule extending well beyond the borders of an earlobe piercing site. Biopsy reveals thick, haphazardly arranged bundles of collagen. How does this lesion differ histologically from a hypertrophic scar?`,
+    choices: [`Keloid extends beyond wound margins with disorganized type III > I collagen`, `Hypertrophic scar extends beyond wound margins and frequently recurs after excision`, `Keloid contains parallel type I collagen bundles strictly confined to the incision`],
+    correct: 0, shortAnswer: `Keloid: disorganized collagen past borders`,
+    clue: `Keloids ("claw-like") invade surrounding normal dermis and favor earlobes, sternum, and deltoids.`,
+    explanation: `• Correct: Keloids grow beyond the original wound boundary with haphazardly arranged type III (and I) collagen bundles and high recurrence after excision; hypertrophic scars stay within wound borders with parallel collagen and often regress.\n• Extending beyond borders describes keloids, not hypertrophic scars.\n• Parallel fibers confined to the incision describe hypertrophic scars.`,
+    secondOrder: `• Vignette clue: "earlobe piercing + raised nodule extending beyond borders + haphazard collagen" -> keloid.`,
+    p1: `• Excessive TGF-beta signaling and reduced collagenase remodeling drive exuberant dermal collagen deposition.`,
+    p2: `• Thick glassy eosinophilic collagen bands arranged irregularly in dermis; predilection for dark-skinned individuals.`,
+    p3: `• Treat keloids with intralesional corticosteroids (triamcinolone) and silicone sheeting; simple excision alone often recurs.` },
+
+  // ENTITY 10: Virchow Triad & Lines of Zahn (Gates 28-30)
+  { id: 28, sector: 4, entityId: 10, phase: 1,
+    stem: `A 64-year-old man with atrial fibrillation and left atrial dilation develops an acute thromboembolic stroke. Which component of Virchow triad was primarily triggered in his fibrillating left atrium?`,
+    choices: [`Turbulence and stasis of blood flow allowing platelets and clotting factors to contact endothelium`, `Estrogen-induced hepatic synthesis of antithrombin III`, `Excess prostacyclin (PGI2) and nitric oxide production by atrial endocardium`],
+    correct: 0, shortAnswer: `Stasis & turbulence (Virchow triad)`,
+    clue: `Normal laminar flow keeps platelets and coagulation factors dispersed and inactivated.`,
+    explanation: `• Correct: Atrial fibrillation causes blood stasis and turbulence in the left atrial appendage (Virchow triad), allowing activated platelets and coagulation factors to accumulate and clot.\n• Estrogen increases procoagulant factors (not antithrombin III).\n• PGI2 and NO inhibit platelet aggregation and promote vasodilation, preventing thrombosis.`,
+    secondOrder: `• Vignette clue: "atrial fibrillation + left atrial dilation" -> stasis arm of Virchow triad -> systemic thromboembolism.`,
+    p1: `• Virchow triad: (1) Disruption in blood flow (stasis/turbulence), (2) Endothelial damage, (3) Hypercoagulable state.`,
+    p2: `• Mural thrombus forms inside cardiac chambers or aortic aneurysms; systemic emboli travel to brain or lower limbs.`,
+    p3: `• Anticoagulate high-risk AF patients (CHA2DS2-VASc) with direct oral anticoagulants (apixaban/rivaroxaban) or warfarin.` },
+
+  { id: 29, sector: 4, entityId: 10, phase: 2,
+    stem: `At autopsy of a hospitalized patient who died suddenly, a firm cylindrical clot is found firmly adherent to the left femoral vein wall, displaying macroscopic alternating pale tan and dark red laminations. What does this morphology confirm?`,
+    choices: [`Antemortem thrombus exhibiting Lines of Zahn`, `Postmortem dependent clot ("chicken fat" and "currant jelly")`, `Atherosclerotic cholesterol embolus dislodged from the aorta`],
+    correct: 0, shortAnswer: `Antemortem thrombus (Lines of Zahn)`,
+    clue: `Alternating pale platelet/fibrin layers and dark RBC layers require active pulsing blood flow.`,
+    explanation: `• Correct: Lines of Zahn (alternating pale platelets/fibrin and dark RBC layers) plus firm attachment to the vessel wall confirm an antemortem thrombus formed in flowing blood.\n• Postmortem clots settle by gravity into yellow plasma ("chicken fat") and red RBC ("currant jelly") layers without vessel wall attachment.\n• Cholesterol emboli show needle-shaped clefts inside arterioles, not large laminated venous clots.`,
+    secondOrder: `• Vignette clue: "firmly adherent + alternating pale tan and dark red bands" -> Lines of Zahn antemortem thrombus.`,
+    p1: `• Pulsatile/flowing blood deposits sequential layers of platelets/fibrin and entrapped erythrocytes.`,
+    p2: `• Firmly attached to endothelial surface with distinct laminated Lines of Zahn.`,
+    p3: `• Proximal leg DVT (iliac, femoral, popliteal veins) is the #1 source of clinically significant pulmonary embolism.` },
+
+  { id: 30, sector: 4, entityId: 10, phase: 3,
+    stem: `A 29-year-old woman develops a proximal left femoral DVT 3 weeks after starting combined oral contraceptives. Workup reveals an autosomal dominant point mutation replacing arginine with glutamine at position 506 of factor V. How does this mutation cause hypercoagulability?`,
+    choices: [`Mutant factor V resists proteolytic inactivation by activated protein C`, `Deficiency of vitamin K epoxide reductase prevents prothrombin activation`, `Autoantibodies against platelet GPIb trigger spontaneous aggregation`],
+    correct: 0, shortAnswer: `Factor V Leiden (APC resistance)`,
+    clue: `Most common inherited hypercoagulability disorder; synergizes strongly with estrogen exposure.`,
+    explanation: `• Correct: Factor V Leiden alters the cleavage site on factor Va so activated protein C (APC) cannot inactivate it, perpetuating thrombin generation.\n• Vitamin K epoxide reductase is inhibited by warfarin, not mutated in Factor V Leiden.\n• Platelet GPIb deficiency causes Bernard-Soulier bleeding, not thrombosis.`,
+    secondOrder: `• Vignette clue: "oral contraceptives + proximal DVT + Arg506Gln" -> Factor V Leiden + estrogen synergy.`,
+    p1: `• Estrogen increases hepatic clotting factor synthesis; Factor V Leiden removes the natural APC brake.`,
+    p2: `• Compression ultrasound with Doppler shows noncompressible proximal femoral vein.`,
+    p3: `• Acute DVT management: UFH/LMWH (enoxaparin) or DOACs (rivaroxaban/apixaban); avoid estrogen OCPs.` },
+
+  // ENTITY 11: Embolism Spectrum (Gates 31-33)
+  { id: 31, sector: 4, entityId: 11, phase: 1,
+    stem: `A 26-year-old man sustains a midshaft femur fracture in a motorcycle crash. Thirty-six hours later he develops acute tachypnea, hypoxemia, confusion, and pinpoint nonblanching petechiae across his anterior chest and axillae. What is the pathogenesis of his syndrome?`,
+    choices: [`Bone marrow fat globules enter torn venous sinusoids, occluding pulmonary and cerebral capillaries and releasing toxic free fatty acids`, `A deep venous thrombus fragments immediately at impact`, `Nitrogen bubbles precipitate due to rapid bone decompression`],
+    correct: 0, shortAnswer: `Fat embolism syndrome`,
+    clue: `Classic 24-72h post-long-bone fracture triad: hypoxemia, neurologic abnormalities, and petechial rash.`,
+    explanation: `• Correct: Long-bone fractures release marrow fat into disrupted venous sinusoids; mechanical capillary occlusion plus lipase-mediated free fatty acid endothelial toxicity cause hypoxemia, CNS dysfunction, and chest petechiae.\n• Venous thromboembolism does not produce upper-body/conjunctival petechial rashes.\n• Nitrogen gas bubbles cause Caisson decompression sickness in divers.`,
+    secondOrder: `• Vignette clue: "36h after femur fracture + confusion + hypoxemia + chest petechiae" -> fat embolism triad.`,
+    p1: `• Occurs while fracture is unstable or shortly after orthopedic manipulation/liposuction.`,
+    p2: `• Pulmonary arterioles show clear round lipid vacuoles (dissolved during H&E processing) often with marrow elements.`,
+    p3: `• Treatment is supportive (O2, mechanical ventilation, early fracture immobilization); heparin is NOT effective.` },
+
+  { id: 32, sector: 4, entityId: 11, phase: 2,
+    stem: `A 31-year-old woman suffers sudden respiratory distress, seizures, and profuse bleeding from IV catheter sites during tumultuous labor. Autopsy demonstrates fetal squamous cells and keratin debris within maternal pulmonary arterioles. What caused her coagulopathy?`,
+    choices: [`Thrombogenic tissue factor in amniotic fluid triggered disseminated intravascular coagulation (DIC)`, `Air entrainment through a central venous line caused right ventricular outflow lock`, `Ruptured atherosclerotic plaque shed cholesterol clefts into renal arteries`],
+    correct: 0, shortAnswer: `Amniotic fluid embolism -> DIC`,
+    clue: `Amniotic fluid entering maternal uterine veins is intensely thrombogenic and triggers consumptive coagulopathy.`,
+    explanation: `• Correct: Amniotic fluid contains potent tissue factor/procoagulants that trigger widespread clotting factor activation (DIC) alongside anaphylactoid shock, leaving fetal squamous cells and keratin in pulmonary vessels.\n• Air embolism lacks fetal squamous cells and causes frothy air lock in the right ventricle.\n• Cholesterol cleft emboli follow aortic catheterization/plaque rupture, not labor.`,
+    secondOrder: `• Vignette clue: "labor + respiratory distress + oozing IV sites + squamous debris" -> amniotic fluid embolism.`,
+    p1: `• Uterine tears during delivery allow amniotic fluid into maternal venous circulation.`,
+    p2: `• Maternal pulmonary capillaries contain fetal squames, lanugo hair, mucin, and microthrombi.`,
+    p3: `• Rare but high mortality; DIC shows prolonged PT/PTT, low fibrinogen, thrombocytopenia, high D-dimer, schistocytes.` },
+
+  { id: 33, sector: 4, entityId: 11, phase: 3,
+    stem: `A commercial diver ascends too rapidly from a deep dive and develops severe periarticular joint pain ("the bends") and substernal choking dyspnea ("the chokes"). What is the immediate mechanism and definitive treatment?`,
+    choices: [`Nitrogen gas precipitates out of blood; treat with hyperbaric oxygen`, `Marrow fat embolizes to brain; treat with systemic thrombolytics`, `Left atrial thrombus occludes iliac artery; treat with embolectomy`],
+    correct: 0, shortAnswer: `Gas embolism -> hyperbaric O2`,
+    clue: `Henry's law: rapid drop in ambient pressure forces dissolved nitrogen into intravascular bubbles.`,
+    explanation: `• Correct: Rapid ascent causes dissolved nitrogen to form gas bubbles in blood/tissues (decompression sickness); recompression in a hyperbaric oxygen chamber redissolves nitrogen and washes it out.\n• Thrombolytics do not dissolve gas bubbles or fat.\n• Chronic Caisson disease causes multifocal ischemic bone necrosis (avascular necrosis).`,
+    secondOrder: `• Vignette clue: "rapid ascent diver + joint bends + respiratory chokes" -> nitrogen gas embolism -> hyperbaric O2.`,
+    p1: `• Gas emboli also occur iatrogenically via central venous catheter placement or laparoscopic insufflation.`,
+    p2: `• Frothy gas bubbles obstruct right ventricular outflow (air lock) or microvascular beds (bone, CNS).`,
+    p3: `• For iatrogenic venous air embolism, place patient in left lateral decubitus Trendelenburg (Durant) position.` },
+
+  // ENTITY 12: Shock Hemodynamics (Gates 34-36)
+  { id: 34, sector: 4, entityId: 12, phase: 1,
+    stem: `A 71-year-old man with an acute anterior STEMI develops BP 78/48 mmHg, cool clammy extremities, crackles halfway up both lung fields, and jugular venous distension. Which hemodynamic pattern confirms cardiogenic shock?`,
+    choices: [`Elevated PCWP, elevated CVP, decreased CO, and elevated SVR`, `Decreased PCWP, decreased CVP, elevated CO, and decreased SVR`, `Elevated CVP, decreased PCWP, decreased CO, and elevated SVR`],
+    correct: 0, shortAnswer: `High PCWP, High CVP, Low CO, High SVR`,
+    clue: `Left heart pump failure backs pressure up into pulmonary veins (PCWP) and right heart (CVP) while triggering compensatory vasoconstriction (SVR).`,
+    explanation: `• Correct: Cardiogenic shock is driven by low cardiac output (CO), causing elevated left atrial/pulmonary capillary wedge pressure (PCWP), elevated CVP, and reflex sympathetic vasoconstriction (high SVR -> cold clammy skin).\n• Low PCWP + high CO + low SVR describes early distributive septic shock.\n• High CVP + low PCWP + low CO describes obstructive PE or tension pneumothorax.`,
+    secondOrder: `• Vignette clue: "anterior STEMI + crackles + JVD + cold clammy skin" -> cardiogenic shock.`,
+    p1: `• Pump failure initiates a vicious circle: low CO -> low diastolic BP -> reduced coronary perfusion -> worse myocardial ischemia.`,
+    p2: `• Pulmonary venous congestion raises PCWP (>18 mmHg) and lowers mixed venous O2 saturation (SVO2).`,
+    p3: `• Support arterial/diastolic pressure with inotropes/vasopressors (dobutamine/norepinephrine) and revascularize; avoid diuretics or four-limb tourniquets.` },
+
+  { id: 35, sector: 4, entityId: 12, phase: 2,
+    stem: `A 66-year-old nursing home resident with an indwelling urinary catheter develops fever (39.4 C), BP 82/44 mmHg, warm flushed dry skin, and bounding pulses. Swan-Ganz catheterization shows CO 8.2 L/min, SVR 420 dyn*s/cm5, PCWP 6 mmHg, and SVO2 82%. Which shock profile is present?`,
+    choices: [`Early distributive (septic) shock`, `Hypovolemic hemorrhagic shock`, `Obstructive cardiac tamponade`],
+    correct: 0, shortAnswer: `Early distributive (septic) shock`,
+    clue: `Endotoxin-mediated nitric oxide release drops systemic vascular resistance, raising CO and SVO2.`,
+    explanation: `• Correct: Early septic shock is a distributive shock driven by systemic vasodilation (low SVR, warm dry skin, low PCWP/CVP) with compensatory high cardiac output and elevated SVO2 from impaired tissue O2 extraction.\n• Hemorrhagic shock presents with low CO, high SVR, and cold clammy skin.\n• Cardiac tamponade presents with low CO, high SVR, and equalization of elevated CVP and PCWP.`,
+    secondOrder: `• Vignette clue: "warm dry skin + high CO + low SVR + high SVO2" -> early distributive septic shock.`,
+    p1: `• Gram-negative LPS activates TLR4/CD14 -> massive cytokine storm (TNF-alpha, IL-1, NO) -> arteriolar vasodilation.`,
+    p2: `• Rapid capillary transit and mitochondrial dysfunction prevent O2 unloading, raising SVO2.`,
+    p3: `• Treat immediately with broad-spectrum antibiotics, balanced crystalloid resuscitation, and norepinephrine (first-line pressor).` },
+
+  { id: 36, sector: 4, entityId: 12, phase: 3,
+    stem: `After blunt chest trauma, a 32-year-old man has BP 74/52 mmHg, distended neck veins, muffled heart sounds, and a 16-mmHg drop in systolic BP during inspiration. ECG shows beat-to-beat alternating QRS amplitude. What hemodynamic hallmark defines this obstructive shock?`,
+    choices: [`Equilibration of diastolic pressures across all four cardiac chambers`, `Isolated elevation of pulmonary capillary wedge pressure with normal CVP`, `Profound drop in systemic vascular resistance with warm extremities`],
+    correct: 0, shortAnswer: `Diastolic pressure equilibration (tamponade)`,
+    clue: `Pericardial fluid compresses all chambers equally, producing Beck triad, pulsus paradoxus, and electrical alternans.`,
+    explanation: `• Correct: Cardiac tamponade compresses the heart externally, causing equilibration of diastolic pressures in all four chambers, systolic RA/diastolic RV collapse on echo, high CVP/PCWP, low CO, and high SVR.\n• Isolated PCWP elevation with normal CVP does not occur in pericardial compression.\n• Low SVR with warm skin describes distributive shock, not tamponade.`,
+    secondOrder: `• Vignette clue: "Beck triad + pulsus paradoxus + electrical alternans" -> cardiac tamponade.`,
+    p1: `• Inspiration increases RV venous return, bowing the interventricular septum into the LV and dropping systolic BP >10 mmHg.`,
+    p2: `• Echocardiogram shows pericardial effusion, diastolic RV collapse, systolic RA collapse, and IVC plethora.`,
+    p3: `• Perform emergent pericardiocentesis; avoid positive-pressure ventilation or diuretics that drop preload.` },
+
+  // ENTITY 13: Benign vs. Malignant Biology & Clonality (Gates 37-39)
+  { id: 37, sector: 5, entityId: 13, phase: 1,
+    stem: `Molecular analysis of a uterine leiomyoma from a female heterozygous for G6PDA and G6PDB alleles demonstrates that 100% of tumor cells express only the G6PDA isoform, whereas adjacent normal myometrium shows a 50:50 ratio. What does this confirm?`,
+    choices: [`Monoclonal derivation from a single mutated progenitor cell (neoplasia)`, `Polyclonal reactive smooth muscle hyperplasia`, `Somatic lyonization failure across normal myometrial tissue`],
+    correct: 0, shortAnswer: `Monoclonal neoplasia (single G6PD)`,
+    clue: `Random X-inactivation (lyonization) yields a 1:1 ratio in polyclonal hyperplasia and a single isoform in monoclonal tumors.`,
+    explanation: `• Correct: Neoplasia (both benign leiomyoma and malignant tumors) is monoclonal—all cells descend from one mother cell sharing the same active X-linked G6PD isoform.\n• Polyclonal hyperplasia maintains the 1:1 G6PDA:G6PDB ratio.\n• Normal myometrium showed 50:50, proving normal lyonization.`,
+    secondOrder: `• Vignette clue: "100% single G6PD isoform vs 50:50 normal tissue" -> monoclonal neoplasia.`,
+    p1: `• Similarly, B-cell clonality uses Ig light chains: normal/hyperplasia is 3:1 kappa:lambda; lymphoma skews >6:1 or inverts.`,
+    p2: `• Benign leiomyoma remains well-circumscribed with uniform spindle cells and no necrosis/invasion.`,
+    p3: `• Note that both benign and malignant neoplasms are monoclonal; clonality does NOT equal malignancy.` },
+
+  { id: 38, sector: 5, entityId: 13, phase: 2,
+    stem: `Histologic examination of a rapidly growing retroperitoneal mass reveals complete loss of resemblance to mature tissue, extreme nuclear pleomorphism, hyperchromatic nuclei, tumor giant cells, and tripolar mitotic figures. Which pathologic term best describes this appearance?`,
+    choices: [`Anaplasia (hallmark of high-grade malignancy)`, `Terminal differentiation (low-grade benign adenoma)`, `Squamous metaplasia without atypia`],
+    correct: 0, shortAnswer: `Anaplasia`,
+    clue: `Lack of differentiation accompanied by bizarre mitoses and giant cells signals poorly differentiated cancer.`,
+    explanation: `• Correct: Anaplasia denotes lack of cellular differentiation characterized by pleomorphism, hyperchromasia, high N:C ratio, loss of polarity, and abnormal (e.g., tripolar) mitoses.\n• Benign adenomas closely resemble parent glandular tissue.\n• Metaplasia without atypia shows orderly replacement by another mature cell type.`,
+    secondOrder: `• Vignette clue: "loss of tissue resemblance + tripolar mitoses + tumor giant cells" -> anaplasia.`,
+    p1: `• Accumulation of driver mutations disables p53/Rb checkpoints, generating chromosomal instability and anaplasia.`,
+    p2: `• Contrast carcinoma in situ (full-thickness atypia confined by intact basement membrane) vs invasive carcinoma.`,
+    p3: `• Poorly differentiated (anaplastic) tumors carry a worse prognosis than well-differentiated tumors of the same stage.` },
+
+  { id: 39, sector: 5, entityId: 13, phase: 3,
+    stem: `Pathology of an undifferentiated retroperitoneal tumor shows spindle cells staining strongly positive for S-100 and negative for cytokeratin and desmin. Which lineage does this immunohistochemical profile support?`,
+    choices: [`Neural crest origin (melanoma or schwannoma)`, `Epithelial carcinoma (keratin positive)`, `Skeletal or smooth muscle sarcoma (desmin positive)`],
+    correct: 0, shortAnswer: `S-100: Melanoma / Schwannoma`,
+    clue: `Intermediate filament and lineage IHC: Keratin = epithelium, Vimentin = mesenchyme, Desmin = muscle, S-100 = neural crest.`,
+    explanation: `• Correct: S-100 positivity identifies neural crest-derived neoplasms (melanoma, schwannoma) and Langerhans cell histiocytosis.\n• Epithelial carcinomas stain positive for cytokeratin.\n• Muscle tumors (rhabdomyosarcoma, leiomyosarcoma) stain positive for desmin.`,
+    secondOrder: `• Vignette clue: "S-100+, keratin-, desmin-" -> neural crest tumor (schwannoma/melanoma).`,
+    p1: `• IHC exploits lineage-specific intermediate filaments and proteins when H&E histology is poorly differentiated.`,
+    p2: `• Key IHC map: GFAP (neuroglia/astrocytoma), Neurofilament (neurons), Chromogranin (neuroendocrine), Vimentin (mesenchyme).`,
+    p3: `• Always integrate IHC with clinical imaging and serum markers before selecting targeted systemic therapy.` },
+
+  // ENTITY 14: Metastatic Routes, Grading & TNM Staging (Gates 40-42)
+  { id: 40, sector: 5, entityId: 14, phase: 1,
+    stem: `A 61-year-old smoker with gross painless hematuria has a renal mass invading the left renal vein and multiple cannonball nodules in both lungs without hilar lymphadenopathy. Why did this carcinoma spread hematogenously rather than via lymphatics?`,
+    choices: [`Renal cell carcinoma is one of the classic carcinomas that preferentially invade veins`, `All epithelial carcinomas exclusively spread through systemic veins`, `Primary renal carcinomas lack basement membranes entirely`],
+    correct: 0, shortAnswer: `RCC spreads hematogenously`,
+    clue: `Carcinomas usually spread via lymphatics, except 4 classic hematogenous carcinomas: RCC, HCC, follicular thyroid, choriocarcinoma.`,
+    explanation: `• Correct: While most carcinomas spread via lymphatics and sarcomas via blood, renal cell carcinoma (RCC), hepatocellular carcinoma, follicular thyroid carcinoma, and choriocarcinoma characteristically spread hematogenously (RCC invades the renal vein/IVC).\n• Most carcinomas favor lymphatic nodal spread first.\n• Normal renal tubules and carcinomas possess basement membranes prior to invasion.`,
+    secondOrder: `• Vignette clue: "renal mass invading renal vein + lung nodules + no hilar nodes" -> RCC hematogenous route.`,
+    p1: `• Invasion cascade: downregulate E-cadherin -> degrade basement membrane (MMPs) -> intravasate blood/lymph vessels.`,
+    p2: `• Clear cell RCC shows golden-yellow gross cut surface and lipid/glycogen-rich clear cytoplasm.`,
+    p3: `• Remember the 4 hematogenous carcinomas: Renal cell, Hepatocellular, Follicular thyroid, Choriocarcinoma.` },
+
+  { id: 41, sector: 5, entityId: 14, phase: 2,
+    stem: `A patient's resected colon adenocarcinoma is well-differentiated (low histologic grade) but shows hepatic parenchymal metastases on staging CT (pT2 N1 M1). Which component of this pathology report carries the greatest overall prognostic weight?`,
+    choices: [`M stage (presence of distant metastasis)`, `Histologic differentiation grade (low grade)`, `T stage (depth of primary bowel wall invasion)`],
+    correct: 0, shortAnswer: `Stage > Grade; M > N > T`,
+    clue: `Anatomic stage outperforms histologic grade, and within TNM, M is the single strongest prognostic factor.`,
+    explanation: `• Correct: Cancer staging (anatomic spread) is more important than histologic grade for prognosis; within TNM staging, distant metastasis (M) is the #1 prognostic factor (importance: M > N > T).\n• Low histologic grade cannot override Stage IV metastatic disease.\n• Regional nodes (N) rank second behind distant metastasis (M).`,
+    secondOrder: `• Vignette clue: "well-differentiated low grade + pT2 N1 M1" -> Stage trumps Grade; M > N > T.`,
+    p1: `• Grade assesses architectural/nuclear differentiation microscopically; Stage assesses anatomic extent after resection.`,
+    p2: `• T2 = invasion into muscularis propria; N1 = 1-3 regional nodes; M1 = distant organ spread (e.g., liver via portal vein).`,
+    p3: `• High-stage low-grade tumors generally carry a worse prognosis than low-stage high-grade tumors.` },
+
+  { id: 42, sector: 5, entityId: 14, phase: 3,
+    stem: `Two years after curative resection of colonic adenocarcinoma, a 66-year-old man's routine serum carcinoembryonic antigen (CEA) rises from 2.1 ng/mL to 28 ng/mL. What is the appropriate clinical interpretation and next step?`,
+    choices: [`Suspect tumor recurrence and confirm via imaging and tissue biopsy (never diagnose cancer by tumor marker alone)`, `Use elevated CEA alone as definitive proof to begin systemic chemotherapy immediately`, `Exclude colon recurrence because CEA is strictly specific for prostate carcinoma`],
+    correct: 0, shortAnswer: `Monitor recurrence; biopsy confirms`,
+    clue: `Serum tumor markers monitor treatment response and recurrence; biopsy establishes definitive diagnosis.`,
+    explanation: `• Correct: Serum tumor markers (CEA, PSA, CA-125, AFP) are NOT standalone diagnostic or screening tools; a rising CEA signals possible recurrence requiring imaging and tissue biopsy confirmation.\n• Chemotherapy requires histologic confirmation, not a nonspecific serum marker.\n• PSA monitors prostate cancer; CEA tracks colorectal and pancreatic adenocarcinomas.`,
+    secondOrder: `• Vignette clue: "rising CEA 2 years post-resection" -> surveillance marker prompting imaging/biopsy.`,
+    p1: `• Tumor markers can elevate in benign states (e.g., PSA in BPH/prostatitis, CEA in smokers/IBD).`,
+    p2: `• Definitive cancer diagnosis always rests on tissue biopsy histopathology.`,
+    p3: `• Match key markers: AFP (HCC/yolk sac), hCG (choriocarcinoma), Calcitonin (medullary thyroid), CA 19-9 (pancreas).` },
+
+  // ENTITY 15: Systemic Autonomic OMT & Lymphatic Return (Gates 43-45)
+  { id: 43, sector: 5, entityId: 15, phase: 1,
+    stem: `A 56-year-old man with acute anterior myocardial ischemia presents with substernal chest pain and hypertonic, boggy paraspinal musculature from T1 to T5 on the left. What neuroanatomic pathway accounts for these paraspinal somatic findings?`,
+    choices: [`Viscerosomatic reflex via cardiac visceral afferents synapsing on T1-T5 sympathetic spinal cord segments`, `Somatovisceral reflex originating from C1-C2 vagal motor nuclei`, `Direct lymphatic compression of the thoracic duct at L2`],
+    correct: 0, shortAnswer: `T1-T5 cardiac viscerosomatic reflex`,
+    clue: `Sympathetic innervation of the heart arises from T1-T5; visceral pain facilitates corresponding paraspinal segments.`,
+    explanation: `• Correct: Cardiac visceral afferents travel along sympathetic fibers back to T1-T5 spinal segments, facilitating anterior/lateral horn neurons and producing T1-T5 paraspinal tissue texture changes (viscerosomatic reflex).\n• Vagus nerve (CN X) provides parasympathetic innervation modulated at OA/AA/C2, not T1-T5.\n• Thoracic duct passes through the aortic hiatus at T12, not L2 cardiac sympathetics.`,
+    secondOrder: `• Vignette clue: "anterior myocardial ischemia + boggy left T1-T5 paraspinal tissue" -> viscerosomatic reflex.`,
+    p1: `• Sympathetic chain spans T1-L2: Head/neck T1-T4, Heart T1-T5, Lungs T2-T7, Foregut T5-T9, Midgut T10-T11, Hindgut T12-L2.`,
+    p2: `• Acute somatic dysfunction feels warm, boggy, and edematous; chronic feels fibrotic, ropy, and cool.`,
+    p3: `• Treating facilitated T1-T5 segments with gentle rib raising/soft tissue can reduce sympathetic hypersympathicotonia.` },
+
+  { id: 44, sector: 5, entityId: 15, phase: 2,
+    stem: `An osteopathic physician evaluating a hospitalized patient with postoperative ileus notes hypertonicity at the occipitoatlantal (OA) junction and restricted thoracic inlet myofascia. Which anatomic principle guides initial OMT sequencing?`,
+    choices: [`Release the thoracic inlet (Sibson fascia) first to open terminal lymphatic drainage before distal lymphatic pumps`, `Perform vigorous pedal lymphatic pump prior to releasing the thoracic inlet`, `Apply high-velocity low-amplitude thrust directly over the acute laparotomy incision`],
+    correct: 0, shortAnswer: `Release thoracic inlet before pump`,
+    clue: `Always open the proximal terminal drainage gateway (left/right venous angles) before pushing fluid proximally.`,
+    explanation: `• Correct: The thoracic duct (draining bilateral lower body, abdomen, and left upper body) and right lymphatic duct empty into the subclavian/internal jugular venous angles beneath the thoracic inlet; myofascial release of the thoracic inlet must precede distal lymphatic pumps.\n• Pumping distally into a restricted inlet worsens congestion.\n• HVLA over an acute surgical site is contraindicated.`,
+    secondOrder: `• Vignette clue: "OA hypertonicity + restricted thoracic inlet" -> open thoracic inlet first + OA-AA vagal balancing.`,
+    p1: `• Thoracic duct ascends through T12 aortic hiatus to empty at the left venous angle (left IJ + subclavian junction).`,
+    p2: `• Suboccipital (OA-AA) inhibition balances vagal (CN X) parasympathetic tone to foregut and midgut.`,
+    p3: `• Sequence: Thoracic inlet MFR -> OA/AA/sacral parasympathetic balance -> diaphragmatic doming -> thoracic/pedal pump.` },
+
+  { id: 45, sector: 5, entityId: 15, phase: 3,
+    stem: `A 68-year-old man with metastatic prostate adenocarcinoma to the lumbar spine and an acute right femoral DVT develops bilateral lower extremity edema. Which OMT modality is strictly contraindicated in this patient?`,
+    choices: [`Vigorous pedal/thoracic lymphatic pump techniques and lumbar HVLA`, `Gentle suboccipital (OA) cranial/soft tissue relaxation away from tumor`, `Patient education on gentle ankle range of motion without compression`],
+    correct: 0, shortAnswer: `Contraindicated: lymphatic pump & HVLA`,
+    clue: `Active DVT risks pulmonary embolism and osseous metastases risk pathologic fracture/tumor dissemination.`,
+    explanation: `• Correct: Acute DVT is an absolute contraindication to pedal/extremity lymphatic pumps (risk of dislodging a fatal pulmonary embolus), and metastatic bone disease/unstable spine contraindicates HVLA (pathologic fracture) and aggressive lymphatic mobilization.\n• Gentle non-provocative relaxation away from tumor/DVT is safe.\n• Anticoagulation and oncologic management take priority.`,
+    secondOrder: `• Vignette clue: "metastatic bone disease + acute femoral DVT" -> absolute contraindication to lymphatic pump & HVLA.`,
+    p1: `• COMLEX OMT safety requires screening for absolute contraindications: acute DVT, active infection/abscess, metastatic bone lesions, fracture.`,
+    p2: `• Pathologic fractures occur at lytic/blastic spinal metastases under high-velocity thrusting forces.`,
+    p3: `• Always respect patient safety and dignity: obtain anticoagulation/DVT imaging first and choose indirect/gentle modalities when appropriate.` }
+];
+
+const LO_VISUAL_THEMES = {};
+ENTITIES.forEach((e) => {
+  LO_VISUAL_THEMES[e.id] = { tag: e.corridor, gridRgb: e.rgb, dustColor: `rgb(${e.rgb})` };
+});
+
+/* Application State */
+let deck = [...QUESTIONS];
+let currentIdx = 0;
+let hp = 100;
+let maxHp = 100;
+let xp = 0;
+let streak = 0;
+let masteredIds = [];
+let missedIds = [];
+let isHintsVisible = false;
+let isMenuOpen = false;
+let isModalOpen = false;
+let isCodexOpen = false;
+let timerEnabled = false;
+let timerSeconds = 50;
+let timerHandle = null;
+let metaFadeHandle = null;
+
+/* Filter State */
+let sectorFilter = 'all';
+let entityFilter = 'all';
+let phaseFilter = 'all';
+
+/* 3D Runner & Steering State */
+let targetLane = 1;
+const ship = { x: 0, tilt: 0 };
+let particles = [];
+let animFrameId = null;
+let runnerSpeed = 0.032;
+let floorOffset = 0;
+let laneRects = [null, null, null];
+
+/* Audio State */
+let masterSoundOn = true;
+let sfxOn = true;
+let bgmOn = false;
+let bgmVolume = 0.35;
+let audioCtx = null;
+let bgmInterval = null;
+let bgmStep = 0;
+let customAudioEl = null;
+
+function ensureAudioCtx() {
+  if (!audioCtx && (window.AudioContext || window.webkitAudioContext)) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new Ctx();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
+}
+
+function playSfx(type) {
+  if (!masterSoundOn || !sfxOn) return;
+  try {
+    ensureAudioCtx();
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    const now = audioCtx.currentTime;
+    if (type === 'steer') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(320, now);
+      osc.frequency.exponentialRampToValueAtTime(480, now + 0.06);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+      osc.start(now);
+      osc.stop(now + 0.08);
+    } else if (type === 'correct') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, now);
+      osc.frequency.setValueAtTime(659.25, now + 0.08);
+      osc.frequency.setValueAtTime(783.99, now + 0.16);
+      gain.gain.setValueAtTime(0.14, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+      osc.start(now);
+      osc.stop(now + 0.33);
+    } else {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(190, now);
+      osc.frequency.exponentialRampToValueAtTime(95, now + 0.25);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+      osc.start(now);
+      osc.stop(now + 0.29);
+    }
+  } catch (e) {}
+}
+
+function stopProceduralBgm() {
+  if (bgmInterval) {
+    clearInterval(bgmInterval);
+    bgmInterval = null;
+  }
+  if (customAudioEl) {
+    customAudioEl.pause();
+  }
+}
+
+function startProceduralBgm() {
+  stopProceduralBgm();
+  if (!masterSoundOn || !bgmOn) return;
+  if (customAudioEl && customAudioEl.src) {
+    customAudioEl.volume = bgmVolume;
+    customAudioEl.play().catch(() => {});
+    return;
+  }
+  const bassNotes = [110, 110, 130.81, 146.83, 110, 110, 164.81, 146.83];
+  bgmInterval = setInterval(() => {
+    if (!masterSoundOn || !bgmOn) return;
+    try {
+      ensureAudioCtx();
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(bassNotes[bgmStep % bassNotes.length], audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.05 * bgmVolume, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.22);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.24);
+      bgmStep += 1;
+    } catch (e) {}
+  }, 260);
+}
+
+function toggleMasterAudio() {
+  masterSoundOn = !masterSoundOn;
+  if (!masterSoundOn) stopProceduralBgm();
+  else if (bgmOn) startProceduralBgm();
+  syncAudioUI();
+  persistAppState();
+}
+
+function toggleSfxAudio() {
+  sfxOn = !sfxOn;
+  syncAudioUI();
+  persistAppState();
+}
+
+function toggleBgmAudio() {
+  bgmOn = !bgmOn;
+  if (bgmOn && masterSoundOn) startProceduralBgm();
+  else stopProceduralBgm();
+  syncAudioUI();
+  persistAppState();
+}
+
+function setBgmVolume(val) {
+  bgmVolume = Math.max(0, Math.min(1, Number(val) / 100));
+  const readout = document.getElementById('bgm-vol-readout');
+  if (readout) readout.textContent = `${Math.round(bgmVolume * 100)}%`;
+  if (customAudioEl) customAudioEl.volume = bgmVolume;
+  persistAppState();
+}
+
+function loadCustomAudioFile(input) {
+  const file = input && input.files && input.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  if (!customAudioEl) {
+    customAudioEl = new Audio();
+    customAudioEl.loop = true;
+  }
+  customAudioEl.src = url;
+  customAudioEl.volume = bgmVolume;
+  bgmOn = true;
+  if (masterSoundOn) startProceduralBgm();
+  syncAudioUI();
+  setMenuToast(`Loaded custom track: ${file.name}`);
+}
+
+function syncAudioUI() {
+  const m = document.getElementById('btn-master-sound');
+  const s = document.getElementById('btn-sfx-toggle');
+  const b = document.getElementById('btn-bgm-toggle');
+  if (m) {
+    m.textContent = masterSoundOn ? `Master Sound: ON` : `Master Sound: OFF`;
+    m.classList.toggle('is-active', masterSoundOn);
+  }
+  if (s) {
+    s.textContent = sfxOn ? `SFX: ON` : `SFX: OFF`;
+    s.classList.toggle('is-active', sfxOn);
+  }
+  if (b) {
+    b.textContent = bgmOn ? `Procedural BGM: ON` : `Procedural BGM: OFF`;
+    b.classList.toggle('is-active', bgmOn);
+  }
+}
+
+/* Persistence via Gemini Notebook Shim API */
+async function loadAppState() {
+  try {
+    if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === 'function') {
+      const saved = await window.notebookAppApi.getAppState();
+      if (saved && typeof saved === 'object') {
+        if (typeof saved.hp === 'number') hp = saved.hp;
+        if (typeof saved.xp === 'number') xp = saved.xp;
+        if (typeof saved.streak === 'number') streak = saved.streak;
+        if (Array.isArray(saved.masteredIds)) masteredIds = saved.masteredIds;
+        if (Array.isArray(saved.missedIds)) missedIds = saved.missedIds;
+        if (typeof saved.isHintsVisible === 'boolean') isHintsVisible = saved.isHintsVisible;
+        if (typeof saved.timerEnabled === 'boolean') timerEnabled = saved.timerEnabled;
+        if (typeof saved.masterSoundOn === 'boolean') masterSoundOn = saved.masterSoundOn;
+        if (typeof saved.sfxOn === 'boolean') sfxOn = saved.sfxOn;
+        if (typeof saved.bgmOn === 'boolean') bgmOn = saved.bgmOn;
+        if (typeof saved.bgmVolume === 'number') bgmVolume = saved.bgmVolume;
+        if (typeof saved.currentIdx === 'number' && saved.currentIdx >= 0 && saved.currentIdx < deck.length) {
+          currentIdx = saved.currentIdx;
+        }
+      }
+    }
+  } catch (e) {}
+}
+
+function persistAppState() {
+  try {
+    if (window.notebookAppApi && typeof window.notebookAppApi.setAppState === 'function') {
+      window.notebookAppApi.setAppState({
+        hp, xp, streak, masteredIds, missedIds, currentIdx,
+        isHintsVisible, timerEnabled, masterSoundOn, sfxOn, bgmOn, bgmVolume
+      });
+    }
+  } catch (e) {}
+}
+
+/* UI Sync & Helpers */
+function setMenuToast(msg) {
+  const el = document.getElementById('menu-status-toast');
+  if (el) el.textContent = msg;
+}
+
+function toggleMenuDrawer() {
+  isMenuOpen = !isMenuOpen;
+  const drawer = document.getElementById('top-menu-drawer');
+  const backdrop = document.getElementById('menu-backdrop');
+  if (drawer) drawer.classList.toggle('is-open', isMenuOpen);
+  if (backdrop) backdrop.classList.toggle('is-open', isMenuOpen);
+}
+
+function syncHintsUI() {
+  const app = document.getElementById('xr-app');
+  if (app) {
+    app.classList.toggle('hints-visible', isHintsVisible);
+    app.classList.toggle('hints-hidden', !isHintsVisible);
+  }
+  const menuBtn = document.getElementById('menu-hints-btn');
+  if (menuBtn) {
+    menuBtn.textContent = isHintsVisible ? `Hints: ON [H]` : `Hints: OFF [H]`;
+    menuBtn.classList.toggle('is-active', isHintsVisible);
+  }
+  setTimeout(updateLaneRects, 40);
+}
+
+function toggleHintsBar() {
+  isHintsVisible = !isHintsVisible;
+  syncHintsUI();
+  playSfx('steer');
+  persistAppState();
+}
+
+function syncTimerControlsUI() {
+  const btn = document.getElementById('menu-timer-toggle-btn');
+  if (btn) {
+    btn.textContent = timerEnabled ? `50s Timer: ON [T]` : `50s Timer: OFF [T]`;
+    btn.classList.toggle('is-active', timerEnabled);
+  }
+  const chip = document.getElementById('chip-timer');
+  if (chip) {
+    chip.textContent = timerEnabled ? `⏱ ${timerSeconds}s` : `⏱ OFF`;
+    chip.classList.toggle('is-urgent', timerEnabled && timerSeconds <= 10);
+  }
+}
+
+function stopGateTimer() {
+  if (timerHandle) {
+    clearInterval(timerHandle);
+    timerHandle = null;
+  }
+}
+
+function startGateTimer() {
+  stopGateTimer();
+  timerSeconds = 50;
+  syncTimerControlsUI();
+  if (!timerEnabled || isModalOpen || isCodexOpen) return;
+  timerHandle = setInterval(() => {
+    if (isModalOpen || isCodexOpen || !timerEnabled) return;
+    timerSeconds -= 1;
+    syncTimerControlsUI();
+    if (timerSeconds <= 0) {
+      stopGateTimer();
+      handleTimeExpired();
+    }
+  }, 1000);
+}
+
+function toggleTimerMode() {
+  timerEnabled = !timerEnabled;
+  if (timerEnabled) startGateTimer();
+  else stopGateTimer();
+  syncTimerControlsUI();
+  persistAppState();
+}
+
+function startTimedRun() {
+  timerEnabled = true;
+  if (isMenuOpen) toggleMenuDrawer();
+  startGateTimer();
+  syncTimerControlsUI();
+  persistAppState();
+}
+
+function updateTelemetryUI() {
+  const hpEl = document.getElementById('chip-hp');
+  const xpEl = document.getElementById('chip-xp');
+  const stEl = document.getElementById('chip-streak');
+  const gtEl = document.getElementById('chip-gate');
+  if (hpEl) hpEl.textContent = `HP ${hp}/${maxHp}`;
+  if (xpEl) xpEl.textContent = `XP ${xp}`;
+  if (stEl) stEl.textContent = `⚡ ${streak}`;
+  if (gtEl) gtEl.textContent = `GATE ${deck.length ? currentIdx + 1 : 0}/${deck.length}`;
+  syncTimerControlsUI();
+}
+
+function renderSkillTree() {
+  const entitySelect = document.getElementById('entity-filter-select');
+  const grid = document.getElementById('skill-tree-grid');
+  const currentQ = deck[currentIdx];
+  if (entitySelect && entitySelect.options.length <= 1) {
+    ENTITIES.forEach((e) => {
+      const opt = document.createElement('option');
+      opt.value = String(e.id);
+      opt.textContent = `E${e.id} • ${e.name}`;
+      entitySelect.appendChild(opt);
+    });
+  }
+  if (!grid) return;
+  grid.innerHTML = ENTITIES.map((e) => {
+    const entityQs = QUESTIONS.filter((q) => q.entityId === e.id);
+    const done = entityQs.filter((q) => masteredIds.includes(q.id)).length;
+    const isCurrent = currentQ && currentQ.entityId === e.id;
+    return `<button type="button" class="skill-node-btn ${isCurrent ? 'is-current' : ''}" onclick="jumpToEntity(${e.id})">
+      <span class="skill-node-title">${e.id}. ${e.name}</span>
+      <span class="skill-node-meta">Sector ${e.sector} • Mastered ${done}/3 • ${e.corridor}</span>
+    </button>`;
+  }).join('');
+}
+
+function applyDeckFilters(resetIndex) {
+  deck = QUESTIONS.filter((q) => {
+    if (sectorFilter === 'missed') {
+      if (!missedIds.includes(q.id)) return false;
+    } else if (sectorFilter !== 'all' && q.sector !== Number(sectorFilter)) {
+      return false;
+    }
+    if (entityFilter !== 'all' && q.entityId !== Number(entityFilter)) return false;
+    if (phaseFilter !== 'all' && q.phase !== Number(phaseFilter)) return false;
+    return true;
+  });
+  if (deck.length === 0) {
+    deck = [...QUESTIONS];
+    setMenuToast(`No gates matched filter — showing all 45 gates.`);
+  }
+  if (resetIndex) currentIdx = 0;
+  if (currentIdx >= deck.length) currentIdx = 0;
+  renderCurrentGate();
+}
+
+function onSectorSelectChange(val) {
+  sectorFilter = val;
+  applyDeckFilters(true);
+}
+
+function onEntitySelectChange(val) {
+  entityFilter = val;
+  applyDeckFilters(true);
+}
+
+function setPhaseFilter(val) {
+  phaseFilter = val;
+  ['all', '1', '2', '3'].forEach((k) => {
+    const pill = document.getElementById(`phase-pill-${k}`);
+    if (pill) pill.classList.toggle('is-active', val === k);
+  });
+  applyDeckFilters(true);
+}
+
+function jumpToEntity(entityId) {
+  sectorFilter = 'all';
+  entityFilter = String(entityId);
+  phaseFilter = 'all';
+  const sSel = document.getElementById('sector-filter-select');
+  const eSel = document.getElementById('entity-filter-select');
+  if (sSel) sSel.value = 'all';
+  if (eSel) eSel.value = String(entityId);
+  setPhaseFilter('all');
+  if (isMenuOpen) toggleMenuDrawer();
+}
+
+function restartOrdered() {
+  sectorFilter = 'all';
+  entityFilter = 'all';
+  phaseFilter = 'all';
+  const sSel = document.getElementById('sector-filter-select');
+  const eSel = document.getElementById('entity-filter-select');
+  if (sSel) sSel.value = 'all';
+  if (eSel) eSel.value = 'all';
+  ['all', '1', '2', '3'].forEach((k) => {
+    const pill = document.getElementById(`phase-pill-${k}`);
+    if (pill) pill.classList.toggle('is-active', k === 'all');
+  });
+  deck = [...QUESTIONS];
+  currentIdx = 0;
+  hp = maxHp;
+  streak = 0;
+  renderCurrentGate();
+  if (isMenuOpen) toggleMenuDrawer();
+  setMenuToast(`Restarted ordered 45-gate pathology run.`);
+  persistAppState();
+}
+
+function shuffleDeck() {
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  currentIdx = 0;
+  renderCurrentGate();
+  if (isMenuOpen) toggleMenuDrawer();
+  setMenuToast(`Shuffled active deck (${deck.length} gates).`);
+}
+
+function resetMastery(btn) {
+  if (!btn) return;
+  if (btn.dataset.armed !== 'true') {
+    btn.dataset.armed = 'true';
+    btn.textContent = `Confirm Reset?`;
+    setMenuToast(`Tap Reset Mastery again to clear XP, HP, and mastery records.`);
+    return;
+  }
+  btn.dataset.armed = 'false';
+  btn.textContent = `Reset Mastery`;
+  masteredIds = [];
+  missedIds = [];
+  xp = 0;
+  hp = maxHp;
+  streak = 0;
+  currentIdx = 0;
+  renderCurrentGate();
+  setMenuToast(`Mastery data reset.`);
+  persistAppState();
+}
+
+/* Render Gate + 3-Second Auto-Hiding Metadata */
+function renderCurrentGate() {
+  const q = deck[currentIdx];
+  if (!q) return;
+  const entity = ENTITIES.find((e) => e.id === q.entityId) || ENTITIES[0];
+
+  const metaRow = document.getElementById('meta-badge-row');
+  if (metaRow) {
+    metaRow.classList.remove('is-faded');
+    if (metaFadeHandle) clearTimeout(metaFadeHandle);
+    metaFadeHandle = setTimeout(() => {
+      metaRow.classList.add('is-faded');
+      setTimeout(updateLaneRects, 430);
+    }, 3000);
+  }
+
+  const mSec = document.getElementById('meta-sector');
+  const mAng = document.getElementById('meta-angle');
+  const mPh = document.getElementById('meta-phase');
+  const mCor = document.getElementById('meta-corridor');
+  if (mSec) mSec.textContent = entity.sectorName;
+  if (mAng) mAng.textContent = `Entity ${entity.id}: ${entity.name}`;
+  if (mPh) mPh.textContent = `Phase ${q.phase} (${q.phase === 1 ? 'Pathogenesis' : q.phase === 2 ? 'Morphology' : 'Clinical/OMT'})`;
+  if (mCor) mCor.textContent = `CORRIDOR: ${entity.corridor}`;
+
+  const stemEl = document.getElementById('q-stem-text');
+  if (stemEl) stemEl.textContent = q.stem;
+
+  const clueEl = document.getElementById('q-clue-text');
+  if (clueEl) clueEl.textContent = q.clue;
+
+  // Deterministic choice order per gate render with shuffled indices stored on q._map
+  const indices = [0, 1, 2];
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+  q._map = indices;
+  for (let lane = 0; lane < 3; lane++) {
+    const txtEl = document.getElementById(`lane-${lane}-text`);
+    if (txtEl) txtEl.textContent = q.choices[indices[lane]];
+  }
+
+  setTargetLane(1, false);
+  updateTelemetryUI();
+  renderSkillTree();
+  startGateTimer();
+  requestAnimationFrame(updateLaneRects);
+}
+
+function setTargetLane(laneIdx, withSfx) {
+  targetLane = Math.max(0, Math.min(2, laneIdx));
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`lane-card-${i}`);
+    if (card) card.classList.toggle('is-targeted', i === targetLane);
+  }
+  if (withSfx) playSfx('steer');
+}
+
+function commitLaneSelection(laneIdx) {
+  if (isModalOpen || isCodexOpen) return;
+  const q = deck[currentIdx];
+  if (!q || !q._map) return;
+  stopGateTimer();
+  setTargetLane(laneIdx, false);
+  const chosenOrigIdx = q._map[laneIdx];
+  const isCorrect = chosenOrigIdx === q.correct;
+  resolveGateOutcome(q, chosenOrigIdx, isCorrect, false);
+}
+
+function handleTimeExpired() {
+  if (isModalOpen || isCodexOpen) return;
+  const q = deck[currentIdx];
+  if (!q) return;
+  resolveGateOutcome(q, -1, false, true);
+}
+
+function skipCurrentQuestion() {
+  stopGateTimer();
+  currentIdx = (currentIdx + 1) % deck.length;
+  renderCurrentGate();
+  persistAppState();
+}
+
+function skipFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  skipCurrentQuestion();
+}
+
+function resolveGateOutcome(q, chosenOrigIdx, isCorrect, isTimesUp) {
+  let xpDelta = 0;
+  let hpDeltaLabel = `+0 HP`;
+  if (isCorrect) {
+    streak += 1;
+    xpDelta = 100 + Math.min(100, (streak - 1) * 20);
+    xp += xpDelta;
+    if (!masteredIds.includes(q.id)) masteredIds.push(q.id);
+    missedIds = missedIds.filter((id) => id !== q.id);
+    if (hp < maxHp) {
+      const heal = Math.min(5, maxHp - hp);
+      hp += heal;
+      hpDeltaLabel = `+${heal} HP`;
+    }
+    playSfx('correct');
+  } else {
+    streak = 0;
+    xpDelta = 0;
+    hp = Math.max(10, hp - 15);
+    hpDeltaLabel = `-15 HP`;
+    if (!missedIds.includes(q.id)) missedIds.push(q.id);
+    playSfx('wrong');
+  }
+  updateTelemetryUI();
+  renderSkillTree();
+  populateOutcomeModal(q, chosenOrigIdx, isCorrect, xpDelta, hpDeltaLabel, isTimesUp);
+  persistAppState();
+}
+
+function renderDossierBullets(el, lines) {
+  if (!el) return;
+  const items = (Array.isArray(lines) ? lines : [lines])
+    .flatMap((line) => String(line || '').split(/\n|<br\s*\/?>/i))
+    .map((line) => line.replace(/^\s*[•\-\*]\s*/, '').trim())
+    .filter(Boolean);
+  el.innerHTML = items.map((line) => `<p class="dossier-line">&bull; ${line}</p>`).join('');
+}
+
+function populateOutcomeModal(q, chosenOrigIdx, isCorrect, xpDelta, hpDeltaLabel, isTimesUp) {
+  const entity = ENTITIES.find((e) => e.id === q.entityId) || ENTITIES[0];
+  const verdictEl = document.getElementById('outcome-verdict');
+  if (verdictEl) {
+    verdictEl.className = isTimesUp ? 'is-timeout' : isCorrect ? 'is-correct' : 'is-wrong';
+    verdictEl.textContent = isTimesUp
+      ? `⏱ TIME'S UP — ${q.shortAnswer}`
+      : isCorrect
+      ? `✔ CORRECT — ${q.shortAnswer}`
+      : `✖ INCORRECT — ${q.shortAnswer}`;
+  }
+
+  const xpEl = document.getElementById('outcome-xp-delta');
+  const hpEl = document.getElementById('outcome-hp-delta');
+  if (xpEl) xpEl.textContent = `+${xpDelta} XP`;
+  if (hpEl) hpEl.textContent = hpDeltaLabel;
+
+  const refEl = document.getElementById('outcome-lo-ref');
+  const qTextEl = document.getElementById('outcome-question-text');
+  if (refEl) refEl.textContent = `${entity.sectorName} • Entity ${entity.id}: ${entity.name} • Phase ${q.phase} (Gate #${q.id})`;
+  if (qTextEl) qTextEl.textContent = q.stem;
+
+  const yourBox = document.getElementById('your-choice-box');
+  const yourText = document.getElementById('your-choice-text');
+  const corrText = document.getElementById('correct-choice-text');
+  if (yourBox) {
+    yourBox.classList.toggle('is-correct-box', isCorrect);
+    yourBox.classList.toggle('is-wrong-box', !isCorrect);
+  }
+  if (yourText) yourText.textContent = chosenOrigIdx >= 0 ? q.choices[chosenOrigIdx] : `No gate locked before 50s timer expired`;
+  if (corrText) corrText.textContent = q.choices[q.correct];
+
+  renderDossierBullets(document.getElementById('outcome-explanation'), q.explanation);
+  renderDossierBullets(document.getElementById('outcome-second-order'), q.secondOrder);
+  renderDossierBullets(document.getElementById('outcome-phase1'), q.p1);
+  renderDossierBullets(document.getElementById('outcome-phase2'), q.p2);
+  renderDossierBullets(document.getElementById('outcome-phase3'), q.p3);
+
+  renderDossierBullets(document.getElementById('dossier-box-1'), entity.d1);
+  renderDossierBullets(document.getElementById('dossier-box-2'), entity.d2);
+  renderDossierBullets(document.getElementById('dossier-box-3'), entity.d3);
+
+  const body = document.getElementById('outcome-scroll-body');
+  if (body) body.scrollTop = 0;
+
+  const modal = document.getElementById('outcome-popup-modal');
+  if (modal) modal.classList.add('is-open');
+  isModalOpen = true;
+}
+
+function scrollOutcomeBody(delta) {
+  const body = document.getElementById('outcome-scroll-body');
+  if (!body) return;
+  if (typeof body.scrollBy === 'function') {
+    body.scrollBy({ top: delta, behavior: 'smooth' });
+  } else {
+    body.scrollTop += delta;
+  }
+}
+
+function continueRunner() {
+  const modal = document.getElementById('outcome-popup-modal');
+  if (modal) modal.classList.remove('is-open');
+  isModalOpen = false;
+  currentIdx = (currentIdx + 1) % deck.length;
+  renderCurrentGate();
+  persistAppState();
+}
+
+/* 6-Column Loot Codex */
+function openCodex() {
+  const tbody = document.getElementById('codex-tbody');
+  if (tbody) {
+    tbody.innerHTML = QUESTIONS.map((q) => {
+      const entity = ENTITIES.find((e) => e.id === q.entityId) || ENTITIES[0];
+      const status = masteredIds.includes(q.id)
+        ? `MASTERED`
+        : missedIds.includes(q.id)
+        ? `MISSED`
+        : `UNSEEN`;
+      return `<tr>
+        <td class="amboss-scan-target">#${q.id}</td>
+        <td class="amboss-scan-target">${entity.name} (P${q.phase})</td>
+        <td class="amboss-scan-target">${q.shortAnswer}</td>
+        <td class="amboss-scan-target">${q.p1.replace(/•\s*/g, '')}</td>
+        <td class="amboss-scan-target">${q.p2.replace(/•\s*/g, '')}</td>
+        <td class="amboss-scan-target">${status}</td>
+      </tr>`;
+    }).join('');
+  }
+  const modal = document.getElementById('codex-modal');
+  if (modal) modal.classList.add('is-open');
+  isCodexOpen = true;
+  stopGateTimer();
+}
+
+function openCodexFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  openCodex();
+}
+
+function closeCodex() {
+  const modal = document.getElementById('codex-modal');
+  if (modal) modal.classList.remove('is-open');
+  isCodexOpen = false;
+  if (timerEnabled) startGateTimer();
+}
+
+function exportCodexCsv() {
+  const rows = [['Gate', 'Entity', 'Phase', 'ShortAnswer', 'Status']];
+  QUESTIONS.forEach((q) => {
+    const entity = ENTITIES.find((e) => e.id === q.entityId) || ENTITIES[0];
+    const status = masteredIds.includes(q.id) ? 'MASTERED' : missedIds.includes(q.id) ? 'MISSED' : 'UNSEEN';
+    rows.push([q.id, `"${entity.name}"`, q.phase, `"${q.shortAnswer}"`, status]);
+  });
+  const csv = rows.map((r) => r.join(',')).join('\n');
+  if (window.notebookAppApi && typeof window.notebookAppApi.triggerFileDownload === 'function') {
+    window.notebookAppApi.triggerFileDownload({
+      content: csv,
+      contentType: 'text/csv',
+      encoding: 'UTF-8',
+      filename: 'general_pathology_codex.csv'
+    });
+  }
+}
+
+/* 3D Synthwave Wireframe Canvas + 150 Square Pixel-Dust + 1:1 Portal Fusion */
+function updateLaneRects() {
+  const canvas = document.getElementById('runner-canvas');
+  if (!canvas) return;
+  const cRect = canvas.getBoundingClientRect();
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`lane-card-${i}`);
+    if (card) {
+      const r = card.getBoundingClientRect();
+      laneRects[i] = {
+        x: r.left - cRect.left,
+        y: r.top - cRect.top,
+        w: r.width,
+        h: r.height,
+        cx: r.left - cRect.left + r.width / 2,
+        cy: r.top - cRect.top + r.height / 2
+      };
+    }
+  }
+}
+
+function initParticles() {
+  particles = [];
+  for (let i = 0; i < 150; i++) {
+    particles.push({
+      x: (Math.random() - 0.5) * 2.4,
+      y: (Math.random() - 0.5) * 1.4,
+      z: Math.random(),
+      size: 1.5 + Math.random() * 2.5
+    });
+  }
+}
+
+function drawRunnerFrame() {
+  const canvas = document.getElementById('runner-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  if (w > 0 && h > 0 && (canvas.width !== Math.floor(w * dpr) || canvas.height !== Math.floor(h * dpr))) {
+    canvas.width = Math.floor(w * dpr);
+    canvas.height = Math.floor(h * dpr);
+    updateLaneRects();
+  }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+
+  const q = deck[currentIdx] || QUESTIONS[0];
+  const theme = LO_VISUAL_THEMES[q.entityId] || { gridRgb: `0, 255, 204`, dustColor: `#00ffcc` };
+  const horizonY = h * 0.42;
+
+  // 1. 150 Crisp 3D Square Pixel-Dust Particles (zero ovals/blobs)
+  ctx.fillStyle = theme.dustColor;
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    p.z -= runnerSpeed * 0.25;
+    if (p.z <= 0.02) {
+      p.z = 1.0;
+      p.x = (Math.random() - 0.5) * 2.4;
+      p.y = (Math.random() - 0.5) * 1.3;
+    }
+    const sx = w * 0.5 + (p.x / p.z) * w * 0.32;
+    const sy = horizonY + (p.y / p.z) * h * 0.26;
+    const sz = Math.max(1, p.size * (1.2 - p.z));
+    ctx.globalAlpha = Math.max(0.15, (1 - p.z) * 0.85);
+    ctx.fillRect(Math.round(sx), Math.round(sy), sz, sz);
+  }
+  ctx.globalAlpha = 1;
+
+  // 2. Infinite Full-Width Synthwave Wireframe Floor
+  floorOffset = (floorOffset + runnerSpeed) % 1;
+  ctx.strokeStyle = `rgba(${theme.gridRgb}, 0.24)`;
+  ctx.lineWidth = 1;
+  for (let i = -14; i <= 14; i++) {
+    ctx.beginPath();
+    ctx.moveTo(w * 0.5 + i * 16, horizonY);
+    ctx.lineTo(w * 0.5 + i * 145, h);
+    ctx.stroke();
+  }
+  for (let row = 0; row < 12; row++) {
+    const t = Math.pow((row + floorOffset) / 12, 2.2);
+    const y = horizonY + t * (h - horizonY);
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(w, y);
+    ctx.stroke();
+  }
+
+  // 3. 3 Teal Perspective Track Rails & 1:1 Portal Fusion
+  const portalColors = [`#ff2d78`, `#00ffcc`, `#ffe04a`];
+  const shipY = h - 42;
+  const railBottomXs = [w * 0.25, w * 0.5, w * 0.75];
+
+  updateLaneRects();
+  for (let i = 0; i < 3; i++) {
+    const r = laneRects[i];
+    const topX = r ? r.cx : railBottomXs[i];
+    const topY = r ? r.y + r.h : horizonY;
+    const botX = r ? w * 0.5 + (r.cx - w * 0.5) * 1.25 : railBottomXs[i];
+
+    ctx.strokeStyle = i === targetLane ? portalColors[i] : `rgba(0, 255, 204, 0.35)`;
+    ctx.lineWidth = i === targetLane ? 2.5 : 1.25;
+    ctx.beginPath();
+    ctx.moveTo(topX, topY);
+    ctx.lineTo(botX, h);
+    ctx.stroke();
+
+    // 1:1 Portal Fusion frame directly onto live DOM card rect
+    if (r && r.w > 0) {
+      ctx.save();
+      ctx.strokeStyle = portalColors[i];
+      ctx.lineWidth = i === targetLane ? 3 : 1.5;
+      ctx.shadowColor = portalColors[i];
+      ctx.shadowBlur = i === targetLane ? 18 : 8;
+      ctx.strokeRect(r.x - 2, r.y - 2, r.w + 4, r.h + 4);
+      ctx.restore();
+    }
+  }
+
+  // 4. Solid Geometric Teal Diamond Craft with Smooth Banking Interpolation
+  const activeRect = laneRects[targetLane];
+  const targetX = activeRect ? activeRect.cx : railBottomXs[targetLane];
+  if (ship.x === 0) ship.x = targetX;
+  ship.x += (targetX - ship.x) * 0.18;
+  ship.tilt = (targetX - ship.x) * 0.06;
+
+  ctx.save();
+  ctx.translate(ship.x, shipY);
+  ctx.rotate(Math.max(-0.45, Math.min(0.45, ship.tilt * 0.04)));
+
+  // Engine exhaust glow
+  ctx.fillStyle = portalColors[targetLane];
+  ctx.fillRect(-4, 14, 8, 10);
+
+  // Solid geometric teal diamond craft
+  ctx.beginPath();
+  ctx.moveTo(0, -24);
+  ctx.lineTo(20, 4);
+  ctx.lineTo(0, 18);
+  ctx.lineTo(-20, 4);
+  ctx.closePath();
+  ctx.fillStyle = `#00ffcc`;
+  ctx.shadowColor = `#00ffcc`;
+  ctx.shadowBlur = 14;
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(0, -14);
+  ctx.lineTo(9, 4);
+  ctx.lineTo(0, 10);
+  ctx.lineTo(-9, 4);
+  ctx.closePath();
+  ctx.fillStyle = `#0a0a12`;
+  ctx.fill();
+  ctx.restore();
+
+  animFrameId = requestAnimationFrame(drawRunnerFrame);
+}
+
+/* Mouse Hover Banking & Keyboard Hotkey Wiring */
+function bindInteractiveListeners() {
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`lane-card-${i}`);
+    const body = document.getElementById(`lane-${i}-text`);
+    if (card) {
+      card.addEventListener('mouseenter', () => setTargetLane(i, true));
+      card.addEventListener('mousemove', () => {
+        if (targetLane !== i) setTargetLane(i, false);
+      });
+    }
+    if (body) {
+      body.addEventListener('mouseenter', () => {
+        if (targetLane !== i) setTargetLane(i, true);
+      });
+    }
+  }
+
+  window.addEventListener('resize', updateLaneRects);
+
+  document.addEventListener('keydown', (ev) => {
+    if (ev.target && (ev.target.tagName === 'INPUT' || ev.target.tagName === 'SELECT')) return;
+    if (isCodexOpen) {
+      if (ev.key === 'Escape') closeCodex();
+      return;
+    }
+    if (isModalOpen) {
+      if (ev.key === ' ' || ev.key === 'Enter') {
+        ev.preventDefault();
+        continueRunner();
+      } else if (ev.key === 'ArrowUp') {
+        ev.preventDefault();
+        scrollOutcomeBody(-180);
+      } else if (ev.key === 'ArrowDown') {
+        ev.preventDefault();
+        scrollOutcomeBody(180);
+      }
+      return;
+    }
+
+    if (ev.key === '1') commitLaneSelection(0);
+    else if (ev.key === '2') commitLaneSelection(1);
+    else if (ev.key === '3') commitLaneSelection(2);
+    else if (ev.key === 'ArrowLeft') {
+      ev.preventDefault();
+      setTargetLane(targetLane - 1, true);
+    } else if (ev.key === 'ArrowRight') {
+      ev.preventDefault();
+      setTargetLane(targetLane + 1, true);
+    } else if (ev.key === 'Enter' || ev.key === ' ') {
+      ev.preventDefault();
+      commitLaneSelection(targetLane);
+    } else if (ev.key === 'h' || ev.key === 'H') {
+      toggleHintsBar();
+    } else if (ev.key === 'c' || ev.key === 'C') {
+      openCodex();
+    } else if (ev.key === 's' || ev.key === 'S') {
+      skipCurrentQuestion();
+    } else if (ev.key === 't' || ev.key === 'T') {
+      toggleTimerMode();
+    } else if (ev.key === 'Escape' && isMenuOpen) {
+      toggleMenuDrawer();
+    }
+  });
+}
+
+async function initApp() {
+  initParticles();
+  bindInteractiveListeners();
+  await loadAppState();
+  syncHintsUI();
+  syncAudioUI();
+  const volSlider = document.getElementById('bgm-vol-slider');
+  const volReadout = document.getElementById('bgm-vol-readout');
+  if (volSlider) volSlider.value = String(Math.round(bgmVolume * 100));
+  if (volReadout) volReadout.textContent = `${Math.round(bgmVolume * 100)}%`;
+  renderCurrentGate();
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  drawRunnerFrame();
+  if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === 'function') {
+    window.notebookAppApi.notifyAppReady();
+  }
+}
+
+window.addEventListener('DOMContentLoaded', initApp);
+</script>
+</body>
+</html>

@@ -1,0 +1,3441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="artifact-type" content="tool">
+<meta name="design-style" content="neon_noir">
+<title>07. Neuro Pathology — XR 3-Lane Diagnostic Runner</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@100;200;300;400;500;600;700;800&family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --background: #0a0a12;
+  --surface-container-low: #111118;
+  --surface-container: #141422;
+  --surface-container-high: #1e1e30;
+  --on-surface: #e8e0f0;
+  --on-surface-variant: #a098b0;
+  --outline: #5a5068;
+  --outline-variant: #302840;
+  --primary: #ff2d78;
+  --on-primary: #1a0010;
+  --primary-container: #b3004e;
+  --on-primary-container: #ffe0ec;
+  --secondary: #00ffcc;
+  --tertiary: #ffe04a;
+  --error: #ff4444;
+  --on-error: #1a0000;
+  --rail-color: #34a88f;
+  --data-1: #ff2d78;
+  --data-2: #00ffcc;
+  --data-3: #ffe04a;
+  --data-4: #b388ff;
+  --data-context: #6e6680;
+  --positive: #00ffcc;
+  --warning: #ffe04a;
+  --focus: #ff2d78;
+  --font-headline: 'Sora', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-label: 'Space Mono', monospace;
+  --rounded: 0.125rem;
+  --rounded-lg: 0.25rem;
+  --rounded-full: 0.75rem;
+  --glow-text: 0 0 8px currentColor;
+  --glow-primary: 0 0 16px color-mix(in srgb, var(--primary) 40%, transparent);
+  --glow-secondary: 0 0 16px color-mix(in srgb, var(--secondary) 35%, transparent);
+  --glow-tertiary: 0 0 16px color-mix(in srgb, var(--tertiary) 35%, transparent);
+  --neon-border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 50%, transparent);
+  --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+  --glow-line: drop-shadow(0 0 4px currentColor);
+  --scanlines: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in srgb, var(--on-surface) 3%, transparent) 3px 4px);
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+  --display-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem);
+  --headline-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+  --subhead-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+  --body-size: clamp(0.9375rem, 0.9rem + 0.15vw, 1rem);
+  --label-size: 0.75rem;
+  --q-box-pad: 0.65rem 1rem;
+  --q-font-size: clamp(0.92rem, 0.86rem + 0.35vw, 1.08rem);
+  --card-min-h: 112px;
+  --card-pad: 0.85rem 0.75rem;
+  --card-font: clamp(0.84rem, 0.78rem + 0.25vw, 0.96rem);
+  --cards-gap: 0.85rem;
+  --hints-h: 0px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  overflow-x: clip;
+  overflow-y: hidden;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh;
+  background-color: var(--background);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: var(--body-size);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+header { position: static !important; }
+button, input, select { font-family: inherit; }
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+#xr-app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  overflow: hidden;
+  background: var(--background);
+}
+#xr-app.hints-hidden {
+  --hints-h: 0px;
+}
+#xr-app.hints-visible {
+  --q-box-pad: 0.45rem 0.85rem;
+  --q-font-size: clamp(0.84rem, 0.78rem + 0.28vw, 0.98rem);
+  --card-min-h: 88px;
+  --card-pad: 0.6rem 0.65rem;
+  --card-font: clamp(0.78rem, 0.74rem + 0.2vw, 0.88rem);
+  --cards-gap: 0.65rem;
+  --hints-h: auto;
+}
+
+/* Band 1: Ultra-Slim Top Mini Bar */
+#top-mini-bar {
+  position: relative;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: 0.35rem 0.75rem;
+  background: color-mix(in srgb, var(--surface-container-low) 90%, transparent);
+  border-bottom: 1px solid var(--outline-variant);
+  backdrop-filter: blur(8px);
+}
+#menu-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 36px;
+  padding: 0.3rem 0.65rem;
+  background: var(--surface-container);
+  color: var(--primary);
+  border: var(--neon-border-lit);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+#menu-toggle-btn:hover {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+  text-shadow: var(--glow-text);
+}
+.telemetry-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+.tele-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.22rem 0.5rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--on-surface);
+  white-space: nowrap;
+}
+.tele-chip svg { width: 13px; height: 13px; flex-shrink: 0; }
+.tele-hp { border-color: color-mix(in srgb, var(--primary) 45%, transparent); color: var(--primary); }
+.tele-xp { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+.tele-streak { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+.tele-timer.is-urgent { border-color: var(--error); color: var(--error); text-shadow: var(--glow-text); }
+
+/* Band 2: Top Question + 3-Second Auto-Hiding Metadata */
+#question-stage {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--q-box-pad);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-container) 92%, transparent) 0%, color-mix(in srgb, var(--background) 65%, transparent) 100%);
+  border-bottom: 1px solid var(--outline-variant);
+  text-align: center !important;
+  transition: padding var(--dur-short) var(--ease-out);
+}
+#q-meta-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  max-height: 48px;
+  margin-bottom: 0.35rem;
+  opacity: 1;
+  overflow: hidden;
+  transition: opacity 450ms var(--ease-out), max-height 450ms var(--ease-out), margin-bottom 450ms var(--ease-out);
+}
+#q-meta-bar.is-faded {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+}
+.meta-badge {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.14rem 0.45rem;
+  border-radius: var(--rounded);
+  border: 1px solid var(--outline);
+  background: var(--surface-container-low);
+  color: var(--on-surface-variant);
+}
+.meta-badge.is-lo { border-color: color-mix(in srgb, var(--primary) 50%, transparent); color: var(--primary); }
+.meta-badge.is-angle { border-color: color-mix(in srgb, var(--secondary) 50%, transparent); color: var(--secondary); }
+.meta-badge.is-phase { border-color: color-mix(in srgb, var(--tertiary) 50%, transparent); color: var(--tertiary); }
+.meta-badge.is-corridor { border-color: color-mix(in srgb, var(--data-4) 55%, transparent); color: var(--data-4); }
+
+#q-stem-text {
+  max-width: 920px;
+  margin: 0 auto;
+  font-family: var(--font-body);
+  font-size: var(--q-font-size);
+  font-weight: 500;
+  line-height: 1.42;
+  color: var(--on-surface);
+  text-align: center !important;
+}
+
+/* Band 3: 3D Perspective Viewport + 3 Centered Frosted-Glass Cards */
+#viewport-3d {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--background);
+}
+#runner-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1;
+}
+#lanes-overlay {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1.25rem 3.5rem;
+  pointer-events: none;
+}
+#lane-cards-grid {
+  width: 100%;
+  max-width: 1080px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--cards-gap);
+  align-items: stretch;
+  pointer-events: auto;
+}
+.lane-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center !important;
+  min-height: var(--card-min-h);
+  padding: var(--card-pad);
+  background: color-mix(in srgb, var(--surface-container) 78%, transparent);
+  backdrop-filter: blur(8px);
+  border-radius: var(--rounded-lg);
+  border: 1.5px solid var(--outline);
+  color: var(--on-surface);
+  cursor: pointer;
+  transition: transform var(--dur-micro) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+}
+.lane-card[data-lane="0"] {
+  border-color: color-mix(in srgb, var(--primary) 60%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--primary) 16%, transparent);
+}
+.lane-card[data-lane="1"] {
+  border-color: color-mix(in srgb, var(--secondary) 60%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--secondary) 16%, transparent);
+}
+.lane-card[data-lane="2"] {
+  border-color: color-mix(in srgb, var(--tertiary) 60%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--tertiary) 16%, transparent);
+}
+.lane-card.is-selected[data-lane="0"], .lane-card[data-lane="0"]:hover {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary), inset 0 0 18px color-mix(in srgb, var(--primary) 24%, transparent);
+  transform: translateY(-2px);
+}
+.lane-card.is-selected[data-lane="1"], .lane-card[data-lane="1"]:hover {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary), inset 0 0 18px color-mix(in srgb, var(--secondary) 24%, transparent);
+  transform: translateY(-2px);
+}
+.lane-card.is-selected[data-lane="2"], .lane-card[data-lane="2"]:hover {
+  border-color: var(--tertiary);
+  box-shadow: var(--glow-tertiary), inset 0 0 18px color-mix(in srgb, var(--tertiary) 24%, transparent);
+  transform: translateY(-2px);
+}
+.lane-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-bottom: 0.35rem;
+}
+.lane-key-label {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.1rem 0.42rem;
+  border-radius: var(--rounded);
+  background: var(--surface-container-low);
+  border: 1px solid currentColor;
+}
+.lane-card[data-lane="0"] .lane-key-label { color: var(--primary); }
+.lane-card[data-lane="1"] .lane-key-label { color: var(--secondary); }
+.lane-card[data-lane="2"] .lane-key-label { color: var(--tertiary); }
+.lane-choice-text {
+  font-family: var(--font-body);
+  font-size: var(--card-font);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--on-surface);
+  text-align: center !important;
+}
+
+/* Band 4: Bottom Hints Bar [H] */
+#hints-bar {
+  position: relative;
+  z-index: 25;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background: color-mix(in srgb, var(--surface-container-high) 94%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--tertiary) 45%, transparent);
+  text-align: center !important;
+}
+#xr-app.hints-visible #hints-bar {
+  display: flex;
+}
+#q-clue-text {
+  max-width: 900px;
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  color: var(--tertiary);
+  text-align: center !important;
+}
+
+/* Slide-out Menu Drawer (#top-menu-drawer) */
+#drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  background: color-mix(in srgb, var(--background) 65%, transparent);
+  backdrop-filter: blur(4px);
+  display: none;
+}
+#drawer-backdrop.is-open { display: block; }
+#top-menu-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 50;
+  width: min(390px, 92vw);
+  background: var(--surface-container-low);
+  border-right: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  transform: translateX(-105%);
+  transition: transform var(--dur-short) var(--ease-out);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#top-menu-drawer.is-open {
+  transform: translateX(0);
+}
+.drawer-header {
+  padding: 0.9rem 1rem 0.75rem;
+  background: var(--surface-container);
+  background-image: var(--scanlines);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.drawer-kicker {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--secondary);
+  text-shadow: var(--glow-text);
+}
+.drawer-title {
+  margin: 0.15rem 0 0;
+  font-family: var(--font-headline);
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: var(--on-surface);
+  line-height: 1.25;
+}
+.drawer-close-btn {
+  min-width: 36px;
+  min-height: 36px;
+  background: var(--surface-container-high);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  cursor: pointer;
+  font-weight: 700;
+}
+.drawer-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.85rem 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.drawer-section {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  padding: 0.65rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.drawer-section-title {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--on-surface-variant);
+}
+.drawer-btn-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+.menu-btn {
+  min-height: 40px;
+  padding: 0.35rem 0.5rem;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out);
+}
+.menu-btn:hover { border-color: var(--secondary); color: var(--secondary); }
+.menu-btn.is-active {
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: inset 0 0 10px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+.menu-btn.is-danger { border-color: color-mix(in srgb, var(--error) 60%, transparent); color: var(--error); }
+.menu-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.menu-field label {
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--on-surface-variant);
+}
+.menu-select, .menu-input {
+  width: 100%;
+  min-height: 38px;
+  padding: 0.35rem 0.5rem;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-size: 0.8rem;
+}
+.phase-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.phase-pill {
+  padding: 0.25rem 0.5rem;
+  background: var(--surface-container-low);
+  color: var(--on-surface-variant);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.phase-pill.is-active {
+  border-color: var(--secondary);
+  color: var(--secondary);
+  background: color-mix(in srgb, var(--secondary) 12%, transparent);
+}
+.audio-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.audio-slider-row input[type="range"] { flex: 1; accent-color: var(--secondary); }
+.skill-tree-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+.skill-node {
+  padding: 0.4rem 0.35rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color var(--dur-micro) var(--ease-out);
+}
+.skill-node:hover { border-color: var(--secondary); }
+.skill-node.is-mastered { border-color: var(--secondary); background: color-mix(in srgb, var(--secondary) 10%, transparent); }
+.skill-node.is-current { border-color: var(--primary); box-shadow: inset 0 0 8px color-mix(in srgb, var(--primary) 20%, transparent); }
+.skill-node-num { font-family: var(--font-label); font-size: 0.64rem; font-weight: 700; color: var(--primary); }
+.skill-node-name { font-size: 0.7rem; font-weight: 600; color: var(--on-surface); line-height: 1.2; margin-top: 0.1rem; }
+.skill-node-meta { font-family: var(--font-label); font-size: 0.6rem; color: var(--on-surface-variant); margin-top: 0.1rem; }
+.hotkey-guide {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  color: var(--on-surface-variant);
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.45rem 0.6rem;
+  line-height: 1.45;
+}
+.inline-toast {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  color: var(--secondary);
+  min-height: 1rem;
+}
+
+/* Modals (Outcome Review Dossier & Loot Codex) */
+.xr-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  background: color-mix(in srgb, var(--background) 82%, transparent);
+  backdrop-filter: blur(8px);
+}
+.xr-modal-backdrop.is-open { display: flex; }
+.xr-modal-card {
+  width: min(980px, 95vw);
+  max-height: 92dvh;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  border-radius: var(--rounded-lg);
+  box-shadow: var(--glow-primary);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Outcome Modal Specifics — Strict Centering Lock */
+#outcome-modal .xr-modal-card {
+  text-align: center !important;
+}
+.outcome-header {
+  padding: 0.75rem 1rem;
+  background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  text-align: center !important;
+}
+#outcome-verdict {
+  font-family: var(--font-headline);
+  font-size: clamp(1rem, 0.9rem + 0.5vw, 1.28rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-align: center !important;
+}
+#outcome-verdict.is-win { color: var(--secondary); text-shadow: var(--glow-text); }
+#outcome-verdict.is-loss { color: var(--primary); text-shadow: var(--glow-text); }
+#outcome-verdict.is-timeout { color: var(--tertiary); text-shadow: var(--glow-text); }
+.outcome-deltas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.delta-badge {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.16rem 0.5rem;
+  border-radius: var(--rounded);
+  border: 1px solid currentColor;
+  background: var(--surface-container-low);
+}
+.delta-badge.is-pos { color: var(--secondary); }
+.delta-badge.is-neg { color: var(--error); }
+.delta-badge.is-combo { color: var(--tertiary); }
+
+#outcome-scroll-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.85rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  text-align: center !important;
+}
+.popup-question-pin {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  padding: 0.65rem 0.85rem;
+  text-align: center !important;
+}
+#outcome-lo-ref {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--tertiary);
+  margin-bottom: 0.25rem;
+  text-align: center !important;
+}
+#outcome-question-text {
+  font-size: 0.9rem;
+  color: var(--on-surface);
+  line-height: 1.45;
+  text-align: center !important;
+}
+.choice-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+.compare-box {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded-lg);
+  padding: 0.6rem 0.75rem;
+  text-align: center !important;
+}
+.compare-box.is-correct { border-color: var(--secondary); }
+.compare-box.is-wrong { border-color: var(--error); }
+.compare-label {
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--on-surface-variant);
+  margin-bottom: 0.2rem;
+  text-align: center !important;
+}
+.compare-value {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--on-surface);
+  text-align: center !important;
+}
+.dossier-section {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  padding: 0.65rem 0.85rem;
+  text-align: center !important;
+}
+.dossier-section-head {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--secondary);
+  margin-bottom: 0.35rem;
+  text-align: center !important;
+}
+.dossier-section.is-pink .dossier-section-head { color: var(--primary); }
+.dossier-section.is-yellow .dossier-section-head { color: var(--tertiary); }
+.dossier-bullet-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  text-align: center !important;
+}
+.dossier-bullet-list li {
+  font-size: 0.84rem;
+  line-height: 1.42;
+  color: var(--on-surface);
+  text-align: center !important;
+}
+.angle-dossier-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.angle-mini-card {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  padding: 0.6rem 0.65rem;
+  text-align: center !important;
+}
+.angle-mini-card.p1 { border-color: color-mix(in srgb, var(--primary) 45%, transparent); }
+.angle-mini-card.p2 { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); }
+.angle-mini-card.p3 { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); }
+.angle-mini-title {
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.3rem;
+  text-align: center !important;
+}
+.angle-mini-card.p1 .angle-mini-title { color: var(--primary); }
+.angle-mini-card.p2 .angle-mini-title { color: var(--secondary); }
+.angle-mini-card.p3 .angle-mini-title { color: var(--tertiary); }
+
+.popup-footer {
+  padding: 0.65rem 1rem;
+  background: var(--surface-container-high);
+  border-top: 1px solid var(--outline-variant);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.footer-btn {
+  min-height: 40px;
+  padding: 0.4rem 0.85rem;
+  background: var(--surface-container);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.footer-btn:hover { border-color: var(--secondary); color: var(--secondary); }
+.footer-btn.is-primary {
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: var(--glow-primary);
+}
+
+/* Loot Codex Modal */
+.codex-header {
+  padding: 0.75rem 1rem;
+  background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.codex-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.codex-title {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: 1.05rem;
+  color: var(--secondary);
+}
+.codex-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+.codex-search {
+  flex: 1 1 200px;
+  min-height: 36px;
+  padding: 0.3rem 0.6rem;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-size: 0.82rem;
+}
+.codex-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.codex-pill {
+  padding: 0.22rem 0.5rem;
+  background: var(--surface-container-low);
+  color: var(--on-surface-variant);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.codex-pill.is-active {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 14%, transparent);
+}
+.codex-table-wrap {
+  flex: 1;
+  overflow: auto;
+  padding: 0.65rem;
+}
+.codex-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.76rem;
+}
+.codex-table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface-container-high);
+  color: var(--secondary);
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--outline);
+  text-align: left;
+}
+.codex-table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--outline-variant);
+  vertical-align: top;
+  color: var(--on-surface);
+  line-height: 1.38;
+}
+.codex-table tr:nth-child(even) td { background: var(--surface-container-low); }
+.codex-entity-badge {
+  display: inline-block;
+  margin-top: 0.2rem;
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  color: var(--tertiary);
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .choice-compare-grid, .angle-dossier-grid { grid-template-columns: 1fr; }
+}
+
+/* v3.8 Portrait Phone Media Query */
+@media (max-width: 600px) {
+  #lane-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
+  .lane-card {
+    min-height: 54px;
+    padding: 0.45rem 0.65rem;
+  }
+  .lane-card-head, .lane-key-label, .tele-xp {
+    display: none;
+  }
+  #xr-app.hints-visible .lane-card {
+    min-height: 46px;
+    padding: 0.35rem 0.55rem;
+  }
+  #xr-app.hints-visible #q-stem-text {
+    font-size: 0.82rem;
+  }
+  .xr-modal-card {
+    width: 96vw;
+    max-height: 92dvh;
+  }
+  .choice-compare-grid, .angle-dossier-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* v3.8 Landscape Phone Media Query */
+@media (max-height: 500px) and (pointer: coarse) {
+  #question-stage { padding: 0.3rem 0.65rem; }
+  #q-stem-text { font-size: 0.78rem; line-height: 1.3; }
+  #lanes-overlay { padding: 0.25rem 0.65rem 1.8rem; }
+  #lane-cards-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.45rem; }
+  .lane-card { min-height: 62px; padding: 0.4rem 0.45rem; }
+  .lane-choice-text { font-size: 0.72rem; }
+  .lane-card-head { display: none; }
+}
+
+/* v3.8 Tall-Phone Desktop-Mode Safety Net */
+@media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+  html { font-size: 200%; }
+  #lane-cards-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="xr-app" class="hints-hidden">
+  <!-- Band 1: Ultra-Slim Top Mini Bar -->
+  <header id="top-mini-bar">
+    <button id="menu-toggle-btn" type="button" onclick="toggleMenuDrawer()" aria-label="Open Mission Menu">☰ MENU</button>
+    <div class="telemetry-strip">
+      <div class="tele-chip tele-hp" title="Hull Integrity">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        <span id="hud-hp">100</span>
+      </div>
+      <div class="tele-chip tele-xp" title="Diagnostic XP">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        <span id="hud-xp">0</span>
+      </div>
+      <div class="tele-chip tele-streak" title="Streak">⚡<span id="hud-streak">0</span></div>
+      <div class="tele-chip" title="Gate Counter"><span id="hud-gate">1/45</span></div>
+      <div class="tele-chip tele-timer" id="hud-timer-chip" title="Gate Countdown">⏱ <span id="hud-timer">50s</span></div>
+    </div>
+  </header>
+
+  <!-- Band 2: Top Question + 3-Second Auto-Hiding Metadata -->
+  <section id="question-stage" aria-live="polite">
+    <div id="q-meta-bar">
+      <span class="meta-badge is-lo" id="badge-lo">LO 1</span>
+      <span class="meta-badge is-angle" id="badge-angle">Presentation -> Diagnosis</span>
+      <span class="meta-badge is-phase" id="badge-phase">Phase 1: Pathogenesis</span>
+      <span class="meta-badge is-corridor" id="badge-corridor">CORRIDOR</span>
+    </div>
+    <div id="q-stem-text" class="amboss-scan-target">Initializing Neuro Pathology XR Corridor…</div>
+  </section>
+
+  <!-- Band 3: 3D Perspective Viewport & 3 Centered Cards -->
+  <main id="viewport-3d">
+    <canvas id="runner-canvas"></canvas>
+    <div id="lanes-overlay">
+      <div id="lane-cards-grid">
+        <button type="button" class="lane-card" id="lane-0-card" data-lane="0" onmouseenter="hoverLane(0)" onclick="triggerLaneChoice(0)">
+          <div class="lane-card-head"><span class="lane-key-label">1 • LANE A</span></div>
+          <div class="lane-choice-text amboss-scan-target" id="lane-0-text">—</div>
+        </button>
+        <button type="button" class="lane-card is-selected" id="lane-1-card" data-lane="1" onmouseenter="hoverLane(1)" onclick="triggerLaneChoice(1)">
+          <div class="lane-card-head"><span class="lane-key-label">2 • LANE B</span></div>
+          <div class="lane-choice-text amboss-scan-target" id="lane-1-text">—</div>
+        </button>
+        <button type="button" class="lane-card" id="lane-2-card" data-lane="2" onmouseenter="hoverLane(2)" onclick="triggerLaneChoice(2)">
+          <div class="lane-card-head"><span class="lane-key-label">3 • LANE C</span></div>
+          <div class="lane-choice-text amboss-scan-target" id="lane-2-text">—</div>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Band 4: Collapsible Tactical Hints Bar [H] -->
+  <footer id="hints-bar">
+    <div id="q-clue-text" class="amboss-scan-target">Tactical Hint</div>
+  </footer>
+</div>
+
+<!-- Slide-Out Menu Drawer (#top-menu-drawer) -->
+<div id="drawer-backdrop" onclick="toggleMenuDrawer()"></div>
+<aside id="top-menu-drawer" aria-label="Mission Controls">
+  <div class="drawer-header">
+    <div>
+      <div class="drawer-kicker">COMLEX-USA CP-4 &amp; DOMAIN 1 OMT • XR RUNNER</div>
+      <h1 class="drawer-title">07. Neuro Pathology</h1>
+    </div>
+    <button type="button" class="drawer-close-btn" onclick="toggleMenuDrawer()" aria-label="Close Menu">✕</button>
+  </div>
+  <div class="drawer-scroll">
+    <div class="drawer-section">
+      <div class="drawer-section-title">Tactical Cockpit Actions</div>
+      <div class="drawer-btn-grid">
+        <button type="button" class="menu-btn" id="menu-hints-btn" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+        <button type="button" class="menu-btn" onclick="openCodexFromMenu()">📖 Loot Codex [C]</button>
+        <button type="button" class="menu-btn" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+        <button type="button" class="menu-btn is-active" id="menu-timer-btn" onclick="toggleTimerEnabled()">⏱ 50s Timer: ON [T]</button>
+        <button type="button" class="menu-btn" onclick="startTimedRun()">⚡ Start 50s Timed Run</button>
+        <button type="button" class="menu-btn" onclick="shuffleDeck()">🔀 Shuffle Deck</button>
+        <button type="button" class="menu-btn" onclick="restartOrdered()">🔁 Restart Ordered</button>
+        <button type="button" class="menu-btn is-danger" id="reset-mastery-btn" onclick="resetMastery(this)">♻ Reset Mastery</button>
+      </div>
+      <div id="menu-toast" class="inline-toast"></div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Audio &amp; Procedural Synthwave BGM</div>
+      <div class="drawer-btn-grid">
+        <button type="button" class="menu-btn is-active" id="btn-master-sound" onclick="toggleMasterSound()">🔊 Master Sound: ON</button>
+        <button type="button" class="menu-btn is-active" id="btn-sfx" onclick="toggleSfx()">🎛 SFX: ON</button>
+        <button type="button" class="menu-btn" id="btn-bgm" onclick="toggleBgm()">🎵 Zombies BGM: OFF</button>
+        <label class="menu-btn" for="custom-bgm-input" style="display:flex;align-items:center;justify-content:center;">📂 Load MP3/WAV</label>
+      </div>
+      <input type="file" id="custom-bgm-input" accept="audio/*" style="display:none" onchange="handleCustomBgmUpload(event)">
+      <div class="menu-field">
+        <label for="bgm-volume-slider">BGM Volume</label>
+        <div class="audio-slider-row">
+          <input type="range" id="bgm-volume-slider" min="0" max="100" value="35" oninput="setBgmVolume(this.value)">
+          <span id="bgm-vol-label" style="font-family:var(--font-label);font-size:0.72rem;min-width:36px;text-align:right;">35%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Curriculum Filters &amp; Phase Mix</div>
+      <div class="menu-field">
+        <label for="sector-filter">Sector / Pathology Filter</label>
+        <select id="sector-filter" class="menu-select" onchange="applyDeckFilters()">
+          <option value="all">All 5 Sectors (15 Entities • 45 Gates)</option>
+          <option value="sector_1">Sector I — Cerebrovascular &amp; Hemorrhages</option>
+          <option value="sector_2">Sector II — Adult vs. Pediatric CNS Tumors</option>
+          <option value="sector_3">Sector III — Demyelinating &amp; Motor Neuron</option>
+          <option value="sector_4">Sector IV — Dementia, Movement &amp; Prions</option>
+          <option value="sector_5">Sector V — Hydrocephalus, Cord &amp; Cranial OMT</option>
+          <option value="missed">🎯 Missed Gates Only</option>
+        </select>
+      </div>
+      <div class="menu-field">
+        <label for="angle-filter">Diagnostic Angle</label>
+        <select id="angle-filter" class="menu-select" onchange="applyDeckFilters()">
+          <option value="all">All 3 Diagnostic Angles</option>
+          <option value="Presentation -> Diagnosis">Presentation -&gt; Diagnosis</option>
+          <option value="Mechanism -> Pathophysiology">Mechanism -&gt; Pathophysiology</option>
+          <option value="Hallmarks -> Management">Hallmarks -&gt; Management</option>
+        </select>
+      </div>
+      <div class="menu-field">
+        <label for="timeout-mode">Time's Up Behavior</label>
+        <select id="timeout-mode" class="menu-select" onchange="setTimeoutMode(this.value)">
+          <option value="review">Open Outcome Dossier on Timeout</option>
+          <option value="autolock">Auto-Submit Selected Lane</option>
+        </select>
+      </div>
+      <div class="menu-field">
+        <label>Phase Mix Filter (Balanced 15 / 15 / 15)</label>
+        <div class="phase-pills-row" id="phase-pills-row">
+          <button type="button" class="phase-pill is-active" data-phase="all" onclick="setPhaseFilter('all', this)">All (45)</button>
+          <button type="button" class="phase-pill" data-phase="Phase 1: Pathogenesis" onclick="setPhaseFilter('Phase 1: Pathogenesis', this)">P1 Pathogenesis (33%)</button>
+          <button type="button" class="phase-pill" data-phase="Phase 2: Histology / Structure" onclick="setPhaseFilter('Phase 2: Histology / Structure', this)">P2 Histology (33%)</button>
+          <button type="button" class="phase-pill" data-phase="Phase 3: Clinical & Management" onclick="setPhaseFilter('Phase 3: Clinical & Management', this)">P3 Clinical/OMT (33%)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">15-Entity Neuro Skill Tree</div>
+      <div id="skill-tree-grid" class="skill-tree-grid"></div>
+    </div>
+
+    <div class="hotkey-guide">
+      <strong>Controls:</strong> Hover or Tap Card • Keys <strong>1/2/3</strong> • <strong>A/D</strong> or <strong>←/→</strong> + <strong>Space/Enter</strong> • <strong>[H]</strong> Hints • <strong>[C]</strong> Codex • <strong>[S]</strong> Skip • <strong>[T]</strong> Timer
+    </div>
+  </div>
+</aside>
+
+<!-- Outcome Dossier Review Modal (Step 3 Conformance) -->
+<div id="outcome-modal" class="xr-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="outcome-verdict">
+  <div class="xr-modal-card">
+    <div class="outcome-header">
+      <div id="outcome-verdict" class="is-win">✔ CORRECT — Diagnosis</div>
+      <div class="outcome-deltas" id="outcome-deltas"></div>
+    </div>
+    <div id="outcome-scroll-body">
+      <div class="popup-question-pin">
+        <div id="outcome-lo-ref">LO 1</div>
+        <div id="outcome-question-text" class="amboss-scan-target"></div>
+      </div>
+
+      <div class="choice-compare-grid">
+        <div class="compare-box" id="your-choice-box">
+          <div class="compare-label">Your Choice</div>
+          <div class="compare-value amboss-scan-target" id="your-choice-val">—</div>
+        </div>
+        <div class="compare-box is-correct" id="correct-choice-box">
+          <div class="compare-label">Correct Choice</div>
+          <div class="compare-value amboss-scan-target" id="correct-choice-val">—</div>
+        </div>
+      </div>
+
+      <div class="dossier-section">
+        <div class="dossier-section-head">Section 2 • Detailed Explanation &amp; Distractor Exclusion</div>
+        <ul class="dossier-bullet-list amboss-scan-target" id="dossier-explanation"></ul>
+      </div>
+
+      <div class="dossier-section is-yellow">
+        <div class="dossier-section-head">Section 3 • Second-Order Board Vignette Clue</div>
+        <ul class="dossier-bullet-list amboss-scan-target" id="dossier-board-clue"></ul>
+      </div>
+
+      <div class="dossier-section is-pink">
+        <div class="dossier-section-head">Section 4 • Phase 1: Pathogenesis &amp; Molecular Etiology Pearls</div>
+        <ul class="dossier-bullet-list amboss-scan-target" id="dossier-pathogenesis"></ul>
+      </div>
+
+      <div class="dossier-section">
+        <div class="dossier-section-head">Section 5 • Phase 2: High-Yield Morphology &amp; Structural Hallmarks</div>
+        <ul class="dossier-bullet-list amboss-scan-target" id="dossier-morphology"></ul>
+      </div>
+
+      <div class="dossier-section is-yellow">
+        <div class="dossier-section-head">Section 6 • Phase 3: Guild Master's Secret &amp; Clinical Management</div>
+        <ul class="dossier-bullet-list amboss-scan-target" id="dossier-epi-tx"></ul>
+      </div>
+
+      <div class="angle-dossier-grid">
+        <div class="angle-mini-card p1">
+          <div class="angle-mini-title">Phase 1: Pathogenesis</div>
+          <ul class="dossier-bullet-list amboss-scan-target" id="dossier-angle-p1"></ul>
+        </div>
+        <div class="angle-mini-card p2">
+          <div class="angle-mini-title">Phase 2: Histology / Morphology</div>
+          <ul class="dossier-bullet-list amboss-scan-target" id="dossier-angle-p2"></ul>
+        </div>
+        <div class="angle-mini-card p3">
+          <div class="angle-mini-title">Phase 3: Clinical Management</div>
+          <ul class="dossier-bullet-list amboss-scan-target" id="dossier-angle-p3"></ul>
+        </div>
+      </div>
+    </div>
+    <div class="popup-footer">
+      <button type="button" class="footer-btn" onclick="scrollOutcomeBody(-180)">▲ Up</button>
+      <button type="button" class="footer-btn" onclick="scrollOutcomeBody(180)">▼ Down</button>
+      <button type="button" class="footer-btn is-primary" onclick="continueFromOutcome()">▶ Continue Runner [Space / Enter]</button>
+    </div>
+  </div>
+</div>
+
+<!-- Loot Codex Modal [C] -->
+<div id="codex-modal" class="xr-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="codex-modal-title">
+  <div class="xr-modal-card">
+    <div class="codex-header">
+      <div class="codex-top-row">
+        <h2 id="codex-modal-title" class="codex-title">6-Column Neuro Pathology Loot Codex</h2>
+        <button type="button" class="footer-btn" onclick="closeCodex()">✕ Close [Esc]</button>
+      </div>
+      <div class="codex-controls">
+        <input type="text" id="codex-search-input" class="codex-search" placeholder="Search entity, histology, gene, OMT…" oninput="renderCodexTable()">
+        <div class="codex-pills" id="codex-sector-pills">
+          <button type="button" class="codex-pill is-active" data-sector="all" onclick="setCodexSector('all', this)">All (15)</button>
+          <button type="button" class="codex-pill" data-sector="sector_1" onclick="setCodexSector('sector_1', this)">S1 Vascular</button>
+          <button type="button" class="codex-pill" data-sector="sector_2" onclick="setCodexSector('sector_2', this)">S2 Tumors</button>
+          <button type="button" class="codex-pill" data-sector="sector_3" onclick="setCodexSector('sector_3', this)">S3 Demyel/MND</button>
+          <button type="button" class="codex-pill" data-sector="sector_4" onclick="setCodexSector('sector_4', this)">S4 Dementia/Move</button>
+          <button type="button" class="codex-pill" data-sector="sector_5" onclick="setCodexSector('sector_5', this)">S5 Cord/OMT</button>
+        </div>
+      </div>
+    </div>
+    <div class="codex-table-wrap">
+      <table class="codex-table">
+        <thead>
+          <tr>
+            <th>LO / Entity</th>
+            <th>Etiology &amp; Site</th>
+            <th>Phase 1: Pathogenesis</th>
+            <th>Phase 2: Hallmarks</th>
+            <th>Phase 3: Clinical</th>
+            <th>Management &amp; Secret</th>
+          </tr>
+        </thead>
+        <tbody id="codex-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<api-shim></api-shim>
+<script>
+// =========================================================================
+// 1. LO VISUAL THEMES (15 CORRIDOR SUBTITLES + CRISP PIXEL-DUST PALETTE)
+// =========================================================================
+const LO_VISUAL_THEMES = {
+  1: { tag: `ISCHEMIC CORTICAL TERRITORY`, particleColor: `#ff2d78`, gridRgb: `120, 45, 160`, railColor: `#34a88f` },
+  2: { tag: `MENINGEAL VAULT SHEAR`, particleColor: `#00ffcc`, gridRgb: `80, 95, 190`, railColor: `#34a88f` },
+  3: { tag: `CIRCLE OF WILLIS RUPTURE`, particleColor: `#ffe04a`, gridRgb: `140, 60, 150`, railColor: `#34a88f` },
+  4: { tag: `BUTTERFLY GLIAL CORRIDOR`, particleColor: `#ff2d78`, gridRgb: `110, 50, 180`, railColor: `#34a88f` },
+  5: { tag: `CP-ANGLE & FRONTAL MATRIX`, particleColor: `#00ffcc`, gridRgb: `70, 110, 180`, railColor: `#34a88f` },
+  6: { tag: `POSTERIOR FOSSA NEXUS`, particleColor: `#ffe04a`, gridRgb: `130, 55, 175`, railColor: `#34a88f` },
+  7: { tag: `PERIVENTRICULAR MYELIN`, particleColor: `#00ffcc`, gridRgb: `90, 75, 195`, railColor: `#34a88f` },
+  8: { tag: `PERIPHERAL SCHWANN ARC`, particleColor: `#ff2d78`, gridRgb: `125, 45, 165`, railColor: `#34a88f` },
+  9: { tag: `ANTERIOR HORN CONDUIT`, particleColor: `#ffe04a`, gridRgb: `105, 65, 185`, railColor: `#34a88f` },
+  10: { tag: `CORTICAL AMYLOID VAULT`, particleColor: `#b388ff`, gridRgb: `115, 55, 190`, railColor: `#34a88f` },
+  11: { tag: `FRONTOTEMPORAL CORTEX`, particleColor: `#ff2d78`, gridRgb: `135, 50, 155`, railColor: `#34a88f` },
+  12: { tag: `NIGROSTRIATAL BASAL LOOP`, particleColor: `#00ffcc`, gridRgb: `85, 85, 190`, railColor: `#34a88f` },
+  13: { tag: `VENTRICULAR CSF FLOW`, particleColor: `#ffe04a`, gridRgb: `95, 70, 180`, railColor: `#34a88f` },
+  14: { tag: `SPINAL TRACT SYRINX`, particleColor: `#ff2d78`, gridRgb: `120, 55, 170`, railColor: `#34a88f` },
+  15: { tag: `SBS DURAL MEMBRANE`, particleColor: `#00ffcc`, gridRgb: `75, 105, 185`, railColor: `#34a88f` }
+};
+
+// =========================================================================
+// 2. CHRONOLOGICAL LEARNING OBJECTIVES (CODEX_DATA — 15 ENTITIES)
+// =========================================================================
+const CODEX_DATA = [
+  {
+    lo: 1,
+    sector: `sector_1`,
+    tag: `sector_1`,
+    entity: `Ischemic Stroke & Vascular Territories`,
+    badgeMeta: `CP 4 • Vascular • MCA / ACA / PCA / Lacunar`,
+    etiology: `Thromboembolic occlusion of MCA, ACA, PCA, or hypertensive lipohyalinosis of penetrating lenticulostriate arteries.`,
+    pathogenesis: `Focal arterial hypoperfusion depletes ATP, triggering glutamate excitotoxicity, Ca2+ influx, and coagulative/liquefactive necrosis in CNS tissue.`,
+    hallmarks: `Liquefactive necrosis via microglial phagocytosis forming cystic cavity; early CT excludes hemorrhage before tPA; MRI DWI hyperintensity.`,
+    clinical: `MCA: contralateral face/arm weakness + aphasia (dominant) or hemineglect (nondominant). ACA: contralateral leg weakness. PCA: homonymous hemianopia with macular sparing. Lacunar: pure motor or sensory stroke.`,
+    management: `Non-contrast head CT first to rule out hemorrhage; IV alteplase within window if no bleed. Guild Master's Secret: Lenticulostriate lacunes hit internal capsule (pure motor) or VPL/VPM thalamus (pure sensory).`
+  },
+  {
+    lo: 2,
+    sector: `sector_1`,
+    tag: `sector_1`,
+    entity: `Epidural vs. Subdural Hematoma`,
+    badgeMeta: `CP 4 • Trauma • MMA vs. Bridging Veins`,
+    etiology: `Epidural: blunt trauma fracturing temporal pterion tearing middle meningeal artery. Subdural: acceleration-deceleration tearing bridging veins in elderly/alcoholics.`,
+    pathogenesis: `Epidural: high-pressure arterial blood dissects dura from inner skull table. Subdural: low-pressure venous blood slowly expands between dura and arachnoid mater.`,
+    hallmarks: `Epidural: biconvex (lens-shaped) hyperdensity on CT that does NOT cross suture lines. Subdural: crescent-shaped hyperdensity that crosses suture lines.`,
+    clinical: `Epidural: transient loss of consciousness followed by a lucid interval, then rapid herniation and CN III palsy. Subdural: gradual headache, confusion, and progressive neurologic decline.`,
+    management: `Emergent neurosurgical evacuation for expanding hematomas and herniation signs. Guild Master's Secret: Cerebral atrophy in older adults stretches bridging veins, causing chronic subdural hematomas after minor falls.`
+  },
+  {
+    lo: 3,
+    sector: `sector_1`,
+    tag: `sector_1`,
+    entity: `Subarachnoid Hemorrhage & Charcot-Bouchard`,
+    badgeMeta: `CP 4 • Hemorrhage • Berry Aneurysm & HTN`,
+    etiology: `SAH: rupture of saccular (berry) aneurysm at Circle of Willis (most common ACom-ACA junction; linked to ADPKD, Ehlers-Danlos, smoking). Intraparenchymal: chronic HTN microaneurysms.`,
+    pathogenesis: `Thin-walled saccular outpouchings lack tunica media at arterial bifurcations; Charcot-Bouchard microaneurysms rupture in basal ganglia/putamen, thalamus, pons, or cerebellum.`,
+    hallmarks: `SAH: blood in basal cisterns on CT; LP reveals bloody CSF or yellow xanthochromia (bilirubin). Intraparenchymal: deep putaminal/thalamic parenchymal hyperdensity.`,
+    clinical: `SAH: sudden "worst headache of my life" (thunderclap), meningismus/nuchal rigidity; PCom aneurysm compresses CN III (blown pupil, down-and-out).`,
+    management: `Nimodipine (Ca2+ channel blocker) prevents delayed cerebral vasospasm (days 3–10 post-SAH). Guild Master's Secret: Xanthochromia on LP confirms SAH when initial CT is negative.`
+  },
+  {
+    lo: 4,
+    sector: `sector_2`,
+    tag: `sector_2`,
+    entity: `Adult Glioblastoma (GBM) & Meningioma`,
+    badgeMeta: `CP 4 • Adult CNS Tumors • GFAP & Psammoma`,
+    etiology: `Most common malignant (GBM) and benign (meningioma) primary adult supratentorial CNS tumors; meningioma shows female predominance.`,
+    pathogenesis: `GBM: malignant astrocyte transformation with EGFR amplification. Meningioma: benign proliferation of arachnoid meningothelial cells compressing (not invading) cortex.`,
+    hallmarks: `GBM: crosses corpus callosum ("butterfly glioma"); pseudopalisading pleomorphic cells around central necrosis + microvascular proliferation; GFAP+. Meningioma: extra-axial dural tail, whorled spindle cells, psammoma bodies.`,
+    clinical: `GBM: rapidly progressive focal deficits, headaches, seizures, ~1-year median survival. Meningioma: often asymptomatic or focal seizures from cortical compression.`,
+    management: `GBM: maximal safe resection + radiation/chemotherapy (poor prognosis). Meningioma: surgical resection and/or radiosurgery. Guild Master's Secret: Extra-axial dural tail + psammoma bodies = Meningioma.`
+  },
+  {
+    lo: 5,
+    sector: `sector_2`,
+    tag: `sector_2`,
+    entity: `Schwannoma & Oligodendroglioma`,
+    badgeMeta: `CP 4 • Adult Tumors • S100 & 1p/19q`,
+    etiology: `Schwannoma: benign Schwann cell tumor at cerebellopontine angle (CN VIII); bilateral in NF2. Oligodendroglioma: slow-growing frontal lobe glioma in adults.`,
+    pathogenesis: `Schwannoma: loss of NF2 merlin tumor suppressor drives Schwann cell proliferation. Oligodendroglioma: oligodendrocyte neoplasia with 1p/19q codeletion.`,
+    hallmarks: `Schwannoma: S-100+, biphasic Antoni A (cellular spindle cells/Verocay bodies) and Antoni B (hypocellular myxoid) areas. Oligodendroglioma: calcified frontal mass with "fried-egg" clear-cytoplasm cells and chicken-wire capillaries.`,
+    clinical: `Vestibular schwannoma: unilateral sensorineural hearing loss, tinnitus, and disequilibrium/ataxia. Oligodendroglioma: adult-onset seizures.`,
+    management: `Schwannoma: microsurgical resection or stereotactic radiosurgery. Oligodendroglioma: resection + adjuvant chemoradiation. Guild Master's Secret: Bilateral acoustic neuromas (CN VIII) are pathognomonic for NF2.`
+  },
+  {
+    lo: 6,
+    sector: `sector_2`,
+    tag: `sector_2`,
+    entity: `Pediatric CNS Tumors`,
+    badgeMeta: `CP 4 • Pediatric Infratentorial & Supratentorial`,
+    etiology: `Pilocytic astrocytoma, medulloblastoma, and ependymoma arise infratentorially in children; craniopharyngioma arises supratentorially from Rathke pouch remnants.`,
+    pathogenesis: `Pilocytic: benign astrocyte tumor. Medulloblastoma: malignant neuroectodermal cerebellar granular cells. Ependymoma: 4th ventricle ependymal cells. Craniopharyngioma: Rathke pouch epithelial remnants.`,
+    hallmarks: `Pilocytic: cystic + mural nodule, Rosenthal fibers (GFAP+). Medulloblastoma: small round blue cells, Homer-Wright rosettes. Ependymoma: perivascular pseudorosettes. Craniopharyngioma: calcifications + cholesterol crystals ("motor oil" cyst).`,
+    clinical: `Infratentorial tumors cause truncal ataxia (vermis) and obstructive hydrocephalus. Craniopharyngioma compresses optic chiasm causing bitemporal hemianopia.`,
+    management: `Surgical resection (+/- radiation/chemo); watch for medulloblastoma "drop metastases" to cauda equina via CSF. Guild Master's Secret: Craniopharyngioma frequently recurs due to adherence to chiasm/hypothalamus.`
+  },
+  {
+    lo: 7,
+    sector: `sector_3`,
+    tag: `sector_3`,
+    entity: `Multiple Sclerosis (MS)`,
+    badgeMeta: `CP 4 • Demyelinating • HLA-DR2 / Oligoclonal`,
+    etiology: `Autoimmune CNS demyelination in young adult females (20–40 yrs), linked to HLA-DR2 and higher latitudes (low vitamin D).`,
+    pathogenesis: `T-cell-mediated autoimmune destruction of CNS oligodendrocytes and myelin with secondary axonal loss across time and space.`,
+    hallmarks: `MRI: periventricular white matter plaques (Dawson fingers); gross gray plaques. CSF: oligoclonal IgG bands, elevated IgG, lymphocytes, and myelin basic protein.`,
+    clinical: `Relapsing-remitting optic neuritis (monocular vision loss, RAPD), INO (MLF lesion), scanning speech, Lhermitte sign, Uhthoff phenomenon (worsens with heat).`,
+    management: `Acute flares: high-dose IV corticosteroids. Long-term disease-modifying therapy: beta-interferon, glatiramer, or natalizumab; baclofen for spasticity. Guild Master's Secret: Bilateral INO in a young woman is classic MS.`
+  },
+  {
+    lo: 8,
+    sector: `sector_3`,
+    tag: `sector_3`,
+    entity: `Guillain-Barré Syndrome (GBS)`,
+    badgeMeta: `CP 4 • Peripheral Myelin • Molecular Mimicry`,
+    etiology: `Acute autoimmune peripheral demyelinating polyneuropathy following GI/respiratory infection (classically Campylobacter jejuni) or vaccination.`,
+    pathogenesis: `Molecular mimicry generates antibodies cross-reacting with peripheral nerve gangliosides and Schwann cell myelin, slowing nerve conduction.`,
+    hallmarks: `LP shows albuminocytologic dissociation (markedly elevated CSF protein with normal WBC count); segmental peripheral demyelination on NCS/EMG.`,
+    clinical: `Symmetric ascending flaccid paralysis starting in legs, areflexia, mild distal paresthesias, and potential diaphragmatic respiratory failure or autonomic instability.`,
+    management: `IVIG or plasmapheresis plus ICU pulmonary monitoring (FVC/NIF); steroids are NOT effective. Guild Master's Secret: Ascending paralysis + absent DTRs + high CSF protein/normal WBC = GBS.`
+  },
+  {
+    lo: 9,
+    sector: `sector_3`,
+    tag: `sector_3`,
+    entity: `ALS & Spinal Muscular Atrophy (SMA)`,
+    badgeMeta: `CP 4 • Motor Neuron • UMN+LMN vs. Pure LMN`,
+    etiology: `ALS: sporadic or familial (SOD1 mutation, chromosome 21) adult degeneration. SMA (Werdnig-Hoffmann): autosomal recessive SMN1 deletion in infants.`,
+    pathogenesis: `ALS: combined degeneration of lateral corticospinal tract (UMN) and anterior horn motor neurons (LMN). SMA: isolated congenital anterior horn LMN degeneration.`,
+    hallmarks: `ALS: atrophy of anterior spinal roots and lateral corticospinal tracts; sensory tracts and extraocular muscles spared. SMA: neurogenic skeletal muscle atrophy.`,
+    clinical: `ALS: asymmetric limb weakness, fasciculations + atrophy (LMN) alongside hyperreflexia, spasticity, and Babinski+ (UMN); normal sensation/cognition. SMA: "floppy baby" with tongue fasciculations.`,
+    management: `ALS: riluzole (decreases glutamate excitotoxicity) and supportive respiratory care. Guild Master's Secret: Pure motor UMN+LMN deficits with intact sensation/bowel/bladder distinguishes ALS.`
+  },
+  {
+    lo: 10,
+    sector: `sector_4`,
+    tag: `sector_4`,
+    entity: `Alzheimer Disease (AD)`,
+    badgeMeta: `CP 4 • Dementia • Aβ Plaques & Tau Tangles`,
+    etiology: `Most common dementia; 95% sporadic (APOE ε4 increases risk; ε2 decreases risk); early-onset linked to APP (chr 21, Down syndrome) and Presenilin 1/2.`,
+    pathogenesis: `Beta-cleavage of APP generates neurotoxic Aβ amyloid; hyperphosphorylation of microtubule-associated tau forms tangles; loss of nucleus basalis of Meynert ACh neurons.`,
+    hallmarks: `Cortical atrophy (narrow gyri, wide sulci, hydrocephalus ex vacuo); extracellular Aβ neuritic plaques (also cerebral amyloid angiopathy); intracellular hyperphosphorylated tau neurofibrillary tangles; Hirano bodies.`,
+    clinical: `Insidious short-term memory loss progressing to long-term amnesia, apraxia, aphasia, and disorientation without early focal motor deficits.`,
+    management: `Acetylcholinesterase inhibitors (donepezil) or NMDA antagonists (memantine). Guild Master's Secret: Down syndrome patients carry 3 copies of APP (chr 21) and commonly develop AD by age 40.`
+  },
+  {
+    lo: 11,
+    sector: `sector_4`,
+    tag: `sector_4`,
+    entity: `FTLD (Pick Disease) & Lewy Body Dementia`,
+    badgeMeta: `CP 4 • Cortical Dementias • Pick vs. α-Synuclein`,
+    etiology: `FTLD (Pick disease): frontotemporal cortical degeneration. Dementia with Lewy Bodies (DLB): cortical α-synucleinopathy.`,
+    pathogenesis: `FTLD: focal frontal/temporal neuronal loss with hyperphosphorylated tau or ubiquitinated TDP-43 inclusions. DLB: cortical accumulation of α-synuclein Lewy bodies.`,
+    hallmarks: `FTLD: knife-like frontal/temporal atrophy sparing parietal/occipital lobes; round intracellular Pick bodies. DLB: eosinophilic cortical Lewy bodies.`,
+    clinical: `FTLD: early personality changes, disinhibition, apathy, or primary progressive aphasia before memory loss. DLB: visual hallucinations, fluctuating cognition, REM sleep behavior disorder, and parkinsonism (<1 yr apart).`,
+    management: `Supportive behavioral care; DLB requires avoiding typical antipsychotics due to severe neuroleptic sensitivity. Guild Master's Secret: Early hallucinations + parkinsonism (<1 yr) = DLB.`
+  },
+  {
+    lo: 12,
+    sector: `sector_4`,
+    tag: `sector_4`,
+    entity: `Parkinson Disease & Huntington Disease`,
+    badgeMeta: `CP 4 • Basal Ganglia • TRAP vs. CAG Chorea`,
+    etiology: `Parkinson: idiopathic aging-related loss of substantia nigra (rarely MPTP). Huntington: autosomal dominant CAG repeat expansion on HTT gene (chr 4).`,
+    pathogenesis: `Parkinson: loss of nigrostriatal dopaminergic neurons. Huntington: toxic HTT gain-of-function kills striatal (caudate/putamen) GABAergic and ACh neurons; spermatogenesis expansion causes anticipation.`,
+    hallmarks: `Parkinson: depigmentation of substantia nigra pars compacta + intracellular α-synuclein Lewy bodies. Huntington: caudate nucleus atrophy with ex vacuo ventriculomegaly.`,
+    clinical: `Parkinson: TRAP (pill-rolling resting tremor, cogwheel rigidity, bradykinesia/shuffling gait, postural instability). Huntington: chorea, athetosis, aggression, depression, and dementia (age 30–50).`,
+    management: `Parkinson: levodopa/carbidopa, dopamine agonists. Huntington: VMAT2 inhibitors for chorea and psychiatric support (high suicide risk). Guild Master's Secret: Striatum loses GABA/ACh in Huntington.`
+  },
+  {
+    lo: 13,
+    sector: `sector_5`,
+    tag: `sector_5`,
+    entity: `Normal Pressure & Non-Communicating Hydrocephalus`,
+    badgeMeta: `CP 4 • CSF Dynamics • Hakim Triad vs. Aqueduct`,
+    etiology: `NPH: idiopathic impaired arachnoid granulation CSF compliance in older adults. Non-communicating: structural aqueductal stenosis, colloid cyst (foramen of Monro), or tumor.`,
+    pathogenesis: `NPH: episodic CSF pressure elevations dilate ventricles without increased subarachnoid volume, stretching periventricular corona radiata fibers. Non-communicating: blocked ventricular CSF outflow.`,
+    hallmarks: `NPH: dilated ventricles out of proportion to sulcal atrophy; normal opening pressure on LP. Non-communicating: enlargement proximal to obstruction (e.g., lateral/3rd ventricles in aqueductal stenosis).`,
+    clinical: `NPH: triad of gait apraxia ("magnetic gait"), urinary incontinence, and dementia ("wobbly, wet, wacky"). Non-communicating: headache, papilledema, nausea, herniation risk.`,
+    management: `NPH: high-volume LP temporarily improves gait; definitive treatment is ventriculoperitoneal (VP) shunt. Guild Master's Secret: Gait dysfunction improves most reliably after LP/shunting in NPH.`
+  },
+  {
+    lo: 14,
+    sector: `sector_5`,
+    tag: `sector_5`,
+    entity: `Syringomyelia & Subacute Combined Degeneration`,
+    badgeMeta: `CP 4 • Spinal Cord • C8-T1 Syrinx vs. B12`,
+    etiology: `Syringomyelia: Chiari I malformation or trauma creating central canal syrinx (C8-T1). SCD: vitamin B12 (cobalamin) deficiency impairing myelin synthesis.`,
+    pathogenesis: `Syringomyelia: expanding central syrinx compresses anterior white commissure (decussating spinothalamic fibers), anterior horns, and T1 lateral horns. SCD: defective myelin in dorsal columns + lateral corticospinal tracts.`,
+    hallmarks: `Syringomyelia: fluid-filled intramedullary cavity at C8-T1 on MRI. SCD: symmetric demyelination of dorsal columns and lateral corticospinal tracts; megaloblastic anemia + elevated methylmalonic acid.`,
+    clinical: `Syringomyelia: bilateral "cape-like" loss of pain/temperature with intact vibration/proprioception, LMN hand atrophy, +/- Horner syndrome. SCD: ataxia, loss of vibration/proprioception + spastic paresis.`,
+    management: `Syringomyelia: surgical decompression (e.g., suboccipital craniectomy for Chiari I). SCD: parenteral vitamin B12 replacement. Guild Master's Secret: Syringomyelia spares dorsal columns initially.`
+  },
+  {
+    lo: 15,
+    sector: `sector_5`,
+    tag: `sector_5`,
+    entity: `Cranial Osteopathy: SBS Strains, CV4 & Dural OMT`,
+    badgeMeta: `Domain 1 OMT • SBS / CV4 / OA-AA / Venous Sinus`,
+    etiology: `Somatic dysfunction of the sphenobasilar synchondrosis (SBS), cranial base (OA/AA), and reciprocal tension dural membranes (falx cerebri, tentorium cerebelli).`,
+    pathogenesis: `Restricted cranial rhythmic impulse (CRI) and dural tension impair venous sinus outflow, CSF fluctuation, and parasympathetic vagal tone.`,
+    hallmarks: `Torsions (AP axis, named for high greater wing), sidebending rotation (2 vertical axes + 1 AP axis, named for convexity), vertical/lateral strains, and SBS compression.`,
+    clinical: `Headache, autonomic imbalance, congestion, and cranial-sacral link restriction via dural core link (foramen magnum, C2, S2).`,
+    management: `Venous sinus drainage, OA decompression (releases CN X vagus), and CV4 (compression of 4th ventricle at occipital squama medial to occipitomastoid suture) to augment CRI/parasympathetic tone. Guild Master's Secret: CV4 is contraindicated in acute intracranial hemorrhage, skull fracture, or increased ICP.`
+  }
+];
+
+// =========================================================================
+// 3. GROUNDED BOARD QUESTIONS (45 GATES: 15 P1 / 15 P2 / 15 P3)
+// =========================================================================
+const ALL_QUESTIONS = [
+  // LO 1: Ischemic Stroke & Vascular Territories (P1, P2, P3)
+  {
+    id: `NP01-Q1`, lo: 1, sector: `sector_1`,
+    loTitle: `LO 1: Ischemic Stroke & Vascular Territories`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Left MCA occlusion`,
+    stem: `A 68-year-old right-handed man develops sudden right-sided facial droop, right arm weakness greater than leg weakness, and nonfluent expressive aphasia. Which vessel is most likely occluded?`,
+    clue: `Dominant lateral cortex ischemia hits face/arm motor strip and Broca/Wernicke speech regions.`,
+    choices: [`Left middle cerebral artery (MCA)`, `Left anterior cerebral artery (ACA)`, `Left posterior cerebral artery (PCA)`],
+    correctIndex: 0,
+    explanation: `Correct: The left MCA supplies the lateral cerebral convexity including face/arm motor-sensory cortex and dominant Broca/Wernicke language centers. Distractor exclusion: ACA ischemia causes contralateral leg weakness; PCA ischemia causes contralateral homonymous hemianopia with macular sparing.`,
+    secondOrderClue: `Face/arm deficit + aphasia = dominant MCA; Leg deficit = ACA; Visual field cut = PCA.`,
+    phase1Pearl: `MCA occlusion deprives lateral frontal-parietal-temporal cortex of ATP, causing Na+/K+ pump failure and glutamate excitotoxicity.`,
+    phase2Hallmark: `Brain infarcts undergo liquefactive necrosis via microglial phagocytosis, leaving a fluid-filled cystic cavity.`,
+    phase3Secret: `Order immediate non-contrast head CT to exclude hemorrhage before administering IV alteplase.`,
+    dossierBullets: {
+      p1: [`Lateral convexity hypoperfusion -> ATP depletion & excitotoxic Ca2+ influx`, `Aphasia localizes to dominant (usually left) MCA territory`],
+      p2: [`Liquefactive necrosis mediated by microglial enzymes`, `MRI DWI detects cytotoxic edema earliest`],
+      p3: [`Stat non-contrast head CT rules out bleed prior to thrombolysis`, `Permissive hypertension maintained initially unless tPA given`]
+    }
+  },
+  {
+    id: `NP01-Q2`, lo: 1, sector: `sector_1`,
+    loTitle: `LO 1: Ischemic Stroke & Vascular Territories`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Lenticulostriate lipohyalinosis`,
+    stem: `A 72-year-old woman with longstanding poorly controlled hypertension awakens with isolated left-sided hemiparesis of the face, arm, and leg without cortical signs or visual field loss. What vascular mechanism accounts for her stroke?`,
+    clue: `Chronic hypertension narrows small deep penetrating arteries supplying the internal capsule.`,
+    choices: [`Lipohyalinosis of penetrating lenticulostriate arteries`, `Cardioembolic occlusion of the basilar artery tip`, `Atherosclerotic thrombosis of the anterior communicating artery`],
+    correctIndex: 0,
+    explanation: `Correct: Chronic hypertension induces hyaline arteriolosclerosis/lipohyalinosis in deep penetrating lenticulostriate vessels, producing a lacunar infarct in the posterior limb of the internal capsule (pure motor stroke). Distractor exclusion: Basilar tip occlusion causes coma/locked-in or brainstem signs; ACom occlusion does not isolate internal capsule motor fibers.`,
+    secondOrderClue: `Chronic HTN + pure motor hemiparesis (no aphasia/neglect) = internal capsule lacunar infarct.`,
+    phase1Pearl: `Hyaline thickening narrows small penetrating lenticulostriate branches of the MCA.`,
+    phase2Hallmark: `Small (<15 mm) deep cavitating lacunes visible in basal ganglia, internal capsule, or thalamus.`,
+    phase3Secret: `VPL/VPM thalamic lacunes produce pure sensory stroke; internal capsule lacunes produce pure motor stroke.`,
+    dossierBullets: {
+      p1: [`Chronic HTN -> hyaline arteriolosclerosis of lenticulostriate vessels`, `Ischemia restricted to deep subcortical white matter`],
+      p2: [`Small cavitating lacunar infarcts on MRI`, `Absence of cortical signs differentiates from large-vessel MCA stroke`],
+      p3: [`Control BP gradually after acute phase; antiplatelet secondary prevention`, `Pure motor = internal capsule; pure sensory = thalamus`]
+    }
+  },
+  {
+    id: `NP01-Q3`, lo: 1, sector: `sector_1`,
+    loTitle: `LO 1: Ischemic Stroke & Vascular Territories`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Liquefactive necrosis by microglia`,
+    stem: `Autopsy brain sectioning in a patient who died 3 weeks after a large right middle cerebral artery infarction reveals a soft, cavitated cortical defect containing lipid-laden macrophages. Which pathologic process explains this appearance?`,
+    clue: `CNS tissue is rich in lysosomal hydrolases and lipids, leading to enzymatic tissue digestion after ischemia.`,
+    choices: [`Liquefactive necrosis mediated by microglial phagocytosis`, `Coagulative necrosis preserving cellular outlines indefinitely`, `Caseous necrosis surrounded by epithelioid granulomas`],
+    correctIndex: 0,
+    explanation: `Correct: Cerebral infarcts undergo liquefactive necrosis as neutrophils and microglia (gitter cells) enzymatically digest necrotic lipid-rich brain parenchyma into a cystic cavity. Distractor exclusion: Coagulative necrosis characterizes myocardial/renal infarcts, not brain; caseous necrosis is typical of tuberculosis.`,
+    secondOrderClue: `Brain infarction (unlike heart/kidney) = liquefactive necrosis -> lipid-laden microglia -> cystic cavity.`,
+    phase1Pearl: `Acute hypoxic neurons appear as "red neurons" (eosinophilic cytoplasm, pyknotic nuclei) at 12–24 hours.`,
+    phase2Hallmark: `Macrophage/microglial clearing peaks around 1–2 weeks, leaving reactive gliosis (GFAP+ astrocytes) around a cavity.`,
+    phase3Secret: `Always obtain non-contrast CT first in suspected stroke to distinguish ischemic liquefactive necrosis from hemorrhage.`,
+    dossierBullets: {
+      p1: [`Red neurons (12–24h) -> neutrophils (1–3d) -> microglia/macrophages (3–5d+)`, `GFAP+ reactive astrocytosis walls off the infarct`],
+      p2: [`Soft cystic cavity on gross brain examination`, `Lipid-laden macrophages (gitter cells) clear myelin debris`],
+      p3: [`Distinguish ischemic vs. hemorrhagic stroke by CT before tPA`, `Avoid aggressive acute BP lowering unless thrombolytic candidate`]
+    }
+  },
+
+  // LO 2: Epidural vs. Subdural Hematoma (P1, P2, P3)
+  {
+    id: `NP02-Q1`, lo: 2, sector: `sector_1`,
+    loTitle: `LO 2: Epidural vs. Subdural Hematoma`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Epidural hematoma`,
+    stem: `A 24-year-old baseball player is struck on the lateral temple by a pitch, briefly loses consciousness, then walks off the field speaking normally. Ninety minutes later he becomes lethargic and develops a fixed, dilated right pupil. What is the most likely diagnosis?`,
+    clue: `Brief LOC followed by a lucid interval and rapid CN III palsy points to arterial bleeding at the pterion.`,
+    choices: [`Epidural hematoma`, `Chronic subdural hematoma`, `Diffuse axonal injury`],
+    correctIndex: 0,
+    explanation: `Correct: Trauma to the thin lateral pterion fractures bone over the middle meningeal artery, creating an arterial epidural hematoma with a classic lucid interval before uncal herniation compresses CN III. Distractor exclusion: Chronic subdural hematoma presents indolently over weeks in elderly/alcoholics; diffuse axonal injury causes immediate persistent coma without a lucid interval.`,
+    secondOrderClue: `Temporal pterion trauma + lucid interval + blown pupil = MMA epidural hematoma -> uncal herniation.`,
+    phase1Pearl: `High-pressure arterial bleeding strips periosteal dura from the skull between cranial sutures.`,
+    phase2Hallmark: `Biconvex (lens-shaped) hyperdensity on head CT that does NOT cross suture lines.`,
+    phase3Secret: `Emergent craniotomy/evacuation is required; uncal herniation stretches ipsilateral CN III parasympathetic fibers first.`,
+    dossierBullets: {
+      p1: [`Pterion fracture -> middle meningeal artery (maxillary branch) rupture`, `Arterial pressure expands hematoma rapidly`],
+      p2: [`Lens-shaped (biconvex) hyperdensity bounded by sutures`, `Midline shift and uncal compression of CN III / PCA`],
+      p3: [`Immediate neurosurgical decompression saves life`, `Lucid interval is classic board trap—do not discharge prematurely`]
+    }
+  },
+  {
+    id: `NP02-Q2`, lo: 2, sector: `sector_1`,
+    loTitle: `LO 2: Epidural vs. Subdural Hematoma`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Torn bridging veins`,
+    stem: `A 79-year-old man with mild cerebral atrophy develops progressive confusion, headache, and left hemiparesis 3 weeks after slipping on ice without hitting his head hard. Rupture of which vessels caused his intracranial bleed?`,
+    clue: `Brain atrophy places tension on low-pressure veins crossing the subdural space into dural sinuses.`,
+    choices: [`Bridging cortical veins`, `Middle meningeal artery`, `Lenticulostriate arteries`],
+    correctIndex: 0,
+    explanation: `Correct: Cerebral atrophy stretches bridging veins traversing from the cortex to dural venous sinuses, making them prone to tearing during minor acceleration-deceleration trauma and causing a slow venous subdural hematoma. Distractor exclusion: Middle meningeal artery tears cause rapid arterial epidural hematomas; lenticulostriate rupture causes deep hypertensive intraparenchymal hemorrhage.`,
+    secondOrderClue: `Elderly/alcoholic + brain atrophy + minor fall weeks ago = stretched bridging veins -> subdural hematoma.`,
+    phase1Pearl: `Low-pressure venous leakage accumulates slowly between the dura mater and arachnoid mater.`,
+    phase2Hallmark: `Crescent-shaped collection on CT that crosses suture lines (but stops at falx/tentorium); chronic bleeds turn hypodense.`,
+    phase3Secret: `Evaluate elderly patients with subacute cognitive decline after minor falls for chronic subdural hematoma.`,
+    dossierBullets: {
+      p1: [`Cerebral atrophy increases traction on bridging veins`, `Venous blood dissects potential subdural space slowly`],
+      p2: [`Crescent-shaped CT lesion crossing suture lines`, `Acute = hyperdense; subacute = isodense; chronic = hypodense`],
+      p3: [`Reverse anticoagulants and consult neurosurgery for burr hole evacuation`, `Common mimic of dementia in older adults`]
+    }
+  },
+  {
+    id: `NP02-Q3`, lo: 2, sector: `sector_1`,
+    loTitle: `LO 2: Epidural vs. Subdural Hematoma`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Biconvex CT bounded by sutures`,
+    stem: `An emergent non-contrast head CT is obtained in a motorcyclist with a right temporal bone fracture and declining Glasgow Coma Scale score. Which CT morphology confirms an epidural rather than subdural hematoma?`,
+    clue: `Dural attachments at cranial sutures constrain epidural collections into a symmetric lens contour.`,
+    choices: [`Biconvex hyperdensity that does not cross suture lines`, `Crescentic hyperdensity crossing coronal and lambdoid sutures`, `Diffuse punctate hemorrhages at the gray-white junction`],
+    correctIndex: 0,
+    explanation: `Correct: Because periosteal dura adheres tightly at cranial sutures, epidural arterial blood forms a biconvex (lens-shaped) hyperdensity bounded by sutures. Distractor exclusion: Crescentic collections crossing sutures describe subdural hematomas; punctate gray-white hemorrhages indicate diffuse axonal injury.`,
+    secondOrderClue: `Epidural = lens/biconvex, stops at sutures; Subdural = crescent, crosses sutures.`,
+    phase1Pearl: `Arterial pressure overcomes dural adherence between sutures but cannot dissect across sutural periosteum.`,
+    phase2Hallmark: `Lens-shaped hyperdensity on CT with mass effect, sulcal effacement, and midline shift.`,
+    phase3Secret: `Never perform lumbar puncture in suspected mass lesion/herniation—go straight to CT and surgical decompression.`,
+    dossierBullets: {
+      p1: [`Dural periosteal attachment at sutures limits spread`, `Rapid arterial expansion risks transtentorial herniation`],
+      p2: [`Biconvex lens shape on axial non-contrast CT`, `Check bone windows for temporal pterion fracture`],
+      p3: [`Emergent surgical evacuation + ICP control`, `Avoid LP when signs of elevated ICP or focal deficit exist`]
+    }
+  },
+
+  // LO 3: Subarachnoid Hemorrhage & Charcot-Bouchard (P1, P2, P3)
+  {
+    id: `NP03-Q1`, lo: 3, sector: `sector_1`,
+    loTitle: `LO 3: Subarachnoid Hemorrhage & Charcot-Bouchard`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Ruptured berry aneurysm`,
+    stem: `A 46-year-old man with bilateral flank masses and hypertension experiences the sudden onset of the "worst headache of his life" accompanied by neck stiffness and photophobia. Which underlying vascular lesion most likely ruptured?`,
+    clue: `Autosomal dominant polycystic kidney disease strongly predisposes to Circle of Willis saccular aneurysms.`,
+    choices: [`Saccular (berry) aneurysm at the anterior communicating artery`, `Charcot-Bouchard microaneurysm in the putamen`, `Cavernous sinus dural arteriovenous fistula`],
+    correctIndex: 0,
+    explanation: `Correct: ADPKD is classically associated with saccular (berry) aneurysms at Circle of Willis bifurcations (most commonly ACom-ACA), whose rupture produces thunderclap subarachnoid hemorrhage and meningismus. Distractor exclusion: Charcot-Bouchard microaneurysms cause intraparenchymal hemorrhage without primary meningismus; cavernous fistula causes pulsatile exophthalmos.`,
+    secondOrderClue: `ADPKD + thunderclap headache + nuchal rigidity = ruptured berry aneurysm (ACom most common).`,
+    phase1Pearl: `Congenital weakness/absence of smooth muscle tunica media at arterial bifurcations enables saccular dilation.`,
+    phase2Hallmark: `Hyperdense blood filling basal cisterns/Sylvian fissures on CT; xanthochromia (yellow bilirubin) on LP.`,
+    phase3Secret: `Administer nimodipine to reduce delayed ischemic infarct from vasospasm days 3–10 after SAH.`,
+    dossierBullets: {
+      p1: [`ADPKD, Ehlers-Danlos, smoking, and HTN weaken arterial bifurcations`, `Most common site: junction of ACom and ACA`],
+      p2: [`Blood in subarachnoid cisterns on CT; xanthochromic CSF on LP`, `PCom aneurysm compression causes ipsilateral CN III palsy`],
+      p3: [`Nimodipine prevents delayed vasospasm; secure aneurysm via clipping/coiling`, `Watch for communicating hydrocephalus from arachnoid scarring`]
+    }
+  },
+  {
+    id: `NP03-Q2`, lo: 3, sector: `sector_1`,
+    loTitle: `LO 3: Subarachnoid Hemorrhage & Charcot-Bouchard`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Charcot-Bouchard microaneurysm`,
+    stem: `A 64-year-old man with untreated chronic hypertension collapses with acute right hemiplegia and stupor. Non-contrast CT shows a 4-cm hemorrhage centered in the left putamen. Degeneration of which structure initiated this bleed?`,
+    clue: `Chronic hypertension causes microscopic outpouchings along small penetrating lenticulostriate vessels.`,
+    choices: [`Charcot-Bouchard microaneurysm of lenticulostriate arteries`, `Saccular berry aneurysm at the basilar tip`, `Cerebral amyloid angiopathy of leptomeningeal vessels`],
+    correctIndex: 0,
+    explanation: `Correct: Chronic hypertension damages small penetrating lenticulostriate vessels, forming Charcot-Bouchard microaneurysms that rupture into the putamen (most common site of hypertensive intraparenchymal hemorrhage), thalamus, pons, or cerebellum. Distractor exclusion: Berry aneurysms cause subarachnoid hemorrhage; amyloid angiopathy causes recurrent lobar hemorrhages in older adults.`,
+    secondOrderClue: `Chronic HTN + basal ganglia/putamen bleed = Charcot-Bouchard microaneurysm rupture.`,
+    phase1Pearl: `Chronic systemic hypertension induces lipohyalinosis and microscopic aneurysmal outpouchings in deep penetrators.`,
+    phase2Hallmark: `Deep parenchymal hematoma in putamen/basal ganglia, thalamus, pons, or cerebellum (unlike cortical lobar amyloid bleeds).`,
+    phase3Secret: `Control severe hypertension carefully and reverse coagulopathy; pinpoint pupils suggest pontine hemorrhage.`,
+    dossierBullets: {
+      p1: [`Hypertension -> Charcot-Bouchard microaneurysms in small penetrators`, `Putamen > thalamus > pons > cerebellum`],
+      p2: [`Deep intraparenchymal hematoma on CT`, `Amyloid angiopathy spares deep nuclei and causes lobar bleeds`] ,
+      p3: [`Supportive airway/BP management; avoid rapid over-correction`, `Pontine bleed causes pinpoint pupils and quadriplegia`]
+    }
+  },
+  {
+    id: `NP03-Q3`, lo: 3, sector: `sector_1`,
+    loTitle: `LO 3: Subarachnoid Hemorrhage & Charcot-Bouchard`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Nimodipine for vasospasm`,
+    stem: `Four days after successful endovascular coiling of a ruptured ACom aneurysm, a patient with xanthochromic CSF develops new confusion and right leg weakness. Which intervention is routinely given to prevent this complication?`,
+    clue: `Blood breakdown products irritate cerebral arteries 3–10 days post-SAH, requiring a dihydropyridine calcium blocker.`,
+    choices: [`Nimodipine`, `Alteplase`, `Acetazolamide`],
+    correctIndex: 0,
+    explanation: `Correct: Blood breakdown products trigger cerebral arterial vasospasm 3–10 days after SAH, causing secondary ischemic stroke; nimodipine prevents and reduces vasospasm. Distractor exclusion: Alteplase is contraindicated in intracranial hemorrhage; acetazolamide treats idiopathic intracranial hypertension.`,
+    secondOrderClue: `SAH + days 3–10 delayed deficit = vasospasm from blood breakdown -> nimodipine.`,
+    phase1Pearl: `Hemoglobin degradation products in subarachnoid CSF provoke sustained smooth muscle vasoconstriction.`,
+    phase2Hallmark: `Xanthochromia on centrifuged LP CSF reflects bilirubin from RBC breakdown after 6–12 hours.`,
+    phase3Secret: `Start oral/enteral nimodipine early in all aneurysmal SAH patients and monitor for hydrocephalus.`,
+    dossierBullets: {
+      p1: [`Blood breakdown -> cerebral vasospasm days 3–10 post-SAH`, `Arachnoid granulation fibrosis can cause communicating hydrocephalus`],
+      p2: [`Yellow xanthochromic CSF supernatant on LP`, `CT angiography or transcranial Doppler confirms vasospasm`],
+      p3: [`Nimodipine improves neurologic outcomes post-SAH`, `Maintain euvolemia and avoid hypotension`]
+    }
+  },
+
+  // LO 4: Adult Glioblastoma (GBM) & Meningioma (P1, P2, P3)
+  {
+    id: `NP04-Q1`, lo: 4, sector: `sector_2`,
+    loTitle: `LO 4: Adult Glioblastoma (GBM) & Meningioma`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Glioblastoma multiforme`,
+    stem: `A 62-year-old man presents with 6 weeks of worsening morning headaches, personality changes, and progressive left hemiparesis. Brain MRI shows a necrotic, ring-enhancing mass crossing the genu of the corpus callosum. What is the most likely diagnosis?`,
+    clue: `The most common malignant adult primary CNS tumor classically crosses white matter tracts to form a butterfly pattern.`,
+    choices: [`Glioblastoma multiforme (GBM)`, `Meningioma`, `Pilocytic astrocytoma`],
+    correctIndex: 0,
+    explanation: `Correct: GBM is the most common malignant primary CNS tumor in adults and classically crosses the corpus callosum ("butterfly glioma") with central necrosis and ring enhancement. Distractor exclusion: Meningioma is an extra-axial dural-based benign tumor that does not invade across the corpus callosum; pilocytic astrocytoma is a benign childhood posterior fossa tumor.`,
+    secondOrderClue: `Adult + butterfly lesion crossing corpus callosum = Glioblastoma multiforme (GFAP+).`,
+    phase1Pearl: `Derived from astrocytes with EGFR amplification and rapid infiltrative parenchymal growth.`,
+    phase2Hallmark: `Pseudopalisading pleomorphic tumor cells bordering central necrosis and microvascular endothelial proliferation.`,
+    phase3Secret: `Median survival is ~1 year despite maximal resection, radiation, and chemotherapy; locally destructive without distant metastasis.`,
+    dossierBullets: {
+      p1: [`High-grade malignant astrocyte neoplasm with EGFR amplification`, `Supratentorial white matter infiltration across corpus callosum`],
+      p2: [`Pseudopalisading necrosis + microvascular proliferation`, `Immunohistochemistry positive for GFAP`],
+      p3: [`Resection + chemoradiation; corticosteroids reduce vasogenic edema`, `Primary malignant CNS tumors rarely metastasize outside CNS`]
+    }
+  },
+  {
+    id: `NP04-Q2`, lo: 4, sector: `sector_2`,
+    loTitle: `LO 4: Adult Glioblastoma (GBM) & Meningioma`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Arachnoid meningothelial compression`,
+    stem: `A 55-year-old woman is evaluated for new-onset focal motor seizures. MRI demonstrates a well-circumscribed extra-axial mass with a dural tail over the left parasagittal cortex. From which cell layer does this tumor arise?`,
+    clue: `Unlike gliomas, this benign adult tumor compresses the cortex externally from the meningeal coverings.`,
+    choices: [`Arachnoid meningothelial cells`, `Oligodendrocytes`, `Ependymal cells`],
+    correctIndex: 0,
+    explanation: `Correct: Meningiomas arise from arachnoid cap/meningothelial cells along the brain or spinal cord surface, compressing rather than invading underlying cortex and showing a dural tail. Distractor exclusion: Oligodendrocytes form intra-axial calcified frontal tumors; ependymal cells line the ventricles.`,
+    secondOrderClue: `Adult female + seizures + extra-axial dural tail = Meningioma (arachnoid cell origin).`,
+    phase1Pearl: `Benign arachnoid cell proliferation compresses cortical parenchyma externally without parenchymal invasion.`,
+    phase2Hallmark: `Whorled pattern of spindle cells with concentric laminated calcifications (psammoma bodies).`,
+    phase3Secret: `Surgical resection or stereotactic radiosurgery is curative for most symptomatic lesions.`,
+    dossierBullets: {
+      p1: [`Arachnoid cell origin; female > male predominance`, `Compresses cortex externally rather than infiltrating parenchyma`],
+      p2: [`Extra-axial dural attachment ("dural tail") on MRI`, `Whorled spindle cells + psammoma bodies on biopsy`],
+      p3: [`Observe small asymptomatic lesions; resect symptomatic tumors`, `Most common benign primary CNS tumor in adults`]
+    }
+  },
+  {
+    id: `NP04-Q3`, lo: 4, sector: `sector_2`,
+    loTitle: `LO 4: Adult Glioblastoma (GBM) & Meningioma`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Pseudopalisading necrosis & GFAP+`,
+    stem: `Stereotactic biopsy of a rapidly enlarging cerebral hemisphere mass in an older adult demonstrates pleomorphic GFAP-positive cells palisading around zones of serpiginous necrosis alongside glomeruloid microvascular proliferation. Which diagnosis do these histologic features confirm?`,
+    clue: `GFAP positivity confirms astrocytic lineage, while palisading necrosis defines grade IV malignancy.`,
+    choices: [`Glioblastoma multiforme`, `Oligodendroglioma`, `Meningioma`],
+    correctIndex: 0,
+    explanation: `Correct: Pseudopalisading tumor cells surrounding central necrosis, microvascular proliferation, and GFAP positivity are pathognomonic for glioblastoma multiforme. Distractor exclusion: Oligodendroglioma displays "fried-egg" clear cells and chicken-wire capillaries; meningioma shows whorled spindle cells and psammoma bodies.`,
+    secondOrderClue: `GFAP+ + pseudopalisading necrosis + endothelial proliferation = GBM.`,
+    phase1Pearl: `Tumor hypoxia drives VEGF-mediated microvascular proliferation and outward tumor cell migration.`,
+    phase2Hallmark: `Necrotic core bordered by dense garlands of pleomorphic astrocytes (pseudopalisading).`,
+    phase3Secret: `Counsel family early on poor (~1 year) median survival while offering maximal safe resection + adjuvant therapy.`,
+    dossierBullets: {
+      p1: [`Hypoxia-induced VEGF drives abnormal microvascular proliferation`, `GFAP marks astrocytic lineage`],
+      p2: [`Pseudopalisading around central necrosis`, `Crosses corpus callosum as butterfly glioma`],
+      p3: [`Resection + radiation/chemotherapy prolongs survival modestly`, `Dexamethasone reduces peritumoral edema`]
+    }
+  },
+
+  // LO 5: Schwannoma & Oligodendroglioma (P1, P2, P3)
+  {
+    id: `NP05-Q1`, lo: 5, sector: `sector_2`,
+    loTitle: `LO 5: Schwannoma & Oligodendroglioma`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Vestibular schwannoma (CN VIII)`,
+    stem: `A 38-year-old man presents with progressive right-sided sensorineural hearing loss, high-pitched tinnitus, and mild gait unsteadiness. MRI reveals a well-circumscribed enhancing mass centered in the right internal acoustic meatus at the cerebellopontine angle. What is the diagnosis?`,
+    clue: `Benign nerve sheath tumor of CN VIII classically occupies the cerebellopontine angle.`,
+    choices: [`Vestibular schwannoma`, `Meningioma of the falx`, `Craniopharyngioma`],
+    correctIndex: 0,
+    explanation: `Correct: Vestibular schwannoma arises from Schwann cells of CN VIII within the internal acoustic meatus/cerebellopontine angle, causing ipsilateral hearing loss, tinnitus, and imbalance. Distractor exclusion: Falcine meningioma causes leg weakness/seizures rather than CN VIII deficits; craniopharyngioma is suprasellar and causes bitemporal hemianopia.`,
+    secondOrderClue: `Cerebellopontine angle + unilateral hearing loss + tinnitus = CN VIII schwannoma (S-100+).`,
+    phase1Pearl: `Schwann cell proliferation compresses CN VIII (and nearby CN V/VII) in the cerebellopontine angle.`,
+    phase2Hallmark: `Biphasic Antoni A (dense cellular spindle cells) and Antoni B (hypocellular myxoid) areas; strongly S-100+.`,
+    phase3Secret: `Bilateral vestibular schwannomas are diagnostic of neurofibromatosis type 2 (NF2, chromosome 22).`,
+    dossierBullets: {
+      p1: [`Benign Schwann cell tumor; bilateral lesions linked to NF2`, `Neural crest origin -> S-100 positivity`],
+      p2: [`Cerebellopontine angle mass; Antoni A & B regions`, `Verocay bodies (palisading nuclei) in Antoni A zones`],
+      p3: [`Microsurgical resection or stereotactic radiosurgery`, `Monitor CN VII facial nerve preservation during surgery`]
+    }
+  },
+  {
+    id: `NP05-Q2`, lo: 5, sector: `sector_2`,
+    loTitle: `LO 5: Schwannoma & Oligodendroglioma`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `NF2 tumor suppressor loss`,
+    stem: `A 22-year-old woman presents with bilateral progressive hearing loss and is found to have bilateral cerebellopontine angle masses on brain MRI. Loss of which genetic locus drives the pathogenesis of these tumors?`,
+    clue: `Bilateral acoustic neuromas define a chromosome 22 neurocutaneous syndrome.`,
+    choices: [`NF2 gene on chromosome 22`, `VHL gene on chromosome 3`, `TSC1 gene on chromosome 9`],
+    correctIndex: 0,
+    explanation: `Correct: Bilateral vestibular schwannomas are the hallmark of neurofibromatosis type 2 (NF2), caused by loss-of-function mutations in the NF2 (merlin) tumor suppressor on chromosome 22. Distractor exclusion: VHL mutations predispose to cerebellar hemangioblastomas and retinal angiomas; TSC1 mutations cause tuberous sclerosis (SEGA/angiomyolipomas).`,
+    secondOrderClue: `Bilateral CN VIII schwannomas = NF2 (chromosome 22, "22 letters/two ears").`,
+    phase1Pearl: `Inactivation of merlin (schwannomin) removes contact inhibition of Schwann cell growth.`,
+    phase2Hallmark: `S-100+ spindle cell neoplasms with alternating hypercellular Antoni A and myxoid Antoni B zones.`,
+    phase3Secret: `Screen first-degree relatives and monitor hearing early; radiosurgery preserves auditory function when small.`,
+    dossierBullets: {
+      p1: [`Autosomal dominant NF2 mutation on chromosome 22`, `Also predisposes to multiple meningiomas and ependymomas`],
+      p2: [`Bilateral internal acoustic meatus masses on MRI`, `S-100 positive Schwann cell proliferation`],
+      p3: [`Audiology surveillance + stereotactic radiosurgery or resection`, `Preserve facial nerve (CN VII) adjacent to tumor`]
+    }
+  },
+  {
+    id: `NP05-Q3`, lo: 5, sector: `sector_2`,
+    loTitle: `LO 5: Schwannoma & Oligodendroglioma`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Oligodendroglioma (fried-egg cells)`,
+    stem: `A 44-year-old man experiences a new generalized tonic-clonic seizure. CT shows a calcified left frontal lobe mass. Biopsy reveals sheets of uniform round nuclei surrounded by clear cytoplasm ("fried-egg" appearance) and a delicate "chicken-wire" capillary network. What is the diagnosis?`,
+    clue: `Calcified frontal lobe tumor in an adult with perinuclear clearing artifact and branching capillaries.`,
+    choices: [`Oligodendroglioma`, `Ependymoma`, `Hemangioblastoma`],
+    correctIndex: 0,
+    explanation: `Correct: Oligodendroglioma is a slow-growing frontal lobe tumor that frequently calcifies and classically exhibits "fried-egg" cells (round nuclei with clear cytoplasm halo) and a "chicken-wire" capillary network. Distractor exclusion: Ependymoma arises in the 4th ventricle with perivascular pseudorosettes; hemangioblastoma is cerebellar with thin-walled capillaries and foamy stromal cells.`,
+    secondOrderClue: `Adult + frontal lobe + calcifications + fried-egg cells + chicken-wire vessels = Oligodendroglioma.`,
+    phase1Pearl: `Slow-growing oligodendrocyte neoplasm often harboring 1p/19q codeletion.`,
+    phase2Hallmark: `Calcified frontal lobe tumor with "fried-egg" artifact and branching "chicken-wire" capillaries.`,
+    phase3Secret: `Treat with surgical resection +/- chemotherapy; carries better prognosis than high-grade astrocytoma.`,
+    dossierBullets: {
+      p1: [`Oligodendrocyte lineage in frontal lobe white matter`, `Often presents with seizures due to slow cortical irritation`],
+      p2: [`Coarse calcifications on CT/MRI`, `"Fried-egg" cells + delicate chicken-wire vasculature`],
+      p3: [`Surgical resection and adjuvant therapy`, `Slower progression than GBM`]
+    }
+  },
+
+  // LO 6: Pediatric CNS Tumors (P1, P2, P3)
+  {
+    id: `NP06-Q1`, lo: 6, sector: `sector_2`,
+    loTitle: `LO 6: Pediatric CNS Tumors`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Craniopharyngioma`,
+    stem: `A 9-year-old boy is evaluated for short stature, polyuria, and bumping into doorframes on both sides. Examination shows bitemporal hemianopia, and head CT demonstrates a calcified suprasellar cystic mass containing "motor oil"-like fluid. What is the most likely diagnosis?`,
+    clue: `Childhood supratentorial calcified mass from Rathke pouch compressing the optic chiasm.`,
+    choices: [`Craniopharyngioma`, `Medulloblastoma`, `Pilocytic astrocytoma`],
+    correctIndex: 0,
+    explanation: `Correct: Craniopharyngioma arises from epithelial remnants of Rathke pouch in the suprasellar region, compressing the optic chiasm (bitemporal hemianopia) and pituitary/hypothalamus, with calcifications and cholesterol-rich "motor oil" cysts. Distractor exclusion: Medulloblastoma and pilocytic astrocytoma are infratentorial cerebellar tumors that do not compress the optic chiasm directly.`,
+    secondOrderClue: `Child + bitemporal hemianopia + suprasellar calcifications = Craniopharyngioma (Rathke pouch).`,
+    phase1Pearl: `Derived from ectodermal epithelial remnants of Rathke pouch (oral ectoderm).`,
+    phase2Hallmark: `Calcifications on imaging ("tooth-like" enamel origin) and cholesterol crystals in dark "motor oil" cyst fluid.`,
+    phase3Secret: `Benign histology but high recurrence rate after resection due to adherence to optic chiasm and hypothalamus.`,
+    dossierBullets: {
+      p1: [`Rathke pouch remnant -> suprasellar mass in children/young adults`, `Compresses optic chiasm and pituitary stalk`],
+      p2: [`Suprasellar calcifications + cholesterol crystals`, `Dark "motor oil" cyst fluid`],
+      p3: [`Resection +/- focal radiation; lifelong endocrine replacement`, `High local recurrence rate despite benign histology`]
+    }
+  },
+  {
+    id: `NP06-Q2`, lo: 6, sector: `sector_2`,
+    loTitle: `LO 6: Pediatric CNS Tumors`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Cerebellar neuroectoderm drop metastasis`,
+    stem: `A 6-year-old boy with truncal ataxia and morning vomiting undergoes resection of a midline cerebellar vermis tumor composed of small, round blue cells forming Homer-Wright rosettes. Why must the entire neuroaxis (including lumbar spine) be imaged in this patient?`,
+    clue: `This malignant neuroectodermal tumor spreads readily through CSF pathways to the cauda equina.`,
+    choices: [`CSF dissemination causing drop metastases to the cauda equina`, `Hematogenous spread to vertebral bone marrow`, `Direct transdural invasion into the cavernous sinus`],
+    correctIndex: 0,
+    explanation: `Correct: Medulloblastoma is a rapidly growing malignant neuroectodermal tumor of cerebellar granular cells that frequently seeds the CSF, producing "drop metastases" to the spinal cord and cauda equina. Distractor exclusion: Primary CNS tumors rarely metastasize hematogenously outside the neuroaxis; cavernous sinus invasion is unrelated.`,
+    secondOrderClue: `Child + cerebellar vermis + Homer-Wright rosettes = Medulloblastoma -> CSF drop metastases.`,
+    phase1Pearl: `Malignant primitive neuroectodermal cells of the cerebellar vermis proliferate rapidly and exfoliate into CSF.`,
+    phase2Hallmark: `Sheets of small, round blue cells with Homer-Wright rosettes (tumor cells surrounding central neuropil).`,
+    phase3Secret: `Treat with surgical resection, craniospinal irradiation, and chemotherapy; poor prognosis without craniospinal control.`,
+    dossierBullets: {
+      p1: [`Derived from cerebellar granular/neuroectodermal cells`, `Most common malignant primary brain tumor in children`],
+      p2: [`Small round blue cells + Homer-Wright rosettes`, `Midline vermis mass causing obstructive hydrocephalus`],
+      p3: [`Screen entire spine MRI for CSF drop metastases`, `Requires craniospinal radiation + chemotherapy`]
+    }
+  },
+  {
+    id: `NP06-Q3`, lo: 6, sector: `sector_2`,
+    loTitle: `LO 6: Pediatric CNS Tumors`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Rosenthal fibers (pilocytic astrocytoma)`,
+    stem: `A 7-year-old girl has progressive clumsiness and headache. MRI shows a well-circumscribed cystic cerebellar mass with an enhancing mural nodule. Biopsy reveals GFAP-positive astrocytes with thick, corkscrew eosinophilic processes. Which histologic finding is present?`,
+    clue: `Benign childhood cerebellar cyst-with-mural-nodule tumor exhibits thick eosinophilic astrocytic fibers.`,
+    choices: [`Rosenthal fibers (pilocytic astrocytoma)`, `Perivascular pseudorosettes (ependymoma)`, `Homer-Wright rosettes (medulloblastoma)`],
+    correctIndex: 0,
+    explanation: `Correct: Pilocytic astrocytoma is the most common benign primary childhood CNS tumor, presenting as a cerebellar cyst with a mural nodule and demonstrating Rosenthal fibers (thick eosinophilic astrocytic processes) and eosinophilic granular bodies (GFAP+). Distractor exclusion: Ependymoma arises in the 4th ventricle with perivascular pseudorosettes; medulloblastoma shows small round blue cells and Homer-Wright rosettes.`,
+    secondOrderClue: `Child + cerebellar cyst with mural nodule + Rosenthal fibers + GFAP+ = Pilocytic astrocytoma.`,
+    phase1Pearl: `Low-grade astrocytic proliferation in the posterior fossa with excellent prognosis after resection.`,
+    phase2Hallmark: `Cystic lesion with mural nodule on MRI; Rosenthal fibers and eosinophilic granular bodies on H&E (GFAP+).`,
+    phase3Secret: `Complete surgical resection is usually curative; distinguish from 4th ventricle ependymoma (hydrocephalus).`,
+    dossierBullets: {
+      p1: [`Benign GFAP+ astrocytoma; most common primary childhood CNS tumor`, `Associated with NF1 when involving optic pathway`],
+      p2: [`Cyst + enhancing mural nodule in cerebellum`, `Rosenthal fibers (thick eosinophilic processes)`],
+      p3: [`Surgical excision yields excellent prognosis`, `4th ventricle ependymoma shows perivascular pseudorosettes instead`]
+    }
+  },
+
+  // LO 7: Multiple Sclerosis (P1, P2, P3)
+  {
+    id: `NP07-Q1`, lo: 7, sector: `sector_3`,
+    loTitle: `LO 7: Multiple Sclerosis (MS)`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Multiple sclerosis`,
+    stem: `A 28-year-old woman develops painful monocular vision loss with an afferent pupillary defect, followed 8 months later by diplopia on leftward gaze with impaired adduction of the right eye and nystagmus of the abducting left eye. Which diagnosis unifies her episodes?`,
+    clue: `Optic neuritis plus internuclear ophthalmoplegia (MLF lesion) separated in time and space in a young woman.`,
+    choices: [`Multiple sclerosis`, `Myasthenia gravis`, `Guillain-Barré syndrome`],
+    correctIndex: 0,
+    explanation: `Correct: Multiple sclerosis classically affects young women (20–40 yrs) with CNS demyelinating lesions disseminated in space and time, such as optic neuritis and internuclear ophthalmoplegia (MLF). Distractor exclusion: Myasthenia gravis causes fatigable ptosis/diplopia without optic neuritis or RAPD; GBS causes acute ascending peripheral paralysis.`,
+    secondOrderClue: `Young female + optic neuritis + INO (MLF) + relapsing course = Multiple sclerosis.`,
+    phase1Pearl: `Autoimmune T-cell attack against oligodendrocytes and CNS myelin, associated with HLA-DR2 and low vitamin D.`,
+    phase2Hallmark: `Periventricular white matter plaques (Dawson fingers) on MRI; CSF oligoclonal IgG bands and myelin basic protein.`,
+    phase3Secret: `Treat acute relapses with high-dose IV steroids; slow progression with beta-interferon, glatiramer, or natalizumab.`,
+    dossierBullets: {
+      p1: [`HLA-DR2 association; higher prevalence away from equator`, `Autoimmune CNS oligodendrocyte & myelin destruction`],
+      p2: [`MRI gold standard: periventricular white matter plaques`, `CSF: oligoclonal IgG bands + elevated myelin basic protein`],
+      p3: [`Acute flare: IV methylprednisolone; chronic: DMTs`, `Uhthoff phenomenon: heat/exercise worsens symptoms`]
+    }
+  },
+  {
+    id: `NP07-Q2`, lo: 7, sector: `sector_3`,
+    loTitle: `LO 7: Multiple Sclerosis (MS)`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Oligodendrocyte autoimmune demyelination`,
+    stem: `A 31-year-old woman with relapsing-remitting multiple sclerosis experiences blurred vision and leg paresthesias whenever she takes a hot shower (Uhthoff phenomenon). Destruction of which CNS glial cell underlies the slowed axonal conduction unmasked by heat?`,
+    clue: `CNS myelin is synthesized by a single glial cell type that wraps multiple axons.`,
+    choices: [`Oligodendrocytes`, `Schwann cells`, `Microglia`],
+    correctIndex: 0,
+    explanation: `Correct: Multiple sclerosis involves autoimmune destruction of CNS myelin and oligodendrocytes; elevated temperature further blocks action potential propagation along demyelinated axons (Uhthoff phenomenon). Distractor exclusion: Schwann cells myelinate peripheral nerves (affected in GBS); microglia are CNS phagocytes.`,
+    secondOrderClue: `MS + Uhthoff heat worsening = demyelinated CNS axons lacking oligodendrocyte myelin.`,
+    phase1Pearl: `Loss of oligodendrocyte myelin exposes voltage-gated K+ channels, causing conduction block when body temperature rises.`,
+    phase2Hallmark: `Gross gray plaques in periventricular white matter and spinal cord; reactive gliosis in chronic lesions.`,
+    phase3Secret: `Advise cooling strategies during heat exposure and treat spasticity with baclofen (GABAB agonist).`,
+    dossierBullets: {
+      p1: [`Type IV hypersensitivity against CNS myelin/oligodendrocytes`, `Heat increases axonal conduction block (Uhthoff phenomenon)`],
+      p2: [`Gray-appearing plaques in white matter on gross pathology`, `Loss of oligodendrocytes with perivascular lymphocytes`],
+      p3: [`Baclofen for spasticity; muscarinic antagonists for neurogenic bladder`, `Lhermitte sign: electric shock down spine on neck flexion`]
+    }
+  },
+  {
+    id: `NP07-Q3`, lo: 7, sector: `sector_3`,
+    loTitle: `LO 7: Multiple Sclerosis (MS)`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Oligoclonal IgG bands & MRI plaques`,
+    stem: `A 26-year-old woman with suspected multiple sclerosis undergoes brain MRI and lumbar puncture. Which combination of MRI and CSF findings best confirms the diagnosis?`,
+    clue: `Look for periventricular white matter lesions and intrathecal clonal IgG synthesis.`,
+    choices: [`Periventricular white matter plaques on MRI and CSF oligoclonal IgG bands`, `Temporal lobe hyperintensity on MRI and CSF RBCs`, `Basal ganglia atrophy on MRI and CSF 14-3-3 protein`],
+    correctIndex: 0,
+    explanation: `Correct: Brain/spine MRI demonstrating periventricular white matter plaques (disseminated in space and time) paired with CSF oligoclonal IgG bands and myelin basic protein confirms MS. Distractor exclusion: Temporal hyperintensity with RBCs suggests HSV encephalitis; caudate atrophy and 14-3-3 protein belong to Huntington and CJD respectively.`,
+    secondOrderClue: `MS confirmation = MRI periventricular plaques + CSF oligoclonal IgG bands + ↑ myelin basic protein.`,
+    phase1Pearl: `Intrathecal B-cell clones produce discrete IgG bands in CSF absent from paired serum.`,
+    phase2Hallmark: `Hyperintense T2/FLAIR periventricular plaques ("Dawson fingers") + CSF lymphocytosis and oligoclonal bands.`,
+    phase3Secret: `Screen for JC virus before natalizumab due to risk of progressive multifocal leukoencephalopathy (PML).`,
+    dossierBullets: {
+      p1: [`Clonal CNS IgG synthesis produces oligoclonal bands`, `Active plaques enhance with gadolinium on MRI`],
+      p2: [`Periventricular plaques + myelin basic protein in CSF`, `Gross brain shows firm gray plaques in white matter`],
+      p3: [`High-dose IV steroids speed recovery from acute attacks`, `Natalizumab carries PML (JC virus) reactivation risk`]
+    }
+  },
+
+  // LO 8: Guillain-Barré Syndrome (P1, P2, P3)
+  {
+    id: `NP08-Q1`, lo: 8, sector: `sector_3`,
+    loTitle: `LO 8: Guillain-Barré Syndrome (GBS)`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Guillain-Barré syndrome`,
+    stem: `Two weeks after recovering from bloody diarrhea caused by Campylobacter jejuni, a 34-year-old man develops symmetric tingling in his feet followed by rapidly ascending leg weakness and absent Achilles and patellar reflexes. What is the most likely diagnosis?`,
+    clue: `Post-Campylobacter ascending flaccid paralysis with areflexia points to acute peripheral demyelination.`,
+    choices: [`Guillain-Barré syndrome`, `Amyotrophic lateral sclerosis`, `Myasthenia gravis`],
+    correctIndex: 0,
+    explanation: `Correct: GBS presents as acute symmetric ascending flaccid paralysis and areflexia typically 1–3 weeks after C. jejuni or viral infection. Distractor exclusion: ALS causes chronic asymmetric UMN+LMN deficits with hyperreflexia; myasthenia gravis causes fluctuating ocular/bulbar weakness with preserved reflexes.`,
+    secondOrderClue: `C. jejuni diarrhea -> ascending paralysis + areflexia = Guillain-Barré syndrome.`,
+    phase1Pearl: `Molecular mimicry between C. jejuni lipooligosaccharides and peripheral nerve gangliosides triggers autoimmune demyelination.`,
+    phase2Hallmark: `Lumbar puncture reveals albuminocytologic dissociation (high CSF protein with normal WBC count).`,
+    phase3Secret: `Treat with IVIG or plasmapheresis and closely monitor forced vital capacity for impending respiratory failure.`,
+    dossierBullets: {
+      p1: [`C. jejuni molecular mimicry targets peripheral Schwann myelin`, `Segmental demyelination slows peripheral nerve conduction`],
+      p2: [`Albuminocytologic dissociation: elevated CSF protein, normal WBCs`, `Prolonged F-waves and slowed conduction on NCS`],
+      p3: [`IVIG or plasmapheresis; monitor FVC/NIF for intubation need`, `Glucocorticoids are NOT effective in GBS`]
+    }
+  },
+  {
+    id: `NP08-Q2`, lo: 8, sector: `sector_3`,
+    loTitle: `LO 8: Guillain-Barré Syndrome (GBS)`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Molecular mimicry vs Schwann myelin`,
+    stem: `A patient develops acute inflammatory demyelinating polyradiculoneuropathy after Campylobacter jejuni gastroenteritis. Which immunologic mechanism explains the attack on peripheral nerve roots?`,
+    clue: `Antibodies generated against bacterial surface glycans cross-react with host peripheral nerve gangliosides.`,
+    choices: [`Molecular mimicry targeting peripheral nerve gangliosides and Schwann myelin`, `Direct viral lysis of anterior horn motor neurons`, `Autoantibodies against presynaptic voltage-gated calcium channels`],
+    correctIndex: 0,
+    explanation: `Correct: GBS arises via molecular mimicry in which antibodies against C. jejuni or viral antigens cross-react with peripheral nerve gangliosides and Schwann cell myelin. Distractor exclusion: Poliovirus lyses anterior horn cells; Lambert-Eaton syndrome targets presynaptic VGCCs.`,
+    secondOrderClue: `C. jejuni -> anti-ganglioside cross-reactivity (molecular mimicry) -> peripheral demyelination.`,
+    phase1Pearl: `Endoneurial macrophage infiltration strips peripheral myelin sheaths and slows saltatory conduction.`,
+    phase2Hallmark: `CSF albuminocytologic dissociation reflects nerve root inflammation leaking protein without pleocytosis.`,
+    phase3Secret: `Watch for autonomic instability (arrhythmias, labile BP) alongside diaphragmatic weakness.`,
+    dossierBullets: {
+      p1: [`Molecular mimicry -> antibody & macrophage-mediated demyelination`, `Affects peripheral motor, sensory, and autonomic fibers`],
+      p2: [`Endoneurial mononuclear infiltrate and segmental demyelination`, `Normal CSF WBC count differentiates from infectious meningitis`] ,
+      p3: [`Plasmapheresis or IVIG speeds recovery`, `Avoid succinylcholine due to hyperkalemia risk in denervation`]
+    }
+  },
+  {
+    id: `NP08-Q3`, lo: 8, sector: `sector_3`,
+    loTitle: `LO 8: Guillain-Barré Syndrome (GBS)`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Albuminocytologic dissociation + IVIG`,
+    stem: `A 41-year-old woman with rapidly ascending lower-extremity weakness and areflexia has a lumbar puncture showing CSF protein of 185 mg/dL, 2 WBCs/mm3, and normal glucose. Which diagnostic hallmark and treatment pair applies?`,
+    clue: `Markedly elevated CSF protein without elevated white blood cells directs immediate immunomodulatory therapy.`,
+    choices: [`Albuminocytologic dissociation; treat with IVIG or plasmapheresis`, `Purulent neutrophilic pleocytosis; treat with ceftriaxone`, `Oligoclonal IgG bands; treat with high-dose IV steroids`],
+    correctIndex: 0,
+    explanation: `Correct: High CSF protein with normal WBC count is albuminocytologic dissociation, characteristic of GBS and treated with IVIG or plasmapheresis. Distractor exclusion: Neutrophilic pleocytosis indicates bacterial meningitis; oligoclonal bands with steroid therapy apply to MS.`,
+    secondOrderClue: `High CSF protein + normal WBC = albuminocytologic dissociation -> IVIG/plasmapheresis (NOT steroids).`,
+    phase1Pearl: `Inflamed spinal nerve roots leak plasma proteins into subarachnoid CSF without cellular infection.`,
+    phase2Hallmark: `Albuminocytologic dissociation (may be normal in first 48h, rises by week 1–2).`,
+    phase3Secret: `Measure bedside negative inspiratory force (NIF) and vital capacity frequently to prevent respiratory arrest.`,
+    dossierBullets: {
+      p1: [`Nerve root barrier breakdown leaks albumin into CSF`, `Immune complexes/antibodies drive acute demyelination`],
+      p2: [`CSF protein >100 mg/dL with <5 WBCs/mm3`, `NCS shows conduction block and prolonged distal latencies`],
+      p3: [`IVIG or plasmapheresis (equally effective); no steroids`, `Early ICU respiratory monitoring is mandatory`]
+    }
+  },
+
+  // LO 9: ALS & Spinal Muscular Atrophy (P1, P2, P3)
+  {
+    id: `NP09-Q1`, lo: 9, sector: `sector_3`,
+    loTitle: `LO 9: ALS & Spinal Muscular Atrophy (SMA)`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Amyotrophic lateral sclerosis`,
+    stem: `A 57-year-old man reports 6 months of progressive hand clumsiness, muscle cramps, and slurred speech. Exam reveals thenar atrophy and tongue fasciculations alongside brisk patellar reflexes, ankle clonus, and bilateral Babinski signs, with normal pinprick and vibration sensation. What is the diagnosis?`,
+    clue: `Combined upper and lower motor neuron signs with completely spared sensory pathways.`,
+    choices: [`Amyotrophic lateral sclerosis (ALS)`, `Syringomyelia`, `Subacute combined degeneration`],
+    correctIndex: 0,
+    explanation: `Correct: ALS causes combined degeneration of upper motor neurons (hyperreflexia, clonus, Babinski+) and lower motor neurons (atrophy, fasciculations) while sparing sensory, bowel/bladder, and extraocular systems. Distractor exclusion: Syringomyelia causes dissociated cape-like pain/temp sensory loss; SCD causes dorsal column sensory ataxia.`,
+    secondOrderClue: `Atrophy/fasciculations (LMN) + hyperreflexia/Babinski (UMN) + intact sensation = ALS.`,
+    phase1Pearl: `Familial cases (~10%) commonly involve SOD1 mutations causing free-radical injury to motor neurons.`,
+    phase2Hallmark: `Atrophy of anterior spinal nerve roots and lateral corticospinal tract sclerosis/gliosis.`,
+    phase3Secret: `Riluzole reduces glutamate excitotoxicity and modestly prolongs survival; respiratory failure is the usual cause of death.`,
+    dossierBullets: {
+      p1: [`Combined corticospinal (UMN) + anterior horn (LMN) degeneration`, `Familial form linked to SOD1 free-radical toxicity`],
+      p2: [`Thin, atrophic anterior spinal roots; normal dorsal roots`, `Lateral corticospinal tract myelin pallor & gliosis`],
+      p3: [`Riluzole (glutamate antagonist) + noninvasive ventilation`, `Spares sensory pathways and extraocular muscles`]
+    }
+  },
+  {
+    id: `NP09-Q2`, lo: 9, sector: `sector_3`,
+    loTitle: `LO 9: ALS & Spinal Muscular Atrophy (SMA)`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `SOD1 free-radical motor neuron injury`,
+    stem: `A patient with familial amyotrophic lateral sclerosis has an autosomal dominant mutation on chromosome 21 affecting an antioxidant enzyme. Dysfunction of which protein leads to toxic free-radical accumulation in motor neurons?`,
+    clue: `Familial ALS classically implicates copper-zinc superoxide dismutase.`,
+    choices: [`Superoxide dismutase 1 (SOD1)`, `Survival motor neuron 1 (SMN1)`, `Frataxin (FXN)`],
+    correctIndex: 0,
+    explanation: `Correct: Familial ALS is associated with mutations in SOD1 (superoxide dismutase 1) on chromosome 21, generating oxidative/misfolded protein stress that kills UMN and LMN motor neurons. Distractor exclusion: SMN1 deletion causes autosomal recessive infantile SMA (Werdnig-Hoffmann); frataxin GAA expansion causes Friedreich ataxia.`,
+    secondOrderClue: `Familial ALS = SOD1 mutation (chr 21); Infantile SMA (floppy baby) = AR SMN1 mutation.`,
+    phase1Pearl: `Misfolded SOD1 aggregates and oxidative stress trigger apoptosis in Betz cells and anterior horn motor neurons.`,
+    phase2Hallmark: `Neurogenic grouped muscle atrophy on biopsy plus Bunina bodies in surviving anterior horn neurons.`,
+    phase3Secret: `Distinguish adult UMN+LMN ALS from infantile pure-LMN Werdnig-Hoffmann disease (SMA).`,
+    dossierBullets: {
+      p1: [`SOD1 mutation -> toxic gain-of-function & oxidative injury`, `Glutamate excitotoxicity contributes to motor neuron death`],
+      p2: [`Atrophic anterior spinal roots and lateral cord tracts`, `Skeletal muscle shows angulated atrophic fibers in groups`],
+      p3: [`Riluzole inhibits presynaptic glutamate release`, `Discuss early advance directives for respiratory support`]
+    }
+  },
+  {
+    id: `NP09-Q3`, lo: 9, sector: `sector_3`,
+    loTitle: `LO 9: ALS & Spinal Muscular Atrophy (SMA)`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Werdnig-Hoffmann (anterior horn LMN)`,
+    stem: `A 3-month-old infant presents with profound hypotonia ("floppy baby"), frog-leg posture, absent deep tendon reflexes, and tongue fasciculations, though visual tracking and alertness are normal. Muscle biopsy shows panfascicular neurogenic atrophy. Which CNS structure has degenerated?`,
+    clue: `Autosomal recessive SMN1 degeneration produces pure lower motor neuron weakness in infancy.`,
+    choices: [`Anterior motor horn cells of the spinal cord`, `Dorsal columns and spinocerebellar tracts`, `Substantia nigra pars compacta`],
+    correctIndex: 0,
+    explanation: `Correct: Werdnig-Hoffmann disease (SMA type 1) is an autosomal recessive degeneration of anterior horn lower motor neurons, causing symmetric infantile hypotonia, areflexia, and tongue fasciculations without UMN or sensory loss. Distractor exclusion: Dorsal/spinocerebellar degeneration occurs in Friedreich ataxia; substantia nigra loss occurs in Parkinson disease.`,
+    secondOrderClue: `Floppy baby + absent DTRs + tongue fasciculations = Werdnig-Hoffmann (anterior horn LMN).`,
+    phase1Pearl: `Autosomal recessive SMN1 loss impairs snRNP assembly, triggering selective apoptosis of anterior horn alpha motor neurons.`,
+    phase2Hallmark: `Empty anterior horn motor neuron beds with gliosis and severe grouped neurogenic muscle atrophy.`,
+    phase3Secret: `Death typically occurs within the first few years of life from respiratory failure unless SMN-modifying therapy is given.`,
+    dossierBullets: {
+      p1: [`Autosomal recessive SMN1 deficiency -> pure LMN loss`, `Spares corticospinal UMN tracts and cognition`],
+      p2: [`Loss of large anterior horn alpha motor neurons`, `Large groups of tiny rounded atrophic muscle fibers`],
+      p3: [`Supportive pulmonary/nutritional care; genetic counseling`, `Contrast with congenital myopathies or botulism`]
+    }
+  },
+
+  // LO 10: Alzheimer Disease (P1, P2, P3)
+  {
+    id: `NP10-Q1`, lo: 10, sector: `sector_4`,
+    loTitle: `LO 10: Alzheimer Disease (AD)`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Alzheimer disease (APP chr 21)`,
+    stem: `A 43-year-old man with trisomy 21 develops progressive short-term memory loss, disorientation in familiar rooms, and difficulty dressing himself over 18 months, with a normal cranial nerve and motor exam. Which mechanism explains his early dementia?`,
+    clue: `Trisomy 21 provides an extra copy of the amyloid precursor protein gene.`,
+    choices: [`Increased gene dosage of amyloid precursor protein (APP) on chromosome 21`, `Expanded CAG trinucleotide repeats on chromosome 4`, `Prion conversion from alpha-helical to beta-pleated conformation`],
+    correctIndex: 0,
+    explanation: `Correct: Individuals with Down syndrome (trisomy 21) carry 3 copies of the APP gene on chromosome 21, leading to early Aβ amyloid accumulation and Alzheimer disease commonly by age 40. Distractor exclusion: CAG repeats on chromosome 4 cause Huntington disease; prion conversion causes Creutzfeldt-Jakob disease.`,
+    secondOrderClue: `Down syndrome + age ~40 memory/praxis decline = early Alzheimer disease (APP on chr 21).`,
+    phase1Pearl: `Beta-secretase cleavage of excess APP yields insoluble Aβ amyloid peptides forming neuritic plaques.`,
+    phase2Hallmark: `Cortical atrophy (narrow gyri, wide sulci), extracellular Aβ plaques, and intracellular hyperphosphorylated tau tangles.`,
+    phase3Secret: `Acetylcholinesterase inhibitors (donepezil) boost residual cholinergic tone from the nucleus basalis of Meynert.`,
+    dossierBullets: {
+      p1: [`APP on chromosome 21 -> early-onset AD in trisomy 21`, `Sporadic AD risk increased by APOE ε4 allele (ε2 protective)`],
+      p2: [`Diffuse cerebral atrophy + hydrocephalus ex vacuo`, `Extracellular Aβ plaques + intracellular tau neurofibrillary tangles`],
+      p3: [`Donepezil (AChE inhibitor) or memantine (NMDA blocker)`, `No early focal motor deficits distinguish AD from vascular dementia`]
+    }
+  },
+  {
+    id: `NP10-Q2`, lo: 10, sector: `sector_4`,
+    loTitle: `LO 10: Alzheimer Disease (AD)`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Nucleus basalis ACh & beta-APP cleavage`,
+    stem: `A 76-year-old woman with slowly progressive amnesia and apraxia is started on donepezil. Loss of cholinergic neurons in which deep forebrain nucleus explains the rationale for this medication?`,
+    clue: `Alzheimer disease selectively depletes cortical acetylcholine projections originating in the basal forebrain.`,
+    choices: [`Nucleus basalis of Meynert`, `Substantia nigra pars compacta`, `Locus ceruleus`],
+    correctIndex: 0,
+    explanation: `Correct: Degeneration of cholinergic neurons in the nucleus basalis of Meynert reduces cortical acetylcholine in Alzheimer disease, providing the target for acetylcholinesterase inhibitors like donepezil. Distractor exclusion: Substantia nigra loss depletes dopamine (Parkinson); locus ceruleus produces norepinephrine.`,
+    secondOrderClue: `Alzheimer memory loss + donepezil -> cholinergic loss in nucleus basalis of Meynert.`,
+    phase1Pearl: `Beta-cleavage of APP produces Aβ amyloid, while tau hyperphosphorylation destabilizes neuronal microtubules.`,
+    phase2Hallmark: `Hirano bodies (intracellular eosinophilic proteinaceous rods in hippocampus) plus plaques and tangles.`,
+    phase3Secret: `Vascular Aβ deposition (cerebral amyloid angiopathy) increases risk of recurrent lobar intraparenchymal hemorrhage.`,
+    dossierBullets: {
+      p1: [`Nucleus basalis of Meynert cholinergic degeneration`, `APOE ε4 impairs Aβ clearance; presenilin 1/2 cause familial AD`],
+      p2: [`Tau tangles correlate best with severity of dementia`, `Congo red apple-green birefringence in amyloid plaques/vessels`],
+      p3: [`Donepezil/rivastigmine inhibit ACh breakdown`, `Exclude reversible causes (B12, TSH, NPH) before diagnosing AD`]
+    }
+  },
+  {
+    id: `NP10-Q3`, lo: 10, sector: `sector_4`,
+    loTitle: `LO 10: Alzheimer Disease (AD)`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Aβ plaques & hyperphosphorylated tau tangles`,
+    stem: `Gross brain autopsy of an 84-year-old patient with severe terminal dementia demonstrates narrowed gyri, widened sulci, and enlarged ventricles. Silver staining reveals extracellular Aβ-cored neuritic plaques and flame-shaped intracellular neurofibrillary tangles. Which protein comprises the intracellular tangles?`,
+    clue: `This microtubule-associated protein becomes abnormally hyperphosphorylated inside cortical neurons.`,
+    choices: [`Hyperphosphorylated tau protein`, `Alpha-synuclein`, `Ubiquitinated TDP-43`],
+    correctIndex: 0,
+    explanation: `Correct: Neurofibrillary tangles in Alzheimer disease are intracellular aggregates of hyperphosphorylated tau, a microtubule-associated protein whose burden correlates with dementia severity. Distractor exclusion: Alpha-synuclein forms Lewy bodies (Parkinson/DLB); TDP-43 inclusions are seen in ALS and frontotemporal dementia.`,
+    secondOrderClue: `Extracellular Aβ neuritic plaques + intracellular hyperphosphorylated tau tangles = Alzheimer disease.`,
+    phase1Pearl: `Tau hyperphosphorylation detaches tau from microtubules, disrupting axonal transport and forming paired helical filaments.`,
+    phase2Hallmark: `Narrowed gyri, widened sulci, ex vacuo ventriculomegaly, extracellular Aβ plaques, and intracellular tau tangles.`,
+    phase3Secret: `End-stage AD patients become mute and bedridden; intercurrent infection (pneumonia) is a common cause of death.`,
+    dossierBullets: {
+      p1: [`Hyperphosphorylated tau disrupts microtubule stability`, `Tangle density correlates with clinical dementia stage`],
+      p2: [`Gross: cortical atrophy with widened sulci`, `Micro: neuritic Aβ plaques + flame-shaped tau tangles + Hirano bodies`],
+      p3: [`Caregiver support and infection prevention in late disease`, `Presumptive clinical diagnosis; definitive confirmation at autopsy`]
+    }
+  },
+
+  // LO 11: FTLD (Pick Disease) & Lewy Body Dementia (P1, P2, P3)
+  {
+    id: `NP11-Q1`, lo: 11, sector: `sector_4`,
+    loTitle: `LO 11: FTLD (Pick Disease) & Lewy Body Dementia`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Frontotemporal dementia (Pick disease)`,
+    stem: `A 58-year-old accountant begins making inappropriate sexual remarks at work, shoplifting, and repeating his coworkers' phrases while still remembering recent family events and navigating home without trouble. Brain MRI reveals focal frontal and anterior temporal atrophy. What is the diagnosis?`,
+    clue: `Early behavioral disinhibition and language changes preceding memory loss with spared posterior cortex.`,
+    choices: [`Frontotemporal dementia (Pick disease)`, `Alzheimer disease`, `Normal pressure hydrocephalus`],
+    correctIndex: 0,
+    explanation: `Correct: Frontotemporal dementia (Pick disease) causes early behavioral disinhibition, personality changes, and aphasia with focal frontal/temporal atrophy while sparing parietal/occipital lobes and early memory. Distractor exclusion: Alzheimer disease begins with short-term memory loss; NPH presents with gait apraxia, incontinence, and dementia.`,
+    secondOrderClue: `Early behavioral disinhibition/aphasia + preserved early memory + frontal/temporal atrophy = Pick disease.`,
+    phase1Pearl: `Selective degeneration of frontal and temporal cortical neurons driven by tau or TDP-43 proteinopathy.`,
+    phase2Hallmark: `Knife-edge frontal/temporal gyral atrophy sparing parietal/occipital lobes; round intracellular Pick bodies (tau).`,
+    phase3Secret: `Manage behaviorally and avoid cholinergic drugs that can worsen agitation; screen for family history.`,
+    dossierBullets: {
+      p1: [`Degeneration of frontal and temporal lobes; spares parietal/occipital`, `Tau (Pick bodies) or ubiquitinated TDP-43 pathology`],
+      p2: [`Severe asymmetric "knife-like" frontal/temporal atrophy`, `Round intraneuronal silver-staining tau Pick bodies`],
+      p3: [`Early social disinhibition or primary progressive aphasia`, `Supportive behavioral care; SSRIs may ease disinhibition`]
+    }
+  },
+  {
+    id: `NP11-Q2`, lo: 11, sector: `sector_4`,
+    loTitle: `LO 11: FTLD (Pick Disease) & Lewy Body Dementia`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Cortical α-synuclein Lewy bodies`,
+    stem: `A 71-year-old man presents with fluctuating alertness, vivid visual hallucinations of small animals in his bedroom, REM sleep behavior disorder, and mild cogwheel rigidity that began 4 months after his cognitive decline. Accumulation of which protein in cortical neurons causes this syndrome?`,
+    clue: `Dementia with visual hallucinations and parkinsonism starting within 1 year shares the protein of Parkinson disease.`,
+    choices: [`Alpha-synuclein`, `Beta-amyloid`, `Prion protein (PrPsc)`],
+    correctIndex: 0,
+    explanation: `Correct: Lewy body dementia is caused by intracellular cortical aggregates of α-synuclein (Lewy bodies) and presents with fluctuating cognition, visual hallucinations, REM sleep behavior disorder, and parkinsonism (<1 year apart). Distractor exclusion: Beta-amyloid defines AD; PrPsc causes rapidly progressive CJD with startle myoclonus.`,
+    secondOrderClue: `"HaLewycinations" + fluctuating cognition + parkinsonism (<1 yr) = Cortical α-synuclein (DLB).`,
+    phase1Pearl: `Misfolded α-synuclein spreads into neocortical and limbic neurons alongside cholinergic deficits.`,
+    phase2Hallmark: `Round eosinophilic intracytoplasmic α-synuclein inclusions (Lewy bodies) primarily in cerebral cortex.`,
+    phase3Secret: `Avoid typical antipsychotics (haloperidol) in DLB because patients exhibit severe neuroleptic hypersensitivity.`,
+    dossierBullets: {
+      p1: [`Cortical α-synuclein aggregation impairs cholinergic & dopaminergic networks`, `Cognitive and motor onset <1 year apart defines DLB`],
+      p2: [`Cortical Lewy bodies (eosinophilic α-synuclein inclusions)`, `Contrast with substantia nigra-restricted Lewy bodies in early PD`],
+      p3: [`Strictly avoid D2-blocking typical antipsychotics`, `Cholinesterase inhibitors may help hallucinations and cognition`]
+    }
+  },
+  {
+    id: `NP11-Q3`, lo: 11, sector: `sector_4`,
+    loTitle: `LO 11: FTLD (Pick Disease) & Lewy Body Dementia`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Round tau Pick bodies`,
+    stem: `Autopsy of a patient with early-onset behavioral disinhibition and progressive nonfluent aphasia shows striking atrophy restricted to the frontal and temporal lobes, sparing the parietal and occipital cortices. Histology reveals round, argyrophilic intraneuronal tau inclusions. What are these inclusions called?`,
+    clue: `Spherical tau aggregates distinguish frontotemporal lobar degeneration from flame-shaped Alzheimer tangles.`,
+    choices: [`Pick bodies`, `Lewy bodies`, `Hirano bodies`],
+    correctIndex: 0,
+    explanation: `Correct: Pick bodies are round intracellular aggregates of hyperphosphorylated tau found in frontotemporal cortical neurons in Pick disease. Distractor exclusion: Lewy bodies are α-synuclein inclusions in PD/DLB; Hirano bodies are eosinophilic hippocampal rods in Alzheimer disease.`,
+    secondOrderClue: `Frontal/temporal atrophy (sparing parietal/occipital) + round tau inclusions = Pick bodies.`,
+    phase1Pearl: `Abnormal tau aggregation or ubiquitinated TDP-43 kills frontotemporal executive and language neurons.`,
+    phase2Hallmark: `Round intracellular tau Pick bodies and swollen "ballooned" Pick cells in frontal/temporal cortex.`,
+    phase3Secret: `Differentiate early behavioral FTLD from psychiatric mania or late-onset depression before initiating antipsychotics.`,
+    dossierBullets: {
+      p1: [`Tau or TDP-43 accumulation in frontal/temporal lobes`, `Parietal and occipital lobes classically spared`],
+      p2: [`Round tau Pick bodies on silver/tau immunohistochemistry`, `Macroscopic knife-blade cortical atrophy`],
+      p3: [`Speech therapy and caregiver safety planning`, `Early personality change precedes memory loss`]
+    }
+  },
+
+  // LO 12: Parkinson Disease & Huntington Disease (P1, P2, P3)
+  {
+    id: `NP12-Q1`, lo: 12, sector: `sector_4`,
+    loTitle: `LO 12: Parkinson Disease & Huntington Disease`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Parkinson disease (TRAP)`,
+    stem: `A 67-year-old man exhibits a 4-Hz pill-rolling hand tremor at rest that disappears when reaching for a cup, cogwheel rigidity at the wrist, micrographia, and a stooped shuffling gait with postural instability. What is the diagnosis?`,
+    clue: `Resting tremor, rigidity, bradykinesia, and postural instability ("TRAP") reflect nigrostriatal dopamine loss.`,
+    choices: [`Parkinson disease`, `Essential tremor`, `Huntington disease`],
+    correctIndex: 0,
+    explanation: `Correct: Parkinson disease manifests with TRAP (resting pill-rolling tremor, cogwheel rigidity, akinesia/bradykinesia with micrographia, and postural instability) due to loss of dopaminergic neurons in the substantia nigra pars compacta. Distractor exclusion: Essential tremor worsens with posture/action and improves with alcohol; Huntington disease presents with chorea and dementia at age 30–50.`,
+    secondOrderClue: `Resting pill-rolling tremor + cogwheel rigidity + bradykinesia + shuffling gait (TRAP) = Parkinson disease.`,
+    phase1Pearl: `Degeneration of dopaminergic nigrostriatal neurons (historically linked to MPTP toxin exposure) impairs movement initiation.`,
+    phase2Hallmark: `Gross depigmentation (loss of neuromelanin) in substantia nigra pars compacta + α-synuclein Lewy bodies.`,
+    phase3Secret: `Treat motor symptoms with levodopa/carbidopa or dopamine agonists; dementia develops only in late disease.`,
+    dossierBullets: {
+      p1: [`Loss of dopaminergic neurons in substantia nigra pars compacta`, `Rare toxic cause: MPTP contaminant in illicit opioids`],
+      p2: [`Depigmented substantia nigra + intracellular α-synuclein Lewy bodies`, `Dementia occurs late (unlike early dementia in DLB)`],
+      p3: [`Levodopa/carbidopa restores striatal dopamine`, `Carbidopa inhibits peripheral DOPA decarboxylase`]
+    }
+  },
+  {
+    id: `NP12-Q2`, lo: 12, sector: `sector_4`,
+    loTitle: `LO 12: Parkinson Disease & Huntington Disease`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `HTT CAG expansion & caudate GABA loss`,
+    stem: `A 36-year-old man develops progressive writhing finger movements, jerky dance-like limb motions, irritability, and depression; his father developed similar symptoms at age 48. Which genetic and neurochemical mechanism drives this disorder?`,
+    clue: `Paternal transmission triggers earlier onset (anticipation) via trinucleotide expansion on chromosome 4.`,
+    choices: [`CAG repeat expansion in huntingtin (chr 4) killing striatal GABAergic neurons`, `GAA repeat expansion in frataxin (chr 9) causing mitochondrial dysfunction`, `Loss of dopaminergic neurons in the substantia nigra pars compacta`],
+    correctIndex: 0,
+    explanation: `Correct: Huntington disease is an autosomal dominant CAG trinucleotide repeat expansion in the HTT gene (chromosome 4) causing toxic gain-of-function death of GABAergic/ACh neurons in the caudate/putamen via NMDA glutamate excitotoxicity; paternal spermatogenesis expansion causes anticipation. Distractor exclusion: GAA repeats cause Friedreich ataxia; substantia nigra loss causes Parkinson disease.`,
+    secondOrderClue: `Earlier paternal onset (anticipation) + chorea + depression = Huntington (CAG chr 4, caudate GABA loss).`,
+    phase1Pearl: `Polyglutamine HTT toxic gain-of-function causes NMDA excitotoxicity and loss of striatal GABA, ACh, and dopamine balance.`,
+    phase2Hallmark: `Severe bilateral atrophy of the caudate nucleus and putamen with ex vacuo dilation of frontal horns.`,
+    phase3Secret: `High suicide rate requires close psychiatric care; VMAT2 inhibitors (tetrabenazine) reduce chorea.`,
+    dossierBullets: {
+      p1: [`AD (CAG)n expansion in HTT gene (chr 4); anticipation in spermatogenesis`, `Caudate loses GABAergic and cholinergic neurons`],
+      p2: [`Atrophy of caudate head and putamen -> boxcar/ex vacuo ventricles`, `Neuronal intranuclear polyglutamine inclusions`],
+      p3: [`Supportive psychiatric care (high suicide risk) + VMAT2 inhibitors`, `Average symptom onset age 30–50 years`]
+    }
+  },
+  {
+    id: `NP12-Q3`, lo: 12, sector: `sector_4`,
+    loTitle: `LO 12: Parkinson Disease & Huntington Disease`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Substantia nigra depigmentation & Lewy bodies`,
+    stem: `Midbrain cross-section at autopsy of a 74-year-old man with bradykinesia and cogwheel rigidity reveals marked pallor of the normally dark substantia nigra. Microscopic examination of surviving neurons shows round eosinophilic cytoplasmic inclusions. What protein forms these inclusions?`,
+    clue: `Remember "Parkinsynuclein" for the eosinophilic inclusions inside pigmented midbrain neurons.`,
+    choices: [`Alpha-synuclein (Lewy bodies)`, `Hyperphosphorylated tau (neurofibrillary tangles)`, `Protease-resistant prion protein (PrPsc)`],
+    correctIndex: 0,
+    explanation: `Correct: Parkinson disease is characterized by depigmentation of the substantia nigra pars compacta and round eosinophilic intracellular inclusions composed of α-synuclein (Lewy bodies). Distractor exclusion: Tau forms neurofibrillary tangles in AD and Pick bodies in FTLD; PrPsc causes spongiform vacuolation in CJD.`,
+    secondOrderClue: `Depigmented substantia nigra + round eosinophilic cytoplasmic inclusions = α-synuclein Lewy bodies.`,
+    phase1Pearl: `Loss of neuromelanin-containing dopaminergic neurons removes direct pathway facilitation in the basal ganglia.`,
+    phase2Hallmark: `Pallor of substantia nigra pars compacta + eosinophilic α-synuclein Lewy bodies.`,
+    phase3Secret: `Compare with Progressive Supranuclear Palsy (hummingbird sign on MRI, vertical gaze palsy, poor levodopa response).`,
+    dossierBullets: {
+      p1: [`Nigrostriatal dopamine loss impairs basal ganglia motor initiation`, `MPTP is oxidized to MPP+, poisoning nigral mitochondria`],
+      p2: [`Macroscopic loss of dark substantia nigra pigment`, `Microscopic round eosinophilic α-synuclein Lewy bodies`],
+      p3: [`Levodopa/carbidopa, pramipexole/ropinirole, or MAO-B inhibitors`, `Late dementia overlaps with Lewy body dementia spectrum`]
+    }
+  },
+
+  // LO 13: Normal Pressure & Non-Communicating Hydrocephalus (P1, P2, P3)
+  {
+    id: `NP13-Q1`, lo: 13, sector: `sector_5`,
+    loTitle: `LO 13: Normal Pressure & Non-Communicating Hydrocephalus`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Normal pressure hydrocephalus`,
+    stem: `A 75-year-old man is brought in for a 6-month history of a broad-based "magnetic" shuffling gait, new urinary urgency with incontinence, and mild cognitive slowing. Head CT shows ventriculomegaly out of proportion to sulcal widening, and LP reveals normal opening pressure. What is the diagnosis?`,
+    clue: `"Wet, wobbly, and wacky" with normal CSF opening pressure.`,
+    choices: [`Normal pressure hydrocephalus (NPH)`, `Alzheimer disease`, `Communicating post-meningitic hydrocephalus with papilledema`],
+    correctIndex: 0,
+    explanation: `Correct: NPH presents in older adults with the Hakim triad of gait apraxia ("wobbly"), urinary incontinence ("wet"), and dementia ("wacky") alongside ventriculomegaly and normal LP opening pressure. Distractor exclusion: Alzheimer disease shows prominent sulcal widening (ex vacuo) without early magnetic gait/incontinence; acute high-pressure hydrocephalus causes papilledema and headache.`,
+    secondOrderClue: `Wet + wobbly + wacky + normal LP pressure = Normal pressure hydrocephalus.`,
+    phase1Pearl: `Episodic CSF pressure elevations expand ventricles and stretch corona radiata fibers controlling gait and micturition.`,
+    phase2Hallmark: `Enlarged lateral ventricles without proportional cortical sulcal atrophy; normal CSF opening pressure.`,
+    phase3Secret: `Diagnostic high-volume LP temporarily improves gait; definitive management is ventriculoperitoneal (VP) shunting.`,
+    dossierBullets: {
+      p1: [`Idiopathic impaired CSF compliance stretches corona radiata tracts`, `No sustained elevation of subarachnoid space volume`],
+      p2: [`Ventriculomegaly disproportionate to sulcal atrophy`, `Normal opening pressure on lumbar puncture`],
+      p3: [`Gait improves after large-volume LP tap test`, `Treat definitively with ventriculoperitoneal (VP) shunt`]
+    }
+  },
+  {
+    id: `NP13-Q2`, lo: 13, sector: `sector_5`,
+    loTitle: `LO 13: Normal Pressure & Non-Communicating Hydrocephalus`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Corona radiata fiber distortion`,
+    stem: `In an older adult with normal pressure hydrocephalus, expansion of the lateral ventricles causes a magnetic gait and urinary incontinence without papilledema. Distortion of which periventricular white matter tract directly produces these symptoms?`,
+    clue: `Descending motor and bladder control fibers pass immediately adjacent to the lateral ventricles.`,
+    choices: [`Fibers of the corona radiata`, `Medial longitudinal fasciculus (MLF)`, `Anterior white commissure of the spinal cord`],
+    correctIndex: 0,
+    explanation: `Correct: Ventricular expansion in NPH mechanically stretches and distorts the periventricular fibers of the corona radiata (including corticospinal leg and micturition fibers), causing gait apraxia and urinary incontinence. Distractor exclusion: MLF lesions cause INO; anterior white commissure compression occurs in syringomyelia.`,
+    secondOrderClue: `NPH ventricular expansion -> stretches corona radiata -> magnetic gait & urinary incontinence.`,
+    phase1Pearl: `Episodic CSF pulse waves dilate the lateral ventricles, compressing adjacent corona radiata axons.`,
+    phase2Hallmark: `Dilation of lateral/third ventricles with periventricular transependymal edema on MRI.`,
+    phase3Secret: `Reversible dementia! Always screen gait-predominant dementia patients for NPH before labeling them as Alzheimer disease.`,
+    dossierBullets: {
+      p1: [`Ventricular enlargement stretches corona radiata leg/bladder fibers`, `Opening pressure measured at LP remains normal`],
+      p2: [`Rounded frontal horns and narrowed high-convexity sulci`, `Normal CSF protein/cells distinguish from chronic meningitis`] ,
+      p3: [`VP shunt placement reverses gait apraxia in selected patients`, `Gait responds better than advanced cognitive decline`]
+    }
+  },
+  {
+    id: `NP13-Q3`, lo: 13, sector: `sector_5`,
+    loTitle: `LO 13: Normal Pressure & Non-Communicating Hydrocephalus`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Aqueduct of Sylvius stenosis`,
+    stem: `A 4-year-old boy presents with morning headaches, vomiting, papilledema, and upward gaze palsy. Brain MRI demonstrates marked dilation of the lateral and third ventricles with a normal-sized fourth ventricle. Where is the structural obstruction located?`,
+    clue: `Proximal dilation of lateral + 3rd ventricles sparing the 4th ventricle localizes the block between 3rd and 4th ventricles.`,
+    choices: [`Cerebral aqueduct of Sylvius`, `Foramen of Monro`, `Arachnoid granulations`],
+    correctIndex: 0,
+    explanation: `Correct: Stenosis or compression of the cerebral aqueduct of Sylvius blocks CSF flow from the third to the fourth ventricle, producing non-communicating hydrocephalus with enlarged lateral and third ventricles and a normal fourth ventricle. Distractor exclusion: Foramen of Monro obstruction (e.g., colloid cyst) dilates only lateral ventricles; arachnoid granulation scarring causes communicating hydrocephalus (all 4 ventricles dilated).`,
+    secondOrderClue: `Dilated lateral + 3rd ventricles + normal 4th ventricle = aqueduct of Sylvius stenosis.`,
+    phase1Pearl: `Structural obstruction inside the ventricular system prevents CSF from exiting into the subarachnoid space.`,
+    phase2Hallmark: `Triventricular hydrocephalus (dilated lateral + 3rd ventricles; collapsed/normal 4th ventricle) + papilledema.`,
+    phase3Secret: `Manage with endoscopic third ventriculostomy or VP shunt; avoid lumbar puncture due to herniation risk.`,
+    dossierBullets: {
+      p1: [`Non-communicating block between 3rd and 4th ventricles`, `Dorsal midbrain pressure causes Parinaud upward gaze palsy`],
+      p2: [`Lateral & 3rd ventricles dilated; 4th ventricle normal`, `Papilledema indicates acutely elevated ICP`],
+      p3: [`Endoscopic third ventriculostomy or VP shunt`, `Never perform LP in obstructive non-communicating hydrocephalus`]
+    }
+  },
+
+  // LO 14: Syringomyelia & Subacute Combined Degeneration (P1, P2, P3)
+  {
+    id: `NP14-Q1`, lo: 14, sector: `sector_5`,
+    loTitle: `LO 14: Syringomyelia & Subacute Combined Degeneration`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Syringomyelia (C8-T1)`,
+    stem: `A 30-year-old woman notices painless cigarette burns on both hands and shoulders. Exam shows bilateral loss of pain and temperature across the shoulders and arms ("cape-like" distribution) with intact vibration and joint position sense, plus intrinsic hand muscle atrophy. What is the diagnosis?`,
+    clue: `Dissociated bilateral cape-like pain/temperature loss with preserved dorsal columns points to a central cervical syrinx.`,
+    choices: [`Syringomyelia`, `Subacute combined degeneration`, `Brown-Séquard hemisection`],
+    correctIndex: 0,
+    explanation: `Correct: Syringomyelia (typically at C8-T1, often associated with Chiari I malformation or trauma) interrupts decussating spinothalamic fibers in the anterior white commissure, producing bilateral cape-like pain/temperature loss while sparing dorsal columns. Distractor exclusion: Subacute combined degeneration impairs dorsal columns and lateral corticospinal tracts; Brown-Séquard causes ipsilateral motor/dorsal column loss and contralateral pain/temp loss below the lesion.`,
+    secondOrderClue: `Cape-like pain/temp loss + spared vibration/proprioception + hand atrophy = Syringomyelia (C8-T1).`,
+    phase1Pearl: `Central canal cavitation first destroys crossing spinothalamic fibers in the anterior white commissure, then anterior horns and T1 lateral horns.`,
+    phase2Hallmark: `Cervical spinal cord MRI shows a CSF-intensity intramedullary cavity (syrinx), often with Chiari I cerebellar tonsillar ectopia.`,
+    phase3Secret: `Treat underlying Chiari I malformation via posterior fossa decompression to arrest syrinx expansion.`,
+    dossierBullets: {
+      p1: [`C8-T1 syrinx -> anterior white commissure -> cape-like analgesia`, `Expansion hits anterior horn (LMN hand atrophy) & lateral horn (Horner)`],
+      p2: [`Intramedullary T2-bright fluid cavity on cervical MRI`, `Dorsal columns spared early -> intact vibration/proprioception`],
+      p3: [`Suboccipital decompression for Chiari I or syrinx shunting`, `Protect insensate hands from thermal/mechanical burns`]
+    }
+  },
+  {
+    id: `NP14-Q2`, lo: 14, sector: `sector_5`,
+    loTitle: `LO 14: Syringomyelia & Subacute Combined Degeneration`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Vitamin B12 myelin failure`,
+    stem: `A 63-year-old vegan man presents with symmetric leg paresthesias, loss of vibration and proprioception in his toes, positive Romberg sign, and hyperreflexia with Babinski signs. Labs show macrocytic anemia and elevated methylmalonic acid. Deficiency of which cofactor caused his spinal tract demyelination?`,
+    clue: `Combined dorsal column and lateral corticospinal tract degeneration with elevated methylmalonic acid.`,
+    choices: [`Vitamin B12 (cobalamin)`, `Vitamin B1 (thiamine)`, `Folate (vitamin B9)`],
+    correctIndex: 0,
+    explanation: `Correct: Vitamin B12 deficiency impairs methylmalonyl-CoA mutase and methionine synthase, causing abnormal fatty acid incorporation into myelin and subacute combined degeneration of dorsal columns (ataxia, lost vibration/proprioception) and lateral corticospinal tracts (UMN spasticity/Babinski+). Distractor exclusion: Thiamine deficiency causes Wernicke-Korsakoff; folate deficiency causes megaloblastic anemia without elevated methylmalonic acid or neurologic degeneration.`,
+    secondOrderClue: `Vegan/pernicious anemia + lost vibration/proprioception + Babinski+ + ↑ MMA = B12 SCD.`,
+    phase1Pearl: `B12 is required for methylmalonyl-CoA mutase; deficiency accumulates odd-chain fatty acids that destabilize CNS myelin.`,
+    phase2Hallmark: `Vacuolar demyelination symmetrically involving dorsal columns and lateral corticospinal tracts + hypersegmented neutrophils.`,
+    phase3Secret: `Treat immediately with parenteral vitamin B12; giving folate alone corrects anemia while allowing irreversible spinal cord damage to progress.`,
+    dossierBullets: {
+      p1: [`B12 deficiency -> ↑ methylmalonic acid & homocysteine -> defective myelin`, `Hits dorsal columns + lateral corticospinal + spinocerebellar tracts`],
+      p2: [`Symmetric dorsal/lateral cord pallor; megaloblastic marrow`, `Hypersegmented neutrophils (>5 lobes) on peripheral smear`],
+      p3: [`IM/SQ cyanocobalamin immediately; never treat empirically with folate alone`, `Positive Romberg due to dorsal column proprioceptive loss`]
+    }
+  },
+  {
+    id: `NP14-Q3`, lo: 14, sector: `sector_5`,
+    loTitle: `LO 14: Syringomyelia & Subacute Combined Degeneration`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Lateral horn Horner + anterior horn LMN`,
+    stem: `A patient with an enlarging C8-T1 syrinx and bilateral upper-extremity cape-like loss of temperature sensation later develops left-sided ptosis, miosis, and facial anhidrosis alongside intrinsic hand muscle wasting. Involvement of which two spinal cord horns explains these new findings?`,
+    clue: `Central syrinx expansion outward reaches somatic motor neurons anteriorly and oculosympathetic neurons laterally at T1.`,
+    choices: [`Anterior horn (LMN hand atrophy) and T1 lateral horn (Horner syndrome)`, `Dorsal horn and Clarke nucleus`, `Posterior columns and sacral parasympathetic nucleus`],
+    correctIndex: 0,
+    explanation: `Correct: Outward expansion of a C8-T1 syrinx damages anterior horn lower motor neurons (intrinsic hand atrophy/weakness) and T1 lateral horn preganglionic sympathetic neurons of the hypothalamospinal tract (Horner syndrome: ptosis, miosis, anhidrosis). Distractor exclusion: Dorsal horn/Clarke nucleus do not cause LMN wasting or Horner syndrome; sacral nuclei control pelvic viscera.`,
+    secondOrderClue: `Expanding C8-T1 syrinx -> Anterior horn (hand atrophy) + Lateral horn T1 (Horner syndrome).`,
+    phase1Pearl: `Central CSF cavitation compresses adjacent gray matter horns radially as pressure rises.`,
+    phase2Hallmark: `Cervical cord MRI demonstrates expanded C8-T1 syrinx effacing anterior and lateral horns.`,
+    phase3Secret: `Early neurosurgical decompression prevents permanent anterior horn LMN hand atrophy.`,
+    dossierBullets: {
+      p1: [`Radial expansion from central canal hits anterior white commissure first`, `Next hits anterior horn (LMN) and T1 lateral horn (sympathetic)`],
+      p2: [`MRI cervical spine +/- brain MRI to detect Chiari I tonsillar ectopia`, `Horner triad: ptosis, miosis, anhidrosis`],
+      p3: [`Surgical decompression preserves remaining motor neurons`, `Avoid Valsalva maneuvers that spike syrinx CSF pressure`]
+    }
+  },
+
+  // LO 15: Cranial Osteopathy: SBS Strains, CV4 & Dural OMT (P1, P2, P3)
+  {
+    id: `NP15-Q1`, lo: 15, sector: `sector_5`,
+    loTitle: `LO 15: Cranial Osteopathy: SBS Strains & CV4`,
+    angle: `Presentation -> Diagnosis`,
+    phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Right SBS torsion`,
+    stem: `During a cranial osteopathic structural exam using the vault hold, a physician palpates the sphenoid and occiput rotating in opposite directions around an anteroposterior axis, with the right greater wing of the sphenoid superior. How is this sphenobasilar synchondrosis (SBS) somatic dysfunction named?`,
+    clue: `SBS torsions rotate around one AP axis and are named for the side of the higher greater wing.`,
+    choices: [`Right SBS torsion`, `Left SBS torsion`, `Right SBS sidebending rotation`],
+    correctIndex: 0,
+    explanation: `Correct: In an SBS torsion, the sphenoid and occiput rotate in opposite directions around an anteroposterior axis, and the dysfunction is named for the side of the superior (high) greater wing—here, a right torsion. Distractor exclusion: Left torsion has a high left greater wing; sidebending rotation involves two vertical axes plus one AP axis and is named for the convex side.`,
+    secondOrderClue: `Opposite sphenoid/occiput rotation around AP axis -> named for HIGH greater wing (Right high = Right torsion).`,
+    phase1Pearl: `Physiologic SBS torsions reflect asymmetric dural tension along the tentorium cerebelli and falx cerebri.`,
+    phase2Hallmark: `Vault hold palpation: index fingers (sphenoid greater wings) move opposite to pinky fingers (occipital squama) with right index finger high.`,
+    phase3Secret: `Treat physiologic SBS strains with balanced membranous tension (BMT) or direct/indirect cranial molding.`,
+    dossierBullets: {
+      p1: [`SBS torsion: 1 AP axis, sphenoid & occiput rotate oppositely`, `Named for superior (high) greater wing of sphenoid`],
+      p2: [`Vault hold: right index finger high, left pinky high`, `Sidebending rotation = 2 vertical axes + 1 AP axis (named for convexity)`],
+      p3: [`Balanced membranous tension restores symmetric CRI`, `Assess OA/AA and sacrum via dural core link (foramen magnum, C2, S2)`]
+    }
+  },
+  {
+    id: `NP15-Q2`, lo: 15, sector: `sector_5`,
+    loTitle: `LO 15: Cranial Osteopathy: SBS Strains & CV4`,
+    angle: `Mechanism -> Pathophysiology`,
+    phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Core link dural tension (OA-C2-S2)`,
+    stem: `A patient with chronic tension headaches after a minor fall onto the sacrum has restricted sacral flexion during inhalation and concomitant occipital somatic dysfunction. Which anatomical continuity transmits sacral restriction directly to the cranium?`,
+    clue: `Dura mater attaches firmly at the foramen magnum, upper cervical spine, and second sacral segment before floating freely in between.`,
+    choices: [`Dural core link (occiput/foramen magnum, C2, and S2 attachments)`, `Sphenomandibular ligament`, `Denticulate ligaments of the thoracic cord`],
+    correctIndex: 0,
+    explanation: `Correct: The cranial and spinal dura mater form the "core link," attaching firmly at the foramen magnum, C2, and S2 so sacral motion and cranial flexion/extension directly influence one another. Distractor exclusion: Sphenomandibular ligament stabilizes the mandible; denticulate ligaments anchor pia to dura laterally rather than linking occiput to sacrum.`,
+    secondOrderClue: `Cranial-sacral synchronization travels through the dural core link (FM, C2, S2).`,
+    phase1Pearl: `During cranial flexion (inhalation phase), the SBS rises and the sacral base moves posteriorly (counternutation).`,
+    phase2Hallmark: `Restricted CRI amplitude and asymmetric sacral respiratory motion on simultaneous cranial-sacral palpation.`,
+    phase3Secret: `Always treat OA/AA and pelvic/sacral dysfunctions alongside cranial strains to resolve dural core link drag.`,
+    dossierBullets: {
+      p1: [`Dural core link attaches at foramen magnum, C2, and S2`, `Cranial flexion = SBS rises + sacral base moves posterior`],
+      p2: [`Palpable decreased cranial rhythmic impulse (CRI; normal 10–14/min)`, `Reciprocal tension membrane: falx cerebri & tentorium cerebelli`],
+      p3: [`Integrate suboccipital/OA release + sacral OMT for headaches`, `OA decompression frees CN X vagus exiting jugular foramen`]
+    }
+  },
+  {
+    id: `NP15-Q3`, lo: 15, sector: `sector_5`,
+    loTitle: `LO 15: Cranial Osteopathy: SBS Strains & CV4`,
+    angle: `Hallmarks -> Management`,
+    phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `CV4 contraindicated in acute bleed/ICP`,
+    stem: `An osteopathic physician places the thenar eminences on the lateral angles of the occipital squama (medial to the occipitomastoid sutures) and resists cranial flexion to achieve a still point (CV4 technique). In which clinical scenario is this CV4 technique strictly contraindicated?`,
+    clue: `CV4 compresses the fourth ventricle and transiently alters intracranial fluid pressure, making acute intracranial emergencies unsafe.`,
+    choices: [`Acute intracranial hemorrhage or elevated intracranial pressure`, `Chronic tension-type headache with normal neurologic exam`, `Mild postpartum fatigue without focal deficits`],
+    correctIndex: 0,
+    explanation: `Correct: CV4 (compression of the fourth ventricle) augments CSF fluctuation and cranial rhythmic impulse, making it strictly contraindicated in acute intracranial hemorrhage, skull fracture, or elevated ICP where pressure shifts risk herniation. Distractor exclusion: Tension headaches and fatigue are common appropriate indications for CV4.`,
+    secondOrderClue: `CV4 (thenar eminences medial to occipitomastoid suture) = contraindicated in acute ICH / ↑ ICP / skull fracture.`,
+    phase1Pearl: `Resisting occipital lateral expansion during flexion narrows the 4th ventricle, building a therapeutic still point that resets autonomic tone.`,
+    phase2Hallmark: `Hand placement: overlapping thumbs/thenar eminences on occipital squama medial to occipitomastoid sutures (avoids temporal mastoids).`,
+    phase3Secret: `Wait for the therapeutic "still point" followed by warm/softening tissue release and improved CRI amplitude.`,
+    dossierBullets: {
+      p1: [`CV4 resists cranial flexion at occipital squama to induce still point`, `Enhances parasympathetic tone, CSF exchange, and CRI amplitude`],
+      p2: [`Thenar eminences placed medial to occipitomastoid sutures`, `Avoid compressing temporal bones/mastoids during CV4`],
+      p3: [`Absolute contraindications: acute ICH, skull fracture, ↑ ICP`, `Safe adjunct for autonomic balancing, headache, and sinus drainage`]
+    }
+  }
+];
+
+// =========================================================================
+// 4. APPLICATION STATE & DEFENSIVE INITIALIZATION
+// =========================================================================
+const appState = {
+  hp: 100,
+  xp: 0,
+  streak: 0,
+  maxStreak: 0,
+  selectedLane: 1,
+  hoveredLane: null,
+  deck: [],
+  deckIndex: 0,
+  currentChoices: [],
+  currentCorrectLane: 1,
+  masteredLOs: {},
+  missedIds: {},
+  sectorFilter: `all`,
+  angleFilter: `all`,
+  phaseFilter: `all`,
+  timeoutMode: `review`,
+  timerEnabled: true,
+  timerSec: 50,
+  timerRemaining: 50,
+  isHintsVisible: false,
+  isMenuOpen: false,
+  isOutcomeOpen: false,
+  isCodexOpen: false,
+  codexSector: `all`,
+  masterSound: true,
+  sfxOn: true,
+  bgmOn: false,
+  bgmVolume: 0.35
+};
+
+const metaFadeMs = 3000;
+let metaFadeTimer = null;
+let countdownInterval = null;
+let animFrameId = null;
+let audioCtx = null;
+let bgmTimerId = null;
+let customAudioEl = null;
+
+// 3D Synthwave Scene State
+const sceneState = {
+  craftX: 0,
+  targetCraftX: 0,
+  craftBank: 0,
+  portalZ: 1.0,
+  portalSpeed: 0.0022,
+  floorOffset: 0,
+  particles: []
+};
+
+function initParticles() {
+  sceneState.particles = [];
+  for (let i = 0; i < 150; i++) {
+    sceneState.particles.push({
+      x: (Math.random() - 0.5) * 2.4,
+      y: (Math.random() - 0.5) * 1.4,
+      z: Math.random(),
+      size: 1.5 + Math.random() * 2.5
+    });
+  }
+}
+
+// =========================================================================
+// 5. PERSISTENCE VIA GEMINI NOTEBOOK SHIM API
+// =========================================================================
+async function persistAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.setAppState !== `function`) return;
+  try {
+    await window.notebookAppApi.setAppState({
+      hp: appState.hp,
+      xp: appState.xp,
+      streak: appState.streak,
+      maxStreak: appState.maxStreak,
+      deckIndex: appState.deckIndex,
+      masteredLOs: appState.masteredLOs,
+      missedIds: appState.missedIds,
+      sectorFilter: appState.sectorFilter,
+      angleFilter: appState.angleFilter,
+      phaseFilter: appState.phaseFilter,
+      timeoutMode: appState.timeoutMode,
+      timerEnabled: appState.timerEnabled,
+      isHintsVisible: appState.isHintsVisible,
+      masterSound: appState.masterSound,
+      sfxOn: appState.sfxOn,
+      bgmVolume: appState.bgmVolume
+    });
+  } catch (e) { /* Ignore transient sandbox serialization errors */ }
+}
+
+async function restoreAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.getAppState !== `function`) return;
+  try {
+    const saved = await window.notebookAppApi.getAppState();
+    if (!saved || typeof saved !== `object`) return;
+    if (typeof saved.hp === `number`) appState.hp = saved.hp;
+    if (typeof saved.xp === `number`) appState.xp = saved.xp;
+    if (typeof saved.streak === `number`) appState.streak = saved.streak;
+    if (typeof saved.maxStreak === `number`) appState.maxStreak = saved.maxStreak;
+    if (typeof saved.deckIndex === `number`) appState.deckIndex = saved.deckIndex;
+    if (saved.masteredLOs && typeof saved.masteredLOs === `object`) appState.masteredLOs = saved.masteredLOs;
+    if (saved.missedIds && typeof saved.missedIds === `object`) appState.missedIds = saved.missedIds;
+    if (typeof saved.sectorFilter === `string`) appState.sectorFilter = saved.sectorFilter;
+    if (typeof saved.angleFilter === `string`) appState.angleFilter = saved.angleFilter;
+    if (typeof saved.phaseFilter === `string`) appState.phaseFilter = saved.phaseFilter;
+    if (typeof saved.timeoutMode === `string`) appState.timeoutMode = saved.timeoutMode;
+    if (typeof saved.timerEnabled === `boolean`) appState.timerEnabled = saved.timerEnabled;
+    if (typeof saved.isHintsVisible === `boolean`) appState.isHintsVisible = saved.isHintsVisible;
+    if (typeof saved.masterSound === `boolean`) appState.masterSound = saved.masterSound;
+    if (typeof saved.sfxOn === `boolean`) appState.sfxOn = saved.sfxOn;
+    if (typeof saved.bgmVolume === `number`) appState.bgmVolume = saved.bgmVolume;
+  } catch (e) { /* Use defaults */ }
+}
+
+// =========================================================================
+// 6. AUDIO ENGINE (PROCEDURAL SYNTHWAVE + SFX + CUSTOM MP3/WAV)
+// =========================================================================
+function ensureAudioContext() {
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) audioCtx = new AC();
+  }
+  if (audioCtx && audioCtx.state === `suspended`) {
+    audioCtx.resume().catch(() => {});
+  }
+  return audioCtx;
+}
+
+function playSfx(type) {
+  if (!appState.masterSound || !appState.sfxOn) return;
+  const ctx = ensureAudioContext();
+  if (!ctx) return;
+  try {
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    if (type === `steer`) {
+      osc.type = `triangle`;
+      osc.frequency.setValueAtTime(420, now);
+      osc.frequency.exponentialRampToValueAtTime(560, now + 0.06);
+      gain.gain.setValueAtTime(0.05, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+      osc.start(now);
+      osc.stop(now + 0.08);
+    } else if (type === `win`) {
+      osc.type = `sine`;
+      osc.frequency.setValueAtTime(523.25, now);
+      osc.frequency.setValueAtTime(659.25, now + 0.08);
+      osc.frequency.setValueAtTime(783.99, now + 0.16);
+      gain.gain.setValueAtTime(0.11, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.34);
+      osc.start(now);
+      osc.stop(now + 0.35);
+    } else {
+      osc.type = `sawtooth`;
+      osc.frequency.setValueAtTime(210, now);
+      osc.frequency.exponentialRampToValueAtTime(95, now + 0.25);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.26);
+      osc.start(now);
+      osc.stop(now + 0.27);
+    }
+  } catch (e) {}
+}
+
+function startProceduralBgm() {
+  stopProceduralBgm();
+  if (!appState.masterSound || !appState.bgmOn) return;
+  if (customAudioEl) {
+    customAudioEl.volume = appState.bgmVolume;
+    customAudioEl.play().catch(() => {});
+    return;
+  }
+  const ctx = ensureAudioContext();
+  if (!ctx) return;
+  const notes = [110, 130.81, 146.83, 164.81, 196, 164.83, 146.83, 130.81];
+  let step = 0;
+  bgmTimerId = setInterval(() => {
+    if (!appState.masterSound || !appState.bgmOn) return;
+    try {
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = `sawtooth`;
+      osc.frequency.setValueAtTime(notes[step % notes.length], now);
+      gain.gain.setValueAtTime(0.06 * appState.bgmVolume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.24);
+      step++;
+    } catch (e) {}
+  }, 240);
+}
+
+function stopProceduralBgm() {
+  if (bgmTimerId) {
+    clearInterval(bgmTimerId);
+    bgmTimerId = null;
+  }
+  if (customAudioEl) {
+    customAudioEl.pause();
+  }
+}
+
+function syncAudioUI() {
+  const mBtn = document.getElementById(`btn-master-sound`);
+  const sBtn = document.getElementById(`btn-sfx`);
+  const bBtn = document.getElementById(`btn-bgm`);
+  const vLbl = document.getElementById(`bgm-vol-label`);
+  const vSld = document.getElementById(`bgm-volume-slider`);
+  if (mBtn) {
+    mBtn.textContent = appState.masterSound ? `🔊 Master Sound: ON` : `🔇 Master Sound: OFF`;
+    mBtn.classList.toggle(`is-active`, appState.masterSound);
+  }
+  if (sBtn) {
+    sBtn.textContent = appState.sfxOn ? `🎛 SFX: ON` : `🎛 SFX: OFF`;
+    sBtn.classList.toggle(`is-active`, appState.sfxOn);
+  }
+  if (bBtn) {
+    bBtn.textContent = appState.bgmOn ? `🎵 Zombies BGM: ON` : `🎵 Zombies BGM: OFF`;
+    bBtn.classList.toggle(`is-active`, appState.bgmOn);
+  }
+  const pct = Math.round(appState.bgmVolume * 100);
+  if (vLbl) vLbl.textContent = `${pct}%`;
+  if (vSld) vSld.value = pct;
+}
+
+function toggleMasterSound() {
+  appState.masterSound = !appState.masterSound;
+  if (!appState.masterSound) stopProceduralBgm();
+  else if (appState.bgmOn) startProceduralBgm();
+  syncAudioUI();
+  persistAppState();
+}
+
+function toggleSfx() {
+  appState.sfxOn = !appState.sfxOn;
+  syncAudioUI();
+  persistAppState();
+}
+
+function toggleBgm() {
+  appState.bgmOn = !appState.bgmOn;
+  if (appState.bgmOn) startProceduralBgm();
+  else stopProceduralBgm();
+  syncAudioUI();
+}
+
+function handleCustomBgmUpload(ev) {
+  const file = ev && ev.target && ev.target.files ? ev.target.files[0] : null;
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  if (customAudioEl) customAudioEl.pause();
+  customAudioEl = new Audio(url);
+  customAudioEl.loop = true;
+  customAudioEl.volume = appState.bgmVolume;
+  appState.bgmOn = true;
+  startProceduralBgm();
+  syncAudioUI();
+  showMenuToast(`Loaded custom audio: ${file.name}`);
+}
+
+function setBgmVolume(val) {
+  appState.bgmVolume = Math.max(0, Math.min(1, Number(val) / 100));
+  if (customAudioEl) customAudioEl.volume = appState.bgmVolume;
+  syncAudioUI();
+  persistAppState();
+}
+
+// =========================================================================
+// 7. DECK, FILTERS, SKILL TREE & HINTS SYNC
+// =========================================================================
+function buildDeck(shuffle) {
+  let filtered = ALL_QUESTIONS.filter(q => {
+    if (appState.sectorFilter === `missed`) {
+      if (!appState.missedIds[q.id]) return false;
+    } else if (appState.sectorFilter !== `all` && q.sector !== appState.sectorFilter) {
+      return false;
+    }
+    if (appState.angleFilter !== `all` && q.angle !== appState.angleFilter) return false;
+    if (appState.phaseFilter !== `all` && q.phaseFocus !== appState.phaseFilter) return false;
+    return true;
+  });
+  if (filtered.length === 0) {
+    filtered = ALL_QUESTIONS.slice();
+    showMenuToast(`No gates matched filter — showing full 45-gate deck.`);
+  }
+  if (shuffle) {
+    for (let i = filtered.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = filtered[i];
+      filtered[i] = filtered[j];
+      filtered[j] = tmp;
+    }
+  }
+  appState.deck = filtered;
+  if (appState.deckIndex >= appState.deck.length) appState.deckIndex = 0;
+}
+
+function showMenuToast(msg) {
+  const el = document.getElementById(`menu-toast`);
+  if (!el) return;
+  el.textContent = msg;
+  setTimeout(() => { if (el.textContent === msg) el.textContent = ``; }, 2800);
+}
+
+function syncHintsUI() {
+  const root = document.getElementById(`xr-app`);
+  const menuBtn = document.getElementById(`menu-hints-btn`);
+  if (root) {
+    root.classList.toggle(`hints-visible`, appState.isHintsVisible);
+    root.classList.toggle(`hints-hidden`, !appState.isHintsVisible);
+  }
+  if (menuBtn) {
+    menuBtn.textContent = appState.isHintsVisible ? `💡 Hints: ON [H]` : `💡 Hints: OFF [H]`;
+    menuBtn.classList.toggle(`is-active`, appState.isHintsVisible);
+  }
+}
+
+function toggleHintsBar() {
+  appState.isHintsVisible = !appState.isHintsVisible;
+  syncHintsUI();
+  playSfx(`steer`);
+  persistAppState();
+}
+
+function toggleMenuDrawer() {
+  appState.isMenuOpen = !appState.isMenuOpen;
+  const drawer = document.getElementById(`top-menu-drawer`);
+  const backdrop = document.getElementById(`drawer-backdrop`);
+  if (drawer) drawer.classList.toggle(`is-open`, appState.isMenuOpen);
+  if (backdrop) backdrop.classList.toggle(`is-open`, appState.isMenuOpen);
+  if (appState.isMenuOpen) renderSkillTree();
+}
+
+function openCodexFromMenu() {
+  if (appState.isMenuOpen) toggleMenuDrawer();
+  openCodex();
+}
+
+function skipFromMenu() {
+  if (appState.isMenuOpen) toggleMenuDrawer();
+  skipCurrentQuestion();
+}
+
+function syncTimerControlsUI() {
+  const btn = document.getElementById(`menu-timer-btn`);
+  const chip = document.getElementById(`hud-timer-chip`);
+  const lbl = document.getElementById(`hud-timer`);
+  if (btn) {
+    btn.textContent = appState.timerEnabled ? `⏱ 50s Timer: ON [T]` : `⏱ 50s Timer: OFF [T]`;
+    btn.classList.toggle(`is-active`, appState.timerEnabled);
+  }
+  if (lbl) lbl.textContent = appState.timerEnabled ? `${appState.timerRemaining}s` : `OFF`;
+  if (chip) chip.classList.toggle(`is-urgent`, appState.timerEnabled && appState.timerRemaining <= 10);
+}
+
+function toggleTimerEnabled() {
+  appState.timerEnabled = !appState.timerEnabled;
+  if (appState.timerEnabled) resetGateTimer();
+  else clearGateTimer();
+  syncTimerControlsUI();
+  persistAppState();
+}
+
+function startTimedRun() {
+  appState.timerEnabled = true;
+  appState.hp = 100;
+  appState.xp = 0;
+  appState.streak = 0;
+  appState.deckIndex = 0;
+  buildDeck(false);
+  if (appState.isMenuOpen) toggleMenuDrawer();
+  loadCurrentGate();
+  persistAppState();
+}
+
+function setTimeoutMode(val) {
+  appState.timeoutMode = val;
+  persistAppState();
+}
+
+function applyDeckFilters() {
+  const secEl = document.getElementById(`sector-filter`);
+  const angEl = document.getElementById(`angle-filter`);
+  if (secEl) appState.sectorFilter = secEl.value;
+  if (angEl) appState.angleFilter = angEl.value;
+  appState.deckIndex = 0;
+  buildDeck(false);
+  loadCurrentGate();
+  persistAppState();
+}
+
+function setPhaseFilter(phase, btn) {
+  appState.phaseFilter = phase;
+  document.querySelectorAll(`#phase-pills-row .phase-pill`).forEach(p => {
+    p.classList.toggle(`is-active`, p === btn);
+  });
+  appState.deckIndex = 0;
+  buildDeck(false);
+  loadCurrentGate();
+  persistAppState();
+}
+
+function shuffleDeck() {
+  buildDeck(true);
+  appState.deckIndex = 0;
+  loadCurrentGate();
+  showMenuToast(`Shuffled ${appState.deck.length} Neuro Pathology gates.`);
+}
+
+function restartOrdered() {
+  appState.sectorFilter = `all`;
+  appState.angleFilter = `all`;
+  appState.phaseFilter = `all`;
+  const secEl = document.getElementById(`sector-filter`);
+  const angEl = document.getElementById(`angle-filter`);
+  if (secEl) secEl.value = `all`;
+  if (angEl) angEl.value = `all`;
+  document.querySelectorAll(`#phase-pills-row .phase-pill`).forEach(p => {
+    p.classList.toggle(`is-active`, p.dataset.phase === `all`);
+  });
+  appState.deckIndex = 0;
+  buildDeck(false);
+  loadCurrentGate();
+  if (appState.isMenuOpen) toggleMenuDrawer();
+  persistAppState();
+}
+
+function resetMastery(btn) {
+  if (!btn) return;
+  if (btn.dataset.armed !== `true`) {
+    btn.dataset.armed = `true`;
+    btn.textContent = `⚠ Tap Again to Confirm`;
+    setTimeout(() => {
+      if (btn.dataset.armed === `true`) {
+        btn.dataset.armed = `false`;
+        btn.textContent = `♻ Reset Mastery`;
+      }
+    }, 3500);
+    return;
+  }
+  btn.dataset.armed = `false`;
+  btn.textContent = `♻ Reset Mastery`;
+  appState.hp = 100;
+  appState.xp = 0;
+  appState.streak = 0;
+  appState.maxStreak = 0;
+  appState.masteredLOs = {};
+  appState.missedIds = {};
+  appState.deckIndex = 0;
+  buildDeck(false);
+  loadCurrentGate();
+  renderSkillTree();
+  showMenuToast(`Mastery telemetry reset.`);
+  persistAppState();
+}
+
+function jumpToLO(loNum) {
+  const idx = appState.deck.findIndex(q => q.lo === loNum);
+  if (idx >= 0) {
+    appState.deckIndex = idx;
+    loadCurrentGate();
+  } else {
+    appState.sectorFilter = `all`;
+    appState.angleFilter = `all`;
+    appState.phaseFilter = `all`;
+    buildDeck(false);
+    const fullIdx = appState.deck.findIndex(q => q.lo === loNum);
+    appState.deckIndex = fullIdx >= 0 ? fullIdx : 0;
+    loadCurrentGate();
+  }
+  if (appState.isMenuOpen) toggleMenuDrawer();
+}
+
+function renderSkillTree() {
+  const grid = document.getElementById(`skill-tree-grid`);
+  if (!grid) return;
+  const currentQ = appState.deck[appState.deckIndex];
+  const curLO = currentQ ? currentQ.lo : 1;
+  grid.innerHTML = CODEX_DATA.map(c => {
+    const count = appState.masteredLOs[c.lo] || 0;
+    const isMastered = count >= 3;
+    const isCurrent = c.lo === curLO;
+    return `<button type="button" class="skill-node ${isMastered ? `is-mastered` : ``} ${isCurrent ? `is-current` : ``}" onclick="jumpToLO(${c.lo})">
+      <div class="skill-node-num">LO ${c.lo}</div>
+      <div class="skill-node-name">${c.entity.split(`:`)[0].slice(0, 26)}</div>
+      <div class="skill-node-meta">${count}/3 Cleared</div>
+    </button>`;
+  }).join(``);
+}
+
+// =========================================================================
+// 8. GATE LOADING, 3-SECOND METADATA AUTO-FADE & COUNTDOWN TIMER
+// =========================================================================
+function clearGateTimer() {
+  if (countdownInterval) {
+    clearInterval(countdownInterval);
+    countdownInterval = null;
+  }
+}
+
+function resetGateTimer() {
+  clearGateTimer();
+  appState.timerRemaining = appState.timerSec;
+  syncTimerControlsUI();
+  if (!appState.timerEnabled) return;
+  countdownInterval = setInterval(() => {
+    if (appState.isOutcomeOpen || appState.isCodexOpen || appState.isMenuOpen) return;
+    appState.timerRemaining--;
+    syncTimerControlsUI();
+    if (appState.timerRemaining <= 0) {
+      clearGateTimer();
+      handleGateTimeout();
+    }
+  }, 1000);
+}
+
+function handleGateTimeout() {
+  if (appState.timeoutMode === `autolock`) {
+    triggerLaneChoice(appState.selectedLane, false);
+  } else {
+    triggerLaneChoice(appState.selectedLane, true);
+  }
+}
+
+function updateHudTelemetry() {
+  const hpEl = document.getElementById(`hud-hp`);
+  const xpEl = document.getElementById(`hud-xp`);
+  const stEl = document.getElementById(`hud-streak`);
+  const gtEl = document.getElementById(`hud-gate`);
+  if (hpEl) hpEl.textContent = appState.hp;
+  if (xpEl) xpEl.textContent = appState.xp;
+  if (stEl) stEl.textContent = appState.streak;
+  if (gtEl) gtEl.textContent = `${appState.deckIndex + 1}/${appState.deck.length}`;
+}
+
+function loadCurrentGate() {
+  if (!appState.deck.length) buildDeck(false);
+  const q = appState.deck[appState.deckIndex];
+  if (!q) return;
+
+  // Shuffle 3 portal choices at runtime
+  const indexed = q.choices.map((text, idx) => ({ text, isCorrect: idx === q.correctIndex }));
+  for (let i = indexed.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = indexed[i];
+    indexed[i] = indexed[j];
+    indexed[j] = tmp;
+  }
+  appState.currentChoices = indexed;
+  appState.currentCorrectLane = indexed.findIndex(c => c.isCorrect);
+
+  // Update Band 2 Question + 3-second auto-hiding metadata
+  const theme = LO_VISUAL_THEMES[q.lo] || LO_VISUAL_THEMES[1];
+  const metaBar = document.getElementById(`q-meta-bar`);
+  const bLo = document.getElementById(`badge-lo`);
+  const bAng = document.getElementById(`badge-angle`);
+  const bPh = document.getElementById(`badge-phase`);
+  const bCor = document.getElementById(`badge-corridor`);
+  const stemEl = document.getElementById(`q-stem-text`);
+  const clueEl = document.getElementById(`q-clue-text`);
+
+  if (bLo) bLo.textContent = q.loTitle;
+  if (bAng) bAng.textContent = q.angle;
+  if (bPh) bPh.textContent = q.phaseFocus;
+  if (bCor) bCor.textContent = `CORRIDOR: ${theme.tag}`;
+  if (stemEl) stemEl.textContent = q.stem;
+  if (clueEl) clueEl.textContent = `💡 Tactical Hint: ${q.clue}`;
+
+  if (metaBar) {
+    metaBar.classList.remove(`is-faded`);
+    if (metaFadeTimer) clearTimeout(metaFadeTimer);
+    metaFadeTimer = setTimeout(() => {
+      metaBar.classList.add(`is-faded`);
+    }, metaFadeMs);
+  }
+
+  // Populate 3 lane cards
+  for (let i = 0; i < 3; i++) {
+    const txtEl = document.getElementById(`lane-${i}-text`);
+    if (txtEl && indexed[i]) txtEl.textContent = indexed[i].text;
+  }
+  selectLane(1, false);
+  sceneState.portalZ = 1.0;
+  updateHudTelemetry();
+  resetGateTimer();
+}
+
+function selectLane(laneIdx, playSound) {
+  appState.selectedLane = laneIdx;
+  sceneState.targetCraftX = laneIdx === 0 ? -1 : laneIdx === 2 ? 1 : 0;
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`lane-${i}-card`);
+    if (card) card.classList.toggle(`is-selected`, i === laneIdx);
+  }
+  if (playSound) playSfx(`steer`);
+}
+
+function hoverLane(laneIdx) {
+  appState.hoveredLane = laneIdx;
+  if (appState.selectedLane !== laneIdx) {
+    selectLane(laneIdx, true);
+  }
+}
+
+function skipCurrentQuestion() {
+  clearGateTimer();
+  appState.deckIndex = (appState.deckIndex + 1) % appState.deck.length;
+  loadCurrentGate();
+  playSfx(`steer`);
+}
+
+// =========================================================================
+// 9. OUTCOME DOSSIER REVIEW MODAL (STEP 3 CONFORMANCE)
+// =========================================================================
+function renderDossierBullets(containerId, items) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const arr = Array.isArray(items) ? items : [String(items || ``)];
+  el.innerHTML = arr.filter(Boolean).map(line => {
+    const clean = String(line).replace(/^•\s*/, ``);
+    return `<li>• ${clean}</li>`;
+  }).join(``);
+}
+
+function triggerLaneChoice(laneIdx, isTimeout) {
+  if (appState.isOutcomeOpen || appState.isCodexOpen) return;
+  selectLane(laneIdx, false);
+  clearGateTimer();
+
+  const q = appState.deck[appState.deckIndex];
+  if (!q) return;
+
+  const chosen = appState.currentChoices[laneIdx];
+  const correct = appState.currentChoices[appState.currentCorrectLane];
+  const isWin = !isTimeout && chosen && chosen.isCorrect;
+
+  let xpDelta = 0;
+  let hpDelta = 0;
+  if (isWin) {
+    appState.streak++;
+    if (appState.streak > appState.maxStreak) appState.maxStreak = appState.streak;
+    const mult = 1 + Math.min(appState.streak - 1, 5) * 0.2;
+    xpDelta = Math.round(100 * mult);
+    appState.xp += xpDelta;
+    hpDelta = Math.min(5, 100 - appState.hp);
+    appState.hp = Math.min(100, appState.hp + 5);
+    appState.masteredLOs[q.lo] = Math.min(3, (appState.masteredLOs[q.lo] || 0) + 1);
+    delete appState.missedIds[q.id];
+    playSfx(`win`);
+  } else {
+    appState.streak = 0;
+    hpDelta = -15;
+    appState.hp = Math.max(0, appState.hp - 15);
+    appState.missedIds[q.id] = true;
+    playSfx(`loss`);
+  }
+
+  updateHudTelemetry();
+  persistAppState();
+
+  const verdictEl = document.getElementById(`outcome-verdict`);
+  const deltasEl = document.getElementById(`outcome-deltas`);
+  if (verdictEl) {
+    verdictEl.classList.remove(`is-win`, `is-loss`, `is-timeout`);
+    if (isTimeout) {
+      verdictEl.textContent = `⏱ TIME'S UP — ${q.shortAnswer}`;
+      verdictEl.classList.add(`is-timeout`);
+    } else if (isWin) {
+      verdictEl.textContent = `✔ CORRECT — ${q.shortAnswer}`;
+      verdictEl.classList.add(`is-win`);
+    } else {
+      verdictEl.textContent = `✖ INCORRECT — ${q.shortAnswer}`;
+      verdictEl.classList.add(`is-loss`);
+    }
+  }
+  if (deltasEl) {
+    const comboStr = isWin && appState.streak > 1 ? `<span class="delta-badge is-combo">⚡ ${appState.streak}x Combo</span>` : ``;
+    const xpBadge = `<span class="delta-badge ${xpDelta >= 0 ? `is-pos` : `is-neg`}">${xpDelta >= 0 ? `+` : ``}${xpDelta} XP</span>`;
+    const hpBadge = `<span class="delta-badge ${hpDelta >= 0 ? `is-pos` : `is-neg`}">${hpDelta >= 0 ? `+` : ``}${hpDelta} HP</span>`;
+    deltasEl.innerHTML = `${xpBadge}${hpBadge}${comboStr}`;
+  }
+
+  const loRef = document.getElementById(`outcome-lo-ref`);
+  const qText = document.getElementById(`outcome-question-text`);
+  const yourBox = document.getElementById(`your-choice-box`);
+  const yourVal = document.getElementById(`your-choice-val`);
+  const corVal = document.getElementById(`correct-choice-val`);
+
+  if (loRef) loRef.textContent = `${q.loTitle} • ${q.angle} • ${q.phaseFocus}`;
+  if (qText) qText.textContent = q.stem;
+  if (yourVal) yourVal.textContent = isTimeout ? `No selection before timeout` : (chosen ? chosen.text : `—`);
+  if (corVal) corVal.textContent = correct ? correct.text : q.choices[0];
+  if (yourBox) {
+    yourBox.classList.toggle(`is-correct`, isWin);
+    yourBox.classList.toggle(`is-wrong`, !isWin);
+  }
+
+  // Split explanation into bullet items
+  const expParts = q.explanation.split(/Distractor exclusion:/i);
+  const expBullets = [expParts[0].trim()];
+  if (expParts[1]) expBullets.push(`Distractor exclusion: ${expParts[1].trim()}`);
+
+  renderDossierBullets(`dossier-explanation`, expBullets);
+  renderDossierBullets(`dossier-board-clue`, [q.secondOrderClue]);
+  renderDossierBullets(`dossier-pathogenesis`, [q.phase1Pearl]);
+  renderDossierBullets(`dossier-morphology`, [q.phase2Hallmark]);
+  renderDossierBullets(`dossier-epi-tx`, [q.phase3Secret]);
+  renderDossierBullets(`dossier-angle-p1`, q.dossierBullets.p1);
+  renderDossierBullets(`dossier-angle-p2`, q.dossierBullets.p2);
+  renderDossierBullets(`dossier-angle-p3`, q.dossierBullets.p3);
+
+  const modal = document.getElementById(`outcome-modal`);
+  const body = document.getElementById(`outcome-scroll-body`);
+  if (body) body.scrollTop = 0;
+  if (modal) modal.classList.add(`is-open`);
+  appState.isOutcomeOpen = true;
+}
+
+function scrollOutcomeBody(deltaY) {
+  const body = document.getElementById(`outcome-scroll-body`);
+  if (!body) return;
+  if (typeof body.scrollBy === `function`) {
+    body.scrollBy({ top: deltaY, behavior: `smooth` });
+  } else {
+    body.scrollTop = (body.scrollTop || 0) + deltaY;
+  }
+}
+
+function continueFromOutcome() {
+  const modal = document.getElementById(`outcome-modal`);
+  if (modal) modal.classList.remove(`is-open`);
+  appState.isOutcomeOpen = false;
+  if (appState.hp <= 0) {
+    appState.hp = 100;
+    appState.streak = 0;
+  }
+  appState.deckIndex = (appState.deckIndex + 1) % appState.deck.length;
+  loadCurrentGate();
+  persistAppState();
+}
+
+// =========================================================================
+// 10. 6-COLUMN LOOT CODEX MODAL [C]
+// =========================================================================
+function openCodex() {
+  const modal = document.getElementById(`codex-modal`);
+  if (modal) modal.classList.add(`is-open`);
+  appState.isCodexOpen = true;
+  renderCodexTable();
+}
+
+function closeCodex() {
+  const modal = document.getElementById(`codex-modal`);
+  if (modal) modal.classList.remove(`is-open`);
+  appState.isCodexOpen = false;
+}
+
+function setCodexSector(sec, btn) {
+  appState.codexSector = sec;
+  document.querySelectorAll(`#codex-sector-pills .codex-pill`).forEach(p => {
+    p.classList.toggle(`is-active`, p === btn);
+  });
+  renderCodexTable();
+}
+
+function renderCodexTable() {
+  const tbody = document.getElementById(`codex-tbody`);
+  const searchEl = document.getElementById(`codex-search-input`);
+  if (!tbody) return;
+  const term = (searchEl ? searchEl.value : ``).trim().toLowerCase();
+  const rows = CODEX_DATA.filter(r => {
+    if (appState.codexSector !== `all` && r.sector !== appState.codexSector) return false;
+    if (!term) return true;
+    const blob = `${r.entity} ${r.badgeMeta} ${r.etiology} ${r.pathogenesis} ${r.hallmarks} ${r.clinical} ${r.management}`.toLowerCase();
+    return blob.includes(term);
+  });
+  tbody.innerHTML = rows.map(r => `<tr>
+    <td class="amboss-scan-target"><strong>LO ${r.lo}: ${r.entity}</strong><br><span class="codex-entity-badge">${r.badgeMeta}</span></td>
+    <td class="amboss-scan-target">${r.etiology}</td>
+    <td class="amboss-scan-target">${r.pathogenesis}</td>
+    <td class="amboss-scan-target">${r.hallmarks}</td>
+    <td class="amboss-scan-target">${r.clinical}</td>
+    <td class="amboss-scan-target">${r.management}</td>
+  </tr>`).join(``);
+}
+
+// =========================================================================
+// 11. 3D SYNTHWAVE PERSPECTIVE ENGINE & 1:1 PORTAL-TO-CARD FUSION
+// =========================================================================
+function startRenderLoop() {
+  const canvas = document.getElementById(`runner-canvas`);
+  if (!canvas) return;
+  const ctx = canvas.getContext(`2d`);
+  if (!ctx) return;
+
+  function drawFrame() {
+    const rect = canvas.getBoundingClientRect();
+    const w = Math.max(1, Math.floor(rect.width));
+    const h = Math.max(1, Math.floor(rect.height));
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
+
+    const q = appState.deck[appState.deckIndex];
+    const theme = LO_VISUAL_THEMES[q ? q.lo : 1] || LO_VISUAL_THEMES[1];
+    const vpX = w * 0.5;
+    const vpY = h * 0.28;
+
+    // 1. Deep midnight-navy void
+    ctx.fillStyle = `#0a0a12`;
+    ctx.fillRect(0, 0, w, h);
+
+    // 2. Infinite wireframe perspective floor
+    sceneState.floorOffset = (sceneState.floorOffset + 0.012) % 1;
+    ctx.strokeStyle = `rgba(${theme.gridRgb}, 0.34)`;
+    ctx.lineWidth = 1;
+    const floorRows = 14;
+    for (let r = 0; r < floorRows; r++) {
+      const t = (r + sceneState.floorOffset) / floorRows;
+      const y = vpY + Math.pow(t, 1.85) * (h - vpY);
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
+    }
+    const cols = 12;
+    for (let c = -cols; c <= cols; c++) {
+      ctx.beginPath();
+      ctx.moveTo(vpX + c * 18, vpY);
+      ctx.lineTo(vpX + c * (w * 0.22), h);
+      ctx.stroke();
+    }
+
+    // 3. Three #34a88f teal perspective track rails
+    const laneColors = [`#ff2d78`, `#00ffcc`, `#ffe04a`];
+    const cardsRects = [0, 1, 2].map(i => {
+      const el = document.getElementById(`lane-${i}-card`);
+      return el ? el.getBoundingClientRect() : null;
+    });
+    const canvasRect = canvas.getBoundingClientRect();
+
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 3; i++) {
+      const cRect = cardsRects[i];
+      const targetX = cRect ? (cRect.left - canvasRect.left + cRect.width * 0.5) : (w * (0.25 + i * 0.25));
+      ctx.strokeStyle = theme.railColor;
+      ctx.beginPath();
+      ctx.moveTo(vpX + (i - 1) * 26, vpY);
+      ctx.lineTo(targetX, h);
+      ctx.stroke();
+    }
+
+    // 4. 150 crisp 3D square pixel-dust particles (no ovals/blobs)
+    ctx.fillStyle = theme.particleColor;
+    for (let i = 0; i < sceneState.particles.length; i++) {
+      const p = sceneState.particles[i];
+      p.z -= 0.0045;
+      if (p.z <= 0.04) {
+        p.z = 1.0;
+        p.x = (Math.random() - 0.5) * 2.4;
+        p.y = (Math.random() - 0.5) * 1.4;
+      }
+      const scale = 1 / (p.z * 2.6 + 0.15);
+      const sx = vpX + p.x * scale * (w * 0.35);
+      const sy = vpY + p.y * scale * (h * 0.35);
+      const sz = Math.max(1.5, p.size * scale * 0.7);
+      if (sx >= 0 && sx <= w && sy >= 0 && sy <= h) {
+        ctx.globalAlpha = Math.min(0.85, (1 - p.z) * 0.9);
+        ctx.fillRect(sx - sz * 0.5, sy - sz * 0.5, sz, sz);
+      }
+    }
+    ctx.globalAlpha = 1;
+
+    // 5. 1:1 Portal-to-Card Fusion frames
+    if (!appState.isOutcomeOpen && !appState.isCodexOpen) {
+      sceneState.portalZ -= sceneState.portalSpeed;
+      if (sceneState.portalZ < 0) sceneState.portalZ = 0;
+    }
+    const zEase = 1 - Math.pow(sceneState.portalZ, 1.35);
+    for (let i = 0; i < 3; i++) {
+      const cRect = cardsRects[i];
+      if (!cRect || cRect.width < 10) continue;
+      const cardX = cRect.left - canvasRect.left;
+      const cardY = cRect.top - canvasRect.top;
+      const cardW = cRect.width;
+      const cardH = cRect.height;
+
+      const startW = 36;
+      const startH = 26;
+      const startX = vpX + (i - 1) * 44 - startW * 0.5;
+      const startY = vpY - startH * 0.5;
+
+      const px = startX + (cardX - startX) * zEase;
+      const py = startY + (cardY - startY) * zEase;
+      const pw = startW + (cardW - startW) * zEase;
+      const ph = startH + (cardH - startH) * zEase;
+
+      ctx.save();
+      ctx.strokeStyle = laneColors[i];
+      ctx.lineWidth = appState.selectedLane === i ? 2.5 : 1.5;
+      ctx.shadowColor = laneColors[i];
+      ctx.shadowBlur = appState.selectedLane === i ? 14 : 7;
+      ctx.globalAlpha = 0.25 + 0.75 * zEase;
+      ctx.strokeRect(px, py, pw, ph);
+      ctx.restore();
+    }
+
+    // 6. Solid geometric teal diamond craft with smooth banking
+    const activeRect = cardsRects[appState.selectedLane];
+    const desiredX = activeRect ? (activeRect.left - canvasRect.left + activeRect.width * 0.5) : (w * 0.5);
+    if (sceneState.craftX === 0) sceneState.craftX = desiredX;
+    const dx = desiredX - sceneState.craftX;
+    sceneState.craftX += dx * 0.22;
+    sceneState.craftBank = Math.max(-0.38, Math.min(0.38, dx * 0.008));
+
+    const craftY = h - Math.min(44, h * 0.09);
+    ctx.save();
+    ctx.translate(sceneState.craftX, craftY);
+    ctx.rotate(sceneState.craftBank);
+    ctx.fillStyle = `#00ffcc`;
+    ctx.strokeStyle = `#e8e0f0`;
+    ctx.lineWidth = 1.5;
+    ctx.shadowColor = `#00ffcc`;
+    ctx.shadowBlur = 14;
+    ctx.beginPath();
+    ctx.moveTo(0, -18);
+    ctx.lineTo(15, 2);
+    ctx.lineTo(0, 14);
+    ctx.lineTo(-15, 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    animFrameId = requestAnimationFrame(drawFrame);
+  }
+
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  animFrameId = requestAnimationFrame(drawFrame);
+}
+
+// =========================================================================
+// 12. KEYBOARD HOTKEYS & INITIALIZATION
+// =========================================================================
+document.addEventListener(`keydown`, e => {
+  const activeTag = document.activeElement ? document.activeElement.tagName : ``;
+  if (activeTag === `INPUT` || activeTag === `SELECT`) {
+    if (e.key === `Escape` && appState.isCodexOpen) closeCodex();
+    return;
+  }
+
+  if (appState.isOutcomeOpen) {
+    if (e.key === ` ` || e.key === `Enter`) {
+      e.preventDefault();
+      continueFromOutcome();
+    } else if (e.key === `ArrowUp`) {
+      e.preventDefault();
+      scrollOutcomeBody(-120);
+    } else if (e.key === `ArrowDown`) {
+      e.preventDefault();
+      scrollOutcomeBody(120);
+    }
+    return;
+  }
+
+  if (appState.isCodexOpen) {
+    if (e.key === `Escape` || e.key.toLowerCase() === `c`) closeCodex();
+    return;
+  }
+
+  if (e.key === `1`) triggerLaneChoice(0);
+  else if (e.key === `2`) triggerLaneChoice(1);
+  else if (e.key === `3`) triggerLaneChoice(2);
+  else if (e.key === `ArrowLeft` || e.key.toLowerCase() === `a`) selectLane(Math.max(0, appState.selectedLane - 1), true);
+  else if (e.key === `ArrowRight` || e.key.toLowerCase() === `d`) selectLane(Math.min(2, appState.selectedLane + 1), true);
+  else if (e.key === ` ` || e.key === `Enter`) {
+    e.preventDefault();
+    triggerLaneChoice(appState.selectedLane);
+  }
+  else if (e.key.toLowerCase() === `h`) toggleHintsBar();
+  else if (e.key.toLowerCase() === `c`) openCodex();
+  else if (e.key.toLowerCase() === `s`) skipCurrentQuestion();
+  else if (e.key.toLowerCase() === `t`) toggleTimerEnabled();
+  else if (e.key === `Escape` && appState.isMenuOpen) toggleMenuDrawer();
+});
+
+async function initApp() {
+  initParticles();
+  await restoreAppState();
+
+  const secEl = document.getElementById(`sector-filter`);
+  const angEl = document.getElementById(`angle-filter`);
+  const tmoEl = document.getElementById(`timeout-mode`);
+  if (secEl) secEl.value = appState.sectorFilter;
+  if (angEl) angEl.value = appState.angleFilter;
+  if (tmoEl) tmoEl.value = appState.timeoutMode;
+  document.querySelectorAll(`#phase-pills-row .phase-pill`).forEach(p => {
+    p.classList.toggle(`is-active`, p.dataset.phase === appState.phaseFilter);
+  });
+
+  syncHintsUI();
+  syncTimerControlsUI();
+  syncAudioUI();
+  buildDeck(false);
+  loadCurrentGate();
+  startRenderLoop();
+
+  if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === `function`) {
+    window.notebookAppApi.notifyAppReady();
+  }
+}
+
+document.addEventListener(`DOMContentLoaded`, initApp);
+</script>
+</body>
+</html>

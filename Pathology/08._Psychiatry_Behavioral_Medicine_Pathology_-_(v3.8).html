@@ -1,0 +1,3377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="artifact-type" content="tool">
+<meta name="design-style" content="neon_noir">
+<title>08. Psychiatry &amp; Behavioral Medicine Pathology — XR 3-Lane Diagnostic Runner (v3.8)</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --background: #0a0a12;
+  --surface-container-low: #111118;
+  --surface-container: #141422;
+  --surface-container-high: #1e1e30;
+  --on-surface: #e8e0f0;
+  --on-surface-bright: #f7f4fc;
+  --on-surface-variant: #a098b0;
+  --outline: #5a5068;
+  --outline-variant: #302840;
+  --primary: #ff2d78;
+  --on-primary: #1a0010;
+  --primary-container: #b3004e;
+  --on-primary-container: #ffe0ec;
+  --secondary: #00ffcc;
+  --tertiary: #ffe04a;
+  --error: #ff4444;
+  --on-error: #1a0000;
+  --positive: #00ffcc;
+  --warning: #ffe04a;
+  --focus: #ff2d78;
+  --rail-teal: #34a88f;
+  --data-1: #ff2d78;
+  --data-2: #00ffcc;
+  --data-3: #ffe04a;
+  --data-4: #b388ff;
+  --data-context: #6e6680;
+  --font-headline: 'Sora', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-label: 'Space Mono', monospace;
+  --display-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem);
+  --headline-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+  --subhead-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+  --body-size: clamp(0.9375rem, 0.9rem + 0.15vw, 1rem);
+  --label-size: 0.75rem;
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --rounded: 0.125rem;
+  --rounded-lg: 0.25rem;
+  --rounded-full: 0.75rem;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+  --glow-text: 0 0 8px currentColor;
+  --glow-primary: 0 0 16px color-mix(in srgb, var(--primary) 40%, transparent);
+  --glow-secondary: 0 0 16px color-mix(in srgb, var(--secondary) 35%, transparent);
+  --glow-tertiary: 0 0 16px color-mix(in srgb, var(--tertiary) 35%, transparent);
+  --neon-border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 50%, transparent);
+  --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+  --scanlines: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in srgb, var(--on-surface) 3%, transparent) 3px 4px);
+  /* Dynamic Cockpit Scaling Vars (Hints Hidden Default) */
+  --card-min-h: 132px;
+  --card-pad-y: 0.9rem;
+  --card-pad-x: 1.05rem;
+  --card-font: clamp(0.98rem, 0.92rem + 0.2vw, 1.12rem);
+  --card-gap: 0.95rem;
+  --stem-pad-y: 0.65rem;
+  --stem-pad-x: 1.15rem;
+  --game-stem-size: clamp(1rem, 0.95rem + 0.24vw, 1.18rem);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overflow-x: clip;
+  background-color: var(--background);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: var(--body-size);
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+}
+button, input, select { font-family: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+#xr-app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background);
+  background-image: var(--scanlines);
+  overflow: hidden;
+}
+
+#xr-app.hints-visible {
+  --card-min-h: 92px;
+  --card-pad-y: 0.58rem;
+  --card-pad-x: 0.88rem;
+  --card-font: clamp(0.92rem, 0.88rem + 0.16vw, 1.04rem);
+  --card-gap: 0.7rem;
+  --stem-pad-y: 0.42rem;
+  --stem-pad-x: 0.95rem;
+  --game-stem-size: clamp(0.92rem, 0.89rem + 0.18vw, 1.06rem);
+}
+
+/* BAND 1: ULTRA-SLIM TOP BAR */
+.top-mini-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: 0.35rem 0.75rem;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  z-index: 30;
+  min-height: 44px;
+}
+.menu-mini-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 36px;
+  padding: 0.3rem 0.75rem;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+  cursor: pointer;
+  transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+.menu-mini-btn:hover { border-color: var(--primary); box-shadow: var(--glow-primary); text-shadow: var(--glow-text); }
+.mini-telemetry {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.tele-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.22rem 0.55rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--on-surface);
+  white-space: nowrap;
+}
+.tele-chip.is-hp { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+.hp-bar-mini {
+  width: 44px;
+  height: 6px;
+  background: var(--surface-container-high);
+  border-radius: var(--rounded);
+  overflow: hidden;
+  border: 1px solid var(--outline-variant);
+}
+.hp-bar-fill {
+  height: 100%;
+  width: 100%;
+  background: var(--secondary);
+  transition: width var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+}
+.tele-chip.is-xp { border-color: color-mix(in srgb, var(--primary) 40%, transparent); color: var(--primary); }
+.tele-chip.is-streak { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+.tele-chip.is-timer.is-urgent { border-color: var(--error); color: var(--error); box-shadow: 0 0 10px color-mix(in srgb, var(--error) 40%, transparent); }
+
+/* SLIDE-OUT MENU DRAWER */
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--background) 70%, transparent);
+  backdrop-filter: blur(4px);
+  z-index: 60;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-short) var(--ease-out);
+}
+.drawer-backdrop.is-open { opacity: 1; pointer-events: auto; }
+#top-menu-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(440px, 92vw);
+  background: var(--surface-container-low);
+  border-right: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  z-index: 70;
+  transform: translateX(-102%);
+  transition: transform var(--dur-short) var(--ease-out);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#top-menu-drawer.is-open { transform: translateX(0); }
+.drawer-header {
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--outline-variant);
+  background: var(--surface-container);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.drawer-top-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; }
+.drawer-kicker {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  text-shadow: var(--glow-text);
+}
+.drawer-title {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--on-surface-bright);
+  line-height: 1.25;
+}
+.drawer-close-btn {
+  min-width: 36px;
+  min-height: 36px;
+  background: var(--surface-container-high);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  color: var(--on-surface);
+  font-family: var(--font-label);
+  cursor: pointer;
+}
+.drawer-close-btn:hover { border-color: var(--primary); color: var(--primary); }
+.drawer-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+.drawer-section {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.drawer-sec-label {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--on-surface-variant);
+}
+.drawer-btn-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+.drawer-btn {
+  min-height: 40px;
+  padding: 0.4rem 0.6rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--on-surface);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+}
+.drawer-btn:hover { border-color: var(--secondary); color: var(--secondary); box-shadow: var(--glow-secondary); }
+.drawer-btn.is-active {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface-container));
+  box-shadow: var(--glow-primary);
+}
+.drawer-btn.is-danger { border-color: color-mix(in srgb, var(--error) 60%, transparent); color: var(--error); }
+.drawer-field { display: flex; flex-direction: column; gap: 0.25rem; }
+.drawer-field label {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+.drawer-select, .drawer-input {
+  width: 100%;
+  min-height: 38px;
+  padding: 0.35rem 0.6rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  color: var(--on-surface);
+  font-size: 0.82rem;
+}
+.volume-row { display: flex; align-items: center; gap: 0.6rem; }
+.volume-row input[type="range"] { flex: 1; accent-color: var(--secondary); }
+.phase-mix-row { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+.phase-pill {
+  padding: 0.2rem 0.48rem;
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  border: 1px solid var(--outline-variant);
+  background: var(--surface-container-low);
+  color: var(--on-surface-variant);
+}
+.skill-tree-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+.skill-node {
+  padding: 0.42rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.skill-node:hover { border-color: var(--secondary); }
+.skill-node.is-mastered { border-color: var(--secondary); background: color-mix(in srgb, var(--secondary) 10%, var(--surface-container-low)); }
+.skill-node-title { font-size: 0.72rem; font-weight: 600; color: var(--on-surface); line-height: 1.25; }
+.skill-node-meta { font-family: var(--font-label); font-size: 0.62rem; color: var(--on-surface-variant); }
+.hotkey-guide {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  color: var(--on-surface-variant);
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.45rem 0.65rem;
+  line-height: 1.5;
+}
+.inline-toast {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  color: var(--secondary);
+  min-height: 1.1em;
+}
+
+/* BAND 2: TOP QUESTION + 3S AUTO-HIDING METADATA */
+.question-stage {
+  flex: 0 0 auto;
+  padding: 0.45rem 0.75rem 0.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  z-index: 20;
+}
+.question-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  max-height: 60px;
+  opacity: 1;
+  overflow: hidden;
+  transition: opacity var(--dur-long) var(--ease-out), max-height var(--dur-long) var(--ease-out), margin var(--dur-long) var(--ease-out);
+}
+.question-meta-row.is-faded {
+  opacity: 0;
+  max-height: 0;
+  margin: 0;
+  pointer-events: none;
+}
+.meta-badge {
+  padding: 0.16rem 0.5rem;
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid var(--outline);
+  background: var(--surface-container);
+}
+.meta-badge.is-lo { border-color: var(--primary); color: var(--primary); }
+.meta-badge.is-angle { border-color: var(--secondary); color: var(--secondary); }
+.meta-badge.is-phase { border-color: var(--tertiary); color: var(--tertiary); }
+.meta-badge.is-corridor { border-color: var(--data-4); color: var(--data-4); }
+
+.question-stem-box {
+  width: min(1040px, calc(100% - 0.5rem));
+  padding: var(--stem-pad-y) var(--stem-pad-x);
+  background: color-mix(in srgb, var(--surface-container) 92%, transparent);
+  border: var(--neon-border);
+  box-shadow: var(--neon-inset);
+  border-radius: var(--rounded-lg);
+  max-height: 29dvh;
+  overflow-y: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: padding var(--dur-short) var(--ease-out);
+}
+#xr-app.hints-visible .question-stem-box { max-height: 22dvh; }
+.question-stem {
+  margin: 0;
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: var(--game-stem-size);
+  font-weight: 600;
+  color: var(--on-surface-bright);
+  text-align: center !important;
+  line-height: 1.4;
+}
+
+/* BAND 3: CENTER 3D XR VIEWPORT + CENTERED PORTAL CARDS */
+.viewport-shell {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  background: var(--background);
+  overflow: hidden;
+}
+#xr-canvas { display: block; width: 100%; height: 100%; cursor: pointer; }
+.lane-overlay-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(1120px, calc(100% - 1.5rem));
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--card-gap);
+  z-index: 15;
+  pointer-events: auto;
+}
+.lane-dom-card {
+  position: relative;
+  min-height: var(--card-min-h);
+  padding: var(--card-pad-y) var(--card-pad-x);
+  background: color-mix(in srgb, var(--surface-container) 82%, transparent);
+  backdrop-filter: blur(8px);
+  border-radius: var(--rounded-lg);
+  border: 2px solid var(--outline);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center !important;
+  gap: 0.45rem;
+  cursor: pointer;
+  transition: transform var(--dur-micro) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+.lane-dom-card.lane-0 { border-color: color-mix(in srgb, var(--primary) 75%, transparent); box-shadow: inset 0 0 14px color-mix(in srgb, var(--primary) 18%, transparent); }
+.lane-dom-card.lane-1 { border-color: color-mix(in srgb, var(--secondary) 75%, transparent); box-shadow: inset 0 0 14px color-mix(in srgb, var(--secondary) 18%, transparent); }
+.lane-dom-card.lane-2 { border-color: color-mix(in srgb, var(--tertiary) 75%, transparent); box-shadow: inset 0 0 14px color-mix(in srgb, var(--tertiary) 18%, transparent); }
+.lane-dom-card.lane-0:hover, .lane-dom-card.lane-0.is-targeted { transform: translateY(-2px); border-color: var(--primary); box-shadow: var(--glow-primary); }
+.lane-dom-card.lane-1:hover, .lane-dom-card.lane-1.is-targeted { transform: translateY(-2px); border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.lane-dom-card.lane-2:hover, .lane-dom-card.lane-2.is-targeted { transform: translateY(-2px); border-color: var(--tertiary); box-shadow: var(--glow-tertiary); }
+
+.lane-card-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.lane-0 .lane-card-head { color: var(--primary); }
+.lane-1 .lane-card-head { color: var(--secondary); }
+.lane-2 .lane-card-head { color: var(--tertiary); }
+.lane-choice-body {
+  flex: 1 1 auto;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center !important;
+}
+.lane-card-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center !important;
+  font-size: var(--card-font);
+  font-weight: 600;
+  color: var(--on-surface-bright);
+  line-height: 1.32;
+}
+.fusion-lock-tag {
+  font-family: var(--font-label);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: var(--on-surface-variant);
+  opacity: 0.85;
+}
+.vignette-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 18;
+  opacity: 0;
+  transition: opacity var(--dur-short) var(--ease-out);
+}
+.vignette-overlay.is-right { opacity: 1; box-shadow: inset 0 0 70px color-mix(in srgb, var(--secondary) 40%, transparent); }
+.vignette-overlay.is-wrong { opacity: 1; box-shadow: inset 0 0 70px color-mix(in srgb, var(--error) 45%, transparent); }
+.heal-toast {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
+  padding: 0.35rem 0.9rem;
+  background: var(--surface-container-high);
+  border: 1px solid var(--secondary);
+  border-radius: var(--rounded);
+  color: var(--secondary);
+  font-family: var(--font-label);
+  font-size: 0.78rem;
+  font-weight: 700;
+  box-shadow: var(--glow-secondary);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 25;
+  transition: opacity var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out);
+}
+.heal-toast.is-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* BAND 4: BOTTOM HINTS BAR */
+#hints-bar {
+  flex: 0 0 auto;
+  background: var(--surface-container-low);
+  border-top: 1px solid var(--outline-variant);
+  padding: 0.45rem 0.85rem;
+  text-align: center !important;
+  z-index: 20;
+  transition: max-height var(--dur-short) var(--ease-out), opacity var(--dur-short) var(--ease-out);
+}
+#xr-app.hints-hidden #hints-bar { display: none; }
+.hints-inner {
+  max-width: 980px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  text-align: center !important;
+}
+.hints-kicker {
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tertiary);
+}
+#q-clue-text {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--on-surface);
+  text-align: center !important;
+}
+
+/* MODALS (OUTCOME DOSSIER, LOOT CODEX, SUMMARY) */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--background) 82%, transparent);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 80;
+  padding: 0.75rem;
+}
+.modal-backdrop.is-open { display: flex; }
+.modal-shell {
+  width: min(920px, 94vw);
+  max-height: 90dvh;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#outcome-popup-modal {
+  text-align: center !important;
+}
+.popup-header {
+  padding: 0.8rem 1rem;
+  background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  text-align: center !important;
+}
+#outcome-verdict {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: 1.18rem;
+  font-weight: 800;
+  text-align: center !important;
+}
+#outcome-verdict.is-right { color: var(--secondary); text-shadow: var(--glow-text); }
+#outcome-verdict.is-wrong { color: var(--error); text-shadow: var(--glow-text); }
+.verdict-deltas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  font-family: var(--font-label);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+.delta-pill {
+  padding: 0.16rem 0.55rem;
+  border-radius: var(--rounded);
+  border: 1px solid var(--outline);
+  background: var(--surface-container-low);
+}
+.popup-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center !important;
+}
+.popup-question-pin {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+#outcome-lo-ref {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--tertiary);
+}
+#outcome-question-text {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--on-surface-bright);
+  text-align: center !important;
+}
+.choice-compare-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+.compare-box {
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--rounded);
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center !important;
+  gap: 0.2rem;
+}
+.compare-box.is-right { border-color: var(--secondary); background: color-mix(in srgb, var(--secondary) 10%, var(--surface-container-low)); }
+.compare-box.is-wrong { border-color: var(--error); background: color-mix(in srgb, var(--error) 10%, var(--surface-container-low)); }
+.compare-label { font-family: var(--font-label); font-size: 0.66rem; text-transform: uppercase; color: var(--on-surface-variant); }
+.compare-val { font-size: 0.88rem; font-weight: 700; color: var(--on-surface-bright); }
+.dossier-section {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center !important;
+  gap: 0.3rem;
+}
+.dossier-sec-title {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--primary);
+}
+.dossier-sec-title.is-cyan { color: var(--secondary); }
+.dossier-sec-title.is-yellow { color: var(--tertiary); }
+.dossier-line {
+  margin: 0.12rem 0;
+  font-size: 0.86rem;
+  color: var(--on-surface);
+  text-align: center !important;
+  line-height: 1.42;
+}
+.angle-dossier-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.angle-mini-card {
+  padding: 0.6rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center !important;
+  gap: 0.25rem;
+}
+.popup-footer {
+  padding: 0.65rem 1rem;
+  background: var(--surface-container-high);
+  border-top: 1px solid var(--outline-variant);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.btn-neon {
+  min-height: 40px;
+  padding: 0.45rem 0.9rem;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--primary);
+  cursor: pointer;
+  transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+.btn-neon:hover { border-color: var(--primary); box-shadow: var(--glow-primary); text-shadow: var(--glow-text); }
+.btn-neon.is-cyan { border-color: color-mix(in srgb, var(--secondary) 55%, transparent); color: var(--secondary); }
+.btn-neon.is-cyan:hover { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+
+/* LOOT CODEX MODAL */
+.codex-toolbar {
+  padding: 0.75rem 1rem;
+  background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.codex-pills { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.codex-pill {
+  min-height: 34px;
+  padding: 0.25rem 0.65rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+.codex-pill.is-active { border-color: var(--secondary); color: var(--secondary); box-shadow: var(--glow-secondary); }
+.codex-table-wrap { flex: 1 1 auto; overflow: auto; padding: 0.75rem; }
+.codex-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+.codex-table th, .codex-table td {
+  padding: 0.55rem;
+  border: 1px solid var(--outline-variant);
+  text-align: left;
+  vertical-align: top;
+}
+.codex-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-container-high);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  color: var(--secondary);
+}
+.codex-table tr:nth-child(even) td { background: var(--surface-container-low); }
+
+/* =========================================================
+   VERBATIM 3 PHONE / TABLET RESPONSIVE MEDIA QUERIES (v3.8)
+   ========================================================= */
+@media (max-width: 600px) {
+  .tele-chip.is-xp { display: none; }
+  .lane-overlay-container {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    width: calc(100% - 1rem);
+  }
+  .lane-dom-card { min-height: 62px; padding: 0.55rem 0.75rem; }
+  .lane-card-head, .lane-key-label, .fusion-lock-tag { display: none; }
+  #xr-app.hints-visible .question-stem-box { max-height: 18dvh; }
+  #xr-app.hints-visible .lane-dom-card { min-height: 50px; padding: 0.4rem 0.65rem; }
+  .modal-shell { width: 96vw; max-height: 92dvh; }
+  .choice-compare-grid, .angle-dossier-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-height: 500px) and (pointer: coarse) {
+  .top-mini-bar { min-height: 36px; padding: 0.2rem 0.5rem; }
+  .question-stage { padding: 0.2rem 0.5rem; }
+  .question-stem-box { max-height: 22dvh; padding: 0.3rem 0.6rem; }
+  .lane-overlay-container { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.45rem; }
+  .lane-dom-card { min-height: 58px; padding: 0.35rem 0.5rem; }
+  .lane-card-head, .fusion-lock-tag { display: none; }
+}
+
+@media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+  html { font-size: 200%; }
+  .lane-overlay-container { grid-template-columns: 1fr; gap: 0.5rem; }
+  .lane-card-head, .lane-key-label, .fusion-lock-tag { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+<div id="xr-app" class="hints-hidden">
+  <!-- BAND 1: ULTRA-SLIM TOP BAR -->
+  <header class="top-mini-bar">
+    <button type="button" class="menu-mini-btn" id="menu-toggle-btn" onclick="toggleMenuDrawer()" aria-expanded="false" aria-controls="top-menu-drawer">☰ MENU</button>
+    <div class="mini-telemetry" aria-label="Game Status">
+      <span class="tele-chip is-hp" id="hp-chip">
+        HP <span id="hp-text">100</span>
+        <span class="hp-bar-mini" aria-hidden="true"><span class="hp-bar-fill" id="hp-bar-fill"></span></span>
+      </span>
+      <span class="tele-chip is-xp">XP <span id="xp-text">0</span></span>
+      <span class="tele-chip is-streak">⚡<span id="streak-text">0</span> (<span id="mult-text">1x</span>)</span>
+      <span class="tele-chip">Gate <span id="gate-text">1/45</span></span>
+      <span class="tele-chip is-timer" id="timer-chip">⏱ <span id="timer-text">50s</span></span>
+    </div>
+  </header>
+
+  <!-- BAND 2: TOP QUESTION STAGE + 3-SECOND AUTO-HIDING METADATA -->
+  <div class="question-stage">
+    <div class="question-meta-row" id="question-meta-row">
+      <span class="meta-badge is-lo" id="lo-badge">LO 1</span>
+      <span class="meta-badge is-angle" id="angle-badge">PRESENTATION → DIAGNOSIS</span>
+      <span class="meta-badge is-phase" id="phase-badge">PHASE 1: PATHOGENESIS</span>
+      <span class="meta-badge is-corridor" id="corridor-badge">CORRIDOR</span>
+    </div>
+    <div class="question-stem-box">
+      <p class="question-stem amboss-scan-target" id="q-stem-text">Initializing Psychiatric Diagnostic Corridor…</p>
+    </div>
+  </div>
+
+  <!-- BAND 3: CENTER 3D XR VIEWPORT + 3 CENTERED COLOR-CODED CARDS -->
+  <div class="viewport-shell" id="viewport-shell">
+    <canvas id="xr-canvas" aria-label="3D Perspective Diagnostic Corridor"></canvas>
+    <div class="lane-overlay-container" id="lane-overlay-container">
+      <div id="lane-0-card" class="lane-dom-card lane-0" role="button" tabindex="0"
+        onmouseenter="previewLaneTarget(0)" onpointerenter="previewLaneTarget(0)" onfocus="previewLaneTarget(0)"
+        onclick="selectLaneAndResolve(0)"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(0);}">
+        <div class="lane-card-head">
+          <span class="lane-portal-name">LEFT PORTAL</span>
+          <span class="lane-key-label">1 / A / ←</span>
+        </div>
+        <div class="lane-choice-body">
+          <span id="lane-0-text" class="lane-card-text amboss-scan-target">Option A</span>
+        </div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+
+      <div id="lane-1-card" class="lane-dom-card lane-1" role="button" tabindex="0"
+        onmouseenter="previewLaneTarget(1)" onpointerenter="previewLaneTarget(1)" onfocus="previewLaneTarget(1)"
+        onclick="selectLaneAndResolve(1)"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(1);}">
+        <div class="lane-card-head">
+          <span class="lane-portal-name">CENTER PORTAL</span>
+          <span class="lane-key-label">2 / W / ↑</span>
+        </div>
+        <div class="lane-choice-body">
+          <span id="lane-1-text" class="lane-card-text amboss-scan-target">Option B</span>
+        </div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+
+      <div id="lane-2-card" class="lane-dom-card lane-2" role="button" tabindex="0"
+        onmouseenter="previewLaneTarget(2)" onpointerenter="previewLaneTarget(2)" onfocus="previewLaneTarget(2)"
+        onclick="selectLaneAndResolve(2)"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(2);}">
+        <div class="lane-card-head">
+          <span class="lane-portal-name">RIGHT PORTAL</span>
+          <span class="lane-key-label">3 / D / →</span>
+        </div>
+        <div class="lane-choice-body">
+          <span id="lane-2-text" class="lane-card-text amboss-scan-target">Option C</span>
+        </div>
+        <span class="fusion-lock-tag">5M FUSION LOCK</span>
+      </div>
+    </div>
+    <div class="vignette-overlay" id="vignette-overlay"></div>
+    <div class="heal-toast" id="heal-toast">✚ STREAK BONUS +25 HP</div>
+  </div>
+
+  <!-- BAND 4: BOTTOM HINTS BAR -->
+  <div id="hints-bar" aria-live="polite">
+    <div class="hints-inner">
+      <span class="hints-kicker">TACTICAL HINT [H]</span>
+      <p id="q-clue-text" class="amboss-scan-target">Press [H] to toggle tactical clue.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE-OUT MENU DRAWER -->
+<div class="drawer-backdrop" id="drawer-backdrop" onclick="toggleMenuDrawer()"></div>
+<aside id="top-menu-drawer" aria-label="Mission Control &amp; Skill Tree">
+  <div class="drawer-header">
+    <div class="drawer-top-row">
+      <div>
+        <div class="drawer-kicker" id="menu-kicker">COMLEX-USA CP-4 // PSYCHIATRY &amp; OMT</div>
+        <h1 class="drawer-title" id="menu-title">08. Psychiatry &amp; Behavioral Medicine Pathology — XR 3-Lane Diagnostic Runner</h1>
+      </div>
+      <button type="button" class="drawer-close-btn" onclick="toggleMenuDrawer()" aria-label="Close Menu">✕</button>
+    </div>
+  </div>
+
+  <div class="drawer-scroll">
+    <div class="drawer-section">
+      <span class="drawer-sec-label">Tactical Actions</span>
+      <div class="drawer-btn-grid">
+        <button type="button" class="drawer-btn" id="menu-hints-btn" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+        <button type="button" class="drawer-btn" onclick="openCodexFromMenu()">📘 Loot Codex [C]</button>
+        <button type="button" class="drawer-btn" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+        <button type="button" class="drawer-btn" id="menu-timer-btn" onclick="toggleTimerEnabled()">⏱ Timer: ON [T]</button>
+        <button type="button" class="drawer-btn" onclick="startTimedRunFromMenu()">⚡ Start 50s Run</button>
+        <button type="button" class="drawer-btn" onclick="openSummaryFromMenu()">📊 Run Summary</button>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <span class="drawer-sec-label">Deck &amp; Sector Filters</span>
+      <div class="drawer-field">
+        <label for="sector-filter">Sector / Pathology Domain</label>
+        <select id="sector-filter" class="drawer-select" onchange="applyDeckFilters()">
+          <option value="all">All 5 Sectors (45 Gates)</option>
+          <option value="sector_1">Sector I — Neurocognitive &amp; Delirium (LO 1–3)</option>
+          <option value="sector_2">Sector II — Psychotic Spectrum (LO 4–6)</option>
+          <option value="sector_3">Sector III — Mood &amp; Stress Disorders (LO 7–9)</option>
+          <option value="sector_4">Sector IV — Anxiety, Somatoform &amp; Personality (LO 10–12)</option>
+          <option value="sector_5">Sector V — Substance, Toxidromes &amp; OMT (LO 13–15)</option>
+          <option value="missed">🎯 Missed Gates Only (0)</option>
+        </select>
+      </div>
+      <div class="drawer-field">
+        <label for="angle-filter">Diagnostic Angle</label>
+        <select id="angle-filter" class="drawer-select" onchange="applyDeckFilters()">
+          <option value="all">All 3 Diagnostic Angles</option>
+          <option value="Presentation -> Diagnosis">Presentation → Diagnosis</option>
+          <option value="Mechanism -> Pathophysiology">Mechanism → Pathophysiology</option>
+          <option value="Hallmarks -> Management">Hallmarks → Management</option>
+        </select>
+      </div>
+      <div class="drawer-field">
+        <label for="timesup-mode">Time's Up Behavior</label>
+        <select id="timesup-mode" class="drawer-select" onchange="syncTimerControlsUI()">
+          <option value="review">Time's Up = Wrong → Review Screen</option>
+          <option value="hold">Hold at 0s (Allow Late Selection)</option>
+        </select>
+      </div>
+      <div class="phase-mix-row" aria-label="Deck Phase Distribution">
+        <span class="phase-pill">Phase 1 Pathogenesis: 31%</span>
+        <span class="phase-pill">Phase 2 Morphology/Criteria: 36%</span>
+        <span class="phase-pill">Phase 3 Clinical/Mgmt: 33%</span>
+      </div>
+      <div class="drawer-btn-grid">
+        <button type="button" class="drawer-btn" onclick="restartDeck(false)">↻ Restart Ordered</button>
+        <button type="button" class="drawer-btn" onclick="restartDeck(true)">🔀 Shuffle Deck</button>
+      </div>
+      <button type="button" class="drawer-btn is-danger" id="reset-mastery-btn" onclick="handleResetMastery(this)">🗑 Reset Mastery</button>
+      <div class="inline-toast" id="menu-inline-toast"></div>
+    </div>
+
+    <div class="drawer-section">
+      <span class="drawer-sec-label">Audio Suite (Web Audio + Custom Track)</span>
+      <div class="drawer-btn-grid">
+        <button type="button" class="drawer-btn is-active" id="master-sound-btn" onclick="toggleMasterSound()">🔊 Sound: ON</button>
+        <button type="button" class="drawer-btn is-active" id="sfx-btn" onclick="toggleSfx()">🎛 SFX: ON</button>
+        <button type="button" class="drawer-btn" id="bgm-btn" onclick="toggleProceduralBgm()">🎹 Zombies BGM: OFF</button>
+        <label class="drawer-btn" for="custom-audio-input" style="display:flex;align-items:center;justify-content:center;">📂 Load MP3/WAV</label>
+        <input type="file" id="custom-audio-input" accept="audio/*" style="display:none;" onchange="loadCustomAudio(this)">
+      </div>
+      <div class="drawer-field">
+        <label for="bgm-volume">BGM Volume (<span id="bgm-vol-label">35%</span>)</label>
+        <div class="volume-row">
+          <input type="range" id="bgm-volume" min="0" max="100" value="35" oninput="setBgmVolume(this.value)">
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <span class="drawer-sec-label">15-Entity Skill Tree (Click to Jump)</span>
+      <div class="skill-tree-grid" id="skill-tree-grid"></div>
+    </div>
+
+    <div class="hotkey-guide">
+      <strong>Hotkeys:</strong> [1/2/3] or [A/W/D] or [←/↑/→] Select Lane • [H] Hints • [M] Menu • [C] Codex • [S] Skip • [T] Timer • [Space/Enter] Continue
+    </div>
+  </div>
+</aside>
+
+<!-- OUTCOME DOSSIER REVIEW MODAL -->
+<div class="modal-backdrop" id="outcome-backdrop" role="dialog" aria-modal="true" aria-labelledby="outcome-verdict">
+  <div class="modal-shell" id="outcome-popup-modal">
+    <div class="popup-header">
+      <h2 id="outcome-verdict">✔ CORRECT — Diagnosis</h2>
+      <div class="verdict-deltas">
+        <span class="delta-pill" id="outcome-xp-delta">+100 XP</span>
+        <span class="delta-pill" id="outcome-hp-delta">HP +5</span>
+      </div>
+    </div>
+    <div class="popup-body" id="outcome-scroll-body">
+      <div class="popup-question-pin">
+        <span id="outcome-lo-ref">LO 1 • Angle • Phase Focus</span>
+        <p id="outcome-question-text" class="amboss-scan-target"></p>
+      </div>
+
+      <div class="choice-compare-grid">
+        <div class="compare-box" id="your-choice-box">
+          <span class="compare-label">Your Choice</span>
+          <span class="compare-val amboss-scan-target" id="your-choice-text"></span>
+        </div>
+        <div class="compare-box is-right" id="correct-choice-box">
+          <span class="compare-label">Correct Answer</span>
+          <span class="compare-val amboss-scan-target" id="correct-choice-text"></span>
+        </div>
+      </div>
+
+      <div class="dossier-section">
+        <span class="dossier-sec-title is-cyan">Section 2 — Concise Explanation &amp; Distractor Exclusion</span>
+        <div id="dossier-explanation" class="amboss-scan-target"></div>
+      </div>
+
+      <div class="dossier-section">
+        <span class="dossier-sec-title is-yellow">Section 3 — Second-Order Vignette Clue</span>
+        <div id="dossier-board-clue" class="amboss-scan-target"></div>
+      </div>
+
+      <div class="dossier-section">
+        <span class="dossier-sec-title">Section 4 — Core Mechanism &amp; Pathogenesis Pearls (Phase 1)</span>
+        <div id="dossier-pathogenesis" class="amboss-scan-target"></div>
+      </div>
+
+      <div class="dossier-section">
+        <span class="dossier-sec-title is-cyan">Section 5 — High-Yield Morphology &amp; Structural Hallmarks (Phase 2)</span>
+        <div id="dossier-morphology" class="amboss-scan-target"></div>
+      </div>
+
+      <div class="dossier-section">
+        <span class="dossier-sec-title is-yellow">Section 6 — Guild Master's Secret &amp; Clinical Management (Phase 3)</span>
+        <div id="dossier-epi-tx" class="amboss-scan-target"></div>
+      </div>
+
+      <div class="dossier-section">
+        <span class="dossier-sec-title">Section 7 — Complete 3-Phase Topic Dossier</span>
+        <div class="angle-dossier-grid">
+          <div class="angle-mini-card">
+            <span class="dossier-sec-title">Phase 1: Pathogenesis</span>
+            <div id="dossier-angle-1" class="amboss-scan-target"></div>
+          </div>
+          <div class="angle-mini-card">
+            <span class="dossier-sec-title is-cyan">Phase 2: Morphology / Criteria</span>
+            <div id="dossier-angle-2" class="amboss-scan-target"></div>
+          </div>
+          <div class="angle-mini-card">
+            <span class="dossier-sec-title is-yellow">Phase 3: Clinical / Mgmt</span>
+            <div id="dossier-angle-3" class="amboss-scan-target"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="popup-footer">
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(-180)">▲ Up</button>
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(180)">▼ Down</button>
+      <button type="button" class="btn-neon" onclick="continueToNextGate()">▶ Continue Runner [Space / Enter]</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOOT CODEX MODAL -->
+<div class="modal-backdrop" id="codex-backdrop" role="dialog" aria-modal="true" aria-labelledby="codex-title">
+  <div class="modal-shell">
+    <div class="codex-toolbar">
+      <h2 id="codex-title" style="margin:0;font-family:var(--font-headline);font-size:1rem;color:var(--secondary);">Psychiatry &amp; OMT Loot Codex (15 Entities)</h2>
+      <div class="codex-pills" id="codex-pills">
+        <button type="button" class="codex-pill is-active" onclick="filterCodex('all', this)">All (15)</button>
+        <button type="button" class="codex-pill" onclick="filterCodex('cat_1', this)">Organic &amp; Psychotic</button>
+        <button type="button" class="codex-pill" onclick="filterCodex('cat_2', this)">Mood, Anxiety &amp; Personality</button>
+        <button type="button" class="codex-pill" onclick="filterCodex('cat_3', this)">Substance, Tox &amp; OMT</button>
+      </div>
+      <button type="button" class="btn-neon" onclick="closeCodex()">✕ Close [C]</button>
+    </div>
+    <div class="codex-table-wrap">
+      <table class="codex-table">
+        <thead>
+          <tr>
+            <th>LO &amp; Entity / Boss</th>
+            <th>Etiology / Trigger</th>
+            <th>Pathogenesis Cascade</th>
+            <th>Morphology &amp; Criteria</th>
+            <th>Clinical Presentation</th>
+            <th>Management &amp; Guild Secret</th>
+          </tr>
+        </thead>
+        <tbody id="codex-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- END-OF-RUN SUMMARY MODAL -->
+<div class="modal-backdrop" id="summary-backdrop" role="dialog" aria-modal="true" aria-labelledby="summary-title">
+  <div class="modal-shell" style="max-width:620px;text-align:center;">
+    <div class="popup-header">
+      <h2 id="summary-title" style="margin:0;font-family:var(--font-headline);color:var(--secondary);">Diagnostic Raid Telemetry Summary</h2>
+    </div>
+    <div class="popup-body" id="summary-body"></div>
+    <div class="popup-footer">
+      <button type="button" class="btn-neon is-cyan" onclick="runMissedFromSummary()">🎯 Practice Missed Gates</button>
+      <button type="button" class="btn-neon" onclick="closeSummaryAndRestart()">↻ New Raid Run</button>
+    </div>
+  </div>
+</div>
+
+<api-shim></api-shim>
+<script>
+const GAME_CONFIG = {
+  title: `08. Psychiatry & Behavioral Medicine Pathology — XR 3-Lane Diagnostic Runner (v3.8)`,
+  kicker: `COMLEX-USA CP-4 // Psychiatry, Toxidromes & Autonomic OMT`,
+  maxHp: 100,
+  hpPenalty: 15,
+  hpReward: 5,
+  healAmount: 25,
+  healStreakStep: 4,
+  stopDistanceMeters: 5,
+  gateStartDistance: 95,
+  gateApproachSpeed: 24,
+  timerSeconds: 50,
+  metaFadeMs: 3000
+};
+
+const LANE_COLORS = ['#ff2d78', '#00ffcc', '#ffe04a'];
+
+const LO_VISUAL_THEMES = {
+  1: { tag: `SECTOR I // CORTICAL AROUSAL`, particleColor: `#ff2d78`, gridRgb: `120, 45, 160`, railColor: `#34a88f` },
+  2: { tag: `SECTOR I // MULTI-INFARCT GRID`, particleColor: `#b388ff`, gridRgb: `100, 65, 185`, railColor: `#34a88f` },
+  3: { tag: `SECTOR I // VENTRICULAR CSF`, particleColor: `#00ffcc`, gridRgb: `55, 115, 165`, railColor: `#34a88f` },
+  4: { tag: `SECTOR II // MESOLIMBIC SURGE`, particleColor: `#ff2d78`, gridRgb: `150, 40, 120`, railColor: `#34a88f` },
+  5: { tag: `SECTOR II // MOOD-PSYCHOSIS BRIDGE`, particleColor: `#ffe04a`, gridRgb: `135, 95, 50`, railColor: `#34a88f` },
+  6: { tag: `SECTOR II // TEMPORAL HORIZON`, particleColor: `#00ffcc`, gridRgb: `50, 130, 145`, railColor: `#34a88f` },
+  7: { tag: `SECTOR III // HPA CORTISOL AXIS`, particleColor: `#b388ff`, gridRgb: `95, 50, 155`, railColor: `#34a88f` },
+  8: { tag: `SECTOR III // BIPOLAR OSCILLATION`, particleColor: `#ffe04a`, gridRgb: `145, 105, 45`, railColor: `#34a88f` },
+  9: { tag: `SECTOR III // AMYGDALA HYPERDRIVE`, particleColor: `#ff2d78`, gridRgb: `155, 45, 95`, railColor: `#34a88f` },
+  10: { tag: `SECTOR IV // LOCUS COERULEUS`, particleColor: `#00ffcc`, gridRgb: `45, 125, 135`, railColor: `#34a88f` },
+  11: { tag: `SECTOR IV // SOMATOFORM CIRCUIT`, particleColor: `#b388ff`, gridRgb: `110, 60, 165`, railColor: `#34a88f` },
+  12: { tag: `SECTOR IV // CLUSTER B SPLITTING`, particleColor: `#ff2d78`, gridRgb: `145, 35, 115`, railColor: `#34a88f` },
+  13: { tag: `SECTOR V // MAMMILLARY THIAMINE`, particleColor: `#ffe04a`, gridRgb: `135, 85, 40`, railColor: `#34a88f` },
+  14: { tag: `SECTOR V // SYNAPTIC TOXIDROME`, particleColor: `#ff4444`, gridRgb: `155, 40, 60`, railColor: `#34a88f` },
+  15: { tag: `SECTOR V // OA-CV4 AUTONOMIC`, particleColor: `#00ffcc`, gridRgb: `40, 135, 120`, railColor: `#34a88f` }
+};
+
+const CODEX_DATA = [
+  {
+    lo: 1, sector: `sector_1`, tag: `cat_1`,
+    entity: `Delirium vs. Major Neurocognitive Disorder`,
+    badgeMeta: `High-Yield Differential`,
+    etiology: `Delirium: acute medical insult (infection, meds, hypoxia, metabolic). Dementia: chronic neurodegeneration (Alzheimer, Lewy body, frontotemporal).`,
+    pathogenesis: `Delirium: acute cholinergic deficiency + dopamine excess disrupting reticular activating arousal. Alzheimer: amyloid-beta plaques & hyperphosphorylated tau tangles.`,
+    hallmarks: `Delirium: diffuse background slowing on EEG; fluctuating consciousness/attention. Dementia: normal EEG until late; cortical atrophy on MRI; preserved alertness.`,
+    clinical: `Delirium: acute onset, waxing/waning attention, visual hallucinations, sundowning. Dementia: insidious onset, progressive memory/executive loss, intact arousal.`,
+    management: `Treat underlying cause, reorient, low-dose haloperidol if severe agitation. Guild Secret: Never mistake acute fluctuating inattention for baseline dementia.`
+  },
+  {
+    lo: 2, sector: `sector_1`, tag: `cat_1`,
+    entity: `Vascular Dementia & Multi-Infarct Pathology`,
+    badgeMeta: `Stepwise Decline`,
+    etiology: `Chronic HTN, atherosclerosis, diabetes, atrial fibrillation, recurrent lacunar or cortical thromboembolic strokes.`,
+    pathogenesis: `Cumulative ischemic infarcts in subcortical white matter/basal ganglia/cortex → focal coagulative necrosis → stepwise loss of executive networks.`,
+    hallmarks: `MRI T2/FLAIR multiple cortical/subcortical infarcts + periventricular white matter hyperintensities; focal neurologic deficits on exam.`,
+    clinical: `Stepwise cognitive deterioration following discrete neurologic events, early executive dysfunction, gait disturbance, pseudobulbar affect.`,
+    management: `Aggressive vascular risk control (BP, statins, antiplatelets/anticoagulation for AFib). Guild Secret: "Stepwise decline + focal neuro signs" = Vascular Dementia.`
+  },
+  {
+    lo: 3, sector: `sector_1`, tag: `cat_1`,
+    entity: `Normal Pressure Hydrocephalus (NPH)`,
+    badgeMeta: `Reversible Dementia`,
+    etiology: `Idiopathic (older adults) or secondary to subarachnoid hemorrhage/meningitis impairing arachnoid granulation CSF reabsorption.`,
+    pathogenesis: `Decreased CSF absorption → chronic ventricular enlargement stretching periventricular corticospinal/bladder/frontal fibers without sustained ↑ ICP.`,
+    hallmarks: `CT/MRI: ventriculomegaly out of proportion to sulcal atrophy (Evans index ↑), normal CSF opening pressure on LP.`,
+    clinical: `Hakim triad: "Wet, Wobbly, Wacky" — urinary incontinence, broad-based magnetic gait ataxia (often earliest), and subcortical dementia.`,
+    management: `High-volume LP tap test (transient gait improvement predicts response) → ventriculoperitoneal (VP) shunt. Guild Secret: Treatable dementia mimic!`
+  },
+  {
+    lo: 4, sector: `sector_2`, tag: `cat_1`,
+    entity: `Schizophrenia (Dopamine & Ventriculomegaly)`,
+    badgeMeta: `≥6 Mo Duration`,
+    etiology: `Polygenic risk, prenatal insults, adolescent heavy cannabis use; onset late teens–20s (males) or late 20s–30s (females).`,
+    pathogenesis: `↑ Mesolimbic DA (positive symptoms) + ↓ mesocortical DA (negative/cognitive symptoms) + ↑ 5-HT + dendritic pruning loss.`,
+    hallmarks: `Brain MRI: ventriculomegaly (enlarged lateral ventricles), cortical thinning, ↓ hippocampal volume. ≥2 active symptoms (≥1 from #1–3) for ≥1 mo; total ≥6 mo.`,
+    clinical: `Delusions, auditory hallucinations, disorganized speech, catatonia/disorganized behavior, negative symptoms (blunted affect, alogia, avolition).`,
+    management: `Atypical antipsychotics (e.g., risperidone) first-line; clozapine for treatment-resistant (monitor ANC for agranulocytosis). Guild Secret: Negative symptoms persist longest.`
+  },
+  {
+    lo: 5, sector: `sector_2`, tag: `cat_1`,
+    entity: `Schizoaffective vs. Mood Disorder w/ Psychosis`,
+    badgeMeta: `Timeline Rule`,
+    etiology: `Shared genetic spectrum between schizophrenia and bipolar/MDD; requires careful longitudinal timeline reconstruction.`,
+    pathogenesis: `Combined monoaminergic (5-HT/NE/DA) affective dysregulation overlapping with persistent mesolimbic dopaminergic psychosis.`,
+    hallmarks: `Diagnostic key: ≥2 weeks of hallucinations or delusions WITHOUT any major mood episode (depressive or manic), plus mood episodes for majority of total illness.`,
+    clinical: `Schizoaffective: psychosis outlives mood. MDD/Bipolar w/ psychosis: mood-congruent delusions/hallucinations occur ONLY during mood episodes.`,
+    management: `Antipsychotic (paliperidone/risperidone) + mood stabilizer (bipolar type) or SSRI (depressive type). Guild Secret: No 2-week psychosis-only window = Mood w/ psychosis.`
+  },
+  {
+    lo: 6, sector: `sector_2`, tag: `cat_1`,
+    entity: `Brief Psychotic & Schizophreniform Disorders`,
+    badgeMeta: `Duration Ladder`,
+    etiology: `Brief Psychotic: often triggered by acute severe psychosocial stressor or postpartum state. Schizophreniform: idiopathic schizophrenia-spectrum.`,
+    pathogenesis: `Transient acute mesolimbic dopaminergic surge producing positive psychotic symptoms without prolonged structural deterioration.`,
+    hallmarks: `Strict duration thresholds: Brief Psychotic = 1 day to <1 month (full return to baseline); Schizophreniform = 1 to <6 months; Schizophrenia = ≥6 months.`,
+    clinical: `Sudden onset delusions, hallucinations, disorganized speech/behavior; Brief Psychotic resolves <1 mo; Schizophreniform spans 1–6 mo.`,
+    management: `Short-term atypical antipsychotic + supportive stabilization; reassess at 1 and 6 months. Guild Secret: Count exact weeks from symptom onset!`
+  },
+  {
+    lo: 7, sector: `sector_3`, tag: `cat_2`,
+    entity: `Major Depressive Disorder (HPA & REM)`,
+    badgeMeta: `SIGECAPS ≥2 Wk`,
+    etiology: `Genetic vulnerability + chronic stress, bereavement, hypothyroidism/medical illness; higher prevalence in females.`,
+    pathogenesis: `↓ Monoamines (5-HT, NE, DA), HPA-axis CRH/cortisol hyperactivity → hippocampal BDNF suppression and hippocampal atrophy.`,
+    hallmarks: `Sleep polysomnography: ↓ REM latency, ↑ REM density, ↓ slow-wave (N3) sleep, early morning awakenings. ≥5/9 SIGECAPS for ≥2 weeks.`,
+    clinical: `Depressed mood or anhedonia + sleep, guilt, energy, concentration, appetite, psychomotor changes, suicidal ideation; atypical subtype has mood reactivity/hypersomnia.`,
+    management: `CBT + SSRI first-line (SNRIs, bupropion, mirtazapine alternatives); ECT for refractory/psychotic/acute suicidal. Guild Secret: Always screen for prior mania before SSRI.`
+  },
+  {
+    lo: 8, sector: `sector_3`, tag: `cat_2`,
+    entity: `Bipolar I vs. Bipolar II Disorder`,
+    badgeMeta: `DIG FAST`,
+    etiology: `Highest heritability among major psychiatric illnesses; mood destabilization triggered by sleep deprivation or unopposed antidepressants.`,
+    pathogenesis: `Oscillating fronto-limbic monoaminergic/glutamatergic dysregulation and intracellular inositol/GSK-3β signaling instability.`,
+    hallmarks: `Bipolar I: ≥1 manic episode (≥1 wk or any duration if hospitalized/psychotic, ≥3 DIG FAST). Bipolar II: ≥1 hypomanic (≥4 days, no psychosis/hospitalization) + ≥1 MDE.`,
+    clinical: `Distractibility, Impulsivity, Grandiosity, Flight of ideas, ↑ Activity, ↓ need for Sleep, Talkativeness. Mania impairs function; hypomania does not.`,
+    management: `Mood stabilizers (lithium, valproate, lamotrigine [for bipolar depression]) + atypical antipsychotics. Guild Secret: Lithium ↓ suicide risk; check TSH/Cr/pregnancy.`
+  },
+  {
+    lo: 9, sector: `sector_3`, tag: `cat_2`,
+    entity: `PTSD & Acute Stress Disorder`,
+    badgeMeta: `HARD >1 Mo`,
+    etiology: `Direct exposure, witnessing, or close learning of life-threatening trauma, assault, or severe injury.`,
+    pathogenesis: `Hyperactive amygdala fear conditioning + hypoactive medial PFC top-down inhibition + ↓ hippocampal volume + sensitized sympathetic NE surge.`,
+    hallmarks: `Duration split: Acute Stress Disorder = 3 days to 1 month; PTSD = >1 month of Hyperarousal, Avoidance, Re-experiencing (nightmares/flashbacks), Distress/mood shift.`,
+    clinical: `Intrusive trauma memories, startle response, hypervigilance, emotional numbing, avoidance of triggers, trauma-linked nightmares.`,
+    management: `Trauma-focused CBT + SSRIs/venlafaxine first-line; prazosin (α1 blocker) specifically targets trauma nightmares. Guild Secret: Acute stress uses CBT, avoid routine benzos.`
+  },
+  {
+    lo: 10, sector: `sector_4`, tag: `cat_2`,
+    entity: `Panic Disorder & Agoraphobia`,
+    badgeMeta: `Peak in 10 Min`,
+    etiology: `Strong genetic predisposition; often comorbid with agoraphobia, mitral valve prolapse sensations, or thyroid/caffeine triggers.`,
+    pathogenesis: `Locus coeruleus noradrenergic hyperreactivity + cholecystokinin/CO2 chemoreceptor hypersensitivity triggering false suffocation alarm.`,
+    hallmarks: `Recurrent unexpected panic attacks peaking ≤10 min (≥4 autonomic/cognitive symptoms) + ≥1 month of persistent worry or maladaptive avoidance.`,
+    clinical: `Palpitations, paresthesias, derealization, chest pain, dyspnea, fear of dying/losing control; agoraphobia avoids ≥2 places where escape is hard.`,
+    management: `CBT (interoceptive exposure) + SSRIs/venlafaxine first-line; short-term benzodiazepines acutely only. Guild Secret: Avoid long-term benzos due to dependence.`
+  },
+  {
+    lo: 11, sector: `sector_4`, tag: `cat_2`,
+    entity: `Somatic Symptom, Illness Anxiety & Conversion`,
+    badgeMeta: `Unconscious vs Intent`,
+    etiology: `Psychosocial stressors, trauma history, somatization predisposition; must distinguish from malingering and factitious disorder.`,
+    pathogenesis: `Unconscious symptom generation/amplification via altered fronto-striatal-limbic sensory gating (unlike intentional feigning in factitious/malingering).`,
+    hallmarks: `Conversion (Functional Neuro): neuro deficits incompatible with anatomical pathways (la belle indifférence). Illness Anxiety: minimal/no symptoms + high health anxiety ≥6 mo.`,
+    clinical: `Somatic Symptom: ≥1 distressing somatic symptom + excessive thoughts/time/anxiety ≥6 mo. Conversion: sudden non-dermatomal weakness/blindness/psychogenic seizures.`,
+    management: `Scheduled regular primary care visits, validate symptoms, CBT; avoid unnecessary invasive tests/surgeries. Guild Secret: Malingering = external gain; Factitious = sick role.`
+  },
+  {
+    lo: 12, sector: `sector_4`, tag: `cat_2`,
+    entity: `Cluster B Personality Disorders`,
+    badgeMeta: `Dramatic / Erratic`,
+    etiology: `Early childhood trauma/invalidation, genetic temperament (mood/substance links); pervasive egosyntonic traits by early adulthood.`,
+    pathogenesis: `Impaired orbitofrontal-amygdala emotion regulation and immature ego defenses (splitting in borderline; lack of empathy/remorse in antisocial).`,
+    hallmarks: `Antisocial: ≥18 yr + Conduct Disorder <15 yr. Borderline: abandonment fear, self-harm, splitting. Histrionic: flamboyant attention. Narcissistic: fragile entitlement.`,
+    clinical: `Chronic interpersonal turbulence, impulsivity, affective instability (Borderline), criminality/deceit (Antisocial), shallow theatrics (Histrionic), rage at criticism (Narcissistic).`,
+    management: `Dialectical Behavior Therapy (DBT) is gold standard for Borderline. Guild Secret: Under 18 yrs with antisocial traits → diagnose Conduct Disorder, NOT Antisocial PD.`
+  },
+  {
+    lo: 13, sector: `sector_5`, tag: `cat_3`,
+    entity: `Alcohol Withdrawal, DTs & Wernicke-Korsakoff`,
+    badgeMeta: `Thiamine Before Glucose`,
+    etiology: `Chronic alcohol use → abrupt cessation (withdrawal/DTs) + thiamine (B1) malabsorption/malnutrition.`,
+    pathogenesis: `Alcohol withdrawal: loss of GABA-A inhibition + unopposed NMDA glutamate excitotoxicity. Wernicke: ↓ TPP impairs PDH/α-KGDH/transketolase → mammillary body necrosis.`,
+    hallmarks: `DTs (48–96 hr): autonomic instability, hallucinations, seizures. Wernicke-Korsakoff: hemorrhagic necrosis of mammillary bodies & dorsomedial thalamus.`,
+    clinical: `DTs: fever, tachycardia, agitation, tactile/visual hallucinations. Wernicke triad: Confusion, Ophthalmoplegia/nystagmus, Ataxia. Korsakoff: permanent anterograde amnesia + confabulation.`,
+    management: `DTs: long-acting benzodiazepines (chlordiazepoxide/diazepam; lorazepam in liver failure). Wernicke: IV thiamine BEFORE dextrose! Maintenance: naltrexone/acamprosate/disulfiram.`
+  },
+  {
+    lo: 14, sector: `sector_5`, tag: `cat_3`,
+    entity: `Toxidromes, Serotonin Syndrome vs. NMS`,
+    badgeMeta: `Clonus vs Lead Pipe`,
+    etiology: `Serotonin syndrome: SSRI + MAOI/linezolid/tramadol/triptan/MDMA. NMS: dopamine D2 antagonists (typical > atypical antipsychotics). Opioid/Stimulant/PCP toxicity.`,
+    pathogenesis: `Serotonin syndrome: excess 5-HT2A/1A agonism → neuromuscular hyperexcitability. NMS: hypothalamic/nigrostriatal D2 blockade → massive Ca2+ release/rigidity.`,
+    hallmarks: `Serotonin syndrome: hyperreflexia, inducible/spontaneous clonus, diaphoresis, diarrhea. NMS: "lead-pipe" rigidity, ↑↑ CK, myoglobinuria, fever, autonomic instability.`,
+    clinical: `Opioid OD: miosis + ↓ RR. Stimulant (cocaine/meth): mydriasis, HTN, chest pain. PCP: vertical/horizontal nystagmus + violence. Serotonin vs NMS differ on reflexes!`,
+    management: `Serotonin: stop drugs, benzos, cyproheptadine (5-HT2 antagonist). NMS: stop antipsychotic, dantrolene + bromocriptine. Opioid: naloxone. Guild Secret: Clonus = 5-HT; Lead pipe = NMS.`
+  },
+  {
+    lo: 15, sector: `sector_5`, tag: `cat_3`,
+    entity: `Autonomic OMT, Suboccipital & CV4 Cranial`,
+    badgeMeta: `Domain 1 OMT`,
+    etiology: `Autonomic imbalance in anxiety, mood, pain, and post-concussive syndromes; OA/AA/C2 somatic dysfunction irritating vagus nerve.`,
+    pathogenesis: `Suboccipital release restores OA motion & CN X (vagal) parasympathetic tone; CV4 compresses 4th ventricle to augment CRI and dampen sympathetic hyperarousal.`,
+    hallmarks: `Paraspinal TART changes: C0–C2 (vagus/parasympathetic), T1–L2 (sympathetic chain), S2–S4 (pelvic splanchnic). Suboccipital tension headaches compress greater occipital/OA.`,
+    clinical: `Hypersympathetic states (panic, PTSD hyperarousal, insomnia) show suboccipital hypertonicity, thoracic sympathetic facilitation, and restricted cranial rhythmic impulse (CRI).`,
+    management: `Suboccipital decompression (OA release), CV4 (compression of 4th ventricle), rib raising (T1–T6/T1–L2 sympathetic modulation). Guild Secret: Avoid HVLA in acute trauma/atlantoaxial instability.`
+  }
+];
+
+const ALL_QUESTIONS = [
+  // LO 1: Delirium vs Dementia
+  {
+    id: `LO01-Q1`, lo: 1, loTitle: `LO 1: Delirium vs. Dementia`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Postoperative Delirium`,
+    stem: `A 78-year-old man 2 days after hip arthroplasty becomes acutely disoriented, picks at imaginary bugs on his bedsheets, and fluctuates between lethargy and agitation every few hours. His family states he managed his own finances last week. Which diagnosis best explains his state?`,
+    clue: `Acute onset after surgery with waxing-and-waning attention and visual hallucinations points away from chronic degeneration.`,
+    choices: [
+      `Acute hyperactive-mixed delirium`,
+      `Alzheimer major neurocognitive disorder`,
+      `Frontotemporal neurocognitive disorder`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Acute onset (days), fluctuating attention/consciousness, and visual hallucinations after surgery are classic for delirium. Distractor exclusion: Alzheimer and frontotemporal dementias progress insidiously over months to years with preserved baseline alertness.`,
+    secondOrderClue: `Acute fluctuating inattention + intact baseline 1 week ago = Delirium (NOT Dementia).`,
+    phase1Pearl: `Delirium stems from acute cholinergic deficiency and dopaminergic excess disrupting reticular activating arousal.`,
+    phase2Hallmark: `EEG shows diffuse generalized background slowing (theta/delta) in delirium, unlike early Alzheimer dementia.`,
+    phase3Secret: `First step: identify and treat underlying medical/medication triggers (anticholinergics, UTI, hypoxia); use low-dose haloperidol only for dangerous agitation.`,
+    dossierBullets: {
+      p1: [`Acute cholinergic deficit + dopamine excess`, `Disrupts reticular activating arousal`],
+      p2: [`Diffuse background EEG slowing`, `Waxing/waning attention & consciousness`],
+      p3: [`Treat medical/drug cause first`, `Reorient; low-dose haloperidol if severe`]
+    }
+  },
+  {
+    id: `LO01-Q2`, lo: 1, loTitle: `LO 1: Delirium vs. Dementia`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Cholinergic Deficiency`,
+    stem: `An 81-year-old woman hospitalized for community-acquired pneumonia receives diphenhydramine for insomnia and develops acute confusion, fluctuating attention, and visual hallucinations. Which neurotransmitter imbalance most directly precipitates this syndrome?`,
+    clue: `Consider the primary central pharmacologic action of diphenhydramine on cortical arousal pathways.`,
+    choices: [
+      `Decreased acetylcholine with relative dopamine excess`,
+      `Decreased serotonin with GABA-A receptor upregulation`,
+      `Excess prefrontal glutamate with histamine H3 activation`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Anticholinergic medications (like diphenhydramine) acutely reduce central acetylcholine while leaving dopamine unopposed, precipitating delirium. Distractor exclusion: Serotonin/GABA-A shifts or H3 activation do not drive anticholinergic delirium.`,
+    secondOrderClue: `Anticholinergic drug + acute confusion + visual hallucinations = ↓ ACh / ↑ DA delirium cascade.`,
+    phase1Pearl: `Central muscarinic blockade impairs basal forebrain cholinergic projections essential for sustained attention.`,
+    phase2Hallmark: `Classic clinical toxidrome overlap: dry skin, mydriasis, urinary retention, and acute fluctuating disorientation.`,
+    phase3Secret: `Beers Criteria warning: strictly avoid diphenhydramine, TCAs, and oxybutynin in older hospitalized adults.`,
+    dossierBullets: {
+      p1: [`Central ACh deficit + relative DA excess`, `Basal forebrain arousal disruption`],
+      p2: [`Normal MRI baseline; diffuse EEG slowing`, `Fluctuating attention + visual hallucinations`],
+      p3: [`Stop offending anticholinergic agent`, `Avoid Beers Criteria sedatives in elderly`]
+    }
+  },
+  {
+    id: `LO01-Q3`, lo: 1, loTitle: `LO 1: Delirium vs. Dementia`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Diffuse EEG Slowing`,
+    stem: `A 76-year-old man with sepsis develops waxing and waning confusion and nocturnal agitation. An electroencephalogram is obtained to distinguish acute encephalopathy from primary dementia or nonconvulsive status. Which finding supports delirium?`,
+    clue: `Metabolic and infectious encephalopathies produce a generalized slowing pattern across cortical leads.`,
+    choices: [
+      `Diffuse background slowing on EEG`,
+      `Normal alpha rhythm with focal temporal spikes`,
+      `Bilateral frontal 3-Hz spike-and-wave complexes`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Delirium characteristically demonstrates diffuse generalized background slowing (except alcohol/sedative withdrawal, which can show fast beta activity). Distractor exclusion: Early dementia has a normal alpha EEG, and 3-Hz spike-and-wave is absence epilepsy.`,
+    secondOrderClue: `Delirium EEG = diffuse background slowing; Early Dementia EEG = normal.`,
+    phase1Pearl: `Systemic cytokines, hypoxia, and neurotransmitter imbalance slow global thalamocortical oscillatory firing.`,
+    phase2Hallmark: `Diffuse theta/delta slowing on EEG confirms metabolic/toxic delirium over primary psychiatric psychosis.`,
+    phase3Secret: `Prioritize sepsis resuscitation and oxygenation; reorient frequently with clocks, glasses, and hearing aids.`,
+    dossierBullets: {
+      p1: [`Global thalamocortical slowing from insult`, `Cholinergic failure impairs cortical synchronization`],
+      p2: [`Diffuse generalized EEG slowing`, `Absence of focal structural infarct`],
+      p3: [`Treat sepsis/hypoxia immediately`, `Nonpharmacologic sleep/reorientation protocol`]
+    }
+  },
+
+  // LO 2: Vascular Dementia
+  {
+    id: `LO02-Q1`, lo: 2, loTitle: `LO 2: Vascular Dementia`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Vascular Dementia`,
+    stem: `A 72-year-old man with hypertension, diabetes, and atrial fibrillation experiences cognitive decline occurring in abrupt plateaus after two transient episodes of left-sided weakness over 18 months. Exam shows hyperreflexia and executive dysfunction. What is the most likely diagnosis?`,
+    clue: `Notice the temporal pattern of abrupt plateaus paired with upper motor neuron signs and vascular risk factors.`,
+    choices: [
+      `Vascular neurocognitive disorder (multi-infarct)`,
+      `Alzheimer neurocognitive disorder`,
+      `Normal pressure hydrocephalus`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Stepwise cognitive decline with focal neurologic signs (hyperreflexia, hemiparesis history) and vascular risk factors defines vascular dementia. Distractor exclusion: Alzheimer causes smooth, insidious memory decline; NPH features the triad of gait ataxia, incontinence, and dementia without strokes.`,
+    secondOrderClue: `Stepwise deterioration + focal UMN signs + HTN/AFib = Vascular Dementia.`,
+    phase1Pearl: `Recurrent cortical or lacunar ischemic strokes cumulatively destroy fronto-subcortical executive circuits.`,
+    phase2Hallmark: `Brain MRI reveals multiple cortical/subcortical infarcts and periventricular white matter hyperintensities.`,
+    phase3Secret: `Secondary prevention (BP control, statin, anticoagulation for AFib) halts further stepwise progression.`,
+    dossierBullets: {
+      p1: [`Recurrent thromboembolic/lacunar ischemia`, `Fronto-subcortical network disconnection`],
+      p2: [`Multiple infarcts on T2/FLAIR MRI`, `Stepwise decline + focal neuro deficits`],
+      p3: [`Control HTN, DM, lipids, and AFib`, `No cure; prevent next ischemic step`]
+    }
+  },
+  {
+    id: `LO02-Q2`, lo: 2, loTitle: `LO 2: Vascular Dementia`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Coagulative Ischemic Necrosis`,
+    stem: `A 74-year-old woman with poorly controlled hypertension develops stepwise executive dysfunction and pseudobulbar affect. Neuropathologic evaluation of her deep white matter and basal ganglia lesions reveals small cavitated infarcts. Which vascular process initiated these lesions?`,
+    clue: `Chronic severe hypertension damages small penetrating lenticulostriate arterioles.`,
+    choices: [
+      `Arteriolar lipohyalinosis causing lacunar ischemia`,
+      `Extracellular amyloid-beta plaque deposition`,
+      `Impaired arachnoid granulation CSF absorption`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Chronic hypertension induces hyaline arteriolosclerosis/lipohyalinosis of penetrating arterioles, causing deep lacunar infarcts and vascular dementia. Distractor exclusion: Amyloid-beta plaques define Alzheimer disease; arachnoid granulation failure causes communicating hydrocephalus/NPH.`,
+    secondOrderClue: `HTN + basal ganglia/white matter lacunes = Lipohyalinosis → Multi-infarct dementia.`,
+    phase1Pearl: `Hyaline thickening narrows penetrating end-arteries, causing focal ischemia, coagulative necrosis, and gliosis.`,
+    phase2Hallmark: `Cavitated lacunar infarcts (<15 mm) in internal capsule, thalamus, and basal ganglia with gliosis.`,
+    phase3Secret: `Target systolic BP control and antiplatelet therapy reduce recurrent lacunar infarcts.`,
+    dossierBullets: {
+      p1: [`Hypertensive lipohyalinosis of arterioles`, `Ischemic necrosis of deep white matter`],
+      p2: [`Deep cavitated lacunar infarcts`, `Periventricular leukoaraiosis on MRI`],
+      p3: [`Strict BP & glycemic management`, `Evaluate carotid/cardiac embolic sources`]
+    }
+  },
+  {
+    id: `LO02-Q3`, lo: 2, loTitle: `LO 2: Vascular Dementia`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Multifocal MRI Infarcts`,
+    stem: `A 70-year-old smoker with coronary artery disease presents with abrupt worsening of planning and working memory alongside a right Babinski sign. Which neuroimaging finding confirms the most likely etiology over Alzheimer disease?`,
+    clue: `Look for discrete ischemic lesions across arterial territories rather than isolated medial temporal atrophy.`,
+    choices: [
+      `Multiple chronic cortical and lacunar infarcts`,
+      `Isolated bilateral medial temporal lobe atrophy`,
+      `Symmetric caudate nucleus head atrophy`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Multifocal cortical/subcortical infarcts and leukoaraiosis confirm vascular dementia. Distractor exclusion: Isolated hippocampal/temporal atrophy suggests Alzheimer disease; caudate atrophy with boxcar ventricles is Huntington disease.`,
+    secondOrderClue: `Right Babinski + executive drop → MRI shows multifocal infarcts (not isolated hippocampal atrophy).`,
+    phase1Pearl: `Subcortical ischemic white matter injury disconnects prefrontal executive hubs from basal ganglia loops.`,
+    phase2Hallmark: `T2/FLAIR MRI demonstrates asymmetric, multifocal hyperintense infarcts and lacunes.`,
+    phase3Secret: `Guild Master's Secret: Screen for depression and pseudobulbar affect, which commonly coexist after strokes.`,
+    dossierBullets: {
+      p1: [`Disruption of fronto-striatal white matter`, `Cumulative ischemic parenchymal loss`],
+      p2: [`T2/FLAIR multifocal infarcts + white matter disease`, `Focal pyramidal signs on exam`],
+      p3: [`Statin + antiplatelet + BP control`, `Treat post-stroke depression if present`]
+    }
+  },
+
+  // LO 3: Normal Pressure Hydrocephalus
+  {
+    id: `LO03-Q1`, lo: 3, loTitle: `LO 3: Normal Pressure Hydrocephalus`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Normal Pressure Hydrocephalus`,
+    stem: `A 71-year-old man is brought in for 6 months of progressive difficulty lifting his feet off the floor ("magnetic gait"), urinary urgency with incontinence, and slowed thinking. Exam shows wide-based shuffling without rigidity or pill-rolling tremor. What is the diagnosis?`,
+    clue: `Remember the classic triad: "Wet, Wobbly, Wacky" with gait ataxia appearing earliest.`,
+    choices: [
+      `Normal pressure hydrocephalus`,
+      `Parkinson disease dementia`,
+      `Lewy body neurocognitive disorder`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Gait apraxia (magnetic gait), urinary incontinence, and dementia ("Wet, Wobbly, Wacky") define Hakim triad of NPH. Distractor exclusion: Parkinson/Lewy body feature bradykinesia, cogwheel rigidity, and resting tremor or visual hallucinations rather than early incontinence and disproportionate ventriculomegaly.`,
+    secondOrderClue: `Magnetic gait + urinary incontinence + dementia = Hakim triad → NPH.`,
+    phase1Pearl: `Impaired CSF reabsorption dilates lateral ventricles, stretching periventricular sacral bladder and leg corticospinal tracts.`,
+    phase2Hallmark: `Ventriculomegaly out of proportion to sulcal enlargement on CT/MRI; normal CSF opening pressure.`,
+    phase3Secret: `High-volume LP tap test precedes VP shunt placement; gait improves most reliably post-shunt.`,
+    dossierBullets: {
+      p1: [`Decreased arachnoid CSF reabsorption`, `Periventricular fiber stretching without ↑ ICP`],
+      p2: [`Disproportionate ventriculomegaly on MRI`, `Hakim triad: Wobbly, Wet, Wacky`],
+      p3: [`Diagnostic high-volume LP tap test`, `Definitive VP shunt if tap-responsive`]
+    }
+  },
+  {
+    id: `LO03-Q2`, lo: 3, loTitle: `LO 3: Normal Pressure Hydrocephalus`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Periventricular Tract Stretching`,
+    stem: `A 69-year-old woman with a history of remote subarachnoid hemorrhage develops gait instability, urinary incontinence, and cognitive slowing. Why do gait and bladder symptoms precede cortical memory loss in this condition?`,
+    clue: `Consider the anatomic location of lower-extremity motor and micturition fibers relative to the lateral ventricles.`,
+    choices: [
+      `Ventricular dilation stretches adjacent corona radiata fibers`,
+      `Substantia nigra dopamine neurons undergo alpha-synuclein lysis`,
+      `Hippocampal CA1 neurons accumulate tau neurofibrillary tangles`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Enlarging lateral ventricles mechanically compress and stretch periventricular corona radiata fibers (leg motor and frontal micturition tracts), causing early gait apraxia and incontinence. Distractor exclusion: Alpha-synuclein loss is Parkinson/Lewy body; CA1 tau tangles belong to Alzheimer disease.`,
+    secondOrderClue: `SAH → arachnoid scarring → ventriculomegaly stretches corona radiata leg/bladder fibers.`,
+    phase1Pearl: `Communicating hydrocephalus with compensated normal mean ICP still transmits pulsatile CSF stress to periventricular white matter.`,
+    phase2Hallmark: `MRI shows enlarged lateral/third ventricles with tight high-convexity sulci and transependymal flow.`,
+    phase3Secret: `Look for prior SAH or meningitis as secondary NPH triggers; early shunting prevents irreversible dementia.`,
+    dossierBullets: {
+      p1: [`Arachnoid granulation scarring post-SAH`, `Ventricular expansion compresses leg/bladder fibers`],
+      p2: [`Ventriculomegaly > cortical sulcal atrophy`, `Normal CSF opening pressure (70–180 mm H2O)`],
+      p3: [`Early VP shunt maximizes gait recovery`, `Reversible cause of dementia on boards`]
+    }
+  },
+  {
+    id: `LO03-Q3`, lo: 3, loTitle: `LO 3: Normal Pressure Hydrocephalus`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `LP Tap Test & VP Shunt`,
+    stem: `A 73-year-old man with magnetic gait, urinary incontinence, and mild cognitive decline has an MRI showing ventriculomegaly out of proportion to sulcal atrophy. What is the next best diagnostic and therapeutic sequence?`,
+    clue: `Confirm reversible responsiveness by draining CSF before placing a permanent surgical conduit.`,
+    choices: [
+      `Large-volume lumbar puncture followed by VP shunt`,
+      `Oral donepezil followed by carotid endarterectomy`,
+      `Carbidopa-levodopa trial followed by deep brain stimulation`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: A large-volume LP (Miller Fisher tap test) measures opening pressure (normal) and tests for transient gait improvement to select candidates for VP shunting. Distractor exclusion: Donepezil treats Alzheimer; carbidopa-levodopa treats Parkinson disease.`,
+    secondOrderClue: `NPH MRI confirmed → Large-volume LP tap test → VP shunt if gait improves.`,
+    phase1Pearl: `Draining 30–50 mL CSF temporarily relieves periventricular white matter shear stress, restoring gait initiation.`,
+    phase2Hallmark: `Normal CSF opening pressure (<180–200 mm H2O) distinguishes NPH from acute obstructive hydrocephalus.`,
+    phase3Secret: `Guild Master's Secret: Gait improves most after VP shunting; dementia is least likely to fully reverse if delayed.`,
+    dossierBullets: {
+      p1: [`Temporary CSF drainage reverses fiber stretch`, `Normal opening pressure confirms NPH`],
+      p2: [`Pre/post-LP timed gait test improvement`, `Disproportionate ventricular dilation`],
+      p3: [`VP shunt is definitive treatment`, `Avoid mistaking for irreversible neurodegeneration`]
+    }
+  },
+
+  // LO 4: Schizophrenia
+  {
+    id: `LO04-Q1`, lo: 4, loTitle: `LO 4: Schizophrenia`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Schizophrenia (≥6 Months)`,
+    stem: `A 22-year-old college dropout has believed for 8 months that the campus radio broadcasts his thoughts. For the past 3 months he also hears two voices commenting on his actions, speaks in tangential phrases, and shows flat affect without mood episodes. What is the diagnosis?`,
+    clue: `Check total symptom duration (≥6 months) and active-phase psychotic symptoms (≥1 month) without prominent mood episodes.`,
+    choices: [
+      `Schizophrenia`,
+      `Schizophreniform disorder`,
+      `Delusional disorder`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: ≥2 symptoms (including delusions, hallucinations, disorganized speech, negative symptoms) with ≥1 month of active psychosis and ≥6 months total disturbance meets DSM-5 criteria for schizophrenia. Distractor exclusion: Schizophreniform lasts 1–6 months; delusional disorder lacks hallucinations, disorganized speech, and negative symptoms.`,
+    secondOrderClue: `8 months total + active hallucinations/delusions/flat affect = Schizophrenia.`,
+    phase1Pearl: `Excess mesolimbic dopamine drives positive symptoms; reduced mesocortical dopamine underlies flat affect and avolition.`,
+    phase2Hallmark: `Brain MRI classically reveals enlarged lateral ventricles (ventriculomegaly) and prefrontal cortical thinning.`,
+    phase3Secret: `Initiate atypical antipsychotic (e.g., risperidone); negative symptoms often persist despite positive symptom control.`,
+    dossierBullets: {
+      p1: [`↑ Mesolimbic DA; ↓ Mesocortical DA`, `↑ 5-HT2A & aberrant dendritic pruning`],
+      p2: [`≥6 mo total; ≥1 mo active symptoms`, `Ventriculomegaly & ↓ cortical gray matter`],
+      p3: [`Atypical antipsychotics first-line`, `Screen heavy adolescent cannabis use`]
+    }
+  },
+  {
+    id: `LO04-Q2`, lo: 4, loTitle: `LO 4: Schizophrenia`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Mesocortical vs. Mesolimbic DA`,
+    stem: `A 25-year-old man with schizophrenia has resolution of auditory hallucinations after starting risperidone, yet continues to display severe avolition, alogia, and blunted affect. Dysfunction in which dopaminergic pathway explains these persistent deficits?`,
+    clue: `Differentiate the VTA projection to the nucleus accumbens from the VTA projection to the prefrontal cortex.`,
+    choices: [
+      `Hypoactive mesocortical pathway to prefrontal cortex`,
+      `Hyperactive mesolimbic pathway to nucleus accumbens`,
+      `Hyperactive tuberoinfundibular pathway to pituitary`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Hypoactivity in the mesocortical pathway (VTA → prefrontal cortex) mediates persistent negative and cognitive symptoms, which respond poorly to D2 blockade. Distractor exclusion: Mesolimbic hyperactivity causes positive symptoms; tuberoinfundibular D2 blockade causes hyperprolactinemia.`,
+    secondOrderClue: `Persistent negative symptoms (avolition, alogia) = ↓ Mesocortical dopamine.`,
+    phase1Pearl: `D2 antagonism silences mesolimbic positive symptoms but cannot easily restore prefrontal mesocortical hypodopaminergia.`,
+    phase2Hallmark: `Decreased dendritic spine density in dorsolateral prefrontal cortex correlates with negative/cognitive symptoms.`,
+    phase3Secret: `Atypical antipsychotics block 5-HT2A to slightly disinhibit prefrontal dopamine, improving tolerability over typicals.`,
+    dossierBullets: {
+      p1: [`Mesocortical (VTA→PFC) ↓ DA = negative sx`, `Mesolimbic (VTA→NAcc) ↑ DA = positive sx`],
+      p2: [`Prefrontal dendritic spine reduction`, `Ventriculomegaly on structural MRI`],
+      p3: [`Negative symptoms resist D2 blockade`, `Monitor metabolic syndrome on atypicals`]
+    }
+  },
+  {
+    id: `LO04-Q3`, lo: 4, loTitle: `LO 4: Schizophrenia`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Ventriculomegaly & Clozapine`,
+    stem: `A 27-year-old man with chronic schizophrenia fails trials of risperidone and olanzapine. Brain MRI shows enlarged lateral ventricles without mass effect. Before starting the most effective agent for treatment-resistant schizophrenia, which baseline lab is mandatory?`,
+    clue: `Identify the gold-standard drug for refractory schizophrenia and its life-threatening hematologic toxicity.`,
+    choices: [
+      `Absolute neutrophil count (ANC) for clozapine`,
+      `Serum lithium trough for valproate`,
+      `Liver transaminases for haloperidol decanoate`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Clozapine is first-line for treatment-resistant schizophrenia (and reduces suicide risk), requiring baseline and serial ANC monitoring for agranulocytosis. Distractor exclusion: Lithium/valproate are mood stabilizers; haloperidol does not require REMS ANC monitoring.`,
+    secondOrderClue: `Failed ≥2 antipsychotics + ventriculomegaly MRI → Clozapine → Mandatory ANC check.`,
+    phase1Pearl: `Clozapine's weak D2 + strong 5-HT2A/D4/muscarinic profile treats refractory psychosis without causing severe EPS.`,
+    phase2Hallmark: `Structural MRI hallmark of schizophrenia: lateral ventriculomegaly and cortical thinning.`,
+    phase3Secret: `Guild Master's Secret: Clozapine toxicities = agranulocytosis (ANC), myocarditis, seizures, and severe sialorrhea/constipation.`,
+    dossierBullets: {
+      p1: [`Refractory psychosis responds to clozapine`, `Also lowers suicidality in schizophrenia`],
+      p2: [`Ventriculomegaly on MRI without mass`, `Mandatory REMS ANC monitoring`],
+      p3: [`Check ANC for agranulocytosis`, `Watch for myocarditis & lowered seizure threshold`]
+    }
+  },
+
+  // LO 5: Schizoaffective Disorder
+  {
+    id: `LO05-Q1`, lo: 5, loTitle: `LO 5: Schizoaffective Disorder`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Schizoaffective Disorder`,
+    stem: `A 29-year-old woman has a 2-year history of auditory hallucinations and persecutory delusions. She has had two 6-month depressive episodes during this period, but her voices persisted for 5 consecutive weeks while her mood was completely euthymic. What is the diagnosis?`,
+    clue: `Focus on the 5-week period of psychosis occurring completely independent of any depressive or manic episode.`,
+    choices: [
+      `Schizoaffective disorder`,
+      `Major depressive disorder with psychotic features`,
+      `Bipolar I disorder with psychotic features`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: ≥2 weeks of hallucinations or delusions in the absence of a major mood episode, alongside mood episodes present for the majority of the illness, defines schizoaffective disorder. Distractor exclusion: In MDD or Bipolar with psychotic features, psychosis occurs strictly during mood episodes.`,
+    secondOrderClue: `Psychosis for ≥2 weeks WITHOUT mood symptoms + major mood episodes = Schizoaffective.`,
+    phase1Pearl: `Dual pathology combining persistent mesolimbic dopaminergic psychosis with episodic affective monoamine instability.`,
+    phase2Hallmark: `Timeline criteria: ≥2 weeks of psychosis alone + mood episode occupying majority (>50%) of total illness duration.`,
+    phase3Secret: `Treat both dimensions: atypical antipsychotic (e.g., paliperidone) plus antidepressant or mood stabilizer.`,
+    dossierBullets: {
+      p1: [`Persistent DA psychosis + episodic mood shift`, `Overlaps schizophrenia & bipolar genetics`],
+      p2: [`≥2 wk psychosis WITHOUT mood episode`, `Mood episodes present majority of course`],
+      p3: [`Combine antipsychotic + mood/SSRI tx`, `Distinguish carefully from MDD w/ psychosis`]
+    }
+  },
+  {
+    id: `LO05-Q2`, lo: 5, loTitle: `LO 5: Schizoaffective Disorder`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Mood-Congruent Psychosis Rule`,
+    stem: `A 34-year-old man experiences severe depressed mood, insomnia, guilt, and 15-lb weight loss for 4 weeks, followed by 10 days of hearing a voice telling him his organs are rotting. His psychosis resolves completely as his mood improves. How does this pathophysiology differ from schizoaffective disorder?`,
+    clue: `Ask whether psychotic firing persists independently when mood circuits normalize.`,
+    choices: [
+      `Psychosis is strictly mood-dependent without an autonomous phase`,
+      `Delusions persist >2 weeks after euthymia is restored`,
+      `Ventriculomegaly develops acutely during the depressive nadir`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: In MDD with psychotic features, mood-congruent psychosis (nihilistic/guilt themes) is strictly coupled to the depressive episode and never occurs alone for ≥2 weeks. Distractor exclusion: Psychosis persisting ≥2 weeks during euthymia defines schizoaffective disorder; ventriculomegaly is chronic.`,
+    secondOrderClue: `Nihilistic delusion ONLY during MDE = MDD with psychotic features (NOT schizoaffective).`,
+    phase1Pearl: `Severe HPA-cortisol surge and affective network collapse transiently drive mood-congruent mesolimbic hyperdopaminergia.`,
+    phase2Hallmark: `Mood-congruent themes (guilt, somatic decay, death, poverty) strictly confined within MDE boundaries.`,
+    phase3Secret: `First-line treatment for MDD with psychotic features: antidepressant PLUS atypical antipsychotic (or ECT).`,
+    dossierBullets: {
+      p1: [`Affective crisis transiently triggers DA surge`, `No autonomous >2 wk psychotic baseline`],
+      p2: [`Mood-congruent delusions (rotting/guilt)`, `Psychosis resolves alongside MDE`],
+      p3: [`Treat with SSRI + atypical antipsychotic`, `ECT is rapidly effective if severe`]
+    }
+  },
+  {
+    id: `LO05-Q3`, lo: 5, loTitle: `LO 5: Schizoaffective Disorder`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Antipsychotic + Mood Stabilizer`,
+    stem: `A 31-year-old man with schizoaffective disorder, bipolar type, presents with pressured speech, grandiosity, and command auditory hallucinations. Six weeks ago, while euthymic, he also had persistent paranoid delusions. Which maintenance regimen addresses both axes?`,
+    clue: `Select a regimen targeting both persistent psychosis and manic affective cycling.`,
+    choices: [
+      `Paliperidone plus lithium or valproate`,
+      `Fluoxetine monotherapy`,
+      `Clonazepam monotherapy`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Schizoaffective disorder, bipolar type requires an atypical antipsychotic (paliperidone/risperidone) paired with a mood stabilizer (lithium or valproate). Distractor exclusion: Fluoxetine monotherapy risks triggering mania and fails to treat psychosis; benzodiazepines do not treat either.`,
+    secondOrderClue: `Schizoaffective bipolar type → Atypical antipsychotic + Mood stabilizer (avoid unopposed SSRI).`,
+    phase1Pearl: `Simultaneous D2/5-HT2A blockade and mood-stabilizing intracellular signaling prevent both psychotic and manic relapses.`,
+    phase2Hallmark: `Documentation must verify >2 weeks of psychosis without mania/depression to justify dual-axis diagnosis.`,
+    phase3Secret: `Guild Master's Secret: Paliperidone is FDA-approved for schizoaffective disorder; never give SSRI alone in bipolar subtype.`,
+    dossierBullets: {
+      p1: [`D2/5-HT2A block + intracellular stabilization`, `Controls autonomous psychosis & mania`],
+      p2: [`Bipolar subtype has manic episodes`, `Requires ≥2 wk psychosis-only window`],
+      p3: [`Antipsychotic + lithium/valproate`, `Avoid antidepressant monotherapy`]
+    }
+  },
+
+  // LO 6: Brief Psychotic & Schizophreniform
+  {
+    id: `LO06-Q1`, lo: 6, loTitle: `LO 6: Brief Psychotic & Schizophreniform`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Brief Psychotic Disorder`,
+    stem: `Three days after witnessing a fatal highway collision, a 26-year-old woman develops disorganized speech and believes paramedics are clones. After 12 days of supportive care and low-dose olanzapine, she returns completely to her baseline functioning. What is the diagnosis?`,
+    clue: `Measure the total duration from onset to full recovery: 12 days (<1 month).`,
+    choices: [
+      `Brief psychotic disorder`,
+      `Schizophreniform disorder`,
+      `Post-traumatic stress disorder`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: ≥1 positive psychotic symptom lasting ≥1 day and <1 month with full return to premorbid functioning defines brief psychotic disorder (often stressor-triggered). Distractor exclusion: Schizophreniform lasts 1–6 months; PTSD involves trauma re-experiencing/hyperarousal rather than primary delusions/disorganized speech.`,
+    secondOrderClue: `Psychosis lasting 1 day to <1 month + full recovery = Brief Psychotic Disorder.`,
+    phase1Pearl: `Acute severe stress triggers a transient mesolimbic dopaminergic surge in vulnerable individuals.`,
+    phase2Hallmark: `Duration threshold: ≥1 day and <1 month (must include full return to premorbid level of functioning).`,
+    phase3Secret: `Short-term atypical antipsychotic + safety monitoring; good prognosis without lifelong neuroleptic need.`,
+    dossierBullets: {
+      p1: [`Acute stress-induced mesolimbic DA surge`, `No progressive neurodevelopmental decline`],
+      p2: [`Duration: 1 day to <1 month`, `Requires ≥1 positive symptom + full recovery`],
+      p3: [`Short course atypical antipsychotic`, `Reassess at 1 mo to confirm resolution`]
+    }
+  },
+  {
+    id: `LO06-Q2`, lo: 6, loTitle: `LO 6: Brief Psychotic & Schizophreniform`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Stress-Linked Transient DA Surge`,
+    stem: `A 24-year-old man develops acute paranoia and auditory hallucinations for 10 weeks without mood symptoms, then gradually improves on risperidone. Why is his prognosis substantially better if symptoms resolve completely at week 14 rather than persisting past 6 months?`,
+    clue: `Compare the duration boundary between schizophreniform disorder (1–6 months) and chronic schizophrenia (≥6 months).`,
+    choices: [
+      `Absence of sustained cortical pruning and chronic deficit state`,
+      `Absence of serotonin 5-HT2A receptor expression in the cortex`,
+      `Permanent reversal of ventriculomegaly by short-term risperidone`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Schizophreniform disorder (1–6 months) with rapid onset and good premorbid function often reflects reversible dopaminergic dysregulation rather than chronic progressive cortical pruning seen in schizophrenia (≥6 months). Distractor exclusion: 5-HT2A receptors are normally expressed, and risperidone does not reverse ventriculomegaly.`,
+    secondOrderClue: `1–6 months duration = Schizophreniform; good prognostic signs = acute onset + confusion + no flat affect.`,
+    phase1Pearl: `Prolonged untreated psychosis (>6 mo) is associated with progressive gray matter loss and entrenched negative symptoms.`,
+    phase2Hallmark: `Schizophreniform diagnostic window: ≥2 schizophrenia symptoms lasting ≥1 month but <6 months.`,
+    phase3Secret: `Good prognostic features in schizophreniform: acute onset (<4 wk), perplexity/confusion, good premorbid function, no blunted affect.`,
+    dossierBullets: {
+      p1: [`Reversible DA spike vs chronic pruning`, `Duration separates spectrum disorders`],
+      p2: [`Schizophreniform: 1 to <6 months`, `Favorable prognosis if acute onset/no flat affect`],
+      p3: [`Early antipsychotic intervention`, `Monitor up to 6 mo for schizophrenia conversion`]
+    }
+  },
+  {
+    id: `LO06-Q3`, lo: 6, loTitle: `LO 6: Brief Psychotic & Schizophreniform`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Schizophreniform (1–6 Months)`,
+    stem: `A 21-year-old man has had persecutory delusions, auditory hallucinations, and disorganized behavior for 4 months, impairing his ability to work. Medical workup and urine drug screen are negative. Which provisional diagnosis applies today?`,
+    clue: `Check the 4-month mark on the psychosis duration timeline.`,
+    choices: [
+      `Schizophreniform disorder`,
+      `Brief psychotic disorder`,
+      `Schizophrenia`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Active symptoms meeting schizophrenia criteria for 4 months (between 1 and 6 months) are diagnosed as schizophreniform disorder (provisional until 6 months elapse). Distractor exclusion: Brief psychotic is <1 month; schizophrenia requires ≥6 months total.`,
+    secondOrderClue: `4 months of ≥2 active symptoms (1–6 mo window) = Schizophreniform Disorder.`,
+    phase1Pearl: `Same symptom cluster as schizophrenia, separated strictly by time elapsed since prodromal/active onset.`,
+    phase2Hallmark: `Timeline ladder: Brief (<1 mo) → Schizophreniform (1–6 mo) → Schizophrenia (≥6 mo).`,
+    phase3Secret: `Guild Master's Secret: Always rule out substance-induced psychosis (stimulants/cannabis/PCP) and general medical causes first.`,
+    dossierBullets: {
+      p1: [`Identical symptom cluster to schizophrenia`, `Separated solely by 1–6 mo duration`],
+      p2: [`Duration: ≥1 month and <6 months`, `Negative UDS & medical workup required`],
+      p3: [`Start atypical antipsychotic + CBT`, `Reclassify as schizophrenia if ≥6 mo`]
+    }
+  },
+
+  // LO 7: Major Depressive Disorder
+  {
+    id: `LO07-Q1`, lo: 7, loTitle: `LO 7: Major Depressive Disorder`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Atypical MDD (SSRI First-Line)`,
+    stem: `A 28-year-old woman reports 4 weeks of depressed mood, sleeping 11 hours daily, craving carbohydrates with 8-lb weight gain, heavy "leaden" limbs, and feeling intensely rejected by friends. Her mood brightens temporarily when her sister visits. What is the best first-line pharmacotherapy?`,
+    clue: `Identify the most common MDD subtype (mood reactivity + hypersomnia + hyperphagia + leaden paralysis) and its first-line drug class.`,
+    choices: [
+      `Selective serotonin reuptake inhibitor (SSRI)`,
+      `Monoamine oxidase inhibitor (MAOI)`,
+      `Lithium carbonate`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Depression with atypical features (mood reactivity, hypersomnia, hyperphagia, leaden paralysis, rejection sensitivity) is the most common MDD subtype, and SSRIs (+ CBT) are first-line. Distractor exclusion: MAOIs are effective in atypical depression but are NOT first-line due to tyramine hypertensive crisis and serotonin syndrome risks; lithium is for bipolar disorder.`,
+    secondOrderClue: `Mood reactivity + hypersomnia + leaden paralysis = Atypical Depression → SSRIs are STILL first-line (MAOIs second-line).`,
+    phase1Pearl: `Monoamine deficiency + HPA axis hypercortisolemia with preserved transient limbic reactivity.`,
+    phase2Hallmark: `MDD requires ≥5/9 SIGECAPS symptoms (including depressed mood or anhedonia) for ≥2 weeks.`,
+    phase3Secret: `Guild Master's Secret: Boards love testing MAOIs for atypical depression, but SSRIs remain first-line!`,
+    dossierBullets: {
+      p1: [`↓ 5-HT/NE/DA + HPA hyperactivity`, `Preserved mood reactivity to positive events`],
+      p2: [`Hypersomnia, hyperphagia, leaden paralysis`, `Rejection sensitivity; ≥2 wk duration`],
+      p3: [`CBT + SSRI first-line`, `MAOIs effective but reserved due to tyramine risk`]
+    }
+  },
+  {
+    id: `LO07-Q2`, lo: 7, loTitle: `LO 7: Major Depressive Disorder`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `HPA Hyperactivity & BDNF Loss`,
+    stem: `A 42-year-old man with severe recurrent major depressive disorder shows dexamethasone nonsuppression and reduced hippocampal volume on high-resolution research MRI. Which neuroendocrine cascade drives this structural change?`,
+    clue: `Connect chronic hypothalamic CRH release to neurotrophic factor suppression in the hippocampus.`,
+    choices: [
+      `Chronic HPA-axis hypercortisolemia suppressing hippocampal BDNF`,
+      `Excess pineal melatonin causing hypothalamic-pituitary suppression`,
+      `Autoimmune destruction of locus coeruleus noradrenergic neurons`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Chronic HPA-axis hyperactivity increases CRH and cortisol (causing dexamethasone nonsuppression), which downregulates hippocampal BDNF and leads to dendritic retraction/hippocampal atrophy. Distractor exclusion: Melatonin excess causes seasonal/circadian shifts, not HPA nonsuppression; locus coeruleus degeneration is not the mechanism of MDD hippocampal atrophy.`,
+    secondOrderClue: `MDD + elevated cortisol + hippocampal atrophy = HPA hyperactivity → ↓ BDNF.`,
+    phase1Pearl: `Antidepressants upregulate CREB and BDNF over 2–6 weeks, promoting hippocampal neurogenesis and synaptic remodeling.`,
+    phase2Hallmark: `Elevated basal serum/salivary cortisol and hippocampal volume loss correlate with episode duration.`,
+    phase3Secret: `Explain the 4–6 week SSRI lag time: receptor desensitization and BDNF-mediated neuroplasticity take weeks.`,
+    dossierBullets: {
+      p1: [`↑ CRH → ↑ ACTH → chronic hypercortisolemia`, `Glucocorticoid toxicity suppresses BDNF`],
+      p2: [`Hippocampal dendritic atrophy on MRI`, `Dexamethasone suppression test nonsuppression`],
+      p3: [`SSRIs restore BDNF/CREB over 4–6 wk`, `Screen TSH/CBC to exclude medical mimics`]
+    }
+  },
+  {
+    id: `LO07-Q3`, lo: 7, loTitle: `LO 7: Major Depressive Disorder`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `↓ REM Latency & ↑ REM Sleep`,
+    stem: `A 49-year-old man with melancholic major depressive disorder undergoes polysomnography for persistent early-morning awakenings at 4:00 AM. Which sleep architecture abnormality is classically observed in untreated MDD?`,
+    clue: `Remember how depression shifts rapid eye movement (REM) timing and slow-wave stage N3 sleep.`,
+    choices: [
+      `Decreased REM latency and increased REM density`,
+      `Prolonged REM latency and increased stage N3 sleep`,
+      `Sleep-onset REM with cataplexy and low CSF orexin`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Untreated MDD classically exhibits decreased REM latency (entering REM sooner after sleep onset), increased total REM sleep/density, decreased slow-wave (N3) sleep, and early morning awakenings. Distractor exclusion: Prolonged REM latency occurs with SSRIs/TCAs; sleep-onset REM + cataplexy + low orexin is narcolepsy.`,
+    secondOrderClue: `MDD polysomnography = ↓ REM latency, ↑ REM density, ↓ Stage N3 (slow-wave), early awakening.`,
+    phase1Pearl: `Monoaminergic (5-HT/NE) deficit disinhibits cholinergic pontine REM-on neurons, triggering premature REM entry.`,
+    phase2Hallmark: `Polysomnography: shortened REM latency (<60 min), fragmented sleep, and reduced deep N3 delta sleep.`,
+    phase3Secret: `SSRIs/SNRIs normalize REM latency; mirtazapine or trazodone aids comorbid insomnia (watch priapism with trazodone).`,
+    dossierBullets: {
+      p1: [`↓ 5-HT/NE disinhibits pontine REM-on cells`, `Premature cholinergic REM onset`],
+      p2: [`↓ REM latency + ↑ REM density`, `↓ Stage N3 slow-wave sleep + early awakening`],
+      p3: [`Antidepressants suppress excess REM`, `Consider ECT for acute suicidality/refractory`]
+    }
+  },
+
+  // LO 8: Bipolar I vs Bipolar II
+  {
+    id: `LO08-Q1`, lo: 8, loTitle: `LO 8: Bipolar I vs. Bipolar II`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Bipolar I Disorder`,
+    stem: `A 24-year-old man is brought to the ED by police after spending $18,000 in 4 days, sleeping 1 hour nightly, speaking rapidly, and claiming he can control traffic lights with his mind. What is the most accurate diagnosis?`,
+    clue: `Note both the marked impairment/grandiose delusion and whether a depressive episode is required.`,
+    choices: [
+      `Bipolar I disorder`,
+      `Bipolar II disorder`,
+      `Cyclothymic disorder`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: A single manic episode (marked impairment, hospitalization, or psychotic features like delusions, ≥1 week or any duration if hospitalized) establishes Bipolar I disorder—no prior MDE is required. Distractor exclusion: Bipolar II requires hypomania (no psychosis/hospitalization) plus MDE; cyclothymia is milder subthreshold symptoms ≥2 years.`,
+    secondOrderClue: `Grandiose delusion OR hospitalization during elevated mood = Mania = Bipolar I (even <7 days).`,
+    phase1Pearl: `Severe fronto-limbic catecholamine/glutamate surge drives reward hypersensitivity and disinhibition.`,
+    phase2Hallmark: `Mania requires ≥3 DIG FAST criteria (≥4 if irritable) for ≥7 days, or any length if hospitalized/psychotic.`,
+    phase3Secret: `Acute mania: atypical antipsychotic + lithium or valproate; avoid antidepressants which trigger rapid cycling/mania.`,
+    dossierBullets: {
+      p1: [`Acute DA/NE/glutamate fronto-limbic surge`, `Highest heritability (~80%) in psychiatry`],
+      p2: [`≥1 manic episode (psychosis = automatic mania)`, `DIG FAST ≥3 sx; MDE NOT required`],
+      p3: [`Lithium/valproate + atypical antipsychotic`, `Screen mania before starting any SSRI`]
+    }
+  },
+  {
+    id: `LO08-Q2`, lo: 8, loTitle: `LO 8: Bipolar I vs. Bipolar II`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Lithium Inositol & GSK-3β`,
+    stem: `A 30-year-old woman with Bipolar I disorder achieves long-term mood stability and reduced suicidal ideation on lithium carbonate. Inhibition of which intracellular signaling targets underlies lithium's mood-stabilizing effect?`,
+    clue: `Recall lithium's classic second-messenger depletion hypothesis and kinase inhibition.`,
+    choices: [
+      `Inositol monophosphatase and glycogen synthase kinase-3β`,
+      `Monoamine oxidase A and vesicular monoamine transporter 2`,
+      `Presynaptic serotonin transporter and voltage-gated Na+ channels`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Lithium inhibits inositol monophosphatase (depleting IP3/DAG second messengers) and inhibits GSK-3β, stabilizing hyperactive neuronal signaling and uniquely lowering suicide risk. Distractor exclusion: MAO-A/VMAT2 and SERT/Na+ channels correspond to MAOIs, tetrabenazine, SSRIs, or carbamazepine/lamotrigine.`,
+    secondOrderClue: `Lithium mechanism = ↓ Inositol (IMPase block) + ↓ GSK-3β; uniquely reduces suicide death.`,
+    phase1Pearl: `Inositol depletion dampens overactive Gq-coupled phospholipase C neurotransmission in manic circuits.`,
+    phase2Hallmark: `Narrow therapeutic window (0.6–1.2 mEq/L); cleared 100% renally like Na+ (reabsorbed in proximal tubule).`,
+    phase3Secret: `Guild Master's Secret: Thiazides, ACE inhibitors, and NSAIDs ↓ renal Li+ clearance → toxicity; monitor TSH, Cr, and avoid in pregnancy (Ebstein anomaly).`,
+    dossierBullets: {
+      p1: [`Inhibits IMPase (depletes IP3/DAG) & GSK-3β`, `Reduces suicide risk more than other agents`],
+      p2: [`100% renal clearance; narrow window`, `Causes nephrogenic DI, tremor, hypothyroidism`],
+      p3: [`Check baseline Cr, TSH, pregnancy test`, `NSAIDs/ACEi/thiazides precipitate Li+ toxicity`]
+    }
+  },
+  {
+    id: `LO08-Q3`, lo: 8, loTitle: `LO 8: Bipolar I vs. Bipolar II`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Bipolar II (Hypomania + MDE)`,
+    stem: `A 26-year-old graduate student presents for 3 weeks of anhedonia, fatigue, and passive suicidal thoughts. Two months ago, she slept only 4 hours nightly for 5 days, felt unusually productive, and finished her thesis without impairment or psychosis. What is the diagnosis?`,
+    clue: `Check whether the 5-day elevated period caused marked impairment/psychosis and pair it with the current MDE.`,
+    choices: [
+      `Bipolar II disorder`,
+      `Bipolar I disorder`,
+      `Major depressive disorder`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: At least 1 hypomanic episode (≥4 consecutive days, observable change, NO marked impairment, NO hospitalization, NO psychosis) plus ≥1 major depressive episode defines Bipolar II disorder. Distractor exclusion: Bipolar I requires full mania; MDD excludes any history of hypomania or mania.`,
+    secondOrderClue: `Hypomania (≥4 days, productive, no psychosis/hospitalization) + MDE = Bipolar II.`,
+    phase1Pearl: `Sub-threshold manic oscillation alternating with deep depressive phases; antidepressant monotherapy risks mood switch.`,
+    phase2Hallmark: `Hypomania duration ≥4 days without psychosis or hospitalization; Bipolar II requires BOTH hypomania and MDE.`,
+    phase3Secret: `Lamotrigine (watch Stevens-Johnson syndrome rash) or quetiapine/lurasidone are key for bipolar depression.`,
+    dossierBullets: {
+      p1: [`Alternating hypomanic & depressive poles`, `SSRIs alone risk precipitating hypomania/mania`],
+      p2: [`Hypomania ≥4 days (no psychosis/impairment)`, `Must have ≥1 lifetime MDE for Bipolar II`],
+      p3: [`Lamotrigine, quetiapine, or lithium`, `Titrate lamotrigine slowly to avoid SJS`]
+    }
+  },
+
+  // LO 9: PTSD & Acute Stress Disorder
+  {
+    id: `LO09-Q1`, lo: 9, loTitle: `LO 9: PTSD & Acute Stress Disorder`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `PTSD + Prazosin for Nightmares`,
+    stem: `A 32-year-old paramedic has had intrusive flashbacks of a mass-casualty crash, hypervigilance, emotional numbness, avoidance of ambulance bays, and terrifying nightmares for 4 months. In addition to trauma-focused CBT and an SSRI, which drug specifically targets his nightmares?`,
+    clue: `Block central α1-adrenergic receptors activated by nocturnal norepinephrine surges.`,
+    choices: [
+      `Prazosin`,
+      `Alprazolam`,
+      `Propranolol`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Symptoms >1 month (Hyperarousal, Avoidance, Re-experiencing, Distress = HARD) confirm PTSD; prazosin (central α1-adrenergic antagonist) specifically reduces trauma-related nightmares. Distractor exclusion: Benzodiazepines (alprazolam) worsen PTSD outcomes and carry dependence risk; propranolol is for performance anxiety/essential tremor, not PTSD nightmares.`,
+    secondOrderClue: `Trauma >1 month + nightmares → PTSD → SSRI/venlafaxine + CBT + Prazosin (α1 blocker).`,
+    phase1Pearl: `Nocturnal locus coeruleus noradrenergic surges acting on α1 receptors disrupt REM sleep and trigger nightmares.`,
+    phase2Hallmark: `PTSD requires >1 month duration across all 4 clusters (intrusion, avoidance, negative mood/cognition, hyperarousal).`,
+    phase3Secret: `Guild Master's Secret: Never prescribe benzodiazepines as routine treatment for PTSD; monitor orthostatic hypotension with prazosin.`,
+    dossierBullets: {
+      p1: [`Hyperactive amygdala + ↓ mPFC inhibition`, `Sensitized noradrenergic α1 nightmare drive`],
+      p2: [`Duration >1 mo (vs 3d–1 mo Acute Stress)`, `4 clusters: HARD (Hyperarousal/Avoid/Re-exp/Distress)`],
+      p3: [`Trauma CBT + SSRI/venlafaxine first-line`, `Prazosin for nightmares; avoid benzos`]
+    }
+  },
+  {
+    id: `LO09-Q2`, lo: 9, loTitle: `LO 9: PTSD & Acute Stress Disorder`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Amygdala ↑ & Ventromedial PFC ↓`,
+    stem: `A 29-year-old assault survivor exhibits an exaggerated acoustic startle reflex and fails to extinguish conditioned fear when shown safe trauma reminders. Functional neuroimaging in PTSD classically demonstrates which regional circuit imbalance?`,
+    clue: `Pair a hyperactive threat-detection hub with a hypoactive cortical brake.`,
+    choices: [
+      `Amygdala hyperactivity with medial prefrontal hypoactivity`,
+      `Hippocampal hypertrophy with striatal dopamine excess`,
+      `Medial prefrontal hyperactivity with amygdala atrophy`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: PTSD is characterized by hyperreactivity of the amygdala (excess fear/startle) coupled with hypoactivity of the ventromedial prefrontal cortex (failure of top-down fear extinction) and reduced hippocampal volume. Distractor exclusion: Hippocampal volume decreases rather than hypertrophies; PFC is hypoactive, not hyperactive.`,
+    secondOrderClue: `Failed fear extinction + startle = ↑ Amygdala + ↓ Ventromedial PFC + ↓ Hippocampus.`,
+    phase1Pearl: `Impaired ventromedial PFC-to-amygdala GABAergic inhibition leaves conditioned threat responses unextinguished.`,
+    phase2Hallmark: `fMRI shows hyperresponsive amygdala and hypoactive ventromedial PFC; structural MRI shows ↓ hippocampal volume.`,
+    phase3Secret: `Exposure-based CBT strengthens ventromedial PFC extinction pathways over amygdala threat firing.`,
+    dossierBullets: {
+      p1: [`↑ Amygdala fear firing + ↓ vmPFC brake`, `↓ Hippocampal volume impairs context gating`],
+      p2: [`fMRI: ↑ amygdala / ↓ mPFC activation`, `Paradoxical low cortisol + ↑ CRH sensitivity`],
+      p3: [`Prolonged exposure CBT restores vmPFC`, `SSRIs/venlafaxine modulate limbic tone`]
+    }
+  },
+  {
+    id: `LO09-Q3`, lo: 9, loTitle: `LO 9: PTSD & Acute Stress Disorder`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Acute Stress Disorder (3d–1mo)`,
+    stem: `Ten days after escaping an apartment fire, a 27-year-old man experiences recurrent nightmares, dissociative flashbacks, insomnia, and avoidance of kitchens. What is the correct diagnosis and primary initial intervention?`,
+    clue: `Check the exact time elapsed since the fire (10 days falls between 3 days and 1 month).`,
+    choices: [
+      `Acute stress disorder; trauma-focused CBT`,
+      `Post-traumatic stress disorder; fluoxetine`,
+      `Adjustment disorder; lorazepam`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Trauma-related intrusion, dissociation, avoidance, and hyperarousal lasting 3 days to 1 month define acute stress disorder, for which trauma-focused CBT is first-line (pharmacotherapy usually not indicated). Distractor exclusion: PTSD requires >1 month; adjustment disorder applies to non-life-threatening stressors not meeting criteria for another disorder.`,
+    secondOrderClue: `Life-threatening trauma + 3 days to 1 month = Acute Stress Disorder → CBT (no routine meds).`,
+    phase1Pearl: `Early post-trauma autonomic sensitization can be extinguished with CBT before consolidating into chronic PTSD.`,
+    phase2Hallmark: `Diagnostic timeframe: Acute Stress Disorder = 3 days to 1 month; PTSD = >1 month.`,
+    phase3Secret: `Avoid prophylactic benzodiazepines immediately post-trauma—they impair fear extinction and increase PTSD risk.`,
+    dossierBullets: {
+      p1: [`Early sympathetic & amygdala sensitization`, `Pre-consolidation window for fear extinction`],
+      p2: [`Strict duration: 3 days to 1 month`, `Includes dissociative/intrusion/arousal sx`],
+      p3: [`Trauma-focused CBT is first-line`, `Pharmacotherapy generally not indicated`]
+    }
+  },
+
+  // LO 10: Panic Disorder & Agoraphobia
+  {
+    id: `LO10-Q1`, lo: 10, loTitle: `LO 10: Panic Disorder & Agoraphobia`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Panic Disorder + Agoraphobia`,
+    stem: `A 25-year-old woman has recurrent, unexpected episodes of palpitations, chest tightness, paresthesias, and fear of dying that peak within 8 minutes. For 3 months she has refused to ride subways, stand in grocery lines, or leave home alone. What is the best first-line maintenance therapy?`,
+    clue: `Both panic disorder and agoraphobia share the same first-line psychotherapy and antidepressant class.`,
+    choices: [
+      `Cognitive behavioral therapy plus an SSRI`,
+      `Daily scheduled alprazolam monotherapy`,
+      `Propranolol before entering public spaces`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Unexpected panic attacks peaking ≤10 min with ≥1 month of behavioral avoidance of ≥2 public situations (subways, lines, outside alone) = Panic Disorder with Agoraphobia; CBT + SSRI (or venlafaxine) is first-line. Distractor exclusion: Daily benzos risk tolerance/dependence; propranolol treats performance-only social anxiety.`,
+    secondOrderClue: `Unexpected panic peaking ≤10 min + ≥2 avoided public spaces = Panic Disorder + Agoraphobia → CBT + SSRI.`,
+    phase1Pearl: `Locus coeruleus noradrenergic bursts + amygdala threat activation provoke sudden sympathetic panic surges.`,
+    phase2Hallmark: `Peaks within 10 minutes with ≥4/13 symptoms + ≥1 month of worry or avoidance; agoraphobia avoids ≥2/5 situations.`,
+    phase3Secret: `Guild Master's Secret: Start SSRIs at half the usual dose in panic disorder to avoid an initial jitteriness/panic flare!`,
+    dossierBullets: {
+      p1: [`Locus coeruleus NE hyperreactivity`, `CO2/lactate false suffocation alarm`],
+      p2: [`Peaks ≤10 min; ≥1 mo worry/avoidance`, `Agoraphobia: fear/avoid ≥2 public situations`],
+      p3: [`CBT (exposure) + low-start SSRI/SNRI`, `Benzos only brief bridge; avoid long-term`]
+    }
+  },
+  {
+    id: `LO10-Q2`, lo: 10, loTitle: `LO 10: Panic Disorder & Agoraphobia`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Locus Coeruleus Hyperreactivity`,
+    stem: `A 29-year-old man with panic disorder develops an acute panic attack during a research challenge involving 5% CO2 inhalation and sodium lactate infusion. Hyperactivity of which brainstem nucleus triggers the massive central noradrenergic surge?`,
+    clue: `Name the principal noradrenergic nucleus located in the dorsal pons.`,
+    choices: [
+      `Locus coeruleus in the dorsal pons`,
+      `Nucleus raphe magnus in the medulla`,
+      `Ventral tegmental area in the midbrain`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: The locus coeruleus is the primary CNS source of norepinephrine; chemoreceptor/CO2 sensitivity triggers sudden locus coeruleus firing, driving panic attacks. Distractor exclusion: Raphe nuclei produce serotonin (5-HT); VTA produces dopamine (mesolimbic/mesocortical).`,
+    secondOrderClue: `CO2/lactate panic provocation → Dorsal pontine Locus Coeruleus NE surge.`,
+    phase1Pearl: `Acid-sensing chemoreceptors and locus coeruleus NE neurons misinterpret mild hypercapnia as imminent suffocation.`,
+    phase2Hallmark: `Hyperventilation during attacks drops PaCO2 → cerebral vasoconstriction → dizziness and perioral paresthesias.`,
+    phase3Secret: `Rule out hyperthyroidism, pheochromocytoma, arrhythmias, and asthma before diagnosing primary panic disorder.`,
+    dossierBullets: {
+      p1: [`Pontine locus coeruleus NE burst`, `Brainstem CO2 false suffocation alarm`],
+      p2: [`Hyperventilation → ↓ PaCO2 → paresthesias`, `Normal ECG/TSH excludes medical mimics`],
+      p3: [`SSRIs dampen locus coeruleus firing`, `Breathing retraining counters hypocapnia`]
+    }
+  },
+  {
+    id: `LO10-Q3`, lo: 10, loTitle: `LO 10: Panic Disorder & Agoraphobia`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Panic Disorder (≥1 Mo Worry)`,
+    stem: `A 33-year-old accountant had two unprovoked episodes of tachycardia, derealization, choking sensation, and sweating peaking in 7 minutes. Cardiac workup is normal, and for 6 weeks he has checked his pulse hourly fearing another episode. Which criterion confirms Panic Disorder?`,
+    clue: `Isolated panic attacks alone do not make the diagnosis; look at the 6-week aftermath.`,
+    choices: [
+      `At least 1 month of persistent concern or behavioral change`,
+      `Persistent symptoms lasting at least 6 months`,
+      `Presence of an identifiable phobic object before each attack`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Panic disorder requires recurrent unexpected panic attacks followed by ≥1 month of persistent worry about future attacks, consequences, or maladaptive behavioral change. Distractor exclusion: ≥6 months is required for specific phobia/GAD; cued attacks belong to specific/social phobias.`,
+    secondOrderClue: `Unexpected attacks + ≥1 month worry/pulse-checking = Panic Disorder.`,
+    phase1Pearl: `Interoceptive conditioning links benign heart rate fluctuations to catastrophic cortical misinterpretation.`,
+    phase2Hallmark: `≥4 symptoms peaking ≤10 min + ≥1 month persistent concern or maladaptive avoidance.`,
+    phase3Secret: `Interoceptive exposure in CBT deliberately induces benign tachycardia/dizziness to extinguish fear conditioning.`,
+    dossierBullets: {
+      p1: [`Catastrophic interoceptive conditioning`, `Autonomic fear spiral peaks ≤10 min`],
+      p2: [`≥1 mo worry/behavior change post-attack`, `Unexpected (uncued) attacks required`],
+      p3: [`CBT interoceptive exposure + SSRI`, `Avoid caffeine/stimulants that trigger flares`]
+    }
+  },
+
+  // LO 11: Somatic Symptom, Illness Anxiety & Conversion
+  {
+    id: `LO11-Q1`, lo: 11, loTitle: `LO 11: Somatoform & Conversion`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Conversion Disorder (FND)`,
+    stem: `Hours after learning of her father's sudden arrest, a 22-year-old woman awakens unable to move her right leg. She appears surprisingly calm when describing the paralysis. Deep tendon reflexes are symmetric, Babinski is downgoing, and Hoover sign is positive. What is the diagnosis?`,
+    clue: `Acute neurologic deficit incongruent with neuroanatomy following a stressor, plus positive Hoover sign.`,
+    choices: [
+      `Conversion disorder (functional neurological symptom disorder)`,
+      `Somatic symptom disorder`,
+      `Factitious disorder imposed on self`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Acute motor/sensory loss incompatible with neuroanatomical pathways (normal reflexes, positive Hoover sign) often linked to a stressor—and sometimes la belle indifférence—is conversion disorder. Distractor exclusion: Somatic symptom disorder features ≥6 mo excessive anxiety over somatic symptoms; factitious disorder involves intentional symptom fabrication.`,
+    secondOrderClue: `Non-anatomic neuro deficit + positive Hoover sign + acute stressor = Conversion Disorder (unconscious).`,
+    phase1Pearl: `Unconscious disruption of fronto-striatal-limbic motor/sensory gating inhibits voluntary execution despite intact tracts.`,
+    phase2Hallmark: `Incompatible neuro exam: non-dermatomal sensory loss, positive Hoover sign, normal DTRs, normal video-EEG in PNES.`,
+    phase3Secret: `Management: validate symptoms gently, physical therapy + CBT, and avoid confronting as "faking" or ordering endless tests.`,
+    dossierBullets: {
+      p1: [`Unconscious symptom & unconscious gain`, `Altered limbic-motor gating post-stressor`],
+      p2: [`Positive Hoover sign / non-dermatomal loss`, `Normal MRI, EMG, and video-EEG (PNES)`],
+      p3: [`Reassure, physical therapy + CBT`, `Avoid unnecessary invasive workups`]
+    }
+  },
+  {
+    id: `LO11-Q2`, lo: 11, loTitle: `LO 11: Somatoform & Conversion`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Unconscious vs. Intentional Split`,
+    stem: `A 31-year-old nurse is caught injecting insulin secretly to induce hypoglycemia and obtain inpatient admissions, whereas a 38-year-old man seeks disability checks by claiming worsening back pain despite normal imaging. How do their underlying motivations and symptom generation differ?`,
+    clue: `Compare consciousness of symptom production and consciousness of motivation across Factitious, Malingering, and Somatic Symptom disorders.`,
+    choices: [
+      `Both produce symptoms intentionally, but factitious seeks the sick role unconsciously`,
+      `Factitious produces symptoms unconsciously, whereas malingering is intentional`,
+      `Both have unconscious symptom production driven by secondary financial gain`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Both factitious disorder and malingering involve intentional symptom production; however, factitious disorder has an unconscious motivation (assuming the sick role/attention), whereas malingering has intentional external/secondary gain (disability checks, avoiding jail/work). Distractor exclusion: Somatic symptom/conversion disorders have unconscious symptom production AND unconscious motivation.`,
+    secondOrderClue: `Malingering = Intentional Sx + Intentional Gain; Factitious = Intentional Sx + Unconscious (sick role); Somatic = Unconscious/Unconscious.`,
+    phase1Pearl: `Distinguishing conscious feigning from unconscious somatization prevents iatrogenic harm and guides ethical management.`,
+    phase2Hallmark: `Factitious hypoglycemia lab clue: ↑ insulin with ↓ C-peptide (exogenous insulin).`,
+    phase3Secret: `In somatic symptom/illness anxiety disorders, schedule regular brief visits with one PCP rather than PRN ER visits.`,
+    dossierBullets: {
+      p1: [`Somatic/Conversion: Unconscious Sx & Drive`, `Factitious: Intentional Sx, Unconscious Drive`],
+      p2: [`Malingering: Intentional Sx & External Gain`, `Exogenous insulin = ↑ Insulin / ↓ C-peptide`],
+      p3: [`Somatic disorders: scheduled regular PCP visits`, `Limit redundant diagnostic imaging`]
+    }
+  },
+  {
+    id: `LO11-Q3`, lo: 11, loTitle: `LO 11: Somatoform & Conversion`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Illness Anxiety vs. Somatic Symptom`,
+    stem: `A 40-year-old man spends 3 hours daily researching pancreatic cancer online for 8 months after noticing a benign 2-mm skin freckle. He has no abdominal pain, weight loss, or physical symptoms, yet remains unconvinced by normal labs. Which diagnosis applies?`,
+    clue: `Check whether prominent somatic physical symptoms are present or virtually absent.`,
+    choices: [
+      `Illness anxiety disorder`,
+      `Somatic symptom disorder`,
+      `Delusional disorder, somatic type`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Preoccupation with having or acquiring a serious illness for ≥6 months with absent or minimal somatic symptoms defines illness anxiety disorder. Distractor exclusion: Somatic symptom disorder requires ≥1 prominent distressing physical symptom; delusional disorder involves a fixed, unshakeable bizarre/non-bizarre delusion.`,
+    secondOrderClue: `High health anxiety ≥6 mo + NO/minimal somatic symptoms = Illness Anxiety Disorder.`,
+    phase1Pearl: `Cognitive hypervigilance amplifies benign bodily signals into catastrophic threat misattributions.`,
+    phase2Hallmark: `Key discriminator: Somatic Symptom Disorder = prominent symptoms present; Illness Anxiety Disorder = symptoms absent/minimal (≥6 mo).`,
+    phase3Secret: `Guild Master's Secret: Regular scheduled PCP reassurance + CBT (avoid frequent invasive referrals).`,
+    dossierBullets: {
+      p1: [`Catastrophic health cognitive bias`, `Care-seeking or care-avoidant subtypes`],
+      p2: [`≥6 mo illness preoccupation`, `Somatic symptoms absent or mild`],
+      p3: [`Scheduled regular PCP follow-ups`, `CBT; SSRIs if comorbid anxiety/MDD`]
+    }
+  },
+
+  // LO 12: Cluster B Personality Disorders
+  {
+    id: `LO12-Q1`, lo: 12, loTitle: `LO 12: Cluster B Personality Disorders`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Borderline PD + DBT`,
+    stem: `A 23-year-old woman presents after superficial wrist cutting when her partner arrived 15 minutes late. On admission she praises her nurse as "an angel" while calling the resident "cruel and useless." She reports chronic emptiness and intense fear of abandonment. What is the gold-standard treatment?`,
+    clue: `Identify the personality disorder marked by splitting, self-harm, and abandonment fear, and its evidence-based therapy.`,
+    choices: [
+      `Dialectical behavior therapy (DBT)`,
+      `Electroconvulsive therapy (ECT)`,
+      `Clozapine monotherapy`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Unstable relationships, fear of abandonment, chronic emptiness, self-mutilation, and splitting define Borderline Personality Disorder (Cluster B), for which Dialectical Behavior Therapy (DBT) is first-line. Distractor exclusion: ECT treats refractory MDD/catatonia; clozapine treats refractory schizophrenia.`,
+    secondOrderClue: `Splitting + self-harm + abandonment fear = Borderline PD → Dialectical Behavior Therapy (DBT).`,
+    phase1Pearl: `Orbitofrontal-amygdala dysregulation impairs affect regulation; immature splitting polarizes people into all-good or all-bad.`,
+    phase2Hallmark: `Cluster B ("Wild") hallmarks: Borderline (splitting/self-harm), Antisocial (≥18 + conduct <15), Histrionic (flamboyant), Narcissistic (entitled).`,
+    phase3Secret: `Maintain firm, consistent team boundaries to prevent staff splitting; pharmacotherapy is adjunctive only.`,
+    dossierBullets: {
+      p1: [`Orbitofrontal-amygdala affective lability`, `Primary ego defense: Splitting`],
+      p2: [`Abandonment fear, self-harm, emptiness`, `Egosyntonic pervasive pattern`],
+      p3: [`DBT is gold-standard treatment`, `Set clear, unified clinical team boundaries`]
+    }
+  },
+  {
+    id: `LO12-Q2`, lo: 12, loTitle: `LO 12: Cluster B Personality Disorders`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Conduct Disorder Prerequisite (<15)`,
+    stem: `A 21-year-old man arrested for repeated fraud and physical assault expresses zero remorse, stating "victims are just weak." For a DSM-5 diagnosis of Antisocial Personality Disorder, which developmental feature must be documented?`,
+    clue: `Check the mandatory childhood behavioral prerequisite and age threshold.`,
+    choices: [
+      `Evidence of conduct disorder with onset before age 15`,
+      `History of panic attacks and school refusal before age 12`,
+      `Splitting defense mechanism emerging after age 18`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Antisocial Personality Disorder requires age ≥18 years AND documented evidence of Conduct Disorder before age 15 (aggression, destruction, deceit, rule violation). Distractor exclusion: Separation anxiety/panic is not a prerequisite; splitting characterizes borderline PD.`,
+    secondOrderClue: `Antisocial PD = Age ≥18 + Conduct Disorder onset <15; if patient is <18, diagnose Conduct Disorder.`,
+    phase1Pearl: `Reduced autonomic fear conditioning and ventromedial prefrontal hypoactivity blunt empathy and punishment learning.`,
+    phase2Hallmark: `Diagnostic age split: <18 yrs = Conduct Disorder; ≥18 yrs (with onset <15) = Antisocial Personality Disorder.`,
+    phase3Secret: `Guild Master's Secret: Never diagnose Antisocial Personality Disorder in a 15- or 16-year-old on boards—choose Conduct Disorder!`,
+    dossierBullets: {
+      p1: [`Blunted amygdala fear/empathy response`, `Genetic link to substance use disorders`],
+      p2: [`Must be ≥18 yrs + Conduct Disorder <15`, `Pervasive disregard for others' rights`],
+      p3: [`If <18 yrs → Conduct Disorder`, `Clear boundaries; high comorbid SUD`]
+    }
+  },
+  {
+    id: `LO12-Q3`, lo: 12, loTitle: `LO 12: Cluster B Personality Disorders`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Narcissistic vs. Histrionic PD`,
+    stem: `A 36-year-old executive demands to be seen only by the department chair, brags about his elite pedigree, and erupts in defensive rage when a resident suggests weight loss for his blood pressure. Which Cluster B personality disorder best fits this presentation?`,
+    clue: `Contrast superiority/entitlement/rage at criticism with dramatic sexualized attention-seeking.`,
+    choices: [
+      `Narcissistic personality disorder`,
+      `Histrionic personality disorder`,
+      `Obsessive-compulsive personality disorder`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Grandiosity, entitlement ("only the best"), lack of empathy, and defensive rage toward mild criticism reflect fragile self-esteem in Narcissistic Personality Disorder. Distractor exclusion: Histrionic PD seeks attention via flamboyant/provocative emotion without demanding elite status; OCPD (Cluster C) is preoccupied with order/perfectionism.`,
+    secondOrderClue: `Demands "the best" + fragile ego + rage at criticism = Narcissistic PD.`,
+    phase1Pearl: `Compensatory grandiosity masks deep underlying vulnerability to shame and rejection.`,
+    phase2Hallmark: `Cluster B ("Wild"): Narcissistic (grandiose/entitled), Histrionic (dramatic/provocative), Borderline (splitting), Antisocial (remorseless).`,
+    phase3Secret: `Validate the patient's autonomy without feeding grandiosity or reacting defensively to entitlement.`,
+    dossierBullets: {
+      p1: [`Fragile self-esteem masked by grandiosity`, `Egosyntonic interpersonal entitlement`],
+      p2: [`Lacks empathy; reacts with rage to critique`, `Cluster B dramatic/erratic temperament`],
+      p3: [`Psychotherapy (psychodynamic/CBT)`, `Maintain calm, non-defensive boundaries`]
+    }
+  },
+
+  // LO 13: Alcohol Withdrawal, DTs & Wernicke-Korsakoff
+  {
+    id: `LO13-Q1`, lo: 13, loTitle: `LO 13: Alcohol Withdrawal & Wernicke-Korsakoff`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Delirium Tremens (Benzos)`,
+    stem: `Seventy-two hours after admission for tibial fracture repair, a 54-year-old man with chronic alcohol use develops fever (38.9°C), HR 132/min, BP 182/104 mm Hg, profuse diaphoresis, severe tremor, and visual hallucinations of spiders. What is the first-line treatment?`,
+    clue: `Onset 48–96 hours after last drink with autonomic instability and hallucinations = Delirium Tremens.`,
+    choices: [
+      `Intravenous benzodiazepines (e.g., diazepam or lorazepam)`,
+      `Intramuscular haloperidol monotherapy`,
+      `Oral disulfiram and propranolol`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Delirium tremens (2–4 days post-cessation) features life-threatening autonomic hyperactivity, hallucinations, and seizure risk; long-acting benzodiazepines (lorazepam in cirrhosis) restore GABAergic tone and prevent fatal seizures/arrhythmias. Distractor exclusion: Haloperidol lowers seizure threshold and fails to treat GABA withdrawal; disulfiram induces severe acetaldehyde toxicity.`,
+    secondOrderClue: `48–96 hr post-drink + autonomic instability + hallucinations = Delirium Tremens → IV Benzodiazepines.`,
+    phase1Pearl: `Chronic ethanol upregulates NMDA receptors and downregulates GABA-A; abrupt cessation causes massive glutamate excitotoxicity.`,
+    phase2Hallmark: `Timeline: Tremor (6–24h) → Hallucinosis (12–48h) → Withdrawal seizures (12–48h) → Delirium Tremens (48–96h).`,
+    phase3Secret: `Use lorazepam/oxazepam ("LOT" — Liver-safe) in patients with alcoholic cirrhosis to avoid active metabolite accumulation.`,
+    dossierBullets: {
+      p1: [`↓ GABA-A sensitivity + ↑ NMDA glutamate`, `Unopposed sympathetic & excitotoxic surge`],
+      p2: [`DTs peak 48–96 hr after last drink`, `Fever, tachycardia, HTN, hallucinations`],
+      p3: [`Benzodiazepines first-line (lorazepam if cirrhosis)`, `Give IV thiamine + folate/electrolytes`]
+    }
+  },
+  {
+    id: `LO13-Q2`, lo: 13, loTitle: `LO 13: Alcohol Withdrawal & Wernicke-Korsakoff`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Thiamine (B1) Before Dextrose`,
+    stem: `A malnourished 48-year-old man with alcohol use disorder arrives in the ED lethargic with blood glucose of 48 mg/dL. Giving IV 50% dextrose before vitamin B1 risks precipitating acute ophthalmoplegia, ataxia, and confusion because thiamine pyrophosphate is a required cofactor for which enzymes?`,
+    clue: `Recall the ATP-producing dehydrogenase links between glycolysis, the TCA cycle, and the HMP shunt.`,
+    choices: [
+      `Pyruvate dehydrogenase, α-ketoglutarate dehydrogenase, and transketolase`,
+      `Pyruvate carboxylase, propionyl-CoA carboxylase, and acetyl-CoA carboxylase`,
+      `Homocysteine methyltransferase and methylmalonyl-CoA mutase`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Thiamine (B1 → TPP) is a cofactor for "Be APT": Branched-chain ketoacid DH, α-Ketoglutarate DH, Pyruvate DH, and Transketolase; glucose loading without B1 exhausts remaining TPP and causes acute neuronal ATP depletion. Distractor exclusion: Carboxylases require biotin (B7); methyltransferase/mutase require B12.`,
+    secondOrderClue: `Dextrose before B1 → ATP crash in aerobic brain → Wernicke ("Be APT" TPP enzymes).`,
+    phase1Pearl: `Impaired pyruvate/α-KGDH activity halts aerobic ATP synthesis, rapidly injuring metabolically active mammillary bodies and thalamus.`,
+    phase2Hallmark: `Diagnosis supported by ↑ RBC transketolase activity after vitamin B1 administration.`,
+    phase3Secret: `Guild Master's Secret: ALWAYS infuse IV thiamine BEFORE IV dextrose in malnourished or alcohol-use patients!`,
+    dossierBullets: {
+      p1: [`TPP cofactor: PDH, α-KGDH, BCKDH, Transketolase`, `Glucose without B1 worsens neuronal ATP crash`],
+      p2: [`Wernicke triad: Confusion, Ophthalmoplegia, Ataxia`, `RBC transketolase assay confirms B1 deficit`],
+      p3: [`Give IV thiamine BEFORE dextrose`, `Reversible acutely; prevents Korsakoff`]
+    }
+  },
+  {
+    id: `LO13-Q3`, lo: 13, loTitle: `LO 13: Alcohol Withdrawal & Wernicke-Korsakoff`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Mammillary Body Necrosis`,
+    stem: `A 59-year-old man with untreated Wernicke encephalopathy develops permanent inability to form new memories and invents elaborate, untrue stories about working at the hospital yesterday. Which neuroanatomical structures show hemorrhagic necrosis on MRI or autopsy?`,
+    clue: `Identify the two limbic-diencephalic structures destroyed in Wernicke-Korsakoff syndrome.`,
+    choices: [
+      `Mammillary bodies and dorsomedial nucleus of the thalamus`,
+      `Substantia nigra pars compacta and locus coeruleus`,
+      `Caudate nucleus head and putamen`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Wernicke-Korsakoff syndrome causes petechial hemorrhages, gliosis, and necrosis of the mammillary bodies and medial dorsal (dorsomedial)/anterior thalamus, producing permanent anterograde amnesia and confabulation. Distractor exclusion: Substantia nigra loss is Parkinson; caudate/putamen atrophy is Huntington disease.`,
+    secondOrderClue: `Anterograde amnesia + confabulation (Korsakoff) = Mammillary bodies + Dorsomedial thalamus.`,
+    phase1Pearl: `Destruction of the Papez limbic memory circuit severs consolidation of new episodic memories.`,
+    phase2Hallmark: `Symmetric T2/FLAIR hyperintensity and hemorrhagic necrosis in mammillary bodies, periaqueductal gray, and medial thalamus.`,
+    phase3Secret: `Korsakoff syndrome is largely irreversible; for alcohol abstinence maintenance, use naltrexone (avoid in liver failure) or acamprosate (avoid in renal failure).`,
+    dossierBullets: {
+      p1: [`Papez circuit destruction → memory failure`, `B1 deficiency ischemic/excitotoxic injury`],
+      p2: [`Mammillary bodies & medial dorsal thalamus`, `Anterograde > retrograde amnesia + confabulation`],
+      p3: [`Korsakoff is permanent once established`, `Naltrexone (liver) vs Acamprosate (renal)`]
+    }
+  },
+
+  // LO 14: Toxidromes & Serotonin Syndrome vs NMS
+  {
+    id: `LO14-Q1`, lo: 14, loTitle: `LO 14: Toxidromes & Serotonin vs. NMS`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Serotonin Syndrome (Cyproheptadine)`,
+    stem: `A 37-year-old man taking fluoxetine for depression receives intravenous linezolid for MRSA bacteremia and rapidly develops temperature 39.4°C, diaphoresis, diarrhea, ocular clonus, and inducible ankle clonus. Which diagnosis and targeted antidote apply?`,
+    clue: `Linezolid is a weak MAO inhibitor; distinguish hyperreflexia/clonus from lead-pipe rigidity.`,
+    choices: [
+      `Serotonin syndrome; cyproheptadine`,
+      `Neuroleptic malignant syndrome; dantrolene`,
+      `Malignant hyperthermia; bromocriptine`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: SSRI + MAOI (linezolid) precipitates serotonin syndrome (3 A's: Neuromuscular hyperactivity [clonus/hyperreflexia], Autonomic instability [diaphoresis/diarrhea/fever], Altered mental status); treat with benzos, supportive cooling, and cyproheptadine (5-HT2 antagonist). Distractor exclusion: NMS features lead-pipe rigidity and hyporeflexia after antipsychotics; malignant hyperthermia follows inhaled anesthetics/succinylcholine.`,
+    secondOrderClue: `Fluoxetine + Linezolid + Clonus/Hyperreflexia/Diarrhea = Serotonin Syndrome → Cyproheptadine.`,
+    phase1Pearl: `Excess synaptic 5-HT hyperactivates spinal and brainstem 5-HT2A/1A receptors, driving clonus and autonomic storms.`,
+    phase2Hallmark: `Rapid onset (<24 hr), hyperreflexia, spontaneous/inducible clonus, and diarrhea distinguish 5-HT syndrome from NMS.`,
+    phase3Secret: `Always allow a 2-week washout (5 weeks after fluoxetine) when switching between SSRIs and MAOIs.`,
+    dossierBullets: {
+      p1: [`Excess 5-HT2A/1A agonism (SSRI + MAOI/linezolid)`, `Rapid onset within hours of drug combination`],
+      p2: [`3 A's: Clonus/Hyperreflexia, Autonomic, AMS`, `Diarrhea & mydriasis common`],
+      p3: [`Stop serotonergics + benzos + cooling`, `Cyproheptadine (5-HT2 antagonist) if severe`]
+    }
+  },
+  {
+    id: `LO14-Q2`, lo: 14, loTitle: `LO 14: Toxidromes & Serotonin vs. NMS`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `D2 Blockade → Lead-Pipe NMS`,
+    stem: `A 29-year-old man receives intramuscular haloperidol for acute agitation and develops over 3 days a temperature of 40.1°C, BP 170/105 mm Hg, generalized "lead-pipe" muscular rigidity, dark urine, and serum CK of 28,000 U/L. What is the initiating mechanism and specific muscle relaxant?`,
+    clue: `High-potency D2 blockade triggers rhabdomyolysis and rigidity; pair with a sarcoplasmic reticulum Ca2+ release blocker.`,
+    choices: [
+      `Central D2 receptor blockade; dantrolene`,
+      `Peripheral 5-HT2A agonism; cyproheptadine`,
+      `Acetylcholinesterase inhibition; pralidoxime`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Neuroleptic Malignant Syndrome (NMS) is caused by central D2 receptor blockade (typical > atypical antipsychotics), producing fever, encephalopathy, unstable vitals, elevated CK/myoglobinuria, and lead-pipe rigidity ("FEVER"). Treat with dantrolene (blocks RyR1 Ca2+ release) and bromocriptine (D2 agonist). Distractor exclusion: Cyproheptadine treats serotonin syndrome; pralidoxime treats organophosphate poisoning.`,
+    secondOrderClue: `Haloperidol + Lead-pipe rigidity + ↑↑ CK + Fever = NMS → Dantrolene + Bromocriptine.`,
+    phase1Pearl: `Hypothalamic and nigrostriatal D2 blockade impairs thermoregulation and causes sustained skeletal muscle contraction and rhabdomyolysis.`,
+    phase2Hallmark: `Labs: markedly elevated serum CK, leukocytosis, and myoglobinuria (risk of ATN); exam: lead-pipe rigidity (NO clonus).`,
+    phase3Secret: `Guild Master's Secret: NMS = Lead-pipe rigidity + ↑↑ CK + days-long onset; Serotonin = Clonus + hyperreflexia + hours-long onset.`,
+    dossierBullets: {
+      p1: [`Central D2 blockade (typical > atypical)`, `Hypothalamic thermoregulatory failure`],
+      p2: [`Malignant FEVER: Myoglobinuria/CK, Rigidity`, `Lead-pipe rigidity without clonus`],
+      p3: [`Stop antipsychotic + IV hydration`, `Dantrolene + bromocriptine + benzos`]
+    }
+  },
+  {
+    id: `LO14-Q3`, lo: 14, loTitle: `LO 14: Toxidromes & Serotonin vs. NMS`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `PCP Nystagmus vs. Opioid Miosis`,
+    stem: `A 22-year-old man is brought in agitated, violent, and insensitive to pain after using an illicit street drug. Exam reveals HR 128/min, BP 165/98 mm Hg, and prominent vertical and horizontal nystagmus. Which substance and receptor mechanism explain this presentation?`,
+    clue: `Vertical nystagmus paired with severe agitation and analgesia is pathognomonic for one dissociative hallucinogen.`,
+    choices: [
+      `Phencyclidine (PCP); NMDA glutamate receptor antagonism`,
+      `Heroin; μ-opioid receptor agonism`,
+      `LSD; 5-HT2A serotonin receptor partial agonism`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: PCP is an NMDA glutamate receptor antagonist causing violent agitation, dissociation, analgesia, hypertension, and classic vertical/horizontal nystagmus. Distractor exclusion: Opioids cause miosis and respiratory depression (treat with naloxone); LSD causes visual hallucinations and mydriasis without violent analgesia or vertical nystagmus.`,
+    secondOrderClue: `Violence + analgesia + vertical/horizontal nystagmus = PCP (NMDA antagonist).`,
+    phase1Pearl: `PCP noncompetitively blocks NMDA glutamate channels and inhibits catecholamine reuptake, causing sympathomimetic dissociation.`,
+    phase2Hallmark: `Pathognomonic exam hallmark: vertical/rotatory/horizontal nystagmus with trauma analgesia.`,
+    phase3Secret: `Place PCP-intoxicated patients in a low-stimulation quiet room with benzodiazepines; avoid physical restraints if possible (rhabdomyolysis risk).`,
+    dossierBullets: {
+      p1: [`NMDA receptor antagonist + monoamine↑`, `Dissociative analgesia + sympathetic surge`],
+      p2: [`Vertical & horizontal nystagmus hallmark`, `Watch for rhabdomyolysis & hyperthermia`],
+      p3: [`Low-stimulation room + benzodiazepines`, `Contrast: Opioid miosis/↓RR → Naloxone`]
+    }
+  },
+
+  // LO 15: Autonomic OMT, Suboccipital & CV4
+  {
+    id: `LO15-Q1`, lo: 15, loTitle: `LO 15: Autonomic OMT & Cranial CV4`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Suboccipital Release (OA/CN X)`,
+    stem: `A 34-year-old patient with generalized anxiety disorder and tension headaches exhibits hypertonicity at the occipitoatlantal (OA) junction and decreased heart rate variability. Which osteopathic manipulative technique directly frees the jugular foramen outflow and enhances parasympathetic vagal tone?`,
+    clue: `Target the suboccipital triangle (C0–C2) to normalize vagus nerve (CN X) modulation.`,
+    choices: [
+      `Suboccipital decompression (OA myofascial release)`,
+      `Lumbar HVLA thrust at L4–L5`,
+      `Pectoral traction lymphatic pump`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Suboccipital decompression releases hypertonic suboccipital muscles at the OA/C0–C2 region, relieving mechanical tension near the jugular foramen to normalize CN X (vagus) parasympathetic tone. Distractor exclusion: Lumbar HVLA affects lower extremity/pelvic mechanics, and pectoral traction targets thoracic lymphatic drainage rather than CN X.`,
+    secondOrderClue: `OA somatic dysfunction + anxiety/headache → Suboccipital decompression restores CN X vagal tone.`,
+    phase1Pearl: `Parasympathetic outflow to thoracic and upper GI viscera travels via CN X (vagus), exiting through the jugular foramen adjacent to OA.`,
+    phase2Hallmark: `OA somatic dysfunction TART findings: tissue texture hypertonicity in suboccipital triangle and asymmetric condylar motion.`,
+    phase3Secret: `Combine suboccipital release with rib raising (T1–T6/T1–L2) to rebalance autonomic tone in stress/anxiety disorders.`,
+    dossierBullets: {
+      p1: [`Releases suboccipital tension near CN X`, `Enhances parasympathetic vagal balance`],
+      p2: [`OA/C0–C2 TART hypertonicity`, `Jugular foramen proximity to condyles`],
+      p3: [`Suboccipital decompression first-line OMT`, `Avoid HVLA if atlantoaxial instability`]
+    }
+  },
+  {
+    id: `LO15-Q2`, lo: 15, loTitle: `LO 15: Autonomic OMT & Cranial CV4`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `CV4 Dampens Sympathetic Tone`,
+    stem: `A 41-year-old veteran with PTSD-related insomnia and sympathetic hyperarousal undergoes Compression of the Fourth Ventricle (CV4) cranial OMT. By gently resisting cranial flexion at the occiput until a still point is reached, what physiologic effect is achieved?`,
+    clue: `Think about how CV4 alters CSF fluctuation, cranial rhythmic impulse (CRI), and central sympathetic drive.`,
+    choices: [
+      `Augments CRI amplitude and reduces central sympathetic hyperactivity`,
+      `Directly increases sympathetic outflow from T1–L2 chain ganglia`,
+      `Inhibits CSF production by permanently occluding the cerebral aqueduct`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: CV4 compresses the lateral angles of the occipital squama during cranial extension (resisting flexion), inducing a therapeutic still point that augments cranial rhythmic impulse (CRI) amplitude and dampens sympathetic hyperactivity. Distractor exclusion: CV4 reduces (rather than increases) sympathetic tone and does not occlude the aqueduct.`,
+    secondOrderClue: `PTSD insomnia / sympathetic storm → CV4 cranial OMT → Still point → ↑ CRI & ↓ sympathetic tone.`,
+    phase1Pearl: `Occipital squamous compression gently modulates dural venous sinus drainage and fourth ventricular CSF pressure around brainstem autonomic centers.`,
+    phase2Hallmark: `Palpable still point followed by slower, higher-amplitude cranial rhythmic impulse (CRI; normal 10–14 cycles/min).`,
+    phase3Secret: `CV4 is ideal for anxiety, insomnia, labor augmentation, and stress disorders; avoid in acute intracranial bleed or skull fracture.`,
+    dossierBullets: {
+      p1: [`Resists flexion → therapeutic still point`, `Dampens brainstem sympathetic hyperarousal`],
+      p2: [`Restores CRI (normal 10–14/min) amplitude`, `Compresses occiput medial to occipitomastoid suture`],
+      p3: [`Indicated for insomnia, anxiety, pain`, `Contraindicated in acute ↑ ICP or bleed`]
+    }
+  },
+  {
+    id: `LO15-Q3`, lo: 15, loTitle: `LO 15: Autonomic OMT & Cranial CV4`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `C0–C2 / S2–S4 Parasympathetic`,
+    stem: `During an osteopathic structural exam of a patient with somatic symptom disorder and stress-related irritable bowel symptoms, paraspinal TART changes are palpated at T10–L2 and S2–S4. Which anatomic pairing accurately maps the autonomic innervation?`,
+    clue: `Separate thoracolumbar sympathetic chain levels from craniosacral parasympathetic outflow.`,
+    choices: [
+      `T1–L2 sympathetic; OA/C0–C2 (CN X) and S2–S4 parasympathetic`,
+      `OA/C0–C2 sympathetic; T1–L2 and S2–S4 parasympathetic`,
+      `C3–C5 sympathetic; T5–T9 and L3–L5 parasympathetic`
+    ],
+    correctIndex: 0,
+    explanation: `Correct: Sympathetic viscerosomatic reflexes map along T1–L2 (foregut T5–T9, midgut T10–T11, hindgut T12–L2), while parasympathetic tone maps cranially to OA/AA/C2 (vagus, CN X) and sacrally to S2–S4 (pelvic splanchnic). Distractor exclusion: OA/C2 and S2–S4 are strictly parasympathetic, and C3–C5 is the phrenic nerve.`,
+    secondOrderClue: `Autonomic OMT Map: Sympathetic = T1–L2; Parasympathetic = OA–C2 (CN X) + S2–S4.`,
+    phase1Pearl: `Viscerosomatic facilitation sustains a positive feedback loop between visceral distress and paraspinal TART somatic dysfunction.`,
+    phase2Hallmark: `Exam hallmarks: boggy/hypertonic paraspinal tissues (TART: Tenderness, Asymmetry, Restriction, Tissue texture change) at T1–L2 vs OA/sacrum.`,
+    phase3Secret: `Guild Master's Secret: Treat rib raising (T1–L2) to normalize sympathetic tone and sacral/OA release to balance parasympathetic outflow.`,
+    dossierBullets: {
+      p1: [`Thoracolumbar T1–L2 = Sympathetic`, `Craniosacral OA–C2 & S2–S4 = Parasympathetic`],
+      p2: [`TART findings localize viscerosomatic arcs`, `Sacral rocking addresses S2–S4 hindgut tone`],
+      p3: [`Rib raising modulates T1–L2 sympathetics`, `OA + sacral release restores autonomic balance`]
+    }
+  }
+];
+
+/* RUNTIME STATE */
+let deck = [];
+let deckIndex = 0;
+let hp = GAME_CONFIG.maxHp;
+let xp = 0;
+let streak = 0;
+let currentLane = 1;
+let gateDistance = GAME_CONFIG.gateStartDistance;
+let gateActive = false;
+let isOutcomeOpen = false;
+let isMenuOpen = false;
+let isHintsVisible = false;
+let isTimerEnabled = true;
+let timerRemaining = GAME_CONFIG.timerSeconds;
+let lastFrameTs = 0;
+let metaFadeHandle = null;
+let animFrameId = null;
+
+let masteredLos = new Set();
+let missedIds = new Set();
+let stats = { right: 0, wrong: 0 };
+
+/* AUDIO STATE */
+let soundEnabled = true;
+let sfxEnabled = true;
+let bgmEnabled = false;
+let bgmVolume = 0.35;
+let audioCtx = null;
+let bgmInterval = null;
+let bgmStep = 0;
+let customAudioEl = null;
+
+/* 3D CANVAS PARTICLES & SHIP */
+const PARTICLES = Array.from({ length: 150 }, () => ({
+  x: (Math.random() - 0.5) * 2.2,
+  y: (Math.random() - 0.5) * 1.4,
+  z: Math.random(),
+  size: 1.5 + Math.random() * 2.5
+}));
+const ship = { x: 0, tilt: 0 };
+let hoveredLane = 1;
+let currentShuffledChoices = [];
+let currentCorrectRuntimeLane = 0;
+
+function getEl(id) { return document.getElementById(id); }
+
+function ensureAudioCtx() {
+  if (!audioCtx) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (Ctx) audioCtx = new Ctx();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
+  return audioCtx;
+}
+
+function playSfx(type) {
+  if (!soundEnabled || !sfxEnabled) return;
+  const ctx = ensureAudioCtx();
+  if (!ctx) return;
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  if (type === 'steer') {
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(420, now);
+    osc.frequency.exponentialRampToValueAtTime(640, now + 0.06);
+    gain.gain.setValueAtTime(0.06, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+    osc.start(now); osc.stop(now + 0.08);
+  } else if (type === 'correct') {
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(523.25, now);
+    osc.frequency.setValueAtTime(659.25, now + 0.08);
+    osc.frequency.setValueAtTime(783.99, now + 0.16);
+    gain.gain.setValueAtTime(0.11, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.34);
+    osc.start(now); osc.stop(now + 0.35);
+  } else if (type === 'wrong') {
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(220, now);
+    osc.frequency.exponentialRampToValueAtTime(110, now + 0.25);
+    gain.gain.setValueAtTime(0.1, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+    osc.start(now); osc.stop(now + 0.3);
+  } else if (type === 'heal') {
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(587.33, now);
+    osc.frequency.setValueAtTime(880, now + 0.1);
+    gain.gain.setValueAtTime(0.1, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    osc.start(now); osc.stop(now + 0.36);
+  }
+}
+
+function startProceduralBgmLoop() {
+  stopProceduralBgmLoop();
+  if (!soundEnabled || !bgmEnabled) return;
+  const ctx = ensureAudioCtx();
+  if (!ctx) return;
+  /* Kino-inspired eerie minor synth arpeggio + sub bass */
+  const arp = [220, 261.63, 329.63, 311.13, 220, 261.63, 349.23, 329.63];
+  bgmInterval = setInterval(() => {
+    if (!soundEnabled || !bgmEnabled || !audioCtx) return;
+    const now = audioCtx.currentTime;
+    const freq = arp[bgmStep % arp.length];
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = bgmStep % 4 === 0 ? 'sawtooth' : 'triangle';
+    osc.frequency.setValueAtTime(bgmStep % 8 === 0 ? freq * 0.5 : freq, now);
+    g.gain.setValueAtTime(Math.max(0.002, bgmVolume * 0.08), now);
+    g.gain.exponentialRampToValueAtTime(0.0008, now + 0.28);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(now); osc.stop(now + 0.3);
+    bgmStep++;
+  }, 240);
+}
+
+function stopProceduralBgmLoop() {
+  if (bgmInterval) { clearInterval(bgmInterval); bgmInterval = null; }
+}
+
+function toggleMasterSound() {
+  soundEnabled = !soundEnabled;
+  const btn = getEl('master-sound-btn');
+  if (btn) {
+    btn.textContent = soundEnabled ? `🔊 Sound: ON` : `🔇 Sound: OFF`;
+    btn.classList.toggle('is-active', soundEnabled);
+  }
+  if (!soundEnabled) {
+    stopProceduralBgmLoop();
+    if (customAudioEl) customAudioEl.pause();
+  } else {
+    if (bgmEnabled) startProceduralBgmLoop();
+    if (customAudioEl && customAudioEl.src) customAudioEl.play().catch(() => {});
+  }
+}
+
+function toggleSfx() {
+  sfxEnabled = !sfxEnabled;
+  const btn = getEl('sfx-btn');
+  if (btn) {
+    btn.textContent = sfxEnabled ? `🎛 SFX: ON` : `🎛 SFX: OFF`;
+    btn.classList.toggle('is-active', sfxEnabled);
+  }
+}
+
+function toggleProceduralBgm() {
+  bgmEnabled = !bgmEnabled;
+  const btn = getEl('bgm-btn');
+  if (btn) {
+    btn.textContent = bgmEnabled ? `🎹 Zombies BGM: ON` : `🎹 Zombies BGM: OFF`;
+    btn.classList.toggle('is-active', bgmEnabled);
+  }
+  if (bgmEnabled && soundEnabled) startProceduralBgmLoop();
+  else stopProceduralBgmLoop();
+}
+
+function loadCustomAudio(input) {
+  const file = input && input.files && input.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  if (!customAudioEl) customAudioEl = new Audio();
+  customAudioEl.src = url;
+  customAudioEl.loop = true;
+  customAudioEl.volume = bgmVolume;
+  stopProceduralBgmLoop();
+  bgmEnabled = false;
+  const bgmBtn = getEl('bgm-btn');
+  if (bgmBtn) { bgmBtn.textContent = `🎹 Zombies BGM: OFF`; bgmBtn.classList.remove('is-active'); }
+  if (soundEnabled) customAudioEl.play().catch(() => {});
+  showMenuToast(`Loaded track: ${file.name}`);
+}
+
+function setBgmVolume(val) {
+  bgmVolume = Math.max(0, Math.min(1, Number(val) / 100));
+  const lbl = getEl('bgm-vol-label');
+  if (lbl) lbl.textContent = `${val}%`;
+  if (customAudioEl) customAudioEl.volume = bgmVolume;
+}
+
+function showMenuToast(msg) {
+  const el = getEl('menu-inline-toast');
+  if (el) el.textContent = msg;
+}
+
+/* DECK & FILTERING */
+function syncMissedOptionLabel() {
+  const sel = getEl('sector-filter');
+  if (!sel) return;
+  const opt = Array.from(sel.options).find(o => o.value === 'missed');
+  if (opt) opt.textContent = `🎯 Missed Gates Only (${missedIds.size})`;
+}
+
+function buildDeck(shuffle) {
+  const sectorVal = (getEl('sector-filter') && getEl('sector-filter').value) || 'all';
+  const angleVal = (getEl('angle-filter') && getEl('angle-filter').value) || 'all';
+  const codexMap = new Map(CODEX_DATA.map(c => [c.lo, c]));
+
+  let list = ALL_QUESTIONS.filter(q => {
+    const c = codexMap.get(q.lo);
+    if (sectorVal === 'missed') {
+      if (!missedIds.has(q.id)) return false;
+    } else if (sectorVal !== 'all') {
+      if (!c || c.sector !== sectorVal) return false;
+    }
+    if (angleVal !== 'all' && q.angle !== angleVal) return false;
+    return true;
+  });
+
+  if (list.length === 0) {
+    list = ALL_QUESTIONS.slice();
+    if (sectorVal === 'missed') showMenuToast(`No missed gates recorded — loaded full 45-gate deck.`);
+  }
+
+  deck = list.slice();
+  if (shuffle) {
+    for (let i = deck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+  }
+  deckIndex = 0;
+}
+
+function applyDeckFilters() {
+  buildDeck(false);
+  updateTelemetryUI();
+  prepareNextGate();
+  persistAppState();
+}
+
+function restartDeck(shuffle) {
+  hp = GAME_CONFIG.maxHp;
+  xp = 0;
+  streak = 0;
+  stats = { right: 0, wrong: 0 };
+  buildDeck(shuffle);
+  updateTelemetryUI();
+  prepareNextGate();
+  if (isMenuOpen) toggleMenuDrawer();
+  persistAppState();
+}
+
+function handleResetMastery(btn) {
+  if (!btn) return;
+  if (btn.dataset.armed !== 'true') {
+    btn.dataset.armed = 'true';
+    btn.textContent = `⚠ Confirm Reset Mastery (Tap Again)`;
+    return;
+  }
+  btn.dataset.armed = 'false';
+  btn.textContent = `🗑 Reset Mastery`;
+  masteredLos.clear();
+  missedIds.clear();
+  hp = GAME_CONFIG.maxHp;
+  xp = 0;
+  streak = 0;
+  stats = { right: 0, wrong: 0 };
+  syncMissedOptionLabel();
+  renderSkillTree();
+  buildDeck(false);
+  updateTelemetryUI();
+  prepareNextGate();
+  showMenuToast(`Mastery and missed gates cleared.`);
+  persistAppState();
+}
+
+/* SKILL TREE & CODEX */
+function renderSkillTree() {
+  const grid = getEl('skill-tree-grid');
+  if (!grid) return;
+  grid.innerHTML = CODEX_DATA.map(c => {
+    const mastered = masteredLos.has(c.lo);
+    return `<button type="button" class="skill-node ${mastered ? 'is-mastered' : ''}" onclick="jumpToEntity(${c.lo})">
+      <span class="skill-node-title">LO ${c.lo}: ${c.entity}</span>
+      <span class="skill-node-meta">${mastered ? '✔ Mastered' : c.badgeMeta}</span>
+    </button>`;
+  }).join('');
+}
+
+function jumpToEntity(loNum) {
+  const sf = getEl('sector-filter');
+  const af = getEl('angle-filter');
+  if (sf) sf.value = 'all';
+  if (af) af.value = 'all';
+  buildDeck(false);
+  const idx = deck.findIndex(q => q.lo === loNum);
+  if (idx >= 0) deckIndex = idx;
+  if (isMenuOpen) toggleMenuDrawer();
+  updateTelemetryUI();
+  prepareNextGate();
+}
+
+function renderCodex(filterTag) {
+  const tbody = getEl('codex-tbody');
+  if (!tbody) return;
+  const rows = CODEX_DATA.filter(c => filterTag === 'all' || c.tag === filterTag);
+  tbody.innerHTML = rows.map(c => `<tr>
+    <td class="amboss-scan-target"><strong>LO ${c.lo}: ${c.entity}</strong><br><span style="color:var(--tertiary);font-size:0.7rem;">${c.badgeMeta}</span></td>
+    <td class="amboss-scan-target">${c.etiology}</td>
+    <td class="amboss-scan-target">${c.pathogenesis}</td>
+    <td class="amboss-scan-target">${c.hallmarks}</td>
+    <td class="amboss-scan-target">${c.clinical}</td>
+    <td class="amboss-scan-target">${c.management}</td>
+  </tr>`).join('');
+}
+
+function filterCodex(tag, btn) {
+  document.querySelectorAll('#codex-pills .codex-pill').forEach(p => p.classList.remove('is-active'));
+  if (btn) btn.classList.add('is-active');
+  renderCodex(tag);
+}
+
+function openCodex() {
+  const bd = getEl('codex-backdrop');
+  if (bd) bd.classList.add('is-open');
+}
+function closeCodex() {
+  const bd = getEl('codex-backdrop');
+  if (bd) bd.classList.remove('is-open');
+}
+function openCodexFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  openCodex();
+}
+
+/* MENU, HINTS, TIMER UI */
+function toggleMenuDrawer() {
+  isMenuOpen = !isMenuOpen;
+  const drawer = getEl('top-menu-drawer');
+  const bd = getEl('drawer-backdrop');
+  const btn = getEl('menu-toggle-btn');
+  if (drawer) drawer.classList.toggle('is-open', isMenuOpen);
+  if (bd) bd.classList.toggle('is-open', isMenuOpen);
+  if (btn) btn.setAttribute('aria-expanded', String(isMenuOpen));
+}
+
+function syncHintsUI() {
+  const app = getEl('xr-app');
+  if (app) {
+    app.classList.toggle('hints-visible', isHintsVisible);
+    app.classList.toggle('hints-hidden', !isHintsVisible);
+  }
+  const menuBtn = getEl('menu-hints-btn');
+  if (menuBtn) {
+    menuBtn.textContent = isHintsVisible ? `💡 Hints: ON [H]` : `💡 Hints: OFF [H]`;
+    menuBtn.classList.toggle('is-active', isHintsVisible);
+  }
+}
+
+function toggleHintsBar() {
+  isHintsVisible = !isHintsVisible;
+  syncHintsUI();
+  playSfx('steer');
+  persistAppState();
+}
+
+function syncTimerControlsUI() {
+  const menuBtn = getEl('menu-timer-btn');
+  if (menuBtn) {
+    menuBtn.textContent = isTimerEnabled ? `⏱ Timer: ON [T]` : `⏱ Timer: OFF [T]`;
+    menuBtn.classList.toggle('is-active', isTimerEnabled);
+  }
+  const tChip = getEl('timer-chip');
+  const tText = getEl('timer-text');
+  if (tText) tText.textContent = isTimerEnabled ? `${Math.ceil(timerRemaining)}s` : `∞`;
+  if (tChip) tChip.classList.toggle('is-urgent', isTimerEnabled && timerRemaining <= 10);
+}
+
+function toggleTimerEnabled() {
+  isTimerEnabled = !isTimerEnabled;
+  if (isTimerEnabled) timerRemaining = GAME_CONFIG.timerSeconds;
+  syncTimerControlsUI();
+  persistAppState();
+}
+
+function startTimedRunFromMenu() {
+  isTimerEnabled = true;
+  timerRemaining = GAME_CONFIG.timerSeconds;
+  if (isMenuOpen) toggleMenuDrawer();
+  restartDeck(true);
+}
+
+function skipFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  skipCurrentQuestion();
+}
+
+function skipCurrentQuestion() {
+  if (!deck.length) return;
+  deckIndex = (deckIndex + 1) % deck.length;
+  prepareNextGate();
+}
+
+function updateTelemetryUI() {
+  const hpText = getEl('hp-text');
+  const hpFill = getEl('hp-bar-fill');
+  const xpText = getEl('xp-text');
+  const streakText = getEl('streak-text');
+  const multText = getEl('mult-text');
+  const gateText = getEl('gate-text');
+  if (hpText) hpText.textContent = String(hp);
+  if (hpFill) {
+    hpFill.style.width = `${Math.max(0, Math.min(100, hp))}%`;
+    hpFill.style.background = hp <= 30 ? 'var(--error)' : 'var(--secondary)';
+  }
+  if (xpText) xpText.textContent = String(xp);
+  if (streakText) streakText.textContent = String(streak);
+  const mult = Math.min(4, 1 + Math.floor(streak / 3));
+  if (multText) multText.textContent = `${mult}x`;
+  if (gateText) gateText.textContent = `${Math.min(deckIndex + 1, deck.length)}/${deck.length}`;
+  syncTimerControlsUI();
+}
+
+/* GATE PREPARATION & 3-SECOND METADATA AUTO-FADE */
+function prepareNextGate() {
+  if (!deck.length) return;
+  const q = deck[deckIndex];
+  const theme = LO_VISUAL_THEMES[q.lo] || LO_VISUAL_THEMES[1];
+
+  const metaRow = getEl('question-meta-row');
+  if (metaRow) {
+    metaRow.classList.remove('is-faded');
+    if (metaFadeHandle) clearTimeout(metaFadeHandle);
+    metaFadeHandle = setTimeout(() => {
+      metaRow.classList.add('is-faded');
+    }, GAME_CONFIG.metaFadeMs);
+  }
+
+  const loBadge = getEl('lo-badge');
+  const angleBadge = getEl('angle-badge');
+  const phaseBadge = getEl('phase-badge');
+  const corrBadge = getEl('corridor-badge');
+  const stemEl = getEl('q-stem-text');
+  const clueEl = getEl('q-clue-text');
+
+  if (loBadge) loBadge.textContent = q.loTitle;
+  if (angleBadge) angleBadge.textContent = q.angle.toUpperCase();
+  if (phaseBadge) phaseBadge.textContent = q.phaseFocus.toUpperCase();
+  if (corrBadge) corrBadge.textContent = theme.tag;
+  if (stemEl) stemEl.textContent = q.stem;
+  if (clueEl) clueEl.textContent = q.clue;
+
+  /* Shuffle 3 choices symmetrically at runtime */
+  const indexed = q.choices.map((text, idx) => ({ text, isCorrect: idx === q.correctIndex }));
+  for (let i = indexed.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indexed[i], indexed[j]] = [indexed[j], indexed[i]];
+  }
+  currentShuffledChoices = indexed.map(item => item.text);
+  currentCorrectRuntimeLane = indexed.findIndex(item => item.isCorrect);
+
+  for (let i = 0; i < 3; i++) {
+    const t = getEl(`lane-${i}-text`);
+    const card = getEl(`lane-${i}-card`);
+    if (t) t.textContent = currentShuffledChoices[i];
+    if (card) card.classList.toggle('is-targeted', i === currentLane);
+  }
+
+  gateDistance = GAME_CONFIG.gateStartDistance;
+  timerRemaining = GAME_CONFIG.timerSeconds;
+  gateActive = true;
+  isOutcomeOpen = false;
+  updateTelemetryUI();
+}
+
+function previewLaneTarget(lane) {
+  currentLane = lane;
+  hoveredLane = lane;
+  for (let i = 0; i < 3; i++) {
+    const card = getEl(`lane-${i}-card`);
+    if (card) card.classList.toggle('is-targeted', i === lane);
+  }
+}
+
+function selectLaneAndResolve(chosenLane, isTimesUp = false) {
+  if (!gateActive || isOutcomeOpen) return;
+  gateActive = false;
+  currentLane = chosenLane;
+  hoveredLane = chosenLane;
+  const q = deck[deckIndex];
+  const isCorrect = !isTimesUp && chosenLane === currentCorrectRuntimeLane;
+
+  let xpDelta = 0;
+  let hpDeltaLabel = `HP +0`;
+  const vig = getEl('vignette-overlay');
+
+  if (isCorrect) {
+    streak += 1;
+    const mult = Math.min(4, 1 + Math.floor(streak / 3));
+    xpDelta = 100 * mult;
+    xp += xpDelta;
+    stats.right += 1;
+    masteredLos.add(q.lo);
+    missedIds.delete(q.id);
+
+    let hpGain = GAME_CONFIG.hpReward;
+    if (streak > 0 && streak % GAME_CONFIG.healStreakStep === 0) {
+      hpGain += GAME_CONFIG.healAmount;
+      const toast = getEl('heal-toast');
+      if (toast) {
+        toast.classList.add('is-visible');
+        setTimeout(() => toast.classList.remove('is-visible'), 2200);
+      }
+      playSfx('heal');
+    } else {
+      playSfx('correct');
+    }
+    hp = Math.min(GAME_CONFIG.maxHp, hp + hpGain);
+    hpDeltaLabel = `HP +${hpGain}`;
+    if (vig) { vig.className = 'vignette-overlay is-right'; setTimeout(() => { vig.className = 'vignette-overlay'; }, 550); }
+  } else {
+    streak = 0;
+    stats.wrong += 1;
+    missedIds.add(q.id);
+    hp = Math.max(0, hp - GAME_CONFIG.hpPenalty);
+    hpDeltaLabel = `HP -${GAME_CONFIG.hpPenalty}`;
+    playSfx('wrong');
+    if (vig) { vig.className = 'vignette-overlay is-wrong'; setTimeout(() => { vig.className = 'vignette-overlay'; }, 550); }
+  }
+
+  syncMissedOptionLabel();
+  renderSkillTree();
+  updateTelemetryUI();
+  populateOutcomeModal(q, chosenLane, isCorrect, xpDelta, hpDeltaLabel, isTimesUp);
+  persistAppState();
+}
+
+function renderDossierBullets(el, lines) {
+  if (!el) return;
+  const items = (Array.isArray(lines) ? lines : [lines])
+    .flatMap((line) => String(line || '').split(/\n|<br\s*\/?>/i))
+    .map((line) => line.replace(/^\s*[•\-\*]\s*/, '').trim())
+    .filter(Boolean);
+  el.innerHTML = items.map((line) => `<p class="dossier-line">• ${line}</p>`).join('');
+}
+
+function populateOutcomeModal(q, chosenLane, isCorrect, xpDelta, hpDeltaLabel, isTimesUp) {
+  isOutcomeOpen = true;
+  const verdictEl = getEl('outcome-verdict');
+  const xpEl = getEl('outcome-xp-delta');
+  const hpEl = getEl('outcome-hp-delta');
+  const loRefEl = getEl('outcome-lo-ref');
+  const qTextEl = getEl('outcome-question-text');
+  const yourBox = getEl('your-choice-box');
+  const yourText = getEl('your-choice-text');
+  const correctText = getEl('correct-choice-text');
+
+  if (verdictEl) {
+    if (isTimesUp) {
+      verdictEl.textContent = `⏱ TIME'S UP — ${q.shortAnswer}`;
+      verdictEl.className = 'is-wrong';
+    } else if (isCorrect) {
+      verdictEl.textContent = `✔ CORRECT — ${q.shortAnswer}`;
+      verdictEl.className = 'is-right';
+    } else {
+      verdictEl.textContent = `✖ INCORRECT — ${q.shortAnswer}`;
+      verdictEl.className = 'is-wrong';
+    }
+  }
+  if (xpEl) xpEl.textContent = `+${xpDelta} XP`;
+  if (hpEl) hpEl.textContent = hpDeltaLabel;
+  if (loRefEl) loRefEl.textContent = `${q.loTitle} • ${q.angle} • ${q.phaseFocus}`;
+  if (qTextEl) qTextEl.textContent = q.stem;
+
+  if (yourBox) {
+    yourBox.classList.remove('is-right', 'is-wrong');
+    yourBox.classList.add(isCorrect ? 'is-right' : 'is-wrong');
+  }
+  if (yourText) yourText.textContent = isTimesUp ? `No selection before 0s` : (currentShuffledChoices[chosenLane] || `Option`);
+  if (correctText) correctText.textContent = currentShuffledChoices[currentCorrectRuntimeLane] || q.choices[0];
+
+  renderDossierBullets(getEl('dossier-explanation'), q.explanation);
+  renderDossierBullets(getEl('dossier-board-clue'), q.secondOrderClue);
+  renderDossierBullets(getEl('dossier-pathogenesis'), q.phase1Pearl);
+  renderDossierBullets(getEl('dossier-morphology'), q.phase2Hallmark);
+  renderDossierBullets(getEl('dossier-epi-tx'), q.phase3Secret);
+
+  renderDossierBullets(getEl('dossier-angle-1'), q.dossierBullets.p1);
+  renderDossierBullets(getEl('dossier-angle-2'), q.dossierBullets.p2);
+  renderDossierBullets(getEl('dossier-angle-3'), q.dossierBullets.p3);
+
+  const body = getEl('outcome-scroll-body');
+  if (body) body.scrollTop = 0;
+  const bd = getEl('outcome-backdrop');
+  if (bd) bd.classList.add('is-open');
+}
+
+function scrollOutcomeBody(delta) {
+  const body = getEl('outcome-scroll-body');
+  if (!body) return;
+  if (typeof body.scrollBy === 'function') {
+    body.scrollBy({ top: delta, behavior: 'smooth' });
+  } else {
+    body.scrollTop += delta;
+  }
+}
+
+function continueToNextGate() {
+  const bd = getEl('outcome-backdrop');
+  if (bd) bd.classList.remove('is-open');
+  isOutcomeOpen = false;
+
+  if (hp <= 0 || deckIndex >= deck.length - 1) {
+    openSummaryModal();
+    return;
+  }
+  deckIndex += 1;
+  prepareNextGate();
+}
+
+function openSummaryModal() {
+  const total = stats.right + stats.wrong;
+  const acc = total > 0 ? Math.round((stats.right / total) * 100) : 0;
+  const body = getEl('summary-body');
+  if (body) {
+    body.innerHTML = `
+      <p class="dossier-line">• Final XP: <strong>${xp}</strong> | Remaining HP: <strong>${hp}/${GAME_CONFIG.maxHp}</strong></p>
+      <p class="dossier-line">• Accuracy: <strong>${acc}%</strong> (${stats.right} Correct / ${stats.wrong} Incorrect)</p>
+      <p class="dossier-line">• Mastered Entities: <strong>${masteredLos.size}/15</strong> | Missed Gates Flagged: <strong>${missedIds.size}</strong></p>
+    `;
+  }
+  const bd = getEl('summary-backdrop');
+  if (bd) bd.classList.add('is-open');
+}
+
+function openSummaryFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  openSummaryModal();
+}
+
+function runMissedFromSummary() {
+  const bd = getEl('summary-backdrop');
+  if (bd) bd.classList.remove('is-open');
+  const sf = getEl('sector-filter');
+  if (sf) sf.value = 'missed';
+  restartDeck(false);
+}
+
+function closeSummaryAndRestart() {
+  const bd = getEl('summary-backdrop');
+  if (bd) bd.classList.remove('is-open');
+  restartDeck(false);
+}
+
+/* KEYBOARD SHORTCUTS */
+function handleGlobalKeyDown(e) {
+  const codexOpen = getEl('codex-backdrop') && getEl('codex-backdrop').classList.contains('is-open');
+  const summaryOpen = getEl('summary-backdrop') && getEl('summary-backdrop').classList.contains('is-open');
+  const key = (e.key || '').toLowerCase();
+
+  if (key === 'm') {
+    e.preventDefault();
+    toggleMenuDrawer();
+    return;
+  }
+  if (key === 'c') {
+    e.preventDefault();
+    if (codexOpen) closeCodex(); else openCodex();
+    return;
+  }
+  if (key === 'h') {
+    e.preventDefault();
+    toggleHintsBar();
+    return;
+  }
+  if (key === 't') {
+    e.preventDefault();
+    toggleTimerEnabled();
+    return;
+  }
+  if (key === 's' && !isOutcomeOpen && !codexOpen && !summaryOpen) {
+    e.preventDefault();
+    skipCurrentQuestion();
+    return;
+  }
+  if (isOutcomeOpen && (e.key === ' ' || e.key === 'Enter')) {
+    e.preventDefault();
+    continueToNextGate();
+    return;
+  }
+  if (isOutcomeOpen || codexOpen || summaryOpen || isMenuOpen) return;
+
+  if (key === '1' || key === 'a' || e.key === 'ArrowLeft') {
+    e.preventDefault();
+    selectLaneAndResolve(0);
+  } else if (key === '2' || key === 'w' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    selectLaneAndResolve(1);
+  } else if (key === '3' || key === 'd' || e.key === 'ArrowRight') {
+    e.preventDefault();
+    selectLaneAndResolve(2);
+  }
+}
+
+/* =========================================================
+   3D XR RUNNER CANVAS RENDERER (SYNTHWAVE VOID + 1:1 FUSION)
+   ========================================================= */
+function drawPixelStarfield(ctx, cssW, cssH, vpX, horizonY, theme, dt, warpMult) {
+  const spreadX = cssW * 0.62;
+  const spreadY = cssH * 0.52;
+  ctx.fillStyle = theme.particleColor;
+  for (let i = 0; i < PARTICLES.length; i++) {
+    const p = PARTICLES[i];
+    p.z -= dt * 0.28 * warpMult;
+    if (p.z <= 0.02) {
+      p.z = 1.0;
+      p.x = (Math.random() - 0.5) * 2.2;
+      p.y = (Math.random() - 0.5) * 1.4;
+    }
+    const proj = 1 / (p.z + 0.08);
+    const sx = vpX + p.x * spreadX * proj * 0.22;
+    const sy = horizonY + p.y * spreadY * proj * 0.22;
+    if (sx < -10 || sx > cssW + 10 || sy < -10 || sy > cssH + 10) continue;
+    const sz = Math.max(1.5, p.size * (1.2 - p.z));
+    ctx.globalAlpha = Math.max(0.15, Math.min(0.95, 1.05 - p.z));
+    ctx.fillRect(Math.round(sx), Math.round(sy), Math.round(sz), Math.round(sz));
+  }
+  ctx.globalAlpha = 1;
+}
+
+function renderXrFrame(ts) {
+  const canvas = getEl('xr-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const dt = lastFrameTs ? Math.min(0.05, (ts - lastFrameTs) / 1000) : 0.016;
+  lastFrameTs = ts;
+
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const cssW = canvas.clientWidth || window.innerWidth;
+  const cssH = canvas.clientHeight || 400;
+  if (canvas.width !== Math.floor(cssW * dpr) || canvas.height !== Math.floor(cssH * dpr)) {
+    canvas.width = Math.floor(cssW * dpr);
+    canvas.height = Math.floor(cssH * dpr);
+  }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const q = deck[deckIndex] || ALL_QUESTIONS[0];
+  const theme = LO_VISUAL_THEMES[q.lo] || LO_VISUAL_THEMES[1];
+
+  /* Timer & Gate Approach */
+  if (gateActive && !isOutcomeOpen) {
+    if (gateDistance > GAME_CONFIG.stopDistanceMeters) {
+      gateDistance = Math.max(GAME_CONFIG.stopDistanceMeters, gateDistance - dt * GAME_CONFIG.gateApproachSpeed);
+    }
+    if (isTimerEnabled) {
+      timerRemaining = Math.max(0, timerRemaining - dt);
+      syncTimerControlsUI();
+      if (timerRemaining <= 0) {
+        const mode = (getEl('timesup-mode') && getEl('timesup-mode').value) || 'review';
+        if (mode === 'review') {
+          selectLaneAndResolve(currentLane, true);
+        }
+      }
+    }
+  }
+
+  /* 1. Deep Midnight Void */
+  ctx.fillStyle = '#0a0a12';
+  ctx.fillRect(0, 0, cssW, cssH);
+
+  const vpX = cssW * 0.5;
+  const horizonY = cssH * 0.24;
+  const isPortraitCompact = cssW <= 600;
+
+  /* 2. Infinite Wireframe Grid Floor */
+  ctx.save();
+  ctx.strokeStyle = `rgba(${theme.gridRgb}, 0.42)`;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let i = -10; i <= 10; i++) {
+    ctx.moveTo(vpX + i * 16, horizonY);
+    ctx.lineTo(vpX + i * (cssW * 0.12), cssH);
+  }
+  const scrollOffset = ((ts * 0.0014) % 1);
+  for (let row = 0; row < 12; row++) {
+    const t = Math.pow((row + scrollOffset) / 12, 2.2);
+    const y = horizonY + (cssH - horizonY) * t;
+    ctx.moveTo(0, y);
+    ctx.lineTo(cssW, y);
+  }
+  ctx.stroke();
+  ctx.restore();
+
+  /* 3. 150 Crisp 3D Square Pixel-Dust Particles */
+  const warpMult = gateDistance > GAME_CONFIG.stopDistanceMeters ? 2.1 : 0.7;
+  drawPixelStarfield(ctx, cssW, cssH, vpX, horizonY, theme, dt, warpMult);
+
+  /* 4. Three Sleek Teal Perspective Track Beams */
+  const laneTrackBottomX = isPortraitCompact
+    ? [vpX - cssW * 0.34, vpX, vpX + cssW * 0.34]
+    : [vpX - cssW * 0.27, vpX, vpX + cssW * 0.27];
+  const laneTrackTopX = [vpX - 28, vpX, vpX + 28];
+
+  for (let l = 0; l < 3; l++) {
+    const isTarget = l === currentLane;
+    const grad = ctx.createLinearGradient(laneTrackTopX[l], horizonY, laneTrackBottomX[l], cssH);
+    grad.addColorStop(0, 'rgba(52, 168, 143, 0.15)');
+    grad.addColorStop(1, isTarget ? 'rgba(0, 255, 204, 0.75)' : 'rgba(52, 168, 143, 0.42)');
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = isTarget ? 2.4 : 1.3;
+    ctx.beginPath();
+    ctx.moveTo(laneTrackTopX[l], horizonY);
+    ctx.lineTo(laneTrackBottomX[l], cssH);
+    ctx.stroke();
+  }
+
+  /* 5. Live 1:1 Portal Fusion onto Centered DOM Answer Cards */
+  const canvasRect = canvas.getBoundingClientRect();
+  const progress = 1 - Math.max(0, Math.min(1, (gateDistance - GAME_CONFIG.stopDistanceMeters) / (GAME_CONFIG.gateStartDistance - GAME_CONFIG.stopDistanceMeters)));
+  for (let l = 0; l < 3; l++) {
+    const card = getEl(`lane-${l}-card`);
+    if (!card) continue;
+    const r = card.getBoundingClientRect();
+    const cx = r.left - canvasRect.left + r.width * 0.5;
+    const cy = r.top - canvasRect.top + r.height * 0.5;
+    const scale = 0.35 + 0.65 * progress;
+    const pw = r.width * scale;
+    const ph = r.height * scale;
+    const px = (vpX + (cx - vpX) * progress) - pw * 0.5;
+    const py = (horizonY + (cy - horizonY) * progress) - ph * 0.5;
+
+    ctx.save();
+    ctx.strokeStyle = LANE_COLORS[l];
+    ctx.lineWidth = l === currentLane ? 3 : 2;
+    ctx.shadowColor = LANE_COLORS[l];
+    ctx.shadowBlur = l === currentLane ? 18 : 10;
+    ctx.strokeRect(px, py, pw, ph);
+    ctx.restore();
+  }
+
+  /* 6. Solid Geometric Teal Diamond Player Craft with Smooth Interpolation & Banking */
+  const targetX = laneTrackBottomX[currentLane] * 0.78 + vpX * 0.22;
+  if (!ship.x) ship.x = vpX;
+  ship.x += (targetX - ship.x) * 0.18;
+  ship.tilt = (targetX - ship.x) * 0.06;
+  const shipY = cssH - (isPortraitCompact ? 24 : 34);
+
+  ctx.save();
+  ctx.translate(ship.x, shipY);
+  ctx.rotate(Math.max(-0.35, Math.min(0.35, ship.tilt)));
+  ctx.fillStyle = '#00ffcc';
+  ctx.strokeStyle = '#e8e0f0';
+  ctx.lineWidth = 1.6;
+  ctx.shadowColor = '#00ffcc';
+  ctx.shadowBlur = 14;
+  ctx.beginPath();
+  ctx.moveTo(0, -18);
+  ctx.lineTo(16, 4);
+  ctx.lineTo(0, 14);
+  ctx.lineTo(-16, 4);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+
+  animFrameId = requestAnimationFrame(renderXrFrame);
+}
+
+/* STATE PERSISTENCE VIA notebookAppApi */
+async function persistAppState() {
+  if (!window.notebookAppApi || !window.notebookAppApi.setAppState) return;
+  try {
+    await window.notebookAppApi.setAppState({
+      hp, xp, streak, deckIndex, isHintsVisible, isTimerEnabled,
+      masteredLos: Array.from(masteredLos),
+      missedIds: Array.from(missedIds),
+      stats,
+      sectorFilter: (getEl('sector-filter') && getEl('sector-filter').value) || 'all',
+      angleFilter: (getEl('angle-filter') && getEl('angle-filter').value) || 'all'
+    });
+  } catch (e) {}
+}
+
+async function restoreAppState() {
+  if (!window.notebookAppApi || !window.notebookAppApi.getAppState) return;
+  try {
+    const s = await window.notebookAppApi.getAppState();
+    if (!s) return;
+    if (typeof s.hp === 'number') hp = s.hp;
+    if (typeof s.xp === 'number') xp = s.xp;
+    if (typeof s.streak === 'number') streak = s.streak;
+    if (typeof s.isHintsVisible === 'boolean') isHintsVisible = s.isHintsVisible;
+    if (typeof s.isTimerEnabled === 'boolean') isTimerEnabled = s.isTimerEnabled;
+    if (Array.isArray(s.masteredLos)) masteredLos = new Set(s.masteredLos);
+    if (Array.isArray(s.missedIds)) missedIds = new Set(s.missedIds);
+    if (s.stats) stats = s.stats;
+    const sf = getEl('sector-filter');
+    const af = getEl('angle-filter');
+    if (sf && s.sectorFilter) sf.value = s.sectorFilter;
+    if (af && s.angleFilter) af.value = s.angleFilter;
+  } catch (e) {}
+}
+
+async function initRunnerGame() {
+  await restoreAppState();
+  syncHintsUI();
+  syncMissedOptionLabel();
+  renderSkillTree();
+  renderCodex('all');
+  buildDeck(false);
+  updateTelemetryUI();
+  prepareNextGate();
+
+  const canvas = getEl('xr-canvas');
+  if (canvas) {
+    canvas.addEventListener('pointermove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const relX = (e.clientX - rect.left) / (rect.width || 1);
+      const lane = relX < 0.34 ? 0 : (relX > 0.66 ? 2 : 1);
+      previewLaneTarget(lane);
+    });
+  }
+
+  window.addEventListener('keydown', handleGlobalKeyDown);
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  animFrameId = requestAnimationFrame(renderXrFrame);
+
+  if (window.notebookAppApi && window.notebookAppApi.notifyAppReady) {
+    window.notebookAppApi.notifyAppReady();
+  }
+}
+
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', initRunnerGame);
+} else {
+  initRunnerGame();
+}
+</script>
+</body>
+</html>

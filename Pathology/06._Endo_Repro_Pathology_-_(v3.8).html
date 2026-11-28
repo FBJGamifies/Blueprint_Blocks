@@ -1,0 +1,2018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="artifact-type" content="tool">
+<meta name="design-style" content="neon_noir">
+<title>Endocrine &amp; Reproductive Pathology — XR 3-Lane Diagnostic Runner</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --background: #0a0a12;
+  --surface-container-low: #111118;
+  --surface-container: #141422;
+  --surface-container-high: #1e1e30;
+  --on-surface: #e8e0f0;
+  --on-surface-variant: #a098b0;
+  --outline: #5a5068;
+  --outline-variant: #302840;
+  --primary: #ff2d78;
+  --on-primary: #1a0010;
+  --primary-container: #b3004e;
+  --on-primary-container: #ffe0ec;
+  --secondary: #00ffcc;
+  --tertiary: #ffe04a;
+  --error: #ff4444;
+  --on-error: #1a0000;
+  --data-1: #ff2d78;
+  --data-2: #00ffcc;
+  --data-3: #ffe04a;
+  --data-4: #b388ff;
+  --data-context: #6e6680;
+  --positive: #00ffcc;
+  --warning: #ffe04a;
+  --focus: #00ffcc;
+  --font-headline: 'Sora', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-label: 'Space Mono', monospace;
+  --rounded: 0.125rem;
+  --rounded-lg: 0.25rem;
+  --rounded-full: 0.75rem;
+  --glow-text: 0 0 8px currentColor;
+  --glow-primary: 0 0 16px color-mix(in srgb, var(--primary) 40%, transparent);
+  --glow-secondary: 0 0 16px color-mix(in srgb, var(--secondary) 35%, transparent);
+  --glow-tertiary: 0 0 16px color-mix(in srgb, var(--tertiary) 35%, transparent);
+  --neon-border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+  --q-max-h: 27dvh;
+  --q-font: clamp(0.86rem, 1.3vw, 1.04rem);
+  --card-pad: clamp(0.75rem, 1.4vw, 1.15rem);
+  --card-min-h: clamp(132px, 22dvh, 210px);
+  --card-font: clamp(0.84rem, 1.15vw, 0.98rem);
+  --glass-bg: color-mix(in srgb, var(--surface-container) 78%, transparent);
+  --glass-bg-strong: color-mix(in srgb, var(--background) 92%, transparent);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; width: 100%; height: 100dvh; overflow: hidden;
+  background: var(--background); color: var(--on-surface);
+  font-family: var(--font-body); -webkit-font-smoothing: antialiased;
+}
+button, input, select { font-family: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+#xr-app {
+  position: relative; width: 100%; height: 100dvh; overflow: hidden;
+  display: flex; flex-direction: column; background: var(--background);
+}
+#xr-app.hints-visible {
+  --q-max-h: 21dvh;
+  --q-font: clamp(0.78rem, 1.1vw, 0.94rem);
+  --card-pad: clamp(0.55rem, 1vw, 0.85rem);
+  --card-min-h: clamp(102px, 16dvh, 160px);
+  --card-font: clamp(0.76rem, 1.02vw, 0.9rem);
+}
+.top-bar {
+  position: relative; z-index: 40; display: flex; align-items: center;
+  justify-content: space-between; gap: var(--space-sm);
+  padding: 0.35rem 0.75rem; min-height: 44px;
+  background: var(--glass-bg-strong); border-bottom: 1px solid var(--outline-variant);
+  backdrop-filter: blur(10px);
+}
+.menu-btn {
+  display: inline-flex; align-items: center; gap: 0.4rem; min-height: 36px; padding: 0.3rem 0.7rem;
+  background: var(--surface-container); color: var(--secondary);
+  border: 1px solid color-mix(in srgb, var(--secondary) 45%, transparent);
+  border-radius: var(--rounded); cursor: pointer;
+  font-family: var(--font-label); font-size: 0.75rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  transition: box-shadow var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
+}
+.menu-btn:hover { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.telemetry-strip { display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem; justify-content: flex-end; }
+.tele-chip {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.22rem 0.55rem; border-radius: var(--rounded);
+  background: var(--surface-container-low); border: 1px solid var(--outline-variant);
+  font-family: var(--font-label); font-size: 0.72rem; color: var(--on-surface); white-space: nowrap;
+}
+.tele-chip .lbl { color: var(--on-surface-variant); font-size: 0.65rem; }
+.tele-hp { border-color: color-mix(in srgb, var(--primary) 40%, transparent); color: var(--primary); }
+.tele-xp { border-color: color-mix(in srgb, var(--secondary) 40%, transparent); color: var(--secondary); }
+.tele-streak { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+.tele-timer.is-urgent { border-color: var(--error); color: var(--error); box-shadow: 0 0 10px color-mix(in srgb, var(--error) 40%, transparent); }
+
+#top-menu-drawer {
+  position: fixed; top: 44px; left: 0; right: 0; max-height: calc(100dvh - 44px);
+  z-index: 60; overflow-y: auto; padding: var(--space-md) var(--space-lg);
+  background: color-mix(in srgb, var(--surface-container-low) 97%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--secondary) 45%, transparent);
+  box-shadow: 0 18px 45px color-mix(in srgb, var(--background) 90%, transparent);
+  backdrop-filter: blur(14px); display: none;
+}
+#top-menu-drawer.is-open { display: block; }
+.drawer-header {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start;
+  gap: var(--space-sm); padding-bottom: var(--space-sm); margin-bottom: var(--space-md);
+  border-bottom: 1px solid var(--outline-variant);
+}
+.drawer-kicker {
+  font-family: var(--font-label); font-size: 0.72rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--secondary); text-shadow: var(--glow-text);
+}
+.drawer-title {
+  font-family: var(--font-headline); font-size: clamp(1.05rem, 2vw, 1.35rem);
+  font-weight: 700; color: var(--on-surface); margin: 0.2rem 0 0;
+}
+.drawer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: var(--space-md); margin-bottom: var(--space-md); }
+.drawer-panel {
+  background: var(--surface-container); border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg); padding: var(--space-sm) var(--space-md);
+  display: flex; flex-direction: column; gap: var(--space-sm);
+}
+.drawer-sec-title {
+  font-family: var(--font-label); font-size: 0.7rem; text-transform: uppercase;
+  letter-spacing: 0.09em; color: var(--on-surface-variant); margin: 0;
+}
+.btn-row { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.ctl-btn {
+  min-height: 38px; padding: 0.35rem 0.65rem; border-radius: var(--rounded);
+  background: var(--surface-container-high); color: var(--on-surface);
+  border: 1px solid var(--outline); cursor: pointer;
+  font-family: var(--font-label); font-size: 0.72rem; letter-spacing: 0.04em;
+  transition: border-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out);
+}
+.ctl-btn:hover { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.ctl-btn.is-active {
+  border-color: var(--secondary); color: var(--secondary);
+  background: color-mix(in srgb, var(--secondary) 14%, var(--surface-container));
+}
+.ctl-btn.is-danger { border-color: var(--error); color: var(--error); }
+.ctl-btn.is-primary { border-color: var(--primary); color: var(--primary); }
+.ctl-btn.is-primary:hover { box-shadow: var(--glow-primary); }
+.field-label {
+  display: block; font-family: var(--font-label); font-size: 0.68rem;
+  text-transform: uppercase; letter-spacing: 0.07em; color: var(--on-surface-variant); margin-bottom: 0.2rem;
+}
+.ctl-select, .ctl-range, .ctl-file {
+  width: 100%; background: var(--surface-container-low); color: var(--on-surface);
+  border: 1px solid var(--outline); border-radius: var(--rounded); padding: 0.4rem 0.55rem; font-size: 0.78rem;
+}
+.phase-pills { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.phase-pill {
+  font-family: var(--font-label); font-size: 0.68rem; padding: 0.2rem 0.45rem;
+  border-radius: var(--rounded); border: 1px solid var(--outline-variant);
+  background: var(--surface-container-low); color: var(--on-surface-variant);
+}
+.skill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); gap: 0.45rem; }
+.skill-node {
+  text-align: left; padding: 0.5rem 0.6rem; border-radius: var(--rounded);
+  background: var(--surface-container); border: 1px solid var(--outline-variant);
+  color: var(--on-surface); cursor: pointer; display: flex; flex-direction: column; gap: 0.18rem;
+  transition: border-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out);
+}
+.skill-node:hover { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.skill-node.is-mastered { border-color: color-mix(in srgb, var(--secondary) 65%, transparent); }
+.skill-node-title { font-size: 0.78rem; font-weight: 600; color: var(--on-surface); line-height: 1.3; }
+.skill-node-meta { font-family: var(--font-label); font-size: 0.64rem; color: var(--on-surface-variant); }
+.hotkey-guide {
+  font-family: var(--font-label); font-size: 0.7rem; color: var(--on-surface-variant);
+  background: var(--surface-container-low); border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded); padding: 0.45rem 0.65rem; line-height: 1.5; margin-top: var(--space-sm);
+}
+
+.viewport-shell {
+  position: relative; flex: 1; min-height: 0; width: 100%; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: space-between;
+}
+#xr-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 1; }
+.question-hud {
+  position: relative; z-index: 20; width: min(940px, 95vw); margin: 0.45rem auto 0;
+  padding: 0.6rem 1rem; border-radius: var(--rounded-lg);
+  background: var(--glass-bg); border: var(--neon-border);
+  box-shadow: var(--neon-inset); backdrop-filter: blur(10px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; max-height: var(--q-max-h);
+}
+.meta-strip {
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: center;
+  gap: 0.35rem; margin-bottom: 0.4rem; overflow: hidden; max-height: 60px; opacity: 1;
+  transition: opacity var(--dur-long) var(--ease-out), max-height var(--dur-long) var(--ease-out), margin-bottom var(--dur-long) var(--ease-out);
+}
+.meta-strip.is-faded { opacity: 0; max-height: 0; margin-bottom: 0; pointer-events: none; }
+.meta-badge {
+  font-family: var(--font-label); font-size: 0.66rem; text-transform: uppercase;
+  letter-spacing: 0.06em; padding: 0.16rem 0.48rem; border-radius: var(--rounded);
+  border: 1px solid var(--outline); background: var(--surface-container-low); color: var(--on-surface-variant);
+}
+.meta-lo { border-color: color-mix(in srgb, var(--secondary) 55%, transparent); color: var(--secondary); }
+.meta-angle { border-color: color-mix(in srgb, var(--primary) 55%, transparent); color: var(--primary); }
+.meta-phase { border-color: color-mix(in srgb, var(--tertiary) 55%, transparent); color: var(--tertiary); }
+.q-stem {
+  margin: 0; font-size: var(--q-font); line-height: 1.48; color: var(--on-surface);
+  font-weight: 500; text-align: center; max-width: 78ch; overflow-y: auto;
+}
+.lane-overlay-container {
+  position: relative; z-index: 20; width: min(1060px, 95vw); margin: auto;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(0.6rem, 1.6vw, 1.35rem); align-items: center; justify-items: stretch; padding: 0.35rem 0;
+}
+.lane-dom-card {
+  position: relative; min-height: var(--card-min-h); padding: var(--card-pad);
+  background: var(--glass-bg); border-radius: var(--rounded-lg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; cursor: pointer; backdrop-filter: blur(10px);
+  transition: transform var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
+}
+.lane-dom-card.lane-0 {
+  border: 1.5px solid color-mix(in srgb, var(--primary) 65%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--primary) 14%, transparent);
+}
+.lane-dom-card.lane-1 {
+  border: 1.5px solid color-mix(in srgb, var(--secondary) 65%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--secondary) 14%, transparent);
+}
+.lane-dom-card.lane-2 {
+  border: 1.5px solid color-mix(in srgb, var(--tertiary) 65%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--tertiary) 14%, transparent);
+}
+.lane-dom-card.is-targeted { transform: translateY(-4px) scale(1.02); }
+.lane-dom-card.lane-0.is-targeted, .lane-dom-card.lane-0:hover { border-color: var(--primary); box-shadow: var(--glow-primary); }
+.lane-dom-card.lane-1.is-targeted, .lane-dom-card.lane-1:hover { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.lane-dom-card.lane-2.is-targeted, .lane-dom-card.lane-2:hover { border-color: var(--tertiary); box-shadow: var(--glow-tertiary); }
+.lane-card-head {
+  display: flex; align-items: center; justify-content: center; gap: 0.45rem;
+  margin-bottom: 0.45rem; font-family: var(--font-label); font-size: 0.68rem;
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.lane-0 .lane-key-label { color: var(--primary); }
+.lane-1 .lane-key-label { color: var(--secondary); }
+.lane-2 .lane-key-label { color: var(--tertiary); }
+.lane-xp-chip {
+  padding: 0.1rem 0.35rem; border-radius: var(--rounded);
+  border: 1px solid var(--outline); color: var(--on-surface-variant); font-size: 0.62rem;
+}
+.lane-card-text {
+  font-size: var(--card-font); font-weight: 600; line-height: 1.4;
+  color: var(--on-surface); text-align: center;
+  display: flex; align-items: center; justify-content: center; flex: 1;
+}
+#hints-bar {
+  position: relative; z-index: 20; width: min(920px, 95vw); margin: 0 auto 0.55rem;
+  padding: 0.55rem 1rem; border-radius: var(--rounded-lg);
+  background: var(--glass-bg-strong);
+  border: 1px solid color-mix(in srgb, var(--tertiary) 50%, transparent);
+  display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+}
+#xr-app.hints-visible #hints-bar { display: flex; }
+.hint-kicker {
+  font-family: var(--font-label); font-size: 0.66rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--tertiary); margin-bottom: 0.2rem;
+}
+#q-clue-text { margin: 0; font-size: 0.86rem; line-height: 1.4; color: var(--on-surface); text-align: center; }
+.inline-toast {
+  position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); z-index: 95;
+  padding: 0.5rem 1rem; border-radius: var(--rounded);
+  background: var(--surface-container-high); color: var(--secondary);
+  border: 1px solid var(--secondary); font-family: var(--font-label); font-size: 0.75rem; display: none;
+}
+.inline-toast.is-visible { display: block; }
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 80; display: none;
+  align-items: center; justify-content: center; padding: var(--space-sm);
+  background: color-mix(in srgb, var(--background) 82%, transparent); backdrop-filter: blur(8px);
+}
+.modal-backdrop.is-open { display: flex; }
+.modal-shell {
+  width: min(920px, 95vw); max-height: 92dvh;
+  background: var(--surface-container); border: var(--neon-border-lit);
+  border-radius: var(--rounded-lg); display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: 0 20px 60px color-mix(in srgb, var(--background) 92%, transparent);
+}
+.modal-header {
+  padding: 0.75rem 1rem; background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem;
+}
+.verdict-title {
+  margin: 0; font-family: var(--font-headline); font-size: clamp(0.98rem, 1.8vw, 1.25rem);
+  font-weight: 800; letter-spacing: -0.01em;
+}
+.verdict-title.is-correct { color: var(--secondary); text-shadow: var(--glow-text); }
+.verdict-title.is-wrong { color: var(--primary); text-shadow: var(--glow-text); }
+.verdict-title.is-timeout { color: var(--tertiary); text-shadow: var(--glow-text); }
+.modal-badges { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+.modal-body {
+  padding: 0.85rem 1.1rem; overflow-y: auto; flex: 1;
+  display: flex; flex-direction: column; gap: 0.75rem; text-align: center;
+}
+.dossier-stem-pin {
+  background: var(--surface-container-low); border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded); padding: 0.65rem 0.85rem;
+  font-size: 0.88rem; line-height: 1.5; color: var(--on-surface); text-align: center;
+}
+.compare-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }
+.compare-box {
+  background: var(--surface-container-low); border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded); padding: 0.6rem 0.75rem;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+}
+.compare-box.is-correct { border-color: color-mix(in srgb, var(--secondary) 60%, transparent); }
+.compare-box.is-wrong { border-color: color-mix(in srgb, var(--primary) 60%, transparent); }
+.dossier-sec {
+  background: var(--surface-container-low); border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded); padding: 0.65rem 0.9rem;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+}
+.dossier-sec-hdr {
+  font-family: var(--font-label); font-size: 0.7rem; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--secondary); margin: 0 0 0.35rem;
+}
+.dossier-sec p {
+  margin: 0.15rem 0; font-size: 0.86rem; line-height: 1.5; color: var(--on-surface);
+  max-width: 72ch; text-align: center;
+}
+.dossier-3phase { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.65rem; width: 100%; }
+.phase-card {
+  background: var(--surface-container); border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded); padding: 0.6rem 0.7rem;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+.phase-card h4 {
+  margin: 0 0 0.35rem; font-family: var(--font-label); font-size: 0.68rem;
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--tertiary);
+}
+.phase-card ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.3rem; }
+.phase-card li { font-size: 0.79rem; line-height: 1.42; color: var(--on-surface); text-align: center; }
+.modal-footer {
+  padding: 0.65rem 1rem; background: var(--surface-container-high);
+  border-top: 1px solid var(--outline-variant);
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem;
+}
+.scroll-btns { display: flex; gap: 0.45rem; }
+.codex-controls { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; }
+.codex-table-wrap { overflow-x: auto; width: 100%; }
+.codex-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; text-align: center; }
+.codex-table th {
+  font-family: var(--font-label); font-size: 0.66rem; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--secondary); padding: 0.5rem;
+  background: var(--surface-container-high); border-bottom: 1px solid var(--outline);
+}
+.codex-table td {
+  padding: 0.5rem; border-bottom: 1px solid var(--outline-variant);
+  color: var(--on-surface); vertical-align: middle; text-align: center;
+}
+.codex-table tr:nth-child(even) td { background: var(--surface-container-low); }
+
+@media (max-width: 600px) {
+  .lane-overlay-container { grid-template-columns: 1fr; gap: 0.45rem; }
+  .lane-dom-card { min-height: 62px; padding: 0.5rem 0.7rem; }
+  .lane-card-head, .lane-key-label, .lane-xp-chip { display: none; }
+  #xr-app.hints-visible .question-hud { max-height: 20dvh; }
+  #xr-app.hints-visible .lane-dom-card { min-height: 50px; }
+  .modal-shell { width: 96vw; max-height: 92dvh; }
+  .compare-grid, .dossier-3phase { grid-template-columns: 1fr; }
+}
+@media (max-height: 500px) and (pointer: coarse) {
+  .top-bar { min-height: 36px; padding: 0.2rem 0.5rem; }
+  .question-hud { max-height: 24dvh; padding: 0.35rem 0.6rem; }
+  .lane-overlay-container { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.4rem; }
+  .lane-dom-card { min-height: 76px; padding: 0.35rem 0.45rem; }
+}
+@media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+  html { font-size: 200%; }
+  .lane-overlay-container { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+<div id="xr-app" class="hints-hidden">
+  <header class="top-bar">
+    <button type="button" id="menu-toggle-btn" class="menu-btn" onclick="toggleMenuDrawer()" aria-expanded="false" aria-controls="top-menu-drawer">
+      ☰ MENU
+    </button>
+    <div class="telemetry-strip" aria-live="polite">
+      <span class="tele-chip tele-hp"><span class="lbl">HP</span><strong id="hud-hp">100</strong></span>
+      <span class="tele-chip tele-xp"><span class="lbl">XP</span><strong id="hud-xp">0</strong></span>
+      <span class="tele-chip tele-streak"><span class="lbl">⚡</span><strong id="hud-streak">0</strong></span>
+      <span class="tele-chip"><span class="lbl">GATE</span><strong id="hud-gate">1/45</strong></span>
+      <span class="tele-chip tele-timer" id="hud-timer-chip"><span class="lbl">⏱</span><strong id="hud-timer">OFF</strong></span>
+    </div>
+  </header>
+
+  <aside id="top-menu-drawer" aria-label="Mission Control Drawer">
+    <div class="drawer-header">
+      <div>
+        <div class="drawer-kicker">PATHOLOGY LECTURE 06 · COMLEX-USA / USMLE STEP 1</div>
+        <h1 class="drawer-title">Endocrine &amp; Reproductive Pathology — XR 3-Lane Diagnostic Runner</h1>
+      </div>
+      <button type="button" class="ctl-btn" onclick="toggleMenuDrawer()">✕ Close</button>
+    </div>
+
+    <div class="drawer-grid">
+      <div class="drawer-panel">
+        <p class="drawer-sec-title">Cockpit &amp; Run Controls</p>
+        <div class="btn-row">
+          <button type="button" id="menu-hints-btn" class="ctl-btn" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+          <button type="button" class="ctl-btn is-primary" onclick="openCodexFromMenu()">📖 Loot Codex [C]</button>
+          <button type="button" class="ctl-btn" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+          <button type="button" id="menu-timer-btn" class="ctl-btn" onclick="toggleTimerMode()">⏱ 50s Timer: OFF [T]</button>
+          <button type="button" class="ctl-btn is-active" onclick="startTimedRun()">🚀 Start 50s Timed Run</button>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="ctl-btn" onclick="restartOrdered()">🔄 Restart Ordered</button>
+          <button type="button" class="ctl-btn" onclick="shuffleDeck()">🔀 Shuffle Deck</button>
+          <button type="button" id="reset-mastery-btn" class="ctl-btn is-danger" onclick="handleResetMastery(this)">🗑 Reset Mastery</button>
+        </div>
+      </div>
+
+      <div class="drawer-panel">
+        <p class="drawer-sec-title">Audio &amp; Synthwave Deck</p>
+        <div class="btn-row">
+          <button type="button" id="btn-master-sound" class="ctl-btn is-active" onclick="toggleMasterSound()">🔊 Sound: ON</button>
+          <button type="button" id="btn-sfx" class="ctl-btn is-active" onclick="toggleSfx()">⚡ SFX: ON</button>
+          <button type="button" id="btn-bgm" class="ctl-btn" onclick="toggleBgm()">🎵 Zombies BGM: OFF</button>
+        </div>
+        <div>
+          <label for="bgm-volume" class="field-label">BGM Volume</label>
+          <input type="range" id="bgm-volume" class="ctl-range" min="0" max="1" step="0.05" value="0.35" oninput="setBgmVolume(this.value)">
+        </div>
+        <div>
+          <label for="custom-audio-file" class="field-label">Custom MP3 / WAV Loader</label>
+          <input type="file" id="custom-audio-file" class="ctl-file" accept="audio/mpeg,audio/wav,audio/*" onchange="loadCustomAudio(this)">
+        </div>
+      </div>
+
+      <div class="drawer-panel">
+        <p class="drawer-sec-title">Sector, Angle &amp; Timer Filters</p>
+        <div>
+          <label for="sector-filter" class="field-label">Dungeon Sector / Missed Gates</label>
+          <select id="sector-filter" class="ctl-select" onchange="applyDeckFilters()">
+            <option value="ALL">All 5 Sectors (45 Gates)</option>
+            <option value="MISSED">🎯 Missed Gates Only</option>
+            <option value="S1">Sector I — Pituitary, Thyroid &amp; Parathyroid</option>
+            <option value="S2">Sector II — Adrenal &amp; MEN Syndromes</option>
+            <option value="S3">Sector III — Endometrial, Myometrial &amp; Ovarian</option>
+            <option value="S4">Sector IV — Cervical, GTD &amp; Breast</option>
+            <option value="S5">Sector V — Testis, Prostate &amp; Pelvic OMT</option>
+          </select>
+        </div>
+        <div>
+          <label for="angle-filter" class="field-label">Question Angle</label>
+          <select id="angle-filter" class="ctl-select" onchange="applyDeckFilters()">
+            <option value="ALL">All 3 Diagnostic Angles</option>
+            <option value="Presentation -> Diagnosis">Presentation -&gt; Diagnosis</option>
+            <option value="Mechanism -> Pathophysiology">Mechanism -&gt; Pathophysiology</option>
+            <option value="Hallmarks -> Management">Hallmarks -&gt; Management</option>
+          </select>
+        </div>
+        <div>
+          <label for="timeout-mode-select" class="field-label">Time's Up Mode</label>
+          <select id="timeout-mode-select" class="ctl-select" onchange="setTimeoutMode(this.value)">
+            <option value="AUTO_PENALTY">Auto-Open Dossier (-15 HP)</option>
+            <option value="HOLD_GATE">Lock Gate &amp; Alert Only</option>
+          </select>
+        </div>
+        <div class="phase-pills">
+          <span class="phase-pill">Phase 1 Pathogenesis: 31%</span>
+          <span class="phase-pill">Phase 2 Histology: 36%</span>
+          <span class="phase-pill">Phase 3 Clinical/OMT: 33%</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <p class="drawer-sec-title" style="margin-bottom:0.4rem;">15-Entity Diagnostic Skill Tree (Click to Jump)</p>
+      <div id="skill-tree-grid" class="skill-grid"></div>
+    </div>
+    <div class="hotkey-guide">
+      HOTKEYS: [1 / 2 / 3] or [← / ↓ / →] Select Lane · [H] Toggle Hints · [C] Loot Codex · [S] Skip Gate · [T] Toggle 50s Timer · [Space / Enter] Continue Dossier · [Esc] Close Modal/Menu
+    </div>
+  </aside>
+
+  <main class="viewport-shell" id="viewport-shell">
+    <canvas id="xr-canvas" aria-label="3D Perspective Diagnostic Corridor"></canvas>
+
+    <section class="question-hud" aria-live="polite">
+      <div class="meta-strip" id="q-meta-strip">
+        <span class="meta-badge meta-lo" id="badge-lo">LO 1</span>
+        <span class="meta-badge meta-angle" id="badge-angle">Angle</span>
+        <span class="meta-badge meta-phase" id="badge-phase">Phase</span>
+        <span class="meta-badge" id="badge-corridor">CORRIDOR</span>
+      </div>
+      <p id="q-stem-text" class="q-stem amboss-scan-target">Loading diagnostic corridor…</p>
+    </section>
+
+    <section class="lane-overlay-container" id="lane-overlay-container" aria-label="Diagnostic Lane Choices">
+      <div id="lane-0-card" class="lane-dom-card lane-0" role="button" tabindex="0"
+        onmouseenter="previewLaneTarget(0)" onmousemove="hoverLaneBank(0, event)" onfocus="previewLaneTarget(0)"
+        onclick="selectLaneAndResolve(0)"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(0);}">
+        <div class="lane-card-head"><span class="lane-key-label">[1] LANE ALPHA</span><span class="lane-xp-chip">+100 XP</span></div>
+        <div id="lane-0-text" class="lane-card-text amboss-scan-target">Option A</div>
+      </div>
+      <div id="lane-1-card" class="lane-dom-card lane-1" role="button" tabindex="0"
+        onmouseenter="previewLaneTarget(1)" onmousemove="hoverLaneBank(1, event)" onfocus="previewLaneTarget(1)"
+        onclick="selectLaneAndResolve(1)"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(1);}">
+        <div class="lane-card-head"><span class="lane-key-label">[2] LANE BETA</span><span class="lane-xp-chip">+100 XP</span></div>
+        <div id="lane-1-text" class="lane-card-text amboss-scan-target">Option B</div>
+      </div>
+      <div id="lane-2-card" class="lane-dom-card lane-2" role="button" tabindex="0"
+        onmouseenter="previewLaneTarget(2)" onmousemove="hoverLaneBank(2, event)" onfocus="previewLaneTarget(2)"
+        onclick="selectLaneAndResolve(2)"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(2);}">
+        <div class="lane-card-head"><span class="lane-key-label">[3] LANE GAMMA</span><span class="lane-xp-chip">+100 XP</span></div>
+        <div id="lane-2-text" class="lane-card-text amboss-scan-target">Option C</div>
+      </div>
+    </section>
+
+    <section id="hints-bar" aria-live="polite">
+      <div class="hint-kicker">TACTICAL DIAGNOSTIC HINT [H]</div>
+      <p id="q-clue-text" class="amboss-scan-target">Hint text</p>
+    </section>
+  </main>
+</div>
+
+<div id="outcome-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="outcome-verdict-title">
+  <div class="modal-shell">
+    <div class="modal-header">
+      <h2 id="outcome-verdict-title" class="verdict-title">✔ CORRECT</h2>
+      <div class="modal-badges">
+        <span class="tele-chip tele-xp" id="outcome-xp-badge">+100 XP</span>
+        <span class="tele-chip tele-hp" id="outcome-hp-badge">+5 HP</span>
+        <span class="tele-chip" id="outcome-lo-badge">LO 1</span>
+      </div>
+    </div>
+    <div id="outcome-modal-body" class="modal-body">
+      <div id="outcome-stem-pin" class="dossier-stem-pin amboss-scan-target"></div>
+      <div class="compare-grid">
+        <div id="box-your-choice" class="compare-box">
+          <div class="dossier-sec-hdr">Section 1A · Your Choice</div>
+          <p id="outcome-your-choice" class="amboss-scan-target" style="margin:0;font-weight:600;"></p>
+        </div>
+        <div id="box-correct-choice" class="compare-box is-correct">
+          <div class="dossier-sec-hdr">Section 1B · Correct Answer</div>
+          <p id="outcome-correct-choice" class="amboss-scan-target" style="margin:0;font-weight:600;"></p>
+        </div>
+      </div>
+      <div class="dossier-sec">
+        <h3 class="dossier-sec-hdr">Section 2 · Explanation &amp; Distractor Exclusion</h3>
+        <p id="outcome-explanation" class="amboss-scan-target"></p>
+      </div>
+      <div class="dossier-sec">
+        <h3 class="dossier-sec-hdr">Section 3 · Second-Order Vignette Clue</h3>
+        <p id="outcome-second-order" class="amboss-scan-target"></p>
+      </div>
+      <div class="dossier-sec">
+        <h3 class="dossier-sec-hdr">Section 4 · Core Mechanism &amp; Pathogenesis Pearls (Phase 1)</h3>
+        <p id="outcome-phase1" class="amboss-scan-target"></p>
+      </div>
+      <div class="dossier-sec">
+        <h3 class="dossier-sec-hdr">Section 5 · High-Yield Morphology &amp; Structural Hallmarks (Phase 2)</h3>
+        <p id="outcome-phase2" class="amboss-scan-target"></p>
+      </div>
+      <div class="dossier-sec">
+        <h3 class="dossier-sec-hdr">Section 6 · Guild Master's Secret &amp; Clinical Management (Phase 3)</h3>
+        <p id="outcome-phase3" class="amboss-scan-target"></p>
+      </div>
+      <div class="dossier-sec" style="width:100%;">
+        <h3 class="dossier-sec-hdr">Section 7 · Complete 3-Phase Topic Dossier</h3>
+        <div class="dossier-3phase">
+          <div class="phase-card"><h4>Phase 1: Pathogenesis</h4><ul id="dossier-list-p1" class="amboss-scan-target"></ul></div>
+          <div class="phase-card"><h4>Phase 2: Histology / Morphology</h4><ul id="dossier-list-p2" class="amboss-scan-target"></ul></div>
+          <div class="phase-card"><h4>Phase 3: Clinical / OMT</h4><ul id="dossier-list-p3" class="amboss-scan-target"></ul></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div class="scroll-btns">
+        <button type="button" class="ctl-btn" onclick="scrollOutcomeBody(-180)">▲ Up</button>
+        <button type="button" class="ctl-btn" onclick="scrollOutcomeBody(180)">▼ Down</button>
+      </div>
+      <button type="button" class="ctl-btn is-active" onclick="continueRunner()">▶ Continue Runner [Space / Enter]</button>
+    </div>
+  </div>
+</div>
+
+<div id="codex-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="codex-modal-title">
+  <div class="modal-shell">
+    <div class="modal-header">
+      <h2 id="codex-modal-title" class="verdict-title is-correct">📖 Master Raid Loot Codex — Endocrine &amp; Reproductive (15 Entities)</h2>
+      <button type="button" class="ctl-btn" onclick="closeCodex()">✕ Close [Esc]</button>
+    </div>
+    <div class="modal-body">
+      <div class="codex-controls" id="codex-sector-pills">
+        <button type="button" class="ctl-btn is-active" onclick="filterCodex('ALL', this)">All Sectors</button>
+        <button type="button" class="ctl-btn" onclick="filterCodex('S1', this)">I · Pituitary/Thyroid/PTH</button>
+        <button type="button" class="ctl-btn" onclick="filterCodex('S2', this)">II · Adrenal/MEN</button>
+        <button type="button" class="ctl-btn" onclick="filterCodex('S3', this)">III · Uterus/Ovary</button>
+        <button type="button" class="ctl-btn" onclick="filterCodex('S4', this)">IV · Cervix/GTD/Breast</button>
+        <button type="button" class="ctl-btn" onclick="filterCodex('S5', this)">V · Testis/Prostate/OMT</button>
+      </div>
+      <div class="codex-table-wrap">
+        <table class="codex-table">
+          <thead>
+            <tr>
+              <th>Entity (LO)</th><th>Sector</th><th>Core Mechanism (P1)</th>
+              <th>Morphology / Lab (P2)</th><th>Management / OMT (P3)</th><th>Mastery</th>
+            </tr>
+          </thead>
+          <tbody id="codex-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="inline-toast" class="inline-toast" role="status" aria-live="polite"></div>
+
+<api-shim></api-shim>
+<script>
+const GAME_CONFIG = { metaFadeMs: 3000, timerSeconds: 50, baseXp: 100, hpGainCorrect: 5, hpLossWrong: 15 };
+
+const LO_VISUAL_THEMES = {
+  1:  { tag: `PITUITARY FOSSA`, dustHex: `#ff2d78`, gridRgb: `255,45,120` },
+  2:  { tag: `THYROID CORRIDOR`, dustHex: `#00ffcc`, gridRgb: `0,255,204` },
+  3:  { tag: `PARATHYROID NEXUS`, dustHex: `#ffe04a`, gridRgb: `255,224,74` },
+  4:  { tag: `ADRENAL CORTEX`, dustHex: `#b388ff`, gridRgb: `179,136,255` },
+  5:  { tag: `CHROMAFFIN VAULT`, dustHex: `#ff2d78`, gridRgb: `255,45,120` },
+  6:  { tag: `MEN SYNDROME GRID`, dustHex: `#00ffcc`, gridRgb: `0,255,204` },
+  7:  { tag: `ECTOPIC ENDOMETRIUM`, dustHex: `#ffe04a`, gridRgb: `255,224,74` },
+  8:  { tag: `ENDOMETRIAL AXIS`, dustHex: `#b388ff`, gridRgb: `179,136,255` },
+  9:  { tag: `OVARIAN MATRIX`, dustHex: `#ff2d78`, gridRgb: `255,45,120` },
+  10: { tag: `TRANSFORMATION ZONE`, dustHex: `#00ffcc`, gridRgb: `0,255,204` },
+  11: { tag: `TROPHOBLASTIC ARC`, dustHex: `#ffe04a`, gridRgb: `255,224,74` },
+  12: { tag: `MAMMARY DUCTAL LAB`, dustHex: `#b388ff`, gridRgb: `179,136,255` },
+  13: { tag: `GERM CELL SECTOR`, dustHex: `#ff2d78`, gridRgb: `255,45,120` },
+  14: { tag: `PROSTATIC ZONE`, dustHex: `#00ffcc`, gridRgb: `0,255,204` },
+  15: { tag: `SACRAL & PELVIC OMT`, dustHex: `#ffe04a`, gridRgb: `255,224,74` }
+};
+
+const CODEX_DATA = [
+  { lo: 1, sector: `S1`, title: `LO 1: Pituitary Adenomas & Prolactinoma`, p1: `Lactotroph dopamine disinhibition; GH/IGF-1 excess or pituitary apoplexy`, p2: `Monomorphic acidophilic/chromophobic sheets; bitemporal hemianopsia`, p3: `Cabergoline/bromocriptine 1st-line for prolactinoma; octreotide for GH` },
+  { lo: 2, sector: `S1`, title: `LO 2: Thyroid Malignancies`, p1: `RET/PTC & BRAF (Papillary); RAS/PAX8-PPARG (Follicular); RET MEN2 (Medullary)`, p2: `Orphan Annie nuclei & psammoma (Pap); capsular invasion (Foll); Congo red amyloid (Med)`, p3: `Total thyroidectomy + RAI; prophylactic thyroidectomy for RET; watch RLN/PTH` },
+  { lo: 3, sector: `S1`, title: `LO 3: Primary Hyperparathyroidism, FHH & PHP`, p1: `PTH adenoma vs CaSR loss-of-function (FHH) vs maternal GNAS1 imprinting (PHP)`, p2: `High Ca/PTH + osteitis fibrosa cystica; urine Ca/Cr < 0.01 in FHH`, p3: `Parathyroidectomy if symptomatic/T<-2.5; NO surgery in FHH; vit D/Ca in PHP` },
+  { lo: 4, sector: `S2`, title: `LO 4: Cushing Syndrome Etiologies`, p1: `Exogenous steroids vs Pituitary ACTH vs Ectopic ACTH (SCLC) vs Adrenal tumor`, p2: `High-dose dex suppresses pituitary, not ectopic; suppressed ACTH in adrenal`, p3: `Taper steroids; transsphenoidal resection; ketoconazole/metyrapone bridge` },
+  { lo: 5, sector: `S2`, title: `LO 5: Pheochromocytoma & Neuroblastoma`, p1: `Neural crest chromaffin catecholamines (RET/VHL/NF1) vs N-MYC neuroblastoma`, p2: `Zellballen nests + urinary metanephrines vs Homer-Wright rosettes + HVA/VMA`, p3: `Phenoxybenzamine (alpha-blockade) STRICTLY BEFORE beta-blocker; resect` },
+  { lo: 6, sector: `S2`, title: `LO 6: MEN 1 vs. MEN 2A vs. MEN 2B`, p1: `MEN1 (menin chr11 AD) vs RET proto-oncogene (chr10 AD)`, p2: `MEN1: Pituitary+PTH+Pancreas; MEN2A: Medullary+Pheo+PTH; MEN2B: +Mucosal neuromas`, p3: `Screen pheo BEFORE any surgery; prophylactic thyroidectomy in RET carriers` },
+  { lo: 7, sector: `S3`, title: `LO 7: Endometriosis & Adenomyosis`, p1: `Retrograde menses ectopic glands vs invagination of basalis into myometrium`, p2: `Ovarian chocolate cysts & powder-burn nodules vs symmetric boggy uterus`, p3: `NSAIDs/OCP/GnRH agonists for endometriosis; hysterectomy definitive for adenomyosis` },
+  { lo: 8, sector: `S3`, title: `LO 8: Endometrial Hyperplasia & Carcinoma`, p1: `Unopposed estrogen (Type I PTEN) vs sporadic atrophic (Type II p53)`, p2: `Cytologic atypia predicts progression; confluent back-to-back glands vs serous psammoma`, p3: `Progestins if hyperplasia without atypia; TAH-BSO for atypia/carcinoma` },
+  { lo: 9, sector: `S3`, title: `LO 9: Ovarian Neoplasms`, p1: `BRCA1/2 serous vs 3-germ-layer teratoma vs estrogen/androgen stromal`, p2: `Psammoma bodies (Serous); Schiller-Duval (Yolk sac); Call-Exner (Granulosa); Reinke (Leydig)`, p3: `Staging laparotomy + platinum/taxane; Meigs triad resolves after fibroma resection` },
+  { lo: 10, sector: `S4`, title: `LO 10: CIN & Invasive Cervical Carcinoma`, p1: `HPV-16/18 E6 degrades p53, E7 inhibits Rb at squamocolumnar junction`, p2: `Koilocytes (raisinoid nuclei + perinuclear halo); keratin pearls in invasive SCC`, p3: `9-valent HPV vaccine; LEEP/conization for CIN2/3; watch ureteral hydronephrosis` },
+  { lo: 11, sector: `S4`, title: `LO 11: Hydatidiform Mole & Choriocarcinoma`, p1: `Empty egg + sperm (46,XX Complete) vs 2 sperm + egg (69,XXY Partial) vs malignant villus-free`, p2: `Snowstorm US + grape-like swollen villi vs cannonball lung mets without villi`, p3: `Suction D&C + serial beta-hCG; Methotrexate (single-agent) for choriocarcinoma` },
+  { lo: 12, sector: `S4`, title: `LO 12: Breast Pathology`, p1: `ER/PR/HER2 amplification (IDC) vs E-cadherin loss (ILC) vs estrogen-sensitive stroma`, p2: `Desmoplastic rock-hard mass (IDC) vs single-file rows (ILC) vs well-circumscribed mobile`, p3: `Tamoxifen (premeno)/AI (postmeno) + Trastuzumab if HER2+; observe fibroadenoma` },
+  { lo: 13, sector: `S5`, title: `LO 13: Testicular Germ Cell Tumors`, p1: `Cryptorchidism/i(12p) seminoma vs aggressive non-seminomatous GCT (Yolk/Chorio/Teratoma)`, p2: `Fried-egg clear cells + lymphocytes (Seminoma, PLAP+) vs AFP (Yolk) vs hCG (Chorio)`, p3: `Radical inguinal orchiectomy (NO scrotal biopsy); seminoma is radiosensitive` },
+  { lo: 14, sector: `S5`, title: `LO 14: BPH vs. Prostate Adenocarcinoma`, p1: `DHT (5-alpha-reductase) transitional zone vs peripheral zone adenocarcinoma`, p2: `Nodular glands with intact basal layer (BPH) vs loss of basal layer + prominent nucleoli`, p3: `Tamsulosin/Finasteride for BPH; Leuprolide (continuous GnRH) + Flutamide for met PCa` },
+  { lo: 15, sector: `S5`, title: `LO 15: Pelvic Viscerosomatics & Sacral OMT`, p1: `Sympathetics T10-L2 (gonads T10-11, uterus T12-L2) vs Parasympathetics S2-S4`, p2: `Seated flexion test + deep sulcus/ILA; Chapman points (trochanter/pubic/IT band)`, p3: `Muscle energy for sacral torsions (forward vs backward); treat viscerosomatics` }
+];
+
+const ALL_QUESTIONS = [
+  // LO 1
+  { id:`LO01-Q1`, lo:1, sector:`S1`, loTitle:`LO 1: Pituitary Adenomas & Prolactinoma`, angle:`Presentation -> Diagnosis`, phaseFocus:`Phase 1: Pathogenesis`, shortAnswer:`Prolactinoma (Cabergoline)`,
+    stem:`A 28-year-old woman presents with 8 months of amenorrhea, milky nipple discharge, and peripheral vision loss affecting both lateral visual fields. Serum prolactin is 240 ng/mL and pregnancy test is negative. What is the first-line pharmacotherapy for this condition?`,
+    clue:`Lactotrophs are tonically inhibited by hypothalamic dopamine; choose a D2 agonist.`,
+    choices:[`Cabergoline (D2 receptor agonist)`,`Transsphenoidal hypophysectomy`,`Octreotide (somatostatin analog)`], correctIndex:0,
+    explanation:`Correct: Prolactinomas cause galactorrhea, amenorrhea, and bitemporal hemianopsia; dopamine agonists (cabergoline, bromocriptine) inhibit prolactin and shrink the tumor. Distractor exclusion: Surgery is reserved for refractory tumors or apoplexy; octreotide treats GH-secreting adenomas.`,
+    secondOrderClue:`Amenorrhea + Galactorrhea + Bitemporal Hemianopsia -> Prolactinoma -> First-line D2 agonist (Cabergoline).`,
+    phase1Pearl:`Prolactin suppresses GnRH pulsatility, causing secondary hypogonadism (amenorrhea in women, decreased libido in men).`,
+    phase2Hallmark:`Monomorphic sheets of chromophobic/acidophilic lactotrophs with loss of normal reticulin network.`,
+    phase3Secret:`Cabergoline has fewer GI side effects and higher efficacy than bromocriptine.`,
+    dossierBullets:{ p1:[`Dopamine tonically inhibits lactotrophs via D2 receptors`,`Prolactin suppresses hypothalamic GnRH release`], p2:[`Optic chiasm compression -> bitemporal hemianopsia`,`Loss of reticulin fiber network on silver stain`], p3:[`Cabergoline/bromocriptine 1st-line (shrinks tumor)`,`Rule out pregnancy, hypothyroidism, D2 blockers`] }
+  },
+  { id:`LO01-Q2`, lo:1, sector:`S1`, loTitle:`LO 1: Pituitary Adenomas & Prolactinoma`, angle:`Mechanism -> Pathophysiology`, phaseFocus:`Phase 2: Histology / Structure`, shortAnswer:`GH Excess & Hepatic IGF-1`,
+    stem:`A 46-year-old man reports his wedding ring and shoe size no longer fit, accompanied by coarse facial features, macroglossia, and elevated fasting glucose. An oral glucose tolerance test fails to suppress serum growth hormone levels. Which downstream mediator directly drives his linear and acral soft-tissue overgrowth?`,
+    clue:`Growth hormone stimulates the liver to secrete an insulin-like growth factor.`,
+    choices:[`Hepatic insulin-like growth factor-1 (IGF-1)`,`Pituitary thyroid-stimulating hormone (TSH)`,`Adrenal dehydroepiandrosterone (DHEA)`], correctIndex:0,
+    explanation:`Correct: Somatotroph adenomas secrete excess GH, stimulating hepatic IGF-1 release to drive acral bone growth, visceromegaly, and insulin resistance. Distractor exclusion: TSH drives thyroid hormone synthesis; DHEA is an adrenal androgen.`,
+    secondOrderClue:`Failure of GH suppression on OGTT -> Acromegaly -> Elevated hepatic IGF-1.`,
+    phase1Pearl:`GH induces hepatic gluconeogenesis and insulin resistance, causing secondary diabetes mellitus.`,
+    phase2Hallmark:`Acidophilic somatotroph adenoma; concentric cardiac hypertrophy is a leading cause of death.`,
+    phase3Secret:`Screen with serum IGF-1, confirm with OGTT, and treat with transsphenoidal surgery or octreotide/pegvisomant.`,
+    dossierBullets:{ p1:[`Somatotroph adenoma -> excess GH -> hepatic IGF-1`,`Before epiphyseal fusion: gigantism; after: acromegaly`], p2:[`Acidophilic cytoplasm on H&E`,`Visceromegaly (heart, tongue, liver)`], p3:[`Screen IGF-1; confirm with non-suppressed GH on OGTT`,`Treat: surgery, octreotide, or pegvisomant`] }
+  },
+  { id:`LO01-Q3`, lo:1, sector:`S1`, loTitle:`LO 1: Pituitary Adenomas & Prolactinoma`, angle:`Hallmarks -> Management`, phaseFocus:`Phase 3: Clinical & Management`, shortAnswer:`Sheehan Postpartum Infarction`,
+    stem:`A 32-year-old woman who experienced severe postpartum hemorrhage 4 months ago presents with inability to lactate, persistent amenorrhea, cold intolerance, and postural hypotension. Brain MRI reveals an empty sella. What underlying mechanism explains her panhypopituitarism?`,
+    clue:`Pregnancy doubles anterior pituitary size without a proportional increase in portal blood supply.`,
+    choices:[`Ischemic necrosis of hypertrophied pituitary`,`Autoimmune lymphocytic hypophysitis`,`Hemorrhage into a macroadenoma (apoplexy)`], correctIndex:0,
+    explanation:`Correct: Sheehan syndrome is ischemic infarction of the physiologically enlarged anterior pituitary after severe postpartum hemorrhage. Distractor exclusion: Lymphocytic hypophysitis is autoimmune; apoplexy is acute hemorrhage into a preexisting adenoma.`,
+    secondOrderClue:`Postpartum hemorrhage + Failure to lactate + Empty sella -> Sheehan syndrome (ischemic infarction).`,
+    phase1Pearl:`Estrogen-driven lactotroph hyperplasia increases pituitary O2 demand despite low-pressure portal perfusion.`,
+    phase2Hallmark:`Empty sella on MRI with shrunken fibrotic anterior pituitary; posterior pituitary is usually spared.`,
+    phase3Secret:`Always replace glucocorticoids (hydrocortisone) BEFORE levothyroxine to avoid adrenal crisis.`,
+    dossierBullets:{ p1:[`Pregnancy doubles anterior pituitary size without matching perfusion`,`Postpartum hypovolemia triggers ischemic necrosis`], p2:[`Empty sella on MRI; fibrotic anterior lobe`,`Spares posterior lobe (ADH/oxytocin intact)`], p3:[`Failure to lactate is often the earliest clue`,`Replace cortisol BEFORE thyroid hormone`] }
+  },
+  // LO 2
+  { id:`LO02-Q1`, lo:2, sector:`S1`, loTitle:`LO 2: Thyroid Malignancies`, angle:`Presentation -> Diagnosis`, phaseFocus:`Phase 2: Histology / Structure`, shortAnswer:`Papillary Thyroid Carcinoma`,
+    stem:`A 34-year-old woman with a history of childhood neck irradiation for Hodgkin lymphoma presents with a painless, firm solitary thyroid nodule and palpable ipsilateral cervical lymphadenopathy. FNA biopsy shows papillae lined by cells with optically clear nuclei, nuclear grooves, and concentric calcifications. What is the most likely diagnosis?`,
+    clue:`Childhood radiation + cervical lymph nodes + Orphan Annie eye nuclei + psammoma bodies.`,
+    choices:[`Papillary thyroid carcinoma`,`Follicular thyroid carcinoma`,`Medullary thyroid carcinoma`], correctIndex:0,
+    explanation:`Correct: Papillary thyroid carcinoma is linked to childhood radiation and RET/PTC or BRAF mutations; histology shows Orphan Annie eye nuclei, nuclear grooves, and psammoma bodies, spreading via lymphatics. Distractor exclusion: Follicular spreads hematogenously; medullary has C-cell amyloid stroma.`,
+    secondOrderClue:`Neck irradiation + Cervical LN mets + Orphan Annie nuclei/Psammoma bodies -> Papillary carcinoma.`,
+    phase1Pearl:`Most common thyroid cancer (~80%); driven by RET/PTC rearrangements or BRAF V600E mutations.`,
+    phase2Hallmark:`Orphan Annie eye (optically clear) nuclei, nuclear grooves, intranuclear pseudoinclusions, and psammoma bodies.`,
+    phase3Secret:`Excellent prognosis; treat with total thyroidectomy +/- RAI ablation and TSH suppression.`,
+    dossierBullets:{ p1:[`Childhood neck irradiation risk factor`,`BRAF V600E and RET/PTC rearrangements`], p2:[`Orphan Annie clear nuclei & nuclear grooves`,`Lamellated calcified psammoma bodies`], p3:[`Lymphatic spread to cervical nodes`,`Total thyroidectomy + radioactive iodine`] }
+  },
+  { id:`LO02-Q2`, lo:2, sector:`S1`, loTitle:`LO 2: Thyroid Malignancies`, angle:`Mechanism -> Pathophysiology`, phaseFocus:`Phase 2: Histology / Structure`, shortAnswer:`Capsular & Vascular Invasion`,
+    stem:`A 52-year-old man undergoes FNA of a 3-cm solitary thyroid nodule, which reveals uniform thyroid follicles without nuclear atypia or psammoma bodies. Why is surgical lobectomy required rather than relying on FNA cytology alone to rule out follicular carcinoma?`,
+    clue:`Follicular adenoma and follicular carcinoma look identical cytologically on FNA.`,
+    choices:[`Malignancy requires capsular or vascular invasion`,`Follicular cells require Congo red amyloid stain`,`FNA cannot detect BRAF V600E mutations`], correctIndex:0,
+    explanation:`Correct: Follicular carcinoma is differentiated from benign follicular adenoma strictly by capsular or vascular invasion on excised surgical pathology, never by FNA cytology alone. Distractor exclusion: Congo red detects medullary amyloid; BRAF is papillary.`,
+    secondOrderClue:`Uniform follicles on FNA -> Indeterminate -> Excision to inspect fibrous capsule and vessels.`,
+    phase1Pearl:`Driven by RAS mutations and PAX8-PPAR-gamma translocations; spreads hematogenously to bone and lung.`,
+    phase2Hallmark:`Uniform neoplastic follicles penetrating through the fibrous tumor capsule or into blood vessels.`,
+    phase3Secret:`Follow postoperative serum thyroglobulin to monitor for recurrence after thyroidectomy/RAI.`,
+    dossierBullets:{ p1:[`RAS mutation and PAX8-PPAR-gamma translocation`,`Hematogenous spread (lung, bone)`], p2:[`FNA cannot distinguish adenoma vs carcinoma`,`Requires capsular or vascular invasion`], p3:[`Diagnostic lobectomy / thyroidectomy`,`Track serum thyroglobulin post-op`] }
+  },
+  { id:`LO02-Q3`, lo:2, sector:`S1`, loTitle:`LO 2: Thyroid Malignancies`, angle:`Hallmarks -> Management`, phaseFocus:`Phase 3: Clinical & Management`, shortAnswer:`Medullary Ca (Calcitonin)`,
+    stem:`A 29-year-old man with a family history of pheochromocytoma presents with a firm thyroid nodule and watery diarrhea. Biopsy reveals nests of polygonal parafollicular C cells within an eosinophilic stroma showing apple-green birefringence under polarized light after Congo red staining. Which serum marker should be monitored for recurrence?`,
+    clue:`Parafollicular C cells secrete a calcium-lowering hormone that misfolds into amyloid.`,
+    choices:[`Calcitonin (and CEA)`,`Thyroglobulin`,`Thyroid-stimulating immunoglobulin`], correctIndex:0,
+    explanation:`Correct: Medullary thyroid carcinoma arises from neural-crest parafollicular C cells secreting calcitonin (causing diarrhea and hypocalcemia) that deposits as Congo red-positive amyloid. Distractor exclusion: Thyroglobulin tracks follicular/papillary Ca; TSI causes Graves disease.`,
+    secondOrderClue:`Parafollicular C cells + Amyloid stroma (Congo red) + RET -> Monitor serum calcitonin.`,
+    phase1Pearl:`Familial cases (MEN 2A/2B) harbor germline activating RET proto-oncogene mutations.`,
+    phase2Hallmark:`Sheets of neuroendocrine C cells embedded in acellular amyloid stroma (calcitonin fibrils).`,
+    phase3Secret:`Rule out pheochromocytoma BEFORE thyroidectomy; offer prophylactic thyroidectomy for RET carriers.`,
+    dossierBullets:{ p1:[`Arises from neural crest parafollicular C cells`,`RET proto-oncogene mutation in MEN 2A/2B`], p2:[`Amyloid stroma (Congo red apple-green)`,`Calcitonin excess -> diarrhea, flushing`], p3:[`Monitor serum calcitonin and CEA`,`Screen pheochromocytoma prior to surgery`] }
+  },
+  // LO 3
+  { id:`LO03-Q1`, lo:3, sector:`S1`, loTitle:`LO 3: Primary Hyperparathyroidism, FHH & PHP`, angle:`Presentation -> Diagnosis`, phaseFocus:`Phase 1: Pathogenesis`, shortAnswer:`Solitary Parathyroid Adenoma`,
+    stem:`A 58-year-old woman presents with recurrent calcium oxalate nephrolithiasis, diffuse bone pain, constipation, and worsening depression. Serum calcium is 11.8 mg/dL, phosphate is 2.1 mg/dL, and intact PTH is 145 pg/mL. What is the most common underlying etiology for this presentation?`,
+    clue:`"Stones, bones, groans, and psychiatric overtones" with high Ca, low PO4, and elevated PTH.`,
+    choices:[`Solitary parathyroid adenoma`,`Parathyroid gland hyperplasia`,`Ectopic PTHrP from lung squamous cell carcinoma`], correctIndex:0,
+    explanation:`Correct: Primary hyperparathyroidism presents with hypercalcemia, hypophosphatemia, and elevated PTH; ~85% of cases stem from a single benign parathyroid adenoma. Distractor exclusion: Hyperplasia is ~15% (MEN syndromes); PTHrP suppresses endogenous PTH.`,
+    secondOrderClue:`High Ca + Low PO4 + High PTH -> Primary hyperparathyroidism -> 85% solitary adenoma.`,
+    phase1Pearl:`PTH activates osteoclasts via osteoblast RANKL, reabsorbs Ca2+ in DCT, wastes PO4 in PCT, and activates 1-alpha-hydroxylase.`,
+    phase2Hallmark:`Osteitis fibrosa cystica ("brown tumors" with hemosiderin) and subperiosteal bone resorption.`,
+    phase3Secret:`Parathyroidectomy if symptomatic, age < 50, Ca > 1 mg/dL above ULN, eGFR < 60, or T-score < -2.5.`,
+    dossierBullets:{ p1:[`85% solitary adenoma; 15% hyperplasia`,`High Ca, low PO4, high PTH, high 1,25-(OH)2D`], p2:[`Subperiosteal resorption & brown tumors`,`Nephrolithiasis & nephrocalcinosis`], p3:[`Sestamibi scan localizes adenoma`,`Parathyroidectomy for symptomatic/high-risk`] }
+  },
+  { id:`LO03-Q2`, lo:3, sector:`S1`, loTitle:`LO 3: Primary Hyperparathyroidism, FHH & PHP`, angle:`Mechanism -> Pathophysiology`, phaseFocus:`Phase 3: Clinical & Management`, shortAnswer:`FHH (No Surgery)`,
+    stem:`An asymptomatic 26-year-old man is found on routine labs to have serum calcium of 10.9 mg/dL and mildly elevated PTH of 78 pg/mL. His father has identical asymptomatic lab findings. A 24-hour urine collection shows a calcium-to-creatinine clearance ratio of 0.004. What is the most appropriate next step?`,
+    clue:`Autosomal dominant hypercalcemia with hypocalciuria (urine Ca/Cr < 0.01) is benign.`,
+    choices:[`Reassurance and observation without surgery`,`Urgent four-gland parathyroidectomy`,`Loop diuretic and bisphosphonate infusion`], correctIndex:0,
+    explanation:`Correct: Familial hypocalciuric hypercalcemia (FHH) results from an inactivating CaSR mutation in parathyroid/renal cells, producing lifelong benign hypercalcemia with urine Ca/Cr < 0.01; surgery is contraindicated. Distractor exclusion: Parathyroidectomy does not cure FHH and risks hypoparathyroidism.`,
+    secondOrderClue:`Asymptomatic high Ca + Normal/high PTH + Urine Ca/Cr < 0.01 + Family history -> FHH -> Reassure.`,
+    phase1Pearl:`Autosomal dominant loss-of-function of the G-protein-coupled calcium-sensing receptor (CaSR).`,
+    phase2Hallmark:`Low urinary calcium (< 100 mg/day) and fractional excretion of calcium < 1% (Ca/Cr < 0.01).`,
+    phase3Secret:`Always obtain 24-hour urine Ca/Cr before parathyroid surgery in young asymptomatic hypercalcemic patients.`,
+    dossierBullets:{ p1:[`AD inactivating CaSR mutation`,`Higher Ca set-point + avid renal Ca reabsorption`], p2:[`Urine Ca/Cr clearance ratio < 0.01`,`No nephrolithiasis or bone loss`], p3:[`NO treatment or surgery needed`,`Distinguish from primary hyperPTH via urine Ca`] }
+  },
+  { id:`LO03-Q3`, lo:3, sector:`S1`, loTitle:`LO 3: Primary Hyperparathyroidism, FHH & PHP`, angle:`Hallmarks -> Management`, phaseFocus:`Phase 1: Pathogenesis`, shortAnswer:`Pseudohypoparathyroidism 1A`,
+    stem:`A 12-year-old girl presents with perioral numbness, positive Chvostek sign, short stature, round facies, and noticeably shortened 4th and 5th metacarpals. Labs show serum calcium 7.1 mg/dL, phosphate 6.2 mg/dL, and markedly elevated PTH. Which molecular defect underlies her condition?`,
+    clue:`Albright hereditary osteodystrophy + hypocalcemia + hyperphosphatemia + HIGH PTH.`,
+    choices:[`Maternally inherited GNAS1 loss-of-function`,`22q11.2 thymic and parathyroid aplasia`,`Autoimmune destruction of parathyroid chief cells`], correctIndex:0,
+    explanation:`Correct: Pseudohypoparathyroidism type 1A (Albright hereditary osteodystrophy) stems from maternally inherited GNAS1 mutation causing defective Gs-alpha signaling and renal PTH resistance (low Ca, high PO4, HIGH PTH). Distractor exclusion: DiGeorge and autoimmune hypoparathyroidism present with LOW PTH.`,
+    secondOrderClue:`Low Ca + High PO4 + HIGH PTH + Short 4th/5th metacarpals -> PHP 1A (maternal GNAS1).`,
+    phase1Pearl:`Renal genomic imprinting: maternal GNAS1 allele is active in proximal tubules; paternal mutation gives AHO without lab defects.`,
+    phase2Hallmark:`Short 4th/5th metacarpals, short stature, round face, obesity, and subcutaneous calcifications.`,
+    phase3Secret:`Manage with oral calcium and calcitriol supplementation.`,
+    dossierBullets:{ p1:[`Maternal GNAS1 (Gs-alpha) loss-of-function`,`End-organ PTH resistance in renal PCT`], p2:[`Albright hereditary osteodystrophy (short 4th/5th digits)`,`Low Ca, high PO4, HIGH PTH`], p3:[`Paternal inheritance -> pseudo-PHP (normal labs)`,`Treat with oral Ca and calcitriol`] }
+  },
+  // LO 4
+  { id:`LO04-Q1`, lo:4, sector:`S2`, loTitle:`LO 4: Cushing Syndrome Etiologies`, angle:`Presentation -> Diagnosis`, phaseFocus:`Phase 1: Pathogenesis`, shortAnswer:`Exogenous Glucocorticoids`,
+    stem:`A 44-year-old woman with severe rheumatoid arthritis develops central obesity, moon facies, purple abdominal striae, and hypertension. Morning serum cortisol and plasma ACTH are both markedly suppressed. What is the most common overall cause of this clinical presentation?`,
+    clue:`Low cortisol + low ACTH with Cushingoid features reflects exogenous HPA axis suppression.`,
+    choices:[`Exogenous glucocorticoid therapy`,`Pituitary ACTH-secreting microadenoma`,`Small cell lung carcinoma ectopic ACTH`], correctIndex:0,
+    explanation:`Correct: Exogenous corticosteroid therapy is the most common cause of Cushing syndrome overall; it suppresses CRH, ACTH, and endogenous cortisol, causing bilateral adrenal atrophy. Distractor exclusion: Pituitary and ectopic ACTH elevate both plasma ACTH and cortisol.`,
+    secondOrderClue:`Cushingoid features + Low ACTH + Low endogenous cortisol -> Exogenous steroids.`,
+    phase1Pearl:`Negative feedback on hypothalamus/pituitary suppresses ACTH -> bilateral zona fasciculata/reticularis atrophy.`,
+    phase2Hallmark:`Thin, atrophic lipid-depleted adrenal cortices bilaterally.`,
+    phase3Secret:`Always taper chronic glucocorticoids gradually to prevent acute adrenal crisis.`,
+    dossierBullets:{ p1:[`Most common cause of Cushing syndrome overall`,`Suppresses CRH/ACTH -> bilateral adrenal atrophy`], p2:[`Moon facies, buffalo hump, purple striae`,`Thin skin, proximal muscle weakness`], p3:[`Verify medication/herbal steroid history`,`Taper slowly; never stop abruptly`] }
+  },
+  { id:`LO04-Q2`, lo:4, sector:`S2`, loTitle:`LO 4: Cushing Syndrome Etiologies`, angle:`Mechanism -> Pathophysiology`, phaseFocus:`Phase 3: Clinical & Management`, shortAnswer:`Ectopic ACTH (SCLC)`,
+    stem:`A 63-year-old man with a 45-pack-year smoking history presents with rapid weight loss, proximal muscle weakness, hyperpigmentation, blood pressure of 168/98 mmHg, and serum potassium of 2.7 mEq/L. Both 24-hour urine free cortisol and plasma ACTH are markedly elevated, and cortisol fails to suppress after an 8-mg high-dose dexamethasone test. What is the most likely diagnosis?`,
+    clue:`High ACTH + fails 8-mg high-dose dexamethasone suppression + hypokalemia + smoker.`,
+    choices:[`Ectopic ACTH production (small cell lung cancer)`,`Cushing disease (pituitary adenoma)`,`Primary adrenal cortical carcinoma`], correctIndex:0,
+    explanation:`Correct: Ectopic ACTH (commonly small cell lung cancer) autonomously secretes massive ACTH, failing to suppress with high-dose (8 mg) dexamethasone and causing hypokalemic metabolic alkalosis and hyperpigmentation. Distractor exclusion: Cushing disease suppresses (>50%) on high-dose dexamethasone; adrenal tumor has suppressed ACTH.`,
+    secondOrderClue:`High ACTH + Fails 8-mg dex + Hypokalemia + Hyperpigmentation -> Ectopic ACTH (SCLC).`,
+    phase1Pearl:`Excess cortisol overwhelms renal 11-beta-HSD2, activating mineralocorticoid receptors -> hypokalemia & HTN.`,
+    phase2Hallmark:`Bilateral adrenal hyperplasia with small round neuroendocrine Kulchitsky lung cells.`,
+    phase3Secret:`Resect/treat primary tumor; bridge with steroidogenesis inhibitors (ketoconazole, metyrapone).`,
+    dossierBullets:{ p1:[`Autonomous ACTH from SCLC or bronchial carcinoid`,`Overwhelms 11-beta-HSD2 -> mineralocorticoid effect`], p2:[`Fails high-dose (8 mg) dexamethasone suppression`,`Hyperpigmentation from POMC/MSH cleavage`], p3:[`Chest CT to localize ectopic source`,`Ketoconazole / metyrapone / mifepristone`] }
+  },
+  { id:`LO04-Q3`, lo:4, sector:`S2`, loTitle:`LO 4: Cushing Syndrome Etiologies`, angle:`Hallmarks -> Management`, phaseFocus:`Phase 2: Histology / Structure`, shortAnswer:`Primary Adrenal Adenoma`,
+    stem:`A 39-year-old woman presents with new-onset diabetes, hirsutism, and wide violaceous striae. Her 24-hour urine free cortisol is elevated, low-dose dexamethasone fails to suppress morning cortisol, and plasma ACTH is < 5 pg/mL (undetectable). Abdominal CT is most likely to reveal which finding?`,
+    clue:`Elevated cortisol with UNDETECTABLE ACTH localizes to the adrenal cortex.`,
+    choices:[`Unilateral adrenal mass with contralateral atrophy`,`Bilateral micronodular adrenal hyperplasia`,`Pituitary microadenoma with empty sella`], correctIndex:0,
+    explanation:`Correct: ACTH-independent primary adrenal Cushing (adenoma or carcinoma) autonomously secretes cortisol, suppressing pituitary ACTH and inducing atrophy of the contralateral adrenal cortex. Distractor exclusion: Bilateral hyperplasia reflects high ACTH (pituitary or ectopic).`,
+    secondOrderClue:`High cortisol + Undetectable ACTH -> Primary adrenal tumor -> Unilateral mass + Contralateral atrophy.`,
+    phase1Pearl:`Autonomous cortisol from zona fasciculata suppresses CRH and ACTH via negative feedback.`,
+    phase2Hallmark:`Yellow, lipid-rich cortical adenoma with atrophy of adjacent and contralateral cortex.`,
+    phase3Secret:`Give temporary postoperative hydrocortisone after unilateral adrenalectomy until the contralateral gland recovers.`,
+    dossierBullets:{ p1:[`ACTH-independent autonomous cortisol secretion`,`Adrenal adenoma vs carcinoma (hirsutism/virilization)`], p2:[`Elevated cortisol + suppressed plasma ACTH`,`Unilateral mass + contralateral cortex atrophy`], p3:[`Adrenal CT -> laparoscopic adrenalectomy`,`Post-op hydrocortisone taper until axis recovers`] }
+  },
+  // LO 5
+  { id:`LO05-Q1`, lo:5, sector:`S2`, loTitle:`LO 5: Pheochromocytoma & Neuroblastoma`, angle:`Presentation -> Diagnosis`, phaseFocus:`Phase 3: Clinical & Management`, shortAnswer:`Alpha Before Beta Blockade`,
+    stem:`A 41-year-old man experiences episodic spells of pounding headaches, diaphoresis, palpitations, and blood pressure surges to 210/115 mmHg. Plasma free metanephrines are 6-fold elevated, and abdominal MRI shows a 4-cm right adrenal mass. Which preoperative pharmacologic sequence is mandatory before surgical resection?`,
+    clue:`Unopposed alpha-1 vasoconstriction triggers hypertensive crisis if a beta-blocker is given first.`,
+    choices:[`Phenoxybenzamine first, then propranolol`,`Propranolol first, then phenoxybenzamine`,`Immediate laparoscopic biopsy without blockade`], correctIndex:0,
+    explanation:`Correct: Preoperative pheochromocytoma management requires irreversible alpha-blockade (phenoxybenzamine) FIRST to prevent unopposed alpha-1 vasoconstriction, followed by beta-blockade (propranolol) for reflex tachycardia ("A before B"). Distractor exclusion: Beta-blockers first block beta-2 vasodilation; biopsy risks catecholamine storm.`,
+    secondOrderClue:`5 Ps + High metanephrines -> Pheochromocytoma -> Phenoxybenzamine BEFORE beta-blocker.`,
+    phase1Pearl:`Derived from neural crest chromaffin cells; Rule of 10s (10% malignant, bilateral, extra-adrenal, calcify, kids).`,
+    phase2Hallmark:`Polygonal chromaffin cells in "Zellballen" nests positive for chromogranin A and synaptophysin.`,
+    phase3Secret:`Extra-adrenal paragangliomas occur at the organ of Zuckerkandl or bladder wall (spells on micturition).`,
+    dossierBullets:{ p1:[`Neural crest chromaffin tumor (Rule of 10s)`,`Secretes epi/norepi/dopamine (+/- EPO)`], p2:[`Zellballen nests (chromogranin/synaptophysin+)`,`Elevated plasma/urine metanephrines & VMA`], p3:[`Phenoxybenzamine FIRST, then beta-blocker`,`Never biopsy suspected pheochromocytoma`] }
+  },
+  { id:`LO05-Q2`, lo:5, sector:`S2`, loTitle:`LO 5: Pheochromocytoma & Neuroblastoma`, angle:`Mechanism -> Pathophysiology`, phaseFocus:`Phase 2: Histology / Structure`, shortAnswer:`Neuroblastoma (N-MYC)`,
+    stem:`A 2-year-old boy is evaluated for an asymptomatic abdominal mass that crosses the midline, accompanied by opsoclonus-myoclonus ("dancing eyes, dancing feet") and periorbital ecchymoses. Urine HVA and VMA are markedly elevated, and biopsy shows small round blue cells forming Homer-Wright rosettes. Which oncogene amplification predicts poor prognosis?`,
+    clue:`Pediatric adrenal medulla tumor crossing the midline with Homer-Wright rosettes.`,
+    choices:[`N-MYC oncogene amplification`,`RET proto-oncogene point mutation`,`WT1 tumor suppressor deletion`], correctIndex:0,
+    explanation:`Correct: Neuroblastoma is the most common extracranial solid tumor in children (< 4 yrs), crosses the midline, secretes HVA/VMA, forms Homer-Wright rosettes, and carries poor prognosis with N-MYC amplification. Distractor exclusion: RET is MEN2; WT1 causes Wilms tumor (does not cross midline).`,
+    secondOrderClue:`Child < 4 + Midline-crossing mass + Opsoclonus-myoclonus + Homer-Wright rosettes -> N-MYC.`,
+    phase1Pearl:`Arises from neural crest neuroblasts anywhere along the sympathetic chain or adrenal medulla.`,
+    phase2Hallmark:`Small round blue cells surrounding central eosinophilic neuropil (Homer-Wright pseudorosettes).`,
+    phase3Secret:`Elevated urinary HVA and VMA; orbital metastases cause "raccoon eyes" (periorbital ecchymoses).`,
+    dossierBullets:{ p1:[`Neural crest tumor (< 4 yrs); N-MYC = poor prognosis`,`Crosses midline (vs Wilms tumor)`], p2:[`Homer-Wright pseudorosettes (neuropil core)`,`Opsoclonus-myoclonus & raccoon eyes`], p3:[`Check urine HVA & VMA`,`Multimodal chemo/surgery/immunotherapy`] }
+  },
+  { id:`LO05-Q3`, lo:5, sector:`S2`, loTitle:`LO 5: Pheochromocytoma & Neuroblastoma`, angle:`Hallmarks -> Management`, phaseFocus:`Phase 1: Pathogenesis`, shortAnswer:`VHL Loss (HIF-1-alpha)`,
+    stem:`A 31-year-old man undergoes resection of a cerebellar hemangioblastoma and is later diagnosed with bilateral renal cell carcinomas and an adrenal pheochromocytoma. Loss of which tumor suppressor protein causes constitutive HIF-1-alpha activation in this syndrome?`,
+    clue:`Von Hippel-Lindau (VHL) links hemangioblastomas, clear cell RCC, and pheochromocytoma.`,
+    choices:[`VHL ubiquitin ligase (chromosome 3p)`,`NF1 neurofibromin Ras-GAP (chromosome 17)`,`SDHB succinate dehydrogenase (complex II)`], correctIndex:0,
+    explanation:`Correct: Von Hippel-Lindau disease (AD loss of VHL on 3p) prevents ubiquitin degradation of HIF-1-alpha, driving VEGF/EPO overexpression and causing hemangioblastomas, clear cell RCC, and pheochromocytoma. Distractor exclusion: NF1 causes cafe-au-lait macules and neurofibromas; SDHB causes familial paraganglioma.`,
+    secondOrderClue:`Cerebellar hemangioblastoma + Clear cell RCC + Pheochromocytoma -> VHL (3p) -> Constitutive HIF-1-alpha.`,
+    phase1Pearl:`Germline mutations (VHL, RET, NF1, SDHx) account for ~30% of pheochromocytomas.`,
+    phase2Hallmark:`Pheochromocytomas may co-secrete EPO, causing secondary polycythemia.`,
+    phase3Secret:`Perform genetic counseling and annual biochemical screening in all pheochromocytoma patients.`,
+    dossierBullets:{ p1:[`VHL (3p) ubiquitinates HIF-1-alpha`,`Loss -> excess VEGF/PDGF/EPO`], p2:[`Hemangioblastomas + Clear cell RCC + Pheo`,`Can present with secondary polycythemia`], p3:[`Screen all pheo patients for VHL/RET/NF1/SDHx`,`Annual metanephrines + retinal/MRI surveillance`] }
+  },
+  // LO 6
+  { id:`LO06-Q1`, lo:6, sector:`S2`, loTitle:`LO 6: MEN 1 vs. MEN 2A vs. MEN 2B`, angle:`Presentation -> Diagnosis`, phaseFocus:`Phase 1: Pathogenesis`, shortAnswer:`MEN 1 (Menin Chr 11)`,
+    stem:`A 38-year-old man presents with refractory duodenal and jejunal ulcers, secretory diarrhea, and a serum gastrin level of 980 pg/mL that paradoxically spikes after IV secretin administration. Further workup reveals hypercalcemia (11.4 mg/dL, elevated PTH) and a 1.2-cm prolactinoma. Mutation of which gene is responsible?`,
+    clue:`3 Ps: Pituitary, Parathyroid, Pancreas (Zollinger-Ellison gastrinoma).`,
+    choices:[`MEN1 tumor suppressor (menin, chr 11)`,`RET proto-oncogene (chr 10)`,`TP53 tumor suppressor (chr 17)`], correctIndex:0,
+    explanation:`Correct: MEN 1 (Wermer syndrome) comprises the 3 Ps (Pituitary, Parathyroid, Pancreas) from AD loss of MEN1 (encoding menin on chromosome 11). Distractor exclusion: RET causes MEN 2A/2B; TP53 causes Li-Fraumeni.`,
+    secondOrderClue:`Zollinger-Ellison + Primary HyperPTH + Prolactinoma -> MEN 1 -> Menin (chr 11).`,
+    phase1Pearl:`Parathyroid hyperplasia (4-gland) is the most common and earliest feature of MEN 1.`,
+    phase2Hallmark:`Distal duodenal/jejunal ulcers with prominent gastric rugae; neuroendocrine tumors stain chromogranin A+.`,
+    phase3Secret:`Positive secretin stimulation test (paradoxical gastrin spike) confirms gastrinoma; treat with high-dose PPIs.`,
+    dossierBullets:{ p1:[`AD MEN1 gene (menin, chr 11)`,`3 Ps: Pituitary, Parathyroid, Pancreas`], p2:[`4-gland parathyroid hyperplasia (earliest)`,`Zollinger-Ellison: jejunal ulcers + steatorrhea`], p3:[`Positive secretin stimulation test -> gastrinoma`,`High-dose PPIs +/- resection`] }
+  },
+  { id:`LO06-Q2`, lo:6, sector:`S2`, loTitle:`LO 6: MEN 1 vs. MEN 2A vs. MEN 2B`, angle:`Mechanism -> Pathophysiology`, phaseFocus:`Phase 2: Histology / Structure`, shortAnswer:`MEN 2B (Mucosal Neuromas)`,
+    stem:`A 19-year-old tall, thin man with arachnodactyly, high-arched palate, and multiple painless nodules on his lips and anterior tongue presents with episodic palpitations and a palpable thyroid mass. Genetic testing reveals an M918T gain-of-function mutation in a receptor tyrosine kinase. Which triad defines his syndrome?`,
+    clue:`Marfanoid habitus + mucosal neuromas + RET mutation = MEN 2B (1 P, 2 Ms).`,
+    choices:[`Medullary thyroid Ca, Pheochromocytoma, Mucosal neuromas`,`Medullary thyroid Ca, Pheochromocytoma, Parathyroid hyperplasia`,`Pituitary adenoma, Parathyroid hyperplasia, Pancreatic gastrinoma`], correctIndex:0,
+    explanation:`Correct: MEN 2B combines Medullary thyroid carcinoma, Pheochromocytoma, and Mucosal/intestinal neuromas (plus Marfanoid habitus) via activating RET mutations. Distractor exclusion: MEN 2A has parathyroid hyperplasia without mucosal neuromas; MEN 1 is the 3 Ps.`,
+    secondOrderClue:`Marfanoid habitus + Lip/tongue mucosal neuromas + RET -> MEN 2B (no parathyroid disease).`,
+    phase1Pearl:`RET is a receptor tyrosine kinase (chr 10); gain-of-function mutations cause constitutive neural crest signaling.`,
+    phase2Hallmark:`Oral/intestinal ganglioneuromatosis (mucosal neuromas) + medullary C-cell amyloid stroma.`,
+    phase3Secret:`Medullary thyroid cancer in MEN 2B is aggressive early in life; prophylactic thyroidectomy is done in infancy.`,
+    dossierBullets:{ p1:[`AD activating RET mutation (chr 10)`,`1 P, 2 Ms: Pheo, Medullary Ca, Mucosal neuromas`], p2:[`Marfanoid habitus + oral/GI ganglioneuromas`,`No parathyroid hyperplasia`], p3:[`Aggressive early medullary thyroid cancer`,`Prophylactic thyroidectomy in infancy`] }
+  },
+  { id:`LO06-Q3`, lo:6, sector:`S2`, loTitle:`LO 6: MEN 1 vs. MEN 2A vs. MEN 2B`, angle:`Hallmarks -> Management`, phaseFocus:`Phase 3: Clinical & Management`, shortAnswer:`Rule Out Pheo First (MEN 2A)`,
+    stem:`A 33-year-old woman with elevated serum calcitonin, mild hypercalcemia, and a germline RET mutation is scheduled for total thyroidectomy and parathyroid exploration for MEN 2A. Before clearing her for surgery, what mandatory diagnostic evaluation must be completed?`,
+    clue:`Operating on an undiagnosed catecholamine-secreting tumor risks lethal intraoperative hypertensive crisis.`,
+    choices:[`Plasma free or 24-hour urine metanephrines`,`Secretin stimulation test for gastrinoma`,`High-dose dexamethasone suppression test`], correctIndex:0,
+    explanation:`Correct: In MEN 2A/2B, pheochromocytoma MUST be excluded via plasma/urine metanephrines BEFORE thyroidectomy or any surgery; if present, resect pheochromocytoma first after alpha-then-beta blockade. Distractor exclusion: Secretin tests MEN 1 gastrinoma; dexamethasone tests Cushing.`,
+    secondOrderClue:`MEN 2A pre-op clearance -> Always measure plasma/urine metanephrines before neck surgery.`,
+    phase1Pearl:`MEN 2A (Sipple syndrome) = 2 Ps + 1 M: Parathyroid hyperplasia, Pheochromocytoma, Medullary thyroid carcinoma.`,
+    phase2Hallmark:`Bilateral adrenal medullary hyperplasia/pheochromocytoma alongside multifocal C-cell hyperplasia.`,
+    phase3Secret:`Surgical order in MEN 2: (1) Alpha/beta blockade -> Adrenalectomy for pheo, (2) Total thyroidectomy.`,
+    dossierBullets:{ p1:[`MEN 2A: Medullary Ca + Pheo + Parathyroid hyperplasia`,`RET proto-oncogene (chr 10)`], p2:[`Elevated calcitonin + high Ca/PTH`,`Bilateral pheochromocytomas common`], p3:[`Screen metanephrines BEFORE any surgery`,`Resect pheochromocytoma first`] }
+  },
+  // LO 7
+  { id:`LO07-Q1`, lo:7, sector:`S3`, loTitle:`LO 7: Endometriosis & Adenomyosis`, angle:`Presentation -> Diagnosis`, phaseFocus:`Phase 2: Histology / Structure`, shortAnswer:`Endometriosis (Chocolate Cyst)`,
+    stem:`A 29-year-old nulliparous woman presents with severe dysmenorrhea, deep dyspareunia, dyschezia, and 2 years of infertility. Pelvic exam notes uterosacral ligament nodularity and a fixed, retroverted uterus. Laparoscopy shows yellow-brown "powder-burn" peritoneal lesions and an ovarian cyst filled with thick dark-brown fluid. What is the diagnosis?`,
+    clue:`Ectopic endometrial glands + stroma outside the uterus forming ovarian endometriomas.`,
+    choices:[`Endometriosis`,`Adenomyosis`,`Pelvic inflammatory disease`], correctIndex:0,
+    explanation:`Correct: Endometriosis is ectopic endometrial glands and stroma outside the uterus, classically forming ovarian "chocolate" cysts (endometriomas) and "powder-burn" peritoneal nodules, causing dysmenorrhea, dyspareunia, and infertility. Distractor exclusion: Adenomyosis is inside myometrium; PID causes fever and cervical motion tenderness.`,
+    secondOrderClue:`Dysmenorrhea + Dyspareunia + Infertility + Powder-burn nodules/Chocolate cyst -> Endometriosis.`,
+    phase1Pearl:`Most commonly driven by retrograde menstruation with cyclic hormonal bleeding causing fibrosis and adhesions.`,
+    phase2Hallmark:`Biopsy requires >= 2 of: endometrial glands, endometrial stroma, or hemosiderin-laden macrophages.`,
+    phase3Secret:`1st-line therapy: NSAIDs + continuous OCPs or progestins; GnRH agonists (leuprolide) + add-back for refractory pain.`,
+    dossierBullets:{ p1:[`Retrograde menses -> ectopic cyclic bleeding`,`Estrogen-dependent inflammation & adhesions`], p2:[`Ovarian chocolate cysts & powder-burn implants`,`Endometrial glands + stroma + hemosiderin`], p3:[`Gold standard diagnosis: laparoscopy`,`Treat: NSAIDs, continuous OCPs, progestins, GnRH`] }
+  },
+  { id:`LO07-Q2`, lo:7, sector:`S3`, loTitle:`LO 7: Endometriosis & Adenomyosis`, angle:`Mechanism -> Pathophysiology`, phaseFocus:`Phase 1: Pathogenesis`, shortAnswer:`Adenomyosis (Boggy Uterus)`,
+    stem:`A 43-year-old multiparous woman complains of worsening menorrhagia and severe dysmenorrhea over 3 years. Bimanual exam reveals a symmetrically enlarged, uniformly soft ("globular and boggy"), tender uterus without discrete nodules. Pelvic ultrasound shows myometrial heterogeneity. What is the pathogenesis of her condition?`,
+    clue:`Multiparous woman + menorrhagia + uniformly enlarged "boggy" uterus.`,
+    choices:[`Invagination of basalis endometrium into myometrium`,`Monoclonal smooth muscle proliferation with whorls`,`Retrograde menstruation onto ovarian cortex`], correctIndex:0,
+    explanation:`Correct: Adenomyosis results from downward invagination of the stratum basalis into the myometrium, yielding a symmetrically enlarged, globular, boggy, tender uterus with menorrhagia and dysmenorrhea. Distractor exclusion: Whorled smooth muscle describes leiomyomas (asymmetric, firm); retrograde menses causes endometriosis.`,
+    secondOrderClue:`Multiparous + Menorrhagia + Symmetric boggy uterus -> Adenomyosis (basalis inside myometrium).`,
+    phase1Pearl:`Prior uterine disruption (multiparity, C-section, D&C) breaks the junctional zone, enabling basalis invasion.`,
+    phase2Hallmark:`Endometrial glands and stroma surrounded by hypertrophic smooth muscle deep in the myometrium.`,
+    phase3Secret:`Levonorgestrel IUD reduces bleeding; hysterectomy is the only definitive cure.`,
+    dossierBullets:{ p1:[`Basalis invagination into myometrium`,`Risk: multiparity, prior uterine surgery`], p2:[`Symmetric, globular, boggy, tender uterus`,`Glands/stroma surrounded by smooth muscle`], p3:[`Levonorgestrel IUD or OCPs for symptom control`,`Hysterectomy is definitive (no myomectomy)`] }
+  },
+  { id:`LO07-Q3`, lo:7, sector:`S3`, loTitle:`LO 7: Endometriosis & Adenomyosis`, angle:`Hallmarks -> Management`, phaseFocus:`Phase 3: Clinical & Management`, shortAnswer:`Clear Cell / Endometrioid Risk`,
+    stem:`A 48-year-old woman with a 15-year history of severe pelvic endometriosis develops a rapidly enlarging complex ovarian mass arising directly from a longstanding endometrioma. Which malignant transformation is specifically associated with chronic ovarian endometriosis?`,
+    clue:`Chronic cyclic iron-mediated oxidative stress in endometriomas predisposes to two epithelial ovarian cancers.`,
+    choices:[`Endometrioid and clear cell ovarian carcinomas`,`Dysgerminoma and choriocarcinoma`,`Granulosa-theca cell tumor`], correctIndex:0,
+    explanation:`Correct: Chronic ovarian endometriosis confers an elevated risk of malignant transformation into endometrioid and clear cell ovarian carcinomas (often with ARID1A mutations). Distractor exclusion: Dysgerminoma/choriocarcinoma are germ cell tumors; granulosa cell is sex cord-stromal.`,
+    secondOrderClue:`Longstanding ovarian endometrioma -> Iron oxidative stress -> Endometrioid / Clear cell carcinoma.`,
+    phase1Pearl:`Loss of ARID1A and activating PIK3CA mutations drive endometriosis-associated ovarian carcinoma.`,
+    phase2Hallmark:`Clear cell carcinoma shows "hobnail" cells with abundant clear glycogen-rich cytoplasm.`,
+    phase3Secret:`Excise rapidly enlarging or suspicious endometriomas in perimenopausal women to rule out malignancy.`,
+    dossierBullets:{ p1:[`Iron-induced oxidative stress in endometriomas`,`ARID1A and PIK3CA mutations`], p2:[`Clear cell ("hobnail" clear cells) & Endometrioid`,`Often unilateral solid-cystic mass`], p3:[`Excise suspicious perimenopausal endometriomas`,`15% of ovarian endometrioid Ca has endometrial Ca`] }
+  },
+  // LO 8
+  { id:`LO08-Q1`, lo:8, sector:`S3`, loTitle:`LO 8: Endometrial Hyperplasia & Carcinoma`, angle:`Presentation -> Diagnosis`, phaseFocus:`Phase 2: Histology / Structure`, shortAnswer:`Cellular Atypia Predicts Cancer`,
+    stem:`A 56-year-old woman with obesity and a history of PCOS undergoes endometrial biopsy for postmenopausal uterine bleeding. Which histologic feature on her endometrial biopsy is the single strongest predictor of progression to invasive endometrioid adenocarcinoma?`,
+    clue:`Nuclear morphology matters far more than architectural crowding for malignant progression.`,
+    choices:[`Presence of cytologic atypia`,`Simple vs. complex glandular crowding`,`Presence of stromal lymphocytes`], correctIndex:0,
+    explanation:`Correct: Cytologic/cellular atypia (enlarged pleomorphic nuclei, prominent nucleoli) is the single strongest predictor of progression to endometrial carcinoma (~30% vs < 5% without atypia). Distractor exclusion: Complex architecture without atypia rarely progresses; lymphocytes are normal in endometrium.`,
+    secondOrderClue:`Unopposed estrogen (Obesity/PCOS) -> Endometrial hyperplasia -> Cytologic atypia = highest risk.`,
+    phase1Pearl:`Unopposed estrogen drives continuous gland proliferation without progesterone-induced secretory shedding.`,
+    phase2Hallmark:`Increased gland-to-stroma ratio (> 50%) with nuclear rounding and loss of polarity in atypical hyperplasia.`,
+    phase3Secret:`No atypia -> progestin therapy (oral or LNG-IUD); WITH atypia -> total hysterectomy.`,
+    dossierBullets:{ p1:[`Unopposed estrogen (obesity, PCOS, nulliparity, tamoxifen)`,`No progesterone opposition -> gland proliferation`], p2:[`Gland-to-stroma ratio > 50%`,`Cytologic atypia = key predictor of carcinoma`], p3:[`Without atypia -> progestins`,`With atypia -> hysterectomy`] }
+  },
+  { id:`LO08-Q2`, lo:8, sector:`S3`, loTitle:`LO 8: Endometrial Hyperplasia & Carcinoma`, angle:`Mechanism -> Pathophysiology`, phaseFocus:`Phase 1: Pathogenesis`, shortAnswer:`Type II Serous (TP53)`,
+    stem:`A 73-year-old thin, multiparous woman presents with postmenopausal vaginal bleeding. Endometrial ultrasound reveals a thin, atrophic endometrial stripe, and biopsy demonstrates papillary structures with concentric calcifications and marked nuclear pleomorphism. Which molecular alteration drives this sporadic subtype?`,
+    clue:`Type II (serous) endometrial carcinoma arises in atrophic endometrium in older women.`,
+    choices:[`TP53 tumor suppressor mutation`,`PTEN loss with unopposed estrogen`,`KRAS and beta-catenin activation`], correctIndex:0,
+    explanation:`Correct: Type II (serous) endometrial carcinoma arises sporadically in atrophic endometrium (~70 yrs), is estrogen-independent, exhibits papillary tufts with psammoma bodies, and is driven by TP53 mutations. Distractor exclusion: PTEN loss and unopposed estrogen drive Type I endometrioid carcinoma.`,
+    secondOrderClue:`Older thin woman + Atrophic endometrium + Papillary/Psammoma -> Type II Serous -> TP53 mutation.`,
+    phase1Pearl:`Type I (75%, endometrioid, ~60y): unopposed estrogen, PTEN/MSI; Type II (25%, serous, ~70y): atrophic, TP53.`,
+    phase2Hallmark:`Serous: papillary tufts + psammoma bodies; Endometrioid: confluent back-to-back glands without intervening stroma.`,
+    phase3Secret:`All postmenopausal bleeding warrants prompt transvaginal ultrasound and/or endometrial biopsy.`,
+    dossierBullets:{ p1:[`Type I: unopposed estrogen, PTEN loss`,`Type II: sporadic atrophic, TP53 mutation`], p2:[`Type I: confluent back-to-back glands`,`Type II: papillary tufts + psammoma bodies`], p3:[`Always biopsy postmenopausal bleeding`,`Type II behaves aggressively like ovarian serous`] }
+  },
+  { id:`LO08-Q3`, lo:8, sector:`S3`, loTitle:`LO 8: Endometrial Hyperplasia & Carcinoma`, angle:`Hallmarks -> Management`, phaseFocus:`Phase 3: Clinical & Management`, shortAnswer:`Lynch Syndrome (MMR Defect)`,
+    stem:`A 47-year-old woman presents with abnormal uterine bleeding and is diagnosed with endometrioid endometrial adenocarcinoma. Her family history is notable for her father having right-sided colon cancer at age 42 and her sister having ovarian cancer. Defect in which DNA repair pathway explains her predisposition?`,
+    clue:`HNPCC carries a 40-60% lifetime risk of endometrial cancer.`,
+    choices:[`DNA mismatch repair (MLH1, MSH2, MSH6)`,`Homologous recombination (BRCA1/2)`,`Nucleotide excision repair (XP genes)`], correctIndex:0,
+    explanation:`Correct: Lynch syndrome (HNPCC) is an AD defect in DNA mismatch repair genes (MLH1, MSH2, MSH6, PMS2) causing microsatellite instability and high risk for colon, endometrial, and ovarian cancers. Distractor exclusion: BRCA1/2 affects homologous recombination; XP affects nucleotide excision repair.`,
+    secondOrderClue:`Early endometrial Ca + Family right-sided colon Ca -> Lynch syndrome -> DNA mismatch repair.`,
+    phase1Pearl:`Endometrial cancer is the most common extracolonic cancer in women with Lynch syndrome.`,
+    phase2Hallmark:`Loss of nuclear MMR protein staining on IHC and high microsatellite instability (MSI-H).`,
+    phase3Secret:`Screen tumors universally with MMR IHC to identify Lynch families for colonoscopy and prophylactic TAH-BSO.`,
+    dossierBullets:{ p1:[`AD DNA mismatch repair defect (MLH1/MSH2/MSH6/PMS2)`,`Microsatellite instability (MSI-H)`], p2:[`Right-sided colon + early endometrial + ovarian Ca`,`Loss of MMR nuclear staining on IHC`], p3:[`Universal tumor MMR/MSI testing`,`Surveillance colonoscopy + risk-reducing TAH-BSO`] }
+  },
+  // LO 9
+  { id:`LO09-Q1`, lo:9, sector:`S3`, loTitle:`LO 9: Ovarian Neoplasms`, angle:`Presentation -> Diagnosis`, phaseFocus:`Phase 2: Histology / Structure`, shortAnswer:`Yolk Sac Tumor (AFP)`,
+    stem:`A 17-year-old girl presents with rapid abdominal distension and pelvic pain. Imaging shows a large, friable, yellow-hemorrhagic unilateral ovarian mass. Serum alpha-fetoprotein (AFP) is 4,200 ng/mL. Histology reveals structures consisting of a central blood vessel surrounded by neoplastic germ cells resembling primitive glomeruli. What is the diagnosis?`,
+    clue:`Young female + markedly elevated AFP + glomerulus-like Schiller-Duval bodies.`,
+    choices:[`Yolk sac (endodermal sinus) tumor`,`Dysgerminoma`,`Mature cystic teratoma`], correctIndex:0,
+    explanation:`Correct: Yolk sac (endodermal sinus) tumor is an aggressive malignant germ cell tumor in young women featuring elevated AFP and pathognomonic Schiller-Duval bodies. Distractor exclusion: Dysgerminoma elevates LDH/hCG with "fried egg" cells; mature teratoma contains benign 3-germ-layer tissue.`,
+    secondOrderClue:`Young female + Elevated AFP + Schiller-Duval bodies -> Yolk sac (endodermal sinus) tumor.`,
+    phase1Pearl:`Recapitulates extra-embryonic yolk sac endoderm, producing massive AFP.`,
+    phase2Hallmark:`Yellow, friable hemorrhagic mass with Schiller-Duval bodies and intracellular hyaline globules.`,
+    phase3Secret:`Treat with unilateral salpingo-oophorectomy + BEP (bleomycin, etoposide, cisplatin) chemotherapy.`,
+    dossierBullets:{ p1:[`Aggressive malignant germ cell tumor (< 25 yrs)`,`Differentiates toward extra-embryonic yolk sac`], p2:[`Schiller-Duval bodies (glomerulus-like)`,`Serum tumor marker: markedly elevated AFP`], p3:[`Unilateral USO (preserve fertility) + BEP chemo`,`Avoid biopsy rupture before staging`] }
+  },
+  { id:`LO09-Q2`, lo:9, sector:`S3`, loTitle:`LO 9: Ovarian Neoplasms`, angle:`Mechanism -> Pathophysiology`, phaseFocus:`Phase 1: Pathogenesis`, shortAnswer:`Granulosa Cell Tumor (Estrogen)`,
+    stem:`A 62-year-old postmenopausal woman presents with new-onset vaginal bleeding and breast tenderness. Ultrasound shows a thickened endometrial stripe and a solid-cystic left adnexal mass. Histology of the ovarian mass reveals small cuboidal cells arranged around eosinophilic fluid-filled spaces ("Call-Exner bodies") with grooved "coffee-bean" nuclei. What hormone did this tumor secrete?`,
+    clue:`Sex cord-stromal tumor with Call-Exner bodies causing postmenopausal endometrial hyperplasia/bleeding.`,
+    choices:[`Estrogen (with elevated inhibin)`,`Androgens (testosterone/DHEA)`,`Human chorionic gonadotropin (beta-hCG)`], correctIndex:0,
+    explanation:`Correct: Granulosa-theca cell tumors secrete excess estrogen (causing precocious puberty or postmenopausal bleeding/endometrial hyperplasia) and inhibin, featuring Call-Exner bodies. Distractor exclusion: Sertoli-Leydig tumors secrete androgens (virilization); choriocarcinoma/dysgerminoma secrete hCG.`,
+    secondOrderClue:`Postmenopausal bleeding + Ovarian mass + Call-Exner bodies -> Granulosa cell tumor -> Estrogen.`,
+    phase1Pearl:`FOXL2 mutations drive adult granulosa cell tumors; unopposed estrogen stimulates endometrial proliferation.`,
+    phase2Hallmark:`Call-Exner bodies (rosettes around pink fluid) and grooved "coffee-bean" nuclei.`,
+    phase3Secret:`Serum inhibin B serves as a tumor marker for recurrence surveillance.`,
+    dossierBullets:{ p1:[`Sex cord-stromal tumor (FOXL2 mutation)`,`Secretes estrogen + inhibin`], p2:[`Call-Exner bodies + coffee-bean nuclei`,`Precocious puberty or postmenopausal bleeding`], p3:[`Always sample endometrium to rule out Ca`,`Track serum inhibin post-resection`] }
+  },
+  { id:`LO09-Q3`, lo:9, sector:`S3`, loTitle:`LO 9: Ovarian Neoplasms`, angle:`Hallmarks -> Management`, phaseFocus:`Phase 3: Clinical & Management`, shortAnswer:`Meigs Syndrome (Fibroma)`,
+    stem:`A 55-year-old woman presents with progressive dyspnea, abdominal bloating, and a pulling sensation in her right groin. Chest X-ray reveals a large right pleural effusion, and CT shows ascites plus a solid, benign-appearing right ovarian mass composed of interlacing bundles of spindle-shaped fibroblasts. What is the definitive management for her pleural effusion and ascites?`,
+    clue:`Benign ovarian fibroma + ascites + pleural effusion = Meigs syndrome.`,
+    choices:[`Surgical resection of the ovarian fibroma`,`Lifelong systemic platinum chemotherapy`,`Serial therapeutic pleurodesis alone`], correctIndex:0,
+    explanation:`Correct: Meigs syndrome is the triad of benign ovarian fibroma, ascites, and right pleural effusion; fluid collections resolve completely after surgical resection of the benign fibroma. Distractor exclusion: Fibromas are benign (no chemo); pleurodesis alone fails to stop transudation.`,
+    secondOrderClue:`Ovarian fibroma (spindle fibroblasts) + Ascites + Right pleural effusion -> Meigs -> Resolves with resection.`,
+    phase1Pearl:`Fluid transudates from the edematous fibroma surface and crosses diaphragmatic lymphatics to the right pleura.`,
+    phase2Hallmark:`Solid white whorled ovarian tumor composed of bland spindle-shaped fibroblasts.`,
+    phase3Secret:`Meigs syndrome can mildly elevate CA-125; do not misdiagnose as unresectable metastatic cancer.`,
+    dossierBullets:{ p1:[`Benign sex cord-stromal tumor of fibroblasts`,`Transudative ascites traverses diaphragmatic pores`], p2:[`Triad: ovarian fibroma + ascites + pleural effusion`,`Spindle-shaped fibroblasts; "pulling" groin sensation`], p3:[`Complete resolution after oophorectomy`,`Do not mistake mild CA-125 rise for stage IV cancer`] }
+  },
+  // LO 10
+  { id:`LO10-Q1`, lo:10, sector:`S4`, loTitle:`LO 10: CIN & Invasive Cervical Carcinoma`, angle:`Presentation -> Diagnosis`, phaseFocus:`Phase 1: Pathogenesis`, shortAnswer:`HPV E6 (p53) & E7 (Rb)`,
+    stem:`A 43-year-old woman with a history of smoking and inconsistent Pap screening presents with postcoital vaginal bleeding. Cervical biopsy shows invasive nests of squamous cells with keratin pearls, and PCR confirms high-risk HPV-16 integration. How do the viral oncoproteins E6 and E7 promote malignant transformation?`,
+    clue:`"6 before 7, P before R": E6 targets TP53, E7 targets pRb.`,
+    choices:[`E6 degrades p53; E7 inhibits Rb`,`E6 inhibits Rb; E7 degrades p53`,`E6 activates APC; E7 stabilizes BRCA1`], correctIndex:0,
+    explanation:`Correct: High-risk HPV-16/18 integrates into host DNA, overexpressing E6 (ubiquitinates/degrades p53) and E7 (binds/inhibits Rb, freeing E2F to drive S-phase). Distractor exclusion: Reverse pairing is false; APC and BRCA1 are unrelated to HPV.`,
+    secondOrderClue:`HPV-16/18 + Cervical SCC -> E6 degrades p53 + E7 inhibits Rb.`,
+    phase1Pearl:`Viral integration disrupts the E2 repressor, derepressing E6 and E7 at the squamocolumnar transformation zone.`,
+    phase2Hallmark:`Koilocytes (raisinoid nuclei with perinuclear halos) on Pap smear; keratin pearls in invasive SCC.`,
+    phase3Secret:`9-valent HPV vaccine prevents >90% of cervical cancers; LEEP treats CIN 2/3.`,
+    dossierBullets:{ p1:[`High-risk HPV-16/18 at transformation zone`,`E6 -> degrades p53; E7 -> inhibits Rb`], p2:[`Koilocytes (raisinoid nuclei + perinuclear halo)`,`SCC (80%, keratin pearls) > Adenocarcinoma (15%)`], p3:[`Pap + HPV co-testing -> colposcopy/biopsy`,`9-valent HPV vaccine before sexual debut`] }
+  },
+  { id:`LO10-Q2`, lo:10, sector:`S4`, loTitle:`LO 10: CIN & Invasive Cervical Carcinoma`, angle:`Mechanism -> Pathophysiology`, phaseFocus:`Phase 2: Histology / Structure`, shortAnswer:`Full-Thickness Dysplasia (CIS)`,
+    stem:`A 31-year-old woman has an abnormal Pap test showing high-grade squamous intraepithelial lesion (HSIL). Colposcopic biopsy demonstrates immature, pleomorphic basaloid cells with high nuclear-to-cytoplasmic ratios occupying the entire thickness of the cervical squamous epithelium, but the underlying basement membrane remains intact. What is the histologic classification?`,
+    clue:`Full-thickness dysplasia WITHOUT basement membrane penetration.`,
+    choices:[`CIN III / Carcinoma in situ (CIS)`,`CIN I (low-grade dysplasia)`,`Invasive squamous cell carcinoma`], correctIndex:0,
+    explanation:`Correct: Dysplasia involving the entire epithelial thickness with an intact basement membrane defines carcinoma in situ (CIN III/CIS). Distractor exclusion: CIN I involves < 1/3 thickness and often regresses; invasive SCC breaches the basement membrane.`,
+    secondOrderClue:`Full-thickness atypia + Intact basement membrane -> CIN III / Carcinoma in situ.`,
+    phase1Pearl:`Progression from CIN I -> II -> III -> CIS -> invasive is not inevitable; CIN I often regresses spontaneously.`,
+    phase2Hallmark:`Basaloid immature cells and upper-layer mitoses spanning full thickness without stromal invasion.`,
+    phase3Secret:`CIN I is observed; CIN II/III requires excisional therapy (LEEP or cold-knife conization).`,
+    dossierBullets:{ p1:[`Stepwise CIN I (<1/3) -> II (<2/3) -> III/CIS (full)`,`Higher grade = less likely to regress`], p2:[`Intact basement membrane differentiates CIS from invasive`,`High N:C ratio & disordered maturation`], p3:[`Observe CIN I; LEEP/conization for CIN II/III`,`Post-cone follow-up screening mandatory`] }
+  },
+  { id:`LO10-Q3`, lo:10, sector:`S4`, loTitle:`LO 10: CIN & Invasive Cervical Carcinoma`, angle:`Hallmarks -> Management`, phaseFocus:`Phase 3: Clinical & Management`, shortAnswer:`Ureteral Obstruction & Renal Failure`,
+    stem:`A 54-year-old woman with untreated advanced stage IIIB cervical squamous cell carcinoma develops bilateral flank pain, oliguria, and rising serum creatinine of 4.6 mg/dL. Renal ultrasound reveals bilateral hydronephrosis. What anatomic mechanism causes this most common fatal complication of advanced cervical cancer?`,
+    clue:`Lateral extension through the cardinal ligaments compresses structures running beneath the uterine arteries.`,
+    choices:[`Direct lateral invasion obstructing the ureters`,`Immune-complex post-infectious glomerulonephritis`,`Hypercalcemia-induced nephrogenic diabetes insipidus`], correctIndex:0,
+    explanation:`Correct: Advanced cervical cancer invades laterally into the parametrium/cardinal ligaments and anteriorly toward the bladder, obstructing the ureters ("water under the bridge") and causing hydronephrosis and postrenal renal failure. Distractor exclusion: It is postrenal mechanical obstruction, not glomerulonephritis or NDI.`,
+    secondOrderClue:`Advanced cervical Ca + Bilateral hydronephrosis -> Lateral parametrial invasion blocking ureters.`,
+    phase1Pearl:`Invasive cervical cancer is an AIDS-defining malignancy; immunosuppression accelerates progression.`,
+    phase2Hallmark:`Friable exophytic cervical mass with parametrial induration on rectovaginal exam.`,
+    phase3Secret:`Decompress obstructed kidneys with percutaneous nephrostomy or stents before chemoradiation.`,
+    dossierBullets:{ p1:[`AIDS-defining illness; smoking is cofactor`,`Local invasion into bladder & cardinal ligaments`], p2:[`Bilateral hydronephrosis -> postrenal uremia`,`Most common cause of death in advanced disease`], p3:[`Nephrostomy/ureteral stenting to preserve GFR`,`Chemoradiation (cisplatin) for locally advanced`] }
+  },
+  // LO 11
+  { id:`LO11-Q1`, lo:11, sector:`S4`, loTitle:`LO 11: Hydatidiform Mole & Choriocarcinoma`, angle:`Presentation -> Diagnosis`, phaseFocus:`Phase 1: Pathogenesis`, shortAnswer:`Complete Hydatidiform Mole`,
+    stem:`A 24-year-old woman at 11 weeks gestation presents with vaginal bleeding, passage of grape-like vesicles, severe hyperemesis gravidarum, and a uterus measuring 18 weeks size. Serum beta-hCG is 210,000 mIU/mL. Ultrasound shows a "snowstorm" pattern with no fetal parts. Cytogenetics will most likely reveal which karyotype?`,
+    clue:`Empty ovum fertilized by one sperm that duplicates -> purely paternal 46,XX diploid with NO fetal parts.`,
+    choices:[`46,XX purely paternal (complete mole)`,`69,XXY triploid (partial mole)`,`45,X monosomy (Turner syndrome)`], correctIndex:0,
+    explanation:`Correct: Complete hydatidiform mole arises from fertilization of an empty ovum by one sperm (duplicating to 46,XX) or two sperm, producing purely paternal DNA, massive hCG, snowstorm US, grape-like villi, and no fetal tissue. Distractor exclusion: Partial moles are triploid (69,XXY) with fetal parts present.`,
+    secondOrderClue:`Uterus > dates + Snowstorm US + No fetal parts -> Complete mole -> 46,XX purely paternal.`,
+    phase1Pearl:`Massive beta-hCG alpha-subunit cross-reacts with TSH receptors (hyperthyroidism) and stimulates bilateral ovarian theca-lutein cysts.`,
+    phase2Hallmark:`Diffuse circumferential trophoblastic hyperplasia + diffusely hydropic villi + absent fetal tissue/RBCs.`,
+    phase3Secret:`Treat with suction D&C and serial quantitative beta-hCG until undetectable.`,
+    dossierBullets:{ p1:[`Complete: empty egg + 1/2 sperm (46,XX paternal)`,`Partial: normal egg + 2 sperm (69,XXY triploid)`], p2:[`Snowstorm US + grape-like vesicles + no fetus`,`Thyrotoxicosis & bilateral theca-lutein cysts`], p3:[`Suction D&C + weekly beta-hCG follow-up`,`Higher malignant risk (15-20% invasive; 2-3% chorio)`] }
+  },
+  { id:`LO11-Q2`, lo:11, sector:`S4`, loTitle:`LO 11: Hydatidiform Mole & Choriocarcinoma`, angle:`Mechanism -> Pathophysiology`, phaseFocus:`Phase 2: Histology / Structure`, shortAnswer:`Choriocarcinoma (No Villi)`,
+    stem:`Four months after evacuation of a complete hydatidiform mole, a 27-year-old woman develops hemoptysis, dyspnea, and persistent vaginal bleeding. Chest X-ray demonstrates multiple bilateral "cannonball" nodules, and serum beta-hCG is 95,000 mIU/mL. Biopsy of a uterine lesion shows sheets of malignant cytotrophoblasts and syncytiotrophoblasts. Which key normal placental structure is characteristically absent?`,
+    clue:`Unlike hydatidiform moles, choriocarcinoma loses all placental villous architecture.`,
+    choices:[`Chorionic villi`,`Syncytiotrophoblast giant cells`,`Hemorrhage and necrosis`], correctIndex:0,
+    explanation:`Correct: Choriocarcinoma is a malignant proliferation of cytotrophoblasts and syncytiotrophoblasts with extensive hemorrhage/necrosis and complete ABSENCE of chorionic villi. Distractor exclusion: Syncytiotrophoblasts and hemorrhage/necrosis are hallmark positive features.`,
+    secondOrderClue:`Post-mole hemoptysis + Cannonball lung mets + High hCG -> Choriocarcinoma -> Absent chorionic villi.`,
+    phase1Pearl:`50% follow complete mole, 25% follow abortion, 25% follow normal pregnancy; early hematogenous spread to lungs/brain.`,
+    phase2Hallmark:`Biphasic malignant cytotrophoblasts and multinucleated syncytiotrophoblasts WITHOUT chorionic villi.`,
+    phase3Secret:`Gestational choriocarcinoma responds dramatically to methotrexate (unlike non-gestational gonadal choriocarcinoma).`,
+    dossierBullets:{ p1:[`50% post-complete mole; early hematogenous spread`,`Lungs ("cannonball" mets), brain, liver`], p2:[`Cytotrophoblasts + syncytiotrophoblasts`,`COMPLETE ABSENCE of chorionic villi`], p3:[`Exquisitely chemosensitive to methotrexate`,`EMA-CO regimen for high-risk disease`] }
+  },
+  { id:`LO11-Q3`, lo:11, sector:`S4`, loTitle:`LO 11: Hydatidiform Mole & Choriocarcinoma`, angle:`Hallmarks -> Management`, phaseFocus:`Phase 3: Clinical & Management`, shortAnswer:`Contraception & Weekly hCG`,
+    stem:`A 26-year-old woman undergoes suction dilation and curettage for a complete hydatidiform mole. Six weeks later, her quantitative serum beta-hCG plateaus and then begins rising. What critical post-evacuation instruction prevents misinterpreting a new pregnancy as malignant trophoblastic transformation?`,
+    clue:`Avoid conception for 6-12 months while trending quantitative hCG.`,
+    choices:[`Reliable contraception during serial hCG monitoring`,`Prophylactic bilateral oophorectomy for cysts`,`Immediate pelvic external beam radiation`], correctIndex:0,
+    explanation:`Correct: Reliable contraception (usually combined OCPs) for 6-12 months during beta-hCG surveillance prevents a new pregnancy from mimicking persistent gestational trophoblastic neoplasia. Distractor exclusion: Theca-lutein cysts regress spontaneously; rising hCG is treated with methotrexate, not radiation.`,
+    secondOrderClue:`Post-mole surveillance -> Reliable contraception + Weekly beta-hCG -> Rising/plateau hCG = Methotrexate.`,
+    phase1Pearl:`Complete moles carry a 15-20% risk of persistent GTD vs < 1-5% for partial moles.`,
+    phase2Hallmark:`Bilateral multiloculated ovarian theca-lutein cysts from hCG hyperstimulation.`,
+    phase3Secret:`Plateaued hCG (3 wks) or rising hCG (2 wks) triggers immediate single-agent methotrexate.`,
+    dossierBullets:{ p1:[`Persistent GTD risk: 15-20% after complete mole`,`Theca-lutein cysts regress once hCG normalizes`], p2:[`Plateau (3 wks) or rising (2 wks) beta-hCG`,`Indicates invasive mole or choriocarcinoma`], p3:[`Mandate reliable contraception for 6-12 months`,`Start methotrexate immediately if hCG rises`] }
+  },
+  // LO 12
+  { id:`LO12-Q1`, lo:12, sector:`S4`, loTitle:`LO 12: Breast Pathology`, angle:`Presentation -> Diagnosis`, phaseFocus:`Phase 2: Histology / Structure`, shortAnswer:`Invasive Lobular (E-cadherin)`,
+    stem:`A 59-year-old woman presents with subtle thickening in the upper outer quadrant of her left breast without a discrete mass or microcalcifications on mammography. Core biopsy reveals small, uniform malignant cells infiltrating breast stroma in concentric "single-file" linear cords without tubule formation. Loss of which cell-adhesion molecule explains this growth pattern?`,
+    clue:`Lobular carcinoma loses calcium-dependent cell-cell adhesion and marches in "single file."`,
+    choices:[`E-cadherin (CDH1 loss)`,`HER2/neu receptor amplification`,`Type IV collagenase overexpression`], correctIndex:0,
+    explanation:`Correct: Invasive lobular carcinoma (ILC) loses E-cadherin expression, causing discohesive cells to infiltrate in orderly "single-file" lines without desmoplasia or tubule formation; often bilateral/multifocal. Distractor exclusion: HER2 amplification is classic for ductal cancers; E-cadherin loss defines lobular lesions.`,
+    secondOrderClue:`"Single-file" linear cords + No mass/desmoplasia -> Invasive lobular carcinoma -> E-cadherin loss.`,
+    phase1Pearl:`LCIS also lacks E-cadherin, lacks calcifications, and signals increased cancer risk in BOTH breasts.`,
+    phase2Hallmark:`IDC (most common) forms rock-hard desmoplastic masses; ILC forms single-file rows without desmoplasia.`,
+    phase3Secret:`Breast MRI is more sensitive than mammography for ILC and screening the contralateral breast.`,
+    dossierBullets:{ p1:[`CDH1 mutation -> loss of E-cadherin adhesion`,`Often multifocal and bilateral`], p2:[`Orderly "single-file" rows, no duct formation`,`Lacks desmoplastic stroma and calcifications`], p3:[`Use breast MRI to define extent`,`LCIS increases cancer risk in EITHER breast`] }
+  },
+  { id:`LO12-Q2`, lo:12, sector:`S4`, loTitle:`LO 12: Breast Pathology`, angle:`Mechanism -> Pathophysiology`, phaseFocus:`Phase 1: Pathogenesis`, shortAnswer:`Paget Disease of the Nipple`,
+    stem:`A 61-year-old woman presents with a 6-month history of unilateral erythema, scaling, crusting, and pruritus of her right nipple and areola that failed topical hydrocortisone. Skin punch biopsy reveals large pale intraepidermal cells with mucin-positive cytoplasm. What underlying pathology is almost always present?`,
+    clue:`Eczematous nipple rash unresponsive to steroids = malignant ductal cells migrating up lactiferous ducts.`,
+    choices:[`Underlying DCIS or invasive ductal carcinoma`,`Staphylococcus aureus lactational mastitis`,`Benign subareolar intraductal papilloma`], correctIndex:0,
+    explanation:`Correct: Paget disease of the breast is intraepidermal extension of underlying DCIS or invasive ductal carcinoma up the lactiferous ducts into nipple/areolar skin. Distractor exclusion: Mastitis presents acutely during lactation; intraductal papilloma causes bloody discharge without skin invasion.`,
+    secondOrderClue:`Unilateral scaly/eczematous nipple + Paget cells -> Underlying DCIS or invasive ductal carcinoma.`,
+    phase1Pearl:`Neoplastic ductal cells migrate up lactiferous sinuses into the epidermis of the nipple.`,
+    phase2Hallmark:`Large pale intraepithelial adenocarcinoma cells (Paget cells) with clear halos, PAS/mucin+, HER2+.`,
+    phase3Secret:`Differentiate from inflammatory breast cancer (dermal lymphatic invasion -> peau d'orange, poor prognosis).`,
+    dossierBullets:{ p1:[`Ductal carcinoma extension up lactiferous ducts`,`Almost always >95% has underlying DCIS or IDC`], p2:[`Eczematous/ulcerated unilateral nipple & areola`,`Paget cells = pale intraepidermal adenocarcinoma`], p3:[`Always biopsy chronic unilateral nipple rash`,`Imaging (mammo/MRI) to find underlying tumor`] }
+  },
+  { id:`LO12-Q3`, lo:12, sector:`S4`, loTitle:`LO 12: Breast Pathology`, angle:`Hallmarks -> Management`, phaseFocus:`Phase 3: Clinical & Management`, shortAnswer:`Fibroadenoma (Benign)`,
+    stem:`A 22-year-old woman notices a 2-cm firm, well-circumscribed, rubbery, freely mobile ("marble-like") lump in her right breast that becomes slightly larger and tender just before menstruation. Core biopsy shows benign compressed slit-like ducts surrounded by proliferating fibrous stroma. What is the appropriate counseling regarding cancer risk and management?`,
+    clue:`Most common benign breast neoplasm in women < 35 years; mobile and estrogen-sensitive.`,
+    choices:[`No increased cancer risk; observe or excise if enlarging`,`High premalignant risk; immediate mastectomy`,`Rapidly malignant phyllodes; give adjuvant chemo`], correctIndex:0,
+    explanation:`Correct: Fibroadenoma is the most common benign breast tumor in young women (< 35), is estrogen-sensitive (grows in pregnancy/premenstrually), carries NO increased cancer risk, and is safely observed. Distractor exclusion: Phyllodes tumors occur in older women (~50s) with "leaf-like" projections and malignant potential.`,
+    secondOrderClue:`Woman < 35 + Mobile marble-like mass + Premenstrual tenderness -> Fibroadenoma -> Benign, observe.`,
+    phase1Pearl:`Benign proliferation of intralobular fibrous stroma and ducts; responsive to estrogen.`,
+    phase2Hallmark:`Well-circumscribed fibrous/glandular mass; compare with fat necrosis (calcified oil cyst) and phyllodes (leaf-like).`,
+    phase3Secret:`Use targeted breast ultrasound first in women < 30 years due to dense parenchyma.`,
+    dossierBullets:{ p1:[`Most common benign tumor in women < 35 yrs`,`Estrogen-sensitive (grows in pregnancy/luteal phase)`], p2:[`Well-circumscribed, mobile "marble-like" mass`,`Fibrous stroma compressing slit-like glands`], p3:[`NO increased risk of breast carcinoma`,`Ultrasound 1st-line < 30y; observe if stable`] }
+  },
+  // LO 13
+  { id:`LO13-Q1`, lo:13, sector:`S5`, loTitle:`LO 13: Testicular Germ Cell Tumors`, angle:`Presentation -> Diagnosis`, phaseFocus:`Phase 2: Histology / Structure`, shortAnswer:`Seminoma (Fried-Egg / PLAP+)`,
+    stem:`A 33-year-old man with a history of childhood cryptorchidism presents with a painless, firm testicular mass that does not transilluminate. Serum AFP is normal, and beta-hCG is mildly elevated. Radical inguinal orchiectomy reveals a homogeneous gray-white lobulated tumor composed of sheets of uniform polygonal cells with clear cytoplasm, central nuclei, and delicate fibrous septa infiltrated by lymphocytes. What is the diagnosis?`,
+    clue:`"Fried egg" cells + lymphocytic septa + normal AFP = most common testicular germ cell tumor.`,
+    choices:[`Seminoma`,`Yolk sac tumor`,`Choriocarcinoma`], correctIndex:0,
+    explanation:`Correct: Seminoma is the most common testicular germ cell tumor (male counterpart of dysgerminoma), showing sheets of clear "fried egg" cells with lymphocytic septa and PLAP/OCT3/4 positivity; pure seminoma NEVER elevates AFP. Distractor exclusion: Yolk sac tumor elevates AFP; choriocarcinoma shows marked hCG and hemorrhage.`,
+    secondOrderClue:`Painless testicular mass + Normal AFP + Fried-egg cells + Lymphocytes -> Seminoma.`,
+    phase1Pearl:`Cryptorchidism increases risk; harbors isochromosome 12p; pure seminoma never produces AFP.`,
+    phase2Hallmark:`Large uniform clear glycogen-rich cells ("fried egg") with lymphocytic fibrous septa; syncytiotrophoblasts cause mild hCG rise in 15%.`,
+    phase3Secret:`Exquisitely radiosensitive and platinum-chemosensitive (>95% cure rate).`,
+    dossierBullets:{ p1:[`Most common testicular GCT (cryptorchidism, i12p)`,`Pure seminoma NEVER elevates AFP`], p2:[`Sheets of "fried egg" clear cells + lymphocytes`,`Homogeneous gray-white lobulated cut surface`], p3:[`Highly radiosensitive & chemosensitive`,`Radical inguinal orchiectomy (no scrotal biopsy)`] }
+  },
+  { id:`LO13-Q2`, lo:13, sector:`S5`, loTitle:`LO 13: Testicular Germ Cell Tumors`, angle:`Mechanism -> Pathophysiology`, phaseFocus:`Phase 1: Pathogenesis`, shortAnswer:`Choriocarcinoma hCG Mimicry`,
+    stem:`A 26-year-old man presents with hemoptysis, bilateral gynecomastia, palpitations, and a small hemorrhagic testicular nodule. Serum beta-hCG is 140,000 mIU/mL, and TSH is suppressed with elevated free T4. Why did this patient develop hyperthyroidism and gynecomastia?`,
+    clue:`The alpha-subunit of hCG is shared with three anterior pituitary glycoprotein hormones.`,
+    choices:[`hCG alpha-subunit mimics TSH and LH`,`Tumor secretes ectopic thyroid hormone`,`Testicular Leydig cells secrete calcitonin`], correctIndex:0,
+    explanation:`Correct: Testicular choriocarcinoma secretes massive beta-hCG, whose alpha-subunit shares homology with TSH, LH, and FSH—stimulating thyroid TSH receptors (hyperthyroidism) and Leydig cell aromatase/estrogen (gynecomastia). Distractor exclusion: Struma ovarii secretes T4; Leydig cells make testosterone/estrogen, not calcitonin.`,
+    secondOrderClue:`Massive beta-hCG + Hemoptysis + Gynecomastia + Hyperthyroidism -> Choriocarcinoma alpha-subunit mimicry.`,
+    phase1Pearl:`Testicular teratomas are malignant in postpubertal males (unlike benign mature cystic teratomas in females).`,
+    phase2Hallmark:`Hemorrhagic necrotic nodule with cytotrophoblasts and syncytiotrophoblasts lacking villi.`,
+    phase3Secret:`Mixed germ cell tumors are common; prognosis is determined by the worst component.`,
+    dossierBullets:{ p1:[`hCG alpha-subunit = identical to TSH, LH, FSH`,`Stimulates TSH receptor & Leydig cell aromatase`], p2:[`Hemorrhagic testicular nodule + lung mets`,`Cytotrophoblasts + syncytiotrophoblasts (no villi)`], p3:[`Worst prognosis among testicular GCTs`,`Treat with radical orchiectomy + BEP/VIP chemo`] }
+  },
+  { id:`LO13-Q3`, lo:13, sector:`S5`, loTitle:`LO 13: Testicular Germ Cell Tumors`, angle:`Hallmarks -> Management`, phaseFocus:`Phase 3: Clinical & Management`, shortAnswer:`Inguinal Orchiectomy / Para-Aortic`,
+    stem:`A 29-year-old man has a solid intratesticular mass on scrotal ultrasound. Staging CT shows enlarged retroperitoneal lymph nodes near the renal hilum. Why is radical inguinal orchiectomy mandatory rather than transscrotal biopsy, and which nodal basin is the primary drainage site?`,
+    clue:`Embryologic descent of the testis from the posterior abdominal wall determines its lymphatic drainage.`,
+    choices:[`Avoids scrotal seeding; drains to para-aortic nodes`,`Prevents torsion; drains to superficial inguinal nodes`,`Preserves fertility; drains to internal iliac nodes`], correctIndex:0,
+    explanation:`Correct: Transscrotal biopsy risks seeding tumor into superficial inguinal lymphatics; radical inguinal orchiectomy removes the testis via the inguinal canal, respecting primary drainage to retroperitoneal para-aortic lymph nodes. Distractor exclusion: Superficial inguinal nodes drain scrotal skin, not the testis.`,
+    secondOrderClue:`Solid intratesticular mass -> Radical INGUINAL orchiectomy -> Para-aortic lymph nodes.`,
+    phase1Pearl:`Testes descend from L1-L2 retroperitoneum, carrying gonadal vessels and lymphatics to para-aortic/lumbar nodes.`,
+    phase2Hallmark:`Non-transilluminating solid hypoechoic mass on US; > 60 yrs bilateral testicular mass = DLBCL lymphoma.`,
+    phase3Secret:`Measure AFP, beta-hCG, and LDH before and after orchiectomy for staging and prognosis.`,
+    dossierBullets:{ p1:[`Testis descends from retroperitoneum (L1-L2)`,`Drains to para-aortic nodes (scrotum -> inguinal)`], p2:[`Solid non-transilluminating mass on US`,`> 60 yrs testicular mass -> diffuse large B-cell lymphoma`], p3:[`NEVER perform transscrotal biopsy`,`Radical inguinal orchiectomy + AFP/hCG/LDH`] }
+  },
+  // LO 14
+  { id:`LO14-Q1`, lo:14, sector:`S5`, loTitle:`LO 14: BPH vs. Prostate Adenocarcinoma`, angle:`Presentation -> Diagnosis`, phaseFocus:`Phase 2: Histology / Structure`, shortAnswer:`Peripheral Zone / No Basal Layer`,
+    stem:`A 69-year-old man has a firm, asymmetric nodule on the posterior lateral prostate during digital rectal exam, and serum PSA is 14.2 ng/mL. Prostate biopsy shows crowded small acinar glands infiltrating stroma with prominent nucleoli and absence of the outer myoepithelial/basal cell layer. Which prostatic zone is most commonly affected, and what is the diagnosis?`,
+    clue:`Posterior peripheral zone + absent basal cell layer + prominent nucleoli = malignancy.`,
+    choices:[`Peripheral zone; prostate adenocarcinoma`,`Transitional zone; benign prostatic hyperplasia`,`Central zone; acute bacterial prostatitis`], correctIndex:0,
+    explanation:`Correct: Prostate adenocarcinoma arises primarily (~75%) in the posterior peripheral zone (palpable on DRE, late urinary symptoms) and shows invasive small glands lacking a basal cell layer (p63-) with prominent nucleoli. Distractor exclusion: BPH arises in the periurethral transitional zone and retains an intact basal cell layer.`,
+    secondOrderClue:`Posterior lateral nodule + High PSA + Absent basal cell layer -> Peripheral zone prostate adenocarcinoma.`,
+    phase1Pearl:`Androgen-dependent adenocarcinoma graded by Gleason score (2 most common architectural patterns).`,
+    phase2Hallmark:`Small infiltrative glands with single-layer epithelium (no basal cells), prominent nucleoli, and perineural invasion.`,
+    phase3Secret:`Metastasizes via Batson venous plexus to lumbar spine/pelvis, producing osteoblastic (sclerotic) bone lesions.`,
+    dossierBullets:{ p1:[`75% posterior peripheral zone (palpable on DRE)`,`Graded by Gleason sum (patterns 1-5)`], p2:[`Absent basal cell layer (p63/HMWCK negative)`,`Prominent nucleoli & perineural invasion`], p3:[`Batson plexus -> osteoblastic lumbar mets (high ALP)`,`PSA screening & multiparametric MRI/biopsy`] }
+  },
+  { id:`LO14-Q2`, lo:14, sector:`S5`, loTitle:`LO 14: BPH vs. Prostate Adenocarcinoma`, angle:`Mechanism -> Pathophysiology`, phaseFocus:`Phase 3: Clinical & Management`, shortAnswer:`BPH (Tamsulosin + Finasteride)`,
+    stem:`A 64-year-old man reports urinary hesitancy, weak stream, nocturia, and incomplete bladder emptying. DRE reveals a smoothly enlarged, symmetric, rubbery prostate. How do tamsulosin and finasteride provide complementary therapeutic mechanisms?`,
+    clue:`Alpha-1A blockade relaxes smooth muscle immediately; 5-alpha-reductase inhibition shrinks the gland over months.`,
+    choices:[`Alpha-1A blockade relaxes stroma; 5-AR inhibition lowers DHT`,`Beta-3 agonism relaxes detrusor; aromatase blockade lowers E2`,`Muscarinic blockade contracts bladder; GnRH agonist lowers LH`], correctIndex:0,
+    explanation:`Correct: Tamsulosin blocks alpha-1A receptors in prostatic/bladder neck smooth muscle for rapid symptom relief, while finasteride inhibits 5-alpha-reductase to lower DHT and shrink prostate volume. Distractor exclusion: Antimuscarinics worsen urinary retention in BPH; beta-3 agonists relax detrusor for overactive bladder.`,
+    secondOrderClue:`Smooth symmetric prostate + Weak stream -> BPH (transitional zone) -> Tamsulosin + Finasteride.`,
+    phase1Pearl:`DHT has 10-fold higher androgen receptor affinity than testosterone, driving transitional zone hyperplasia.`,
+    phase2Hallmark:`Nodular glands and fibromuscular stroma with corpora amylacea and intact dual-layer epithelium (luminal + basal).`,
+    phase3Secret:`Finasteride reduces serum PSA by ~50% after 6 months; double the measured PSA when interpreting screening.`,
+    dossierBullets:{ p1:[`Periurethral transitional zone hyperplasia`,`5-alpha-reductase converts T -> DHT`], p2:[`Intact basal + luminal cell layers`,`Corpora amylacea in nodular glands; NO cancer risk`], p3:[`Tamsulosin (fast alpha-1A) + Finasteride (shrinks)`,`Double measured PSA after 6 mos on finasteride`] }
+  },
+  { id:`LO14-Q3`, lo:14, sector:`S5`, loTitle:`LO 14: BPH vs. Prostate Adenocarcinoma`, angle:`Hallmarks -> Management`, phaseFocus:`Phase 3: Clinical & Management`, shortAnswer:`Flutamide Before Leuprolide`,
+    stem:`A 74-year-old man with metastatic prostate adenocarcinoma to the lumbar spine (osteoblastic lesions) is started on androgen-deprivation therapy with continuous leuprolide. Why must an androgen receptor antagonist such as flutamide or bicalutamide be co-administered during the first 2 weeks of leuprolide therapy?`,
+    clue:`Continuous GnRH agonists cause an initial transient surge of LH/FSH and testosterone before receptor downregulation.`,
+    choices:[`Blocks the initial testosterone surge ("flare")`,`Inhibits adrenal 17-alpha-hydroxylase irreversibly`,`Prevents osteoclastic bone resorption directly`], correctIndex:0,
+    explanation:`Correct: Continuous leuprolide (GnRH agonist) induces an initial 1-2 week LH/testosterone surge ("tumor flare") that can worsen bone pain or trigger cord compression before pituitary GnRH receptors downregulate; flutamide blocks androgen receptors during this window. Distractor exclusion: Abiraterone inhibits CYP17; denosumab/zoledronate target bone.`,
+    secondOrderClue:`Metastatic prostate Ca + Leuprolide -> Initial LH/T surge -> Co-administer flutamide to prevent flare.`,
+    phase1Pearl:`Pulsatile GnRH stimulates gonadotropins; continuous non-pulsatile GnRH desensitizes GnRH receptors (medical castration).`,
+    phase2Hallmark:`Osteoblastic sclerotic vertebral lesions with elevated alkaline phosphatase and PSA.`,
+    phase3Secret:`GnRH antagonists (degarelix) suppress LH immediately without causing a testosterone flare.`,
+    dossierBullets:{ p1:[`Continuous GnRH agonist -> transient LH/T surge`,`Followed by GnRH receptor downregulation`], p2:[`Osteoblastic spine mets risk cord compression`,`Flutamide/bicalutamide blocks AR during surge`], p3:[`Always give flutamide BEFORE/WITH leuprolide start`,`Degarelix (GnRH antagonist) avoids flare`] }
+  },
+  // LO 15
+  { id:`LO15-Q1`, lo:15, sector:`S5`, loTitle:`LO 15: Pelvic Viscerosomatics & Sacral OMT`, angle:`Presentation -> Diagnosis`, phaseFocus:`Phase 3: Clinical & Management`, shortAnswer:`Gonads T10-T11; Uterus T12-L2`,
+    stem:`A 26-year-old woman with acute endometriosis flare and pelvic pain undergoes an osteopathic structural exam. She exhibits boggy paraspinal tissue texture changes at T12-L2 and a tender myofascial point along the superior medial aspect of the pubic symphysis, plus a second tender point on the posterior lateral thigh/trochanter. Which viscerosomatic autonomic levels correspond to the ovaries vs. uterus/cervix?`,
+    clue:`Gonads share sympathetic innervation with kidneys (T10-T11), while the uterus/prostate map to T12-L2 + S2-S4.`,
+    choices:[`Ovaries T10-T11; Uterus/Cervix T12-L2 (+ S2-S4)`,`Ovaries T5-T9; Uterus/Cervix T10-T11 (+ CN X)`,`Ovaries L3-L5; Uterus/Cervix T1-T4 (+ S2-S4)`], correctIndex:0,
+    explanation:`Correct: Sympathetic viscerosomatic levels map to T10-T11 for gonads (ovaries/testes) and T12-L2 for uterus, cervix, and prostate; pelvic splanchnic parasympathetics (S2-S4) innervate the cervix, uterus, and pelvic organs. Distractor exclusion: T5-T9/CN X serve foregut organs; T1-T4 serves cardiopulmonary viscera.`,
+    secondOrderClue:`Gonads = T10-T11 | Uterus/Prostate = T12-L2 + S2-S4 | Uterus/Broad Ligament Chapman = Pubic/Trochanter.`,
+    phase1Pearl:`Visceral afferents facilitate dorsal horn interneurons, driving anterior horn paraspinal hypertonicity and sympathetic reflexes.`,
+    phase2Hallmark:`Acute viscerosomatic texture: warm, boggy, edematous; chronic: cool, ropy, fibrotic.`,
+    phase3Secret:`Use paraspinal soft tissue, rib raising, and sacral rocking to balance autonomic tone and pelvic lymphatics.`,
+    dossierBullets:{ p1:[`Gonads (ovaries/testes): T10-T11 sympathetics`,`Uterus/cervix/prostate: T12-L2 symp + S2-S4 parasymp`], p2:[`Chapman: Prostate/IT band; Uterus/pubic-trochanter`,`Acute = boggy/warm; Chronic = ropy/cool`], p3:[`Treat viscerosomatic segments (T10-L2, S2-S4)`,`Pelvic diaphragm release & sacral rocking for lymph`] }
+  },
+  { id:`LO15-Q2`, lo:15, sector:`S5`, loTitle:`LO 15: Pelvic Viscerosomatics & Sacral OMT`, angle:`Mechanism -> Pathophysiology`, phaseFocus:`Phase 3: Clinical & Management`, shortAnswer:`Left-on-Left Forward Torsion`,
+    stem:`A 32-year-old pregnant woman presents with low back pain. Osteopathic structural exam reveals a positive seated flexion test on the right, a deep sacral sulcus on the left, a posterior/inferior inferior lateral angle (ILA) on the right, and a negative spring test (lumbar lordosis preserved). L5 is rotated right and sidebent left. What is the sacral somatic dysfunction?`,
+    clue:`Seated flexion positive RIGHT -> LEFT oblique axis. Deep sulcus LEFT + Post/Inf ILA RIGHT + Negative spring -> Forward torsion.`,
+    choices:[`Left-on-left forward sacral torsion`,`Right-on-left backward sacral torsion`,`Left unilateral sacral flexion`], correctIndex:0,
+    explanation:`Correct: Positive right seated flexion localizes the axis to the opposite (left) oblique axis; deep left sulcus + posterior/inferior right ILA + negative spring test (physiologic flexion) = Left-on-Left forward sacral torsion (L5 rotates opposite to sacrum = right). Distractor exclusion: Backward torsions have positive spring tests and deep sulcus on the opposite side of the axis.`,
+    secondOrderClue:`(+) R Seated Flexion -> Left axis | Deep L sulcus + Post/Inf R ILA + (-) Spring -> Left-on-Left Forward Torsion.`,
+    phase1Pearl:`Forward torsions (L-on-L, R-on-R) are physiologic dysfunctions where L5 rotates opposite to the sacrum.`,
+    phase2Hallmark:`L-on-L: Left axis, Deep LEFT sulcus, Post/Inf RIGHT ILA, (-) Spring test (improves in Sphinx/extension).`,
+    phase3Secret:`Muscle energy for L-on-L: patient lies on LEFT side (axis side down), flexes hips/knees, rotates torso left, pushes ankles down.`,
+    dossierBullets:{ p1:[`Forward torsions (L-on-L, R-on-R) are physiologic`,`L5 rotates opposite to sacral rotation`], p2:[`(+) R seated flexion = Left oblique axis`,`Deep L sulcus + Post/Inf R ILA + (-) Spring`], p3:[`ME: lie on LEFT (axis) side, flex knees/hips`,`Rotate trunk toward table; push ankles down`] }
+  },
+  { id:`LO15-Q3`, lo:15, sector:`S5`, loTitle:`LO 15: Pelvic Viscerosomatics & Sacral OMT`, angle:`Hallmarks -> Management`, phaseFocus:`Phase 3: Clinical & Management`, shortAnswer:`Right-on-Left Backward Torsion`,
+    stem:`A 40-year-old man with chronic prostatitis has low back pain that worsens with lumbar extension (Sphinx test). Exam shows a positive seated flexion test on the right, a deep sacral sulcus on the right, a posterior/inferior ILA on the left, and a positive spring test (firm resistance to springing). How is this sacral dysfunction classified, and how is L5 coupled?`,
+    clue:`Seated flexion positive RIGHT -> LEFT axis. Deep sulcus RIGHT + Post/Inf ILA LEFT + Positive spring -> Backward torsion.`,
+    choices:[`Right-on-left backward torsion; L5 rotated left`,`Left-on-left forward torsion; L5 rotated right`,`Right unilateral sacral shear; L5 neutral`], correctIndex:0,
+    explanation:`Correct: (+) Right seated flexion = Left oblique axis; deep right sulcus + posterior/inferior left ILA + positive spring test (worsens in Sphinx extension) = Right-on-Left backward sacral torsion, with L5 rotated left (opposite sacral right rotation). Distractor exclusion: Forward torsions have a negative spring test; unilateral shears have deep sulcus and post/inf ILA on the SAME side.`,
+    secondOrderClue:`(+) R Seated Flexion -> Left axis | Deep R sulcus + Post/Inf L ILA + (+) Spring -> Right-on-Left Backward Torsion.`,
+    phase1Pearl:`Backward torsions (R-on-L, L-on-R) are non-physiologic dysfunctions where the sacral base resists anterior nutation.`,
+    phase2Hallmark:`R-on-L: Left axis, Deep RIGHT sulcus, Post/Inf LEFT ILA, (+) Spring test (asymmetrical worsening in Sphinx).`,
+    phase3Secret:`Also differentiate from unilateral sacral shear (same-side deep sulcus and post/inf ILA with (+) spring test).`,
+    dossierBullets:{ p1:[`Backward torsions (R-on-L, L-on-R) are non-physiologic`,`Sacral extension dysfunction; L5 rotates opposite`], p2:[`(+) R seated flexion = Left axis; (+) Spring test`,`Deep R sulcus + Post/Inf L ILA; worsens in Sphinx`], p3:[`Unilateral shear: SAME-side deep sulcus & post/inf ILA`,`ME backward torsion: extend hips/trunk to restore nutation`] }
+  }
+];
+
+let appState = {
+  hp: 100, xp: 0, streak: 0,
+  hintsVisible: false, timerEnabled: false, timeoutMode: `AUTO_PENALTY`,
+  soundEnabled: true, sfxEnabled: true, bgmEnabled: false, bgmVolume: 0.35,
+  sectorFilter: `ALL`, angleFilter: `ALL`,
+  masteredIds: [], missedIds: [], deckOrder: ALL_QUESTIONS.map(q => q.id), currentIdx: 0
+};
+
+let activeDeck = [];
+let currentQ = null;
+let currentChoicesShuffled = [];
+let currentCorrectLane = 0;
+let targetedLane = 1;
+let craftX = 0, targetCraftX = 0, craftBank = 0, targetCraftBank = 0;
+let portalApproach = 0;
+let metaFadeTimer = null, countdownInterval = null, timeRemaining = GAME_CONFIG.timerSeconds;
+let isOutcomeOpen = false, isCodexOpen = false, isMenuOpen = false, gateLockedTimeout = false;
+let audioCtx = null, bgmGainNode = null, bgmInterval = null, customAudioEl = null, customAudioUrl = null;
+let particles = [], gridOffset = 0, animFrameId = null;
+
+function persistAppState() {
+  if (window.notebookAppApi && typeof window.notebookAppApi.setAppState === `function`) {
+    window.notebookAppApi.setAppState({
+      hp: appState.hp, xp: appState.xp, streak: appState.streak,
+      hintsVisible: appState.hintsVisible, timerEnabled: appState.timerEnabled,
+      timeoutMode: appState.timeoutMode, soundEnabled: appState.soundEnabled,
+      sfxEnabled: appState.sfxEnabled, bgmVolume: appState.bgmVolume,
+      sectorFilter: appState.sectorFilter, angleFilter: appState.angleFilter,
+      masteredIds: appState.masteredIds, missedIds: appState.missedIds,
+      deckOrder: appState.deckOrder, currentIdx: appState.currentIdx
+    }).catch(() => {});
+  }
+}
+
+function showToast(msg) {
+  const el = document.getElementById(`inline-toast`);
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add(`is-visible`);
+  setTimeout(() => { if (el) el.classList.remove(`is-visible`); }, 2600);
+}
+
+function initAudioContext() {
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) audioCtx = new AC();
+  }
+  if (audioCtx && audioCtx.state === `suspended`) audioCtx.resume().catch(() => {});
+}
+
+function playSfx(type) {
+  if (!appState.soundEnabled || !appState.sfxEnabled) return;
+  initAudioContext();
+  if (!audioCtx) return;
+  try {
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    if (type === `steer`) {
+      osc.type = `triangle`; osc.frequency.setValueAtTime(340, now);
+      osc.frequency.exponentialRampToValueAtTime(520, now + 0.06);
+      gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+      osc.start(now); osc.stop(now + 0.07);
+    } else if (type === `correct`) {
+      osc.type = `sine`; osc.frequency.setValueAtTime(523.25, now);
+      osc.frequency.setValueAtTime(659.25, now + 0.08);
+      osc.frequency.setValueAtTime(783.99, now + 0.16);
+      gain.gain.setValueAtTime(0.12, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.34);
+      osc.start(now); osc.stop(now + 0.34);
+    } else {
+      osc.type = `sawtooth`; osc.frequency.setValueAtTime(190, now);
+      osc.frequency.exponentialRampToValueAtTime(95, now + 0.25);
+      gain.gain.setValueAtTime(0.11, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+      osc.start(now); osc.stop(now + 0.28);
+    }
+  } catch (e) {}
+}
+
+function startProceduralBgm() {
+  stopBgm();
+  if (!appState.soundEnabled || !appState.bgmEnabled) return;
+  if (customAudioEl) {
+    customAudioEl.volume = appState.bgmVolume;
+    customAudioEl.play().catch(() => {});
+    return;
+  }
+  initAudioContext();
+  if (!audioCtx) return;
+  const notes = [110, 130.81, 146.83, 164.81, 196, 164.81, 146.83, 130.81];
+  let step = 0;
+  bgmInterval = setInterval(() => {
+    if (!appState.soundEnabled || !appState.bgmEnabled || !audioCtx) return;
+    try {
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = `sawtooth`;
+      osc.frequency.setValueAtTime(notes[step % notes.length], now);
+      gain.gain.setValueAtTime(0.06 * appState.bgmVolume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(now); osc.stop(now + 0.23);
+      step++;
+    } catch (e) {}
+  }, 240);
+}
+
+function stopBgm() {
+  if (bgmInterval) { clearInterval(bgmInterval); bgmInterval = null; }
+  if (customAudioEl) customAudioEl.pause();
+}
+
+function toggleMasterSound() {
+  appState.soundEnabled = !appState.soundEnabled;
+  const btn = document.getElementById(`btn-master-sound`);
+  if (btn) { btn.textContent = appState.soundEnabled ? `🔊 Sound: ON` : `🔇 Sound: OFF`; btn.classList.toggle(`is-active`, appState.soundEnabled); }
+  if (!appState.soundEnabled) stopBgm(); else if (appState.bgmEnabled) startProceduralBgm();
+  persistAppState();
+}
+
+function toggleSfx() {
+  appState.sfxEnabled = !appState.sfxEnabled;
+  const btn = document.getElementById(`btn-sfx`);
+  if (btn) { btn.textContent = appState.sfxEnabled ? `⚡ SFX: ON` : `⚡ SFX: OFF`; btn.classList.toggle(`is-active`, appState.sfxEnabled); }
+  persistAppState();
+}
+
+function toggleBgm() {
+  appState.bgmEnabled = !appState.bgmEnabled;
+  const btn = document.getElementById(`btn-bgm`);
+  if (btn) { btn.textContent = appState.bgmEnabled ? `🎵 Zombies BGM: ON` : `🎵 Zombies BGM: OFF`; btn.classList.toggle(`is-active`, appState.bgmEnabled); }
+  if (appState.bgmEnabled) startProceduralBgm(); else stopBgm();
+}
+
+function setBgmVolume(val) {
+  appState.bgmVolume = parseFloat(val) || 0.35;
+  if (customAudioEl) customAudioEl.volume = appState.bgmVolume;
+  persistAppState();
+}
+
+function loadCustomAudio(input) {
+  if (!input || !input.files || !input.files[0]) return;
+  if (customAudioUrl) URL.revokeObjectURL(customAudioUrl);
+  customAudioUrl = URL.createObjectURL(input.files[0]);
+  customAudioEl = new Audio(customAudioUrl);
+  customAudioEl.loop = true;
+  appState.bgmEnabled = true;
+  const btn = document.getElementById(`btn-bgm`);
+  if (btn) { btn.textContent = `🎵 Custom Audio: ON`; btn.classList.add(`is-active`); }
+  startProceduralBgm();
+  showToast(`Loaded audio: ` + input.files[0].name);
+}
+
+function toggleMenuDrawer() {
+  isMenuOpen = !isMenuOpen;
+  const drawer = document.getElementById(`top-menu-drawer`);
+  const btn = document.getElementById(`menu-toggle-btn`);
+  if (drawer) drawer.classList.toggle(`is-open`, isMenuOpen);
+  if (btn) btn.setAttribute(`aria-expanded`, isMenuOpen ? `true` : `false`);
+}
+
+function syncHintsUI() {
+  const app = document.getElementById(`xr-app`);
+  const menuBtn = document.getElementById(`menu-hints-btn`);
+  if (app) {
+    app.classList.toggle(`hints-visible`, appState.hintsVisible);
+    app.classList.toggle(`hints-hidden`, !appState.hintsVisible);
+  }
+  if (menuBtn) {
+    menuBtn.textContent = appState.hintsVisible ? `💡 Hints: ON [H]` : `💡 Hints: OFF [H]`;
+    menuBtn.classList.toggle(`is-active`, appState.hintsVisible);
+  }
+}
+
+function toggleHintsBar() {
+  appState.hintsVisible = !appState.hintsVisible;
+  syncHintsUI();
+  playSfx(`steer`);
+  persistAppState();
+}
+
+function openCodexFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  openCodex();
+}
+
+function skipFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  skipCurrentQuestion();
+}
+
+function syncTimerControlsUI() {
+  const btn = document.getElementById(`menu-timer-btn`);
+  const chip = document.getElementById(`hud-timer-chip`);
+  const txt = document.getElementById(`hud-timer`);
+  if (btn) {
+    btn.textContent = appState.timerEnabled ? `⏱ 50s Timer: ON [T]` : `⏱ 50s Timer: OFF [T]`;
+    btn.classList.toggle(`is-active`, appState.timerEnabled);
+  }
+  if (txt) txt.textContent = appState.timerEnabled ? `${timeRemaining}s` : `OFF`;
+  if (chip) chip.classList.toggle(`is-urgent`, appState.timerEnabled && timeRemaining <= 10);
+}
+
+function toggleTimerMode() {
+  appState.timerEnabled = !appState.timerEnabled;
+  if (appState.timerEnabled) resetGateTimer(); else stopGateTimer();
+  syncTimerControlsUI();
+  persistAppState();
+}
+
+function startTimedRun() {
+  appState.timerEnabled = true;
+  if (isMenuOpen) toggleMenuDrawer();
+  restartOrdered();
+}
+
+function setTimeoutMode(val) {
+  appState.timeoutMode = val || `AUTO_PENALTY`;
+  persistAppState();
+}
+
+function stopGateTimer() {
+  if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+}
+
+function resetGateTimer() {
+  stopGateTimer();
+  timeRemaining = GAME_CONFIG.timerSeconds;
+  gateLockedTimeout = false;
+  syncTimerControlsUI();
+  if (!appState.timerEnabled) return;
+  countdownInterval = setInterval(() => {
+    if (isOutcomeOpen || isCodexOpen || isMenuOpen) return;
+    timeRemaining--;
+    syncTimerControlsUI();
+    if (timeRemaining <= 0) {
+      stopGateTimer();
+      handleTimeExpired();
+    }
+  }, 1000);
+}
+
+function handleTimeExpired() {
+  if (!currentQ || isOutcomeOpen) return;
+  if (appState.timeoutMode === `HOLD_GATE`) {
+    gateLockedTimeout = true;
+    showToast(`⏱ Time's up! Review clue or skip gate.`);
+    playSfx(`wrong`);
+    return;
+  }
+  resolveQuestion(-1, true);
+}
+
+function rebuildActiveDeck() {
+  const byId = new Map(ALL_QUESTIONS.map(q => [q.id, q]));
+  let ordered = appState.deckOrder.map(id => byId.get(id)).filter(Boolean);
+  if (ordered.length !== ALL_QUESTIONS.length) ordered = [...ALL_QUESTIONS];
+  activeDeck = ordered.filter(q => {
+    if (appState.sectorFilter === `MISSED`) {
+      if (!appState.missedIds.includes(q.id)) return false;
+    } else if (appState.sectorFilter !== `ALL` && q.sector !== appState.sectorFilter) {
+      return false;
+    }
+    if (appState.angleFilter !== `ALL` && q.angle !== appState.angleFilter) return false;
+    return true;
+  });
+  if (activeDeck.length === 0) {
+    showToast(`No gates match filter — showing all 45 gates.`);
+    appState.sectorFilter = `ALL`; appState.angleFilter = `ALL`;
+    const sf = document.getElementById(`sector-filter`);
+    const af = document.getElementById(`angle-filter`);
+    if (sf) sf.value = `ALL`; if (af) af.value = `ALL`;
+    activeDeck = [...ordered];
+  }
+  if (appState.currentIdx >= activeDeck.length) appState.currentIdx = 0;
+}
+
+function applyDeckFilters() {
+  const sf = document.getElementById(`sector-filter`);
+  const af = document.getElementById(`angle-filter`);
+  if (sf) appState.sectorFilter = sf.value;
+  if (af) appState.angleFilter = af.value;
+  appState.currentIdx = 0;
+  rebuildActiveDeck();
+  loadCurrentQuestion();
+  persistAppState();
+}
+
+function restartOrdered() {
+  appState.deckOrder = ALL_QUESTIONS.map(q => q.id);
+  appState.currentIdx = 0;
+  rebuildActiveDeck();
+  loadCurrentQuestion();
+  persistAppState();
+  showToast(`Deck reset to ordered sequence.`);
+}
+
+function shuffleDeck() {
+  const arr = ALL_QUESTIONS.map(q => q.id);
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  appState.deckOrder = arr;
+  appState.currentIdx = 0;
+  rebuildActiveDeck();
+  loadCurrentQuestion();
+  persistAppState();
+  showToast(`Diagnostic deck shuffled.`);
+}
+
+function handleResetMastery(btn) {
+  if (!btn) return;
+  if (btn.dataset.armed !== `true`) {
+    btn.dataset.armed = `true`;
+    btn.textContent = `⚠ Tap Again to Confirm Reset`;
+    setTimeout(() => {
+      if (btn && btn.dataset.armed === `true`) {
+        btn.dataset.armed = `false`;
+        btn.textContent = `🗑 Reset Mastery`;
+      }
+    }, 3500);
+    return;
+  }
+  btn.dataset.armed = `false`;
+  btn.textContent = `🗑 Reset Mastery`;
+  appState.hp = 100; appState.xp = 0; appState.streak = 0;
+  appState.masteredIds = []; appState.missedIds = []; appState.currentIdx = 0;
+  updateHudTelemetry();
+  renderSkillTree();
+  loadCurrentQuestion();
+  persistAppState();
+  showToast(`Mastery & telemetry reset.`);
+}
+
+function jumpToLo(loNum) {
+  appState.sectorFilter = `ALL`; appState.angleFilter = `ALL`;
+  const sf = document.getElementById(`sector-filter`);
+  const af = document.getElementById(`angle-filter`);
+  if (sf) sf.value = `ALL`; if (af) af.value = `ALL`;
+  rebuildActiveDeck();
+  const idx = activeDeck.findIndex(q => q.lo === loNum);
+  appState.currentIdx = idx >= 0 ? idx : 0;
+  if (isMenuOpen) toggleMenuDrawer();
+  loadCurrentQuestion();
+  persistAppState();
+}
+
+function updateHudTelemetry() {
+  const hpEl = document.getElementById(`hud-hp`);
+  const xpEl = document.getElementById(`hud-xp`);
+  const stEl = document.getElementById(`hud-streak`);
+  const gtEl = document.getElementById(`hud-gate`);
+  if (hpEl) hpEl.textContent = String(appState.hp);
+  if (xpEl) xpEl.textContent = String(appState.xp);
+  if (stEl) stEl.textContent = String(appState.streak);
+  if (gtEl) gtEl.textContent = `${appState.currentIdx + 1}/${activeDeck.length}`;
+}
+
+function renderSkillTree() {
+  const grid = document.getElementById(`skill-tree-grid`);
+  if (!grid) return;
+  grid.innerHTML = ``;
+  CODEX_DATA.forEach(item => {
+    const qs = ALL_QUESTIONS.filter(q => q.lo === item.lo);
+    const done = qs.filter(q => appState.masteredIds.includes(q.id)).length;
+    const btn = document.createElement(`button`);
+    btn.type = `button`;
+    btn.className = `skill-node` + (done === qs.length ? ` is-mastered` : ``);
+    btn.onclick = function() { jumpToLo(item.lo); };
+    const t = document.createElement(`div`);
+    t.className = `skill-node-title`;
+    t.textContent = item.title;
+    const m = document.createElement(`div`);
+    m.className = `skill-node-meta`;
+    m.textContent = `${item.sector} · Mastery ${done}/${qs.length}`;
+    btn.appendChild(t); btn.appendChild(m);
+    grid.appendChild(btn);
+  });
+}
+
+function loadCurrentQuestion() {
+  if (!activeDeck.length) rebuildActiveDeck();
+  currentQ = activeDeck[appState.currentIdx] || ALL_QUESTIONS[0];
+  portalApproach = 0;
+  const theme = LO_VISUAL_THEMES[currentQ.lo] || LO_VISUAL_THEMES[1];
+  const metaStrip = document.getElementById(`q-meta-strip`);
+  const bLo = document.getElementById(`badge-lo`);
+  const bAng = document.getElementById(`badge-angle`);
+  const bPh = document.getElementById(`badge-phase`);
+  const bCor = document.getElementById(`badge-corridor`);
+  const stemEl = document.getElementById(`q-stem-text`);
+  const clueEl = document.getElementById(`q-clue-text`);
+  if (bLo) bLo.textContent = currentQ.loTitle;
+  if (bAng) bAng.textContent = currentQ.angle;
+  if (bPh) bPh.textContent = currentQ.phaseFocus;
+  if (bCor) bCor.textContent = `CORRIDOR: ${theme.tag}`;
+  if (stemEl) stemEl.textContent = currentQ.stem;
+  if (clueEl) clueEl.textContent = currentQ.clue;
+  if (metaStrip) {
+    metaStrip.classList.remove(`is-faded`);
+    if (metaFadeTimer) clearTimeout(metaFadeTimer);
+    metaFadeTimer = setTimeout(() => { if (metaStrip) metaStrip.classList.add(`is-faded`); }, GAME_CONFIG.metaFadeMs);
+  }
+  const indices = [0, 1, 2];
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+  currentChoicesShuffled = indices.map(idx => currentQ.choices[idx]);
+  currentCorrectLane = indices.indexOf(currentQ.correctIndex);
+  for (let lane = 0; lane < 3; lane++) {
+    const txt = document.getElementById(`lane-${lane}-text`);
+    if (txt) txt.textContent = currentChoicesShuffled[lane];
+  }
+  previewLaneTarget(1, true);
+  updateHudTelemetry();
+  resetGateTimer();
+}
+
+function previewLaneTarget(laneIdx, silent) {
+  targetedLane = laneIdx;
+  targetCraftX = (laneIdx - 1);
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`lane-${i}-card`);
+    if (card) card.classList.toggle(`is-targeted`, i === laneIdx);
+  }
+  if (!silent) playSfx(`steer`);
+}
+
+function hoverLaneBank(laneIdx, evt) {
+  previewLaneTarget(laneIdx, true);
+  if (!evt || !evt.currentTarget) return;
+  const rect = evt.currentTarget.getBoundingClientRect();
+  const rel = ((evt.clientX - rect.left) / Math.max(1, rect.width)) - 0.5;
+  targetCraftBank = Math.max(-0.45, Math.min(0.45, rel * 0.9 + (laneIdx - 1) * 0.18));
+}
+
+function selectLaneAndResolve(laneIdx) {
+  if (isOutcomeOpen || isCodexOpen || isMenuOpen || !currentQ) return;
+  previewLaneTarget(laneIdx, true);
+  resolveQuestion(laneIdx, false);
+}
+
+function skipCurrentQuestion() {
+  if (isOutcomeOpen || isCodexOpen || !activeDeck.length) return;
+  appState.currentIdx = (appState.currentIdx + 1) % activeDeck.length;
+  loadCurrentQuestion();
+  persistAppState();
+  showToast(`Skipped to next diagnostic gate.`);
+}
+
+function resolveQuestion(chosenLane, isTimeout) {
+  stopGateTimer();
+  const isCorrect = !isTimeout && chosenLane === currentCorrectLane;
+  let xpDelta = 0, hpDelta = 0;
+  if (isCorrect) {
+    appState.streak += 1;
+    const mult = Math.min(3, 1 + Math.floor((appState.streak - 1) / 3) * 0.5);
+    xpDelta = Math.round(GAME_CONFIG.baseXp * mult);
+    hpDelta = GAME_CONFIG.hpGainCorrect;
+    appState.xp += xpDelta;
+    appState.hp = Math.min(100, appState.hp + hpDelta);
+    if (!appState.masteredIds.includes(currentQ.id)) appState.masteredIds.push(currentQ.id);
+    appState.missedIds = appState.missedIds.filter(id => id !== currentQ.id);
+    playSfx(`correct`);
+  } else {
+    appState.streak = 0;
+    hpDelta = -GAME_CONFIG.hpLossWrong;
+    appState.hp = Math.max(0, appState.hp + hpDelta);
+    if (!appState.missedIds.includes(currentQ.id)) appState.missedIds.push(currentQ.id);
+    if (appState.hp === 0) {
+      appState.hp = 100;
+      showToast(`HP depleted — emergency stabilization to 100 HP.`);
+    }
+    playSfx(`wrong`);
+  }
+  updateHudTelemetry();
+  renderSkillTree();
+  openOutcomeModal(chosenLane, isCorrect, isTimeout, xpDelta, hpDelta);
+  persistAppState();
+}
+
+function openOutcomeModal(chosenLane, isCorrect, isTimeout, xpDelta, hpDelta) {
+  isOutcomeOpen = true;
+  const modal = document.getElementById(`outcome-modal`);
+  const titleEl = document.getElementById(`outcome-verdict-title`);
+  const xpBadge = document.getElementById(`outcome-xp-badge`);
+  const hpBadge = document.getElementById(`outcome-hp-badge`);
+  const loBadge = document.getElementById(`outcome-lo-badge`);
+  const stemPin = document.getElementById(`outcome-stem-pin`);
+  const yourBox = document.getElementById(`box-your-choice`);
+  const yourTxt = document.getElementById(`outcome-your-choice`);
+  const corrTxt = document.getElementById(`outcome-correct-choice`);
+  const expEl = document.getElementById(`outcome-explanation`);
+  const secEl = document.getElementById(`outcome-second-order`);
+  const p1El = document.getElementById(`outcome-phase1`);
+  const p2El = document.getElementById(`outcome-phase2`);
+  const p3El = document.getElementById(`outcome-phase3`);
+
+  if (titleEl) {
+    titleEl.className = `verdict-title ` + (isTimeout ? `is-timeout` : (isCorrect ? `is-correct` : `is-wrong`));
+    const prefix = isTimeout ? `⏱ TIME'S UP` : (isCorrect ? `✔ CORRECT` : `✖ INCORRECT`);
+    titleEl.textContent = `${prefix} — ${currentQ.shortAnswer}`;
+  }
+  if (xpBadge) xpBadge.textContent = isCorrect ? `+${xpDelta} XP` : `+0 XP`;
+  if (hpBadge) hpBadge.textContent = hpDelta >= 0 ? `+${hpDelta} HP` : `${hpDelta} HP`;
+  if (loBadge) loBadge.textContent = currentQ.loTitle;
+  if (stemPin) stemPin.textContent = currentQ.stem;
+  if (yourBox) {
+    yourBox.classList.toggle(`is-correct`, isCorrect);
+    yourBox.classList.toggle(`is-wrong`, !isCorrect);
+  }
+  if (yourTxt) yourTxt.textContent = isTimeout ? `No lane selected (Timer Expired)` : (currentChoicesShuffled[chosenLane] || `—`);
+  if (corrTxt) corrTxt.textContent = currentChoicesShuffled[currentCorrectLane];
+  if (expEl) expEl.textContent = `• ${currentQ.explanation}`;
+  if (secEl) secEl.textContent = `• ${currentQ.secondOrderClue}`;
+  if (p1El) p1El.textContent = `• ${currentQ.phase1Pearl}`;
+  if (p2El) p2El.textContent = `• ${currentQ.phase2Hallmark}`;
+  if (p3El) p3El.textContent = `• ${currentQ.phase3Secret}`;
+
+  const fillList = (id, arr) => {
+    const ul = document.getElementById(id);
+    if (!ul) return;
+    ul.innerHTML = ``;
+    (arr || []).forEach(line => {
+      const li = document.createElement(`li`);
+      li.textContent = `• ${line}`;
+      ul.appendChild(li);
+    });
+  };
+  fillList(`dossier-list-p1`, currentQ.dossierBullets && currentQ.dossierBullets.p1);
+  fillList(`dossier-list-p2`, currentQ.dossierBullets && currentQ.dossierBullets.p2);
+  fillList(`dossier-list-p3`, currentQ.dossierBullets && currentQ.dossierBullets.p3);
+
+  const body = document.getElementById(`outcome-modal-body`);
+  if (body) body.scrollTop = 0;
+  if (modal) modal.classList.add(`is-open`);
+}
+
+function scrollOutcomeBody(delta) {
+  const body = document.getElementById(`outcome-modal-body`);
+  if (!body) return;
+  if (typeof body.scrollBy === `function`) {
+    body.scrollBy({ top: delta, behavior: `smooth` });
+  } else {
+    body.scrollTop += delta;
+  }
+}
+
+function continueRunner() {
+  const modal = document.getElementById(`outcome-modal`);
+  if (modal) modal.classList.remove(`is-open`);
+  isOutcomeOpen = false;
+  if (activeDeck.length) appState.currentIdx = (appState.currentIdx + 1) % activeDeck.length;
+  loadCurrentQuestion();
+  persistAppState();
+}
+
+function openCodex() {
+  isCodexOpen = true;
+  renderCodexTable(`ALL`);
+  const modal = document.getElementById(`codex-modal`);
+  if (modal) modal.classList.add(`is-open`);
+}
+
+function closeCodex() {
+  isCodexOpen = false;
+  const modal = document.getElementById(`codex-modal`);
+  if (modal) modal.classList.remove(`is-open`);
+}
+
+function filterCodex(sector, btn) {
+  const pills = document.querySelectorAll(`#codex-sector-pills .ctl-btn`);
+  pills.forEach(p => p.classList.remove(`is-active`));
+  if (btn) btn.classList.add(`is-active`);
+  renderCodexTable(sector);
+}
+
+function renderCodexTable(sectorFilter) {
+  const tbody = document.getElementById(`codex-tbody`);
+  if (!tbody) return;
+  tbody.innerHTML = ``;
+  CODEX_DATA.filter(r => sectorFilter === `ALL` || r.sector === sectorFilter).forEach(row => {
+    const qs = ALL_QUESTIONS.filter(q => q.lo === row.lo);
+    const done = qs.filter(q => appState.masteredIds.includes(q.id)).length;
+    const tr = document.createElement(`tr`);
+    [row.title, row.sector, row.p1, row.p2, row.p3, `${done}/${qs.length}`].forEach(val => {
+      const td = document.createElement(`td`);
+      td.className = `amboss-scan-target`;
+      td.textContent = val;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+// 3D Synthwave Canvas & 1:1 Portal Fusion Engine
+function initParticles() {
+  particles = [];
+  for (let i = 0; i < 150; i++) {
+    particles.push({
+      x: (Math.random() - 0.5) * 2.4,
+      y: (Math.random() - 0.5) * 1.4,
+      z: Math.random()
+    });
+  }
+}
+
+function renderCanvasLoop() {
+  const canvas = document.getElementById(`xr-canvas`);
+  const shell = document.getElementById(`viewport-shell`);
+  if (!canvas || !shell) return;
+  const ctx = canvas.getContext(`2d`);
+  if (!ctx) return;
+
+  const w = shell.clientWidth || window.innerWidth;
+  const h = shell.clientHeight || window.innerHeight;
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width = w; canvas.height = h;
+  }
+
+  const theme = (currentQ && LO_VISUAL_THEMES[currentQ.lo]) || LO_VISUAL_THEMES[1];
+  const horizonY = h * 0.42;
+  const centerX = w * 0.5;
+
+  // Deep midnight-navy void
+  ctx.fillStyle = `#0a0a12`;
+  ctx.fillRect(0, 0, w, h);
+
+  // Subtle horizon glow
+  const grad = ctx.createLinearGradient(0, horizonY - 80, 0, h);
+  grad.addColorStop(0, `rgba(${theme.gridRgb}, 0.0)`);
+  grad.addColorStop(0.25, `rgba(${theme.gridRgb}, 0.14)`);
+  grad.addColorStop(1, `rgba(10, 10, 18, 0.95)`);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, horizonY - 80, w, h - horizonY + 80);
+
+  // Infinite full-width wireframe floor
+  gridOffset = (gridOffset + 0.014) % 1;
+  ctx.strokeStyle = `rgba(${theme.gridRgb}, 0.24)`;
+  ctx.lineWidth = 1;
+  for (let i = -12; i <= 12; i++) {
+    ctx.beginPath();
+    ctx.moveTo(centerX + i * 18, horizonY);
+    ctx.lineTo(centerX + i * (w * 0.16), h);
+    ctx.stroke();
+  }
+  for (let row = 0; row < 14; row++) {
+    const t = Math.pow((row + gridOffset) / 14, 2.1);
+    const y = horizonY + t * (h - horizonY);
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(w, y);
+    ctx.stroke();
+  }
+
+  // 150 crisp 3D square pixel-dust particles (no ovals/blobs)
+  ctx.fillStyle = theme.dustHex;
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    p.z -= 0.0055;
+    if (p.z <= 0.02) {
+      p.z = 1; p.x = (Math.random() - 0.5) * 2.4; p.y = (Math.random() - 0.5) * 1.4;
+    }
+    const scale = 1 / p.z;
+    const sx = centerX + p.x * w * 0.25 * scale;
+    const sy = horizonY + p.y * h * 0.25 * scale;
+    const size = Math.max(1.5, Math.min(4.5, 2.2 * scale * 0.35));
+    if (sx >= 0 && sx <= w && sy >= 0 && sy <= h) {
+      ctx.globalAlpha = Math.max(0.15, Math.min(0.95, 1 - p.z));
+      ctx.fillRect(Math.round(sx), Math.round(sy), size, size);
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // 3 teal perspective track rails + 1:1 live getBoundingClientRect() portal fusion
+  const laneColors = [`#ff2d78`, `#00ffcc`, `#ffe04a`];
+  const shellRect = shell.getBoundingClientRect();
+  portalApproach = Math.min(1, portalApproach + 0.008);
+
+  for (let lane = 0; lane < 3; lane++) {
+    const card = document.getElementById(`lane-${lane}-card`);
+    let cardCx = centerX + (lane - 1) * (w * 0.26);
+    let cardCy = h * 0.55;
+    let cardW = w * 0.22;
+    let cardH = h * 0.2;
+    if (card) {
+      const r = card.getBoundingClientRect();
+      if (r.width > 0 && r.height > 0) {
+        cardCx = (r.left - shellRect.left) + r.width * 0.5;
+        cardCy = (r.top - shellRect.top) + r.height * 0.5;
+        cardW = r.width;
+        cardH = r.height;
+      }
+    }
+    // Teal perspective rail
+    ctx.strokeStyle = lane === targetedLane ? `rgba(0,255,204,0.85)` : `rgba(0,255,204,0.28)`;
+    ctx.lineWidth = lane === targetedLane ? 2.5 : 1.2;
+    ctx.beginPath();
+    ctx.moveTo(centerX + (lane - 1) * 44, horizonY);
+    ctx.lineTo(cardCx, h);
+    ctx.stroke();
+
+    // Approaching 3D portal fusing 1:1 directly onto card bounding box
+    const t = 0.2 + 0.8 * portalApproach;
+    const px = centerX + (cardCx - centerX) * t;
+    const py = horizonY + (cardCy - horizonY) * t;
+    const pw = cardW * t + (lane === targetedLane ? 8 : 0);
+    const ph = cardH * t + (lane === targetedLane ? 8 : 0);
+    ctx.strokeStyle = laneColors[lane];
+    ctx.lineWidth = lane === targetedLane ? 2.6 : 1.4;
+    ctx.globalAlpha = 0.25 + 0.55 * portalApproach;
+    ctx.strokeRect(px - pw * 0.5, py - ph * 0.5, pw, ph);
+    ctx.globalAlpha = 1;
+  }
+
+  // Smoothly interpolate craft lane & bank tilt
+  craftX += (targetCraftX - craftX) * 0.16;
+  craftBank += (targetCraftBank - craftBank) * 0.16;
+  targetCraftBank *= 0.92;
+
+  const shipX = centerX + craftX * Math.min(w * 0.28, 320);
+  const shipY = h - 38;
+  ctx.save();
+  ctx.translate(shipX, shipY);
+  ctx.rotate(craftBank * 0.35);
+  ctx.fillStyle = `#00ffcc`;
+  ctx.strokeStyle = `#e8e0f0`;
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.moveTo(0, -18);
+  ctx.lineTo(20, 4);
+  ctx.lineTo(0, 14);
+  ctx.lineTo(-20, 4);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+
+  animFrameId = requestAnimationFrame(renderCanvasLoop);
+}
+
+function handleCanvasPointer(evt) {
+  const shell = document.getElementById(`viewport-shell`);
+  if (!shell || isOutcomeOpen || isCodexOpen || isMenuOpen) return;
+  const r = shell.getBoundingClientRect();
+  const relX = (evt.clientX - r.left) / Math.max(1, r.width);
+  const lane = relX < 0.34 ? 0 : (relX > 0.66 ? 2 : 1);
+  previewLaneTarget(lane, true);
+  targetCraftBank = Math.max(-0.45, Math.min(0.45, (relX - 0.5) * 1.1));
+}
+
+function setupKeyboardAndCanvas() {
+  const canvas = document.getElementById(`xr-canvas`);
+  if (canvas) {
+    canvas.addEventListener(`mousemove`, handleCanvasPointer);
+  }
+  window.addEventListener(`keydown`, e => {
+    if (e.key === `Escape`) {
+      if (isCodexOpen) closeCodex();
+      else if (isMenuOpen) toggleMenuDrawer();
+      return;
+    }
+    if (isOutcomeOpen) {
+      if (e.key === ` ` || e.key === `Enter`) { e.preventDefault(); continueRunner(); }
+      return;
+    }
+    if (isCodexOpen) return;
+    if (e.key === `1` || e.key === `ArrowLeft`) { e.preventDefault(); selectLaneAndResolve(0); }
+    else if (e.key === `2` || e.key === `ArrowDown`) { e.preventDefault(); selectLaneAndResolve(1); }
+    else if (e.key === `3` || e.key === `ArrowRight`) { e.preventDefault(); selectLaneAndResolve(2); }
+    else if (e.key.toLowerCase() === `h`) { e.preventDefault(); toggleHintsBar(); }
+    else if (e.key.toLowerCase() === `c`) { e.preventDefault(); openCodexFromMenu(); }
+    else if (e.key.toLowerCase() === `s`) { e.preventDefault(); skipFromMenu(); }
+    else if (e.key.toLowerCase() === `t`) { e.preventDefault(); toggleTimerMode(); }
+  });
+}
+
+async function initRunnerGame() {
+  try {
+    if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === `function`) {
+      const saved = await window.notebookAppApi.getAppState();
+      if (saved && typeof saved === `object`) {
+        Object.assign(appState, saved);
+        const sf = document.getElementById(`sector-filter`);
+        const af = document.getElementById(`angle-filter`);
+        const tm = document.getElementById(`timeout-mode-select`);
+        const bv = document.getElementById(`bgm-volume`);
+        if (sf && appState.sectorFilter) sf.value = appState.sectorFilter;
+        if (af && appState.angleFilter) af.value = appState.angleFilter;
+        if (tm && appState.timeoutMode) tm.value = appState.timeoutMode;
+        if (bv && typeof appState.bgmVolume === `number`) bv.value = String(appState.bgmVolume);
+      }
+    }
+  } catch (e) {}
+  syncHintsUI();
+  syncTimerControlsUI();
+  rebuildActiveDeck();
+  renderSkillTree();
+  loadCurrentQuestion();
+  initParticles();
+  setupKeyboardAndCanvas();
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  animFrameId = requestAnimationFrame(renderCanvasLoop);
+  if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === `function`) {
+    window.notebookAppApi.notifyAppReady();
+  }
+}
+
+if (document.readyState === `loading`) {
+  window.addEventListener(`DOMContentLoaded`, initRunnerGame);
+} else {
+  initRunnerGame();
+}
+</script>
+</body>
+</html>
