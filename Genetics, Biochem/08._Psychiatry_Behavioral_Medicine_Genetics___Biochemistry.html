@@ -1,0 +1,2990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="artifact-type" content="tool">
+<meta name="design-style" content="neon_noir">
+<title>Psychiatry, Behavioral Medicine, Genetics & Biochemistry — XR 3-Lane Diagnostic Runner</title>
+<style>
+:root {
+  color-scheme: dark;
+  --background: #0a0a12;
+  --surface-container-low: #111118;
+  --surface-container: #141422;
+  --surface-container-high: #1e1e30;
+  --glass-card: rgba(16, 18, 34, 0.84);
+  --glass-bar: rgba(12, 13, 24, 0.88);
+  --drawer-backdrop: rgba(5, 6, 12, 0.72);
+  --modal-backdrop: rgba(5, 6, 14, 0.84);
+  --on-surface: #e8e0f0;
+  --on-surface-variant: #a098b0;
+  --outline: #5a5068;
+  --outline-variant: #302840;
+  --primary: #ff2d78;
+  --on-primary: #1a0010;
+  --primary-container: #b3004e;
+  --on-primary-container: #ffe0ec;
+  --secondary: #00ffcc;
+  --tertiary: #ffe04a;
+  --error: #ff4444;
+  --on-error: #1a0000;
+  --data-1: #ff2d78;
+  --data-2: #00ffcc;
+  --data-3: #ffe04a;
+  --data-4: #b388ff;
+  --data-context: #6e6680;
+  --positive: #00ffcc;
+  --warning: #ffe04a;
+  --focus: #ff2d78;
+
+  --font-headline: 'Sora', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-body: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-label: 'Space Mono', ui-monospace, 'Cascadia Code', Menlo, monospace;
+
+  --display-size: clamp(1.35rem, 1.1rem + 0.9vw, 1.85rem);
+  --headline-size: clamp(1.08rem, 0.96rem + 0.45vw, 1.32rem);
+  --subhead-size: clamp(0.95rem, 0.9rem + 0.25vw, 1.1rem);
+  --body-size: clamp(0.88rem, 0.84rem + 0.18vw, 0.98rem);
+  --label-size: 0.75rem;
+
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+
+  --rounded: 0.125rem;
+  --rounded-lg: 0.25rem;
+  --rounded-full: 0.75rem;
+
+  --glow-text: 0 0 8px currentColor;
+  --glow-primary: 0 0 16px color-mix(in srgb, var(--primary) 42%, transparent);
+  --glow-secondary: 0 0 16px color-mix(in srgb, var(--secondary) 38%, transparent);
+  --glow-tertiary: 0 0 16px color-mix(in srgb, var(--tertiary) 38%, transparent);
+  --neon-border: 1px solid color-mix(in srgb, var(--primary) 34%, transparent);
+  --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 58%, transparent);
+  --neon-border-cyan: 1px solid color-mix(in srgb, var(--secondary) 36%, transparent);
+  --neon-border-yellow: 1px solid color-mix(in srgb, var(--tertiary) 40%, transparent);
+  --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+  --scanlines: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in srgb, var(--on-surface) 2.5%, transparent) 3px 4px);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  overflow-x: clip;
+  background: var(--background);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+header { position: static !important; }
+button, input, select { font-family: inherit; }
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* 4-Band Cockpit Root */
+#xr-app {
+  position: relative;
+  width: 100vw;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--background);
+  background-image: var(--scanlines);
+}
+
+#xr-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1;
+  pointer-events: auto;
+}
+
+/* Band 1: Ultra-Slim Top Mini Bar */
+#top-mini-bar {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-md);
+  min-height: 44px;
+  background: var(--glass-bar);
+  border-bottom: 1px solid var(--outline-variant);
+  backdrop-filter: blur(8px);
+}
+
+.menu-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: 36px;
+  padding: 0.35rem 0.7rem;
+  background: var(--surface-container);
+  color: var(--secondary);
+  border: var(--neon-border-cyan);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: box-shadow var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
+}
+.menu-trigger-btn:hover {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+}
+
+.telemetry-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-xs);
+}
+
+.tele-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.22rem 0.5rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  color: var(--on-surface);
+  white-space: nowrap;
+}
+.tele-chip.is-hp { border-color: color-mix(in srgb, var(--primary) 42%, transparent); color: var(--primary); }
+.tele-chip.is-xp { border-color: color-mix(in srgb, var(--secondary) 42%, transparent); color: var(--secondary); }
+.tele-chip.is-streak { border-color: color-mix(in srgb, var(--tertiary) 42%, transparent); color: var(--tertiary); }
+.tele-chip.is-timer { border-color: color-mix(in srgb, var(--data-4) 45%, transparent); color: var(--data-4); }
+.tele-chip.is-timer.is-urgent { border-color: var(--error); color: var(--error); box-shadow: var(--glow-primary); }
+
+/* Band 2: Top Question Stage + 3s Auto-Hiding Metadata */
+#question-stage {
+  position: relative;
+  z-index: 15;
+  width: min(980px, 94vw);
+  margin: var(--space-sm) auto 0;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--glass-card);
+  border: var(--neon-border-cyan);
+  border-radius: var(--rounded-lg);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-xs);
+  transition: padding var(--dur-short) var(--ease-in-out);
+}
+
+#meta-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  max-height: 70px;
+  opacity: 1;
+  overflow: hidden;
+  transition: opacity var(--dur-long) var(--ease-out), max-height var(--dur-long) var(--ease-out), margin var(--dur-long) var(--ease-out);
+}
+#meta-badge-row.is-faded {
+  opacity: 0;
+  max-height: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+.meta-pill {
+  padding: 0.16rem 0.48rem;
+  border-radius: var(--rounded);
+  border: 1px solid var(--outline-variant);
+  background: var(--surface-container-low);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+.meta-pill.is-corridor { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+.meta-pill.is-phase { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+.meta-pill.is-entity { border-color: color-mix(in srgb, var(--primary) 45%, transparent); color: var(--on-primary-container); }
+
+#q-stem-text {
+  margin: 0;
+  width: 100%;
+  max-width: 78ch;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: clamp(0.86rem, 0.82rem + 0.22vw, 1rem);
+  font-weight: 500;
+  line-height: 1.48;
+  color: var(--on-surface);
+}
+#xr-app.hints-visible #q-stem-text {
+  font-size: clamp(0.8rem, 0.76rem + 0.16vw, 0.91rem);
+  line-height: 1.38;
+}
+
+/* Band 3: Center 3D Viewport & 3 Frosted Glass Answer Cards */
+#viewport-stage {
+  position: relative;
+  z-index: 12;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-sm) var(--space-md);
+  pointer-events: none;
+}
+
+#lanes-grid {
+  width: min(1080px, 95vw);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-md);
+  align-items: stretch;
+  pointer-events: auto;
+  margin-bottom: clamp(2.2rem, 6vh, 4.5rem);
+}
+
+#xr-app.hints-visible #lanes-grid {
+  margin-bottom: var(--space-sm);
+}
+
+.lane-dom-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  min-height: 158px;
+  padding: var(--space-md) var(--space-md);
+  background: var(--glass-card);
+  border-radius: var(--rounded-lg);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  user-select: none;
+  transition: transform var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out), min-height var(--dur-short) var(--ease-in-out);
+}
+#xr-app.hints-visible .lane-dom-card {
+  min-height: 122px;
+  padding: var(--space-sm) var(--space-md);
+}
+
+.lane-dom-card[data-lane="0"] { border: 1.5px solid color-mix(in srgb, var(--primary) 62%, transparent); }
+.lane-dom-card[data-lane="1"] { border: 1.5px solid color-mix(in srgb, var(--secondary) 62%, transparent); }
+.lane-dom-card[data-lane="2"] { border: 1.5px solid color-mix(in srgb, var(--tertiary) 62%, transparent); }
+
+.lane-dom-card[data-lane="0"].is-targeted,
+.lane-dom-card[data-lane="0"]:hover {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary), inset 0 0 18px color-mix(in srgb, var(--primary) 16%, transparent);
+  transform: translateY(-3px);
+}
+.lane-dom-card[data-lane="1"].is-targeted,
+.lane-dom-card[data-lane="1"]:hover {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary), inset 0 0 18px color-mix(in srgb, var(--secondary) 16%, transparent);
+  transform: translateY(-3px);
+}
+.lane-dom-card[data-lane="2"].is-targeted,
+.lane-dom-card[data-lane="2"]:hover {
+  border-color: var(--tertiary);
+  box-shadow: var(--glow-tertiary), inset 0 0 18px color-mix(in srgb, var(--tertiary) 16%, transparent);
+  transform: translateY(-3px);
+}
+
+.lane-card-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.lane-key-label {
+  padding: 0.14rem 0.4rem;
+  border-radius: var(--rounded);
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+}
+.lane-dom-card[data-lane="0"] .lane-key-label { color: var(--primary); }
+.lane-dom-card[data-lane="1"] .lane-key-label { color: var(--secondary); }
+.lane-dom-card[data-lane="2"] .lane-key-label { color: var(--tertiary); }
+
+.lane-xp-chip {
+  color: var(--on-surface-variant);
+}
+
+.lane-choice-body {
+  width: 100%;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: clamp(0.84rem, 0.8rem + 0.18vw, 0.96rem);
+  font-weight: 500;
+  line-height: 1.38;
+  color: var(--on-surface);
+}
+.lane-choice-body span {
+  display: inline-block;
+  text-align: center;
+}
+
+/* Band 4: Bottom Hints Bar [H] */
+#hints-bar {
+  position: relative;
+  z-index: 15;
+  width: min(980px, 94vw);
+  margin: 0 auto var(--space-sm);
+  background: var(--glass-bar);
+  border: var(--neon-border-yellow);
+  border-radius: var(--rounded-lg);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+  transition: max-height var(--dur-short) var(--ease-out), opacity var(--dur-short) var(--ease-out), padding var(--dur-short) var(--ease-out), margin var(--dur-short) var(--ease-out);
+}
+#xr-app.hints-hidden #hints-bar {
+  max-height: 0;
+  opacity: 0;
+  padding: 0;
+  margin-bottom: 0;
+  border-width: 0;
+  pointer-events: none;
+}
+#xr-app.hints-visible #hints-bar {
+  max-height: 120px;
+  opacity: 1;
+  padding: var(--space-xs) var(--space-md);
+}
+.hints-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.2rem;
+}
+.hints-kicker {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tertiary);
+}
+#q-clue-text {
+  margin: 0;
+  text-align: center;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: var(--on-surface);
+}
+
+/* Menu Drawer (#top-menu-drawer) */
+#drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: var(--drawer-backdrop);
+  backdrop-filter: blur(4px);
+  display: none;
+}
+#drawer-backdrop.is-open { display: block; }
+
+#top-menu-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 50;
+  width: min(460px, 94vw);
+  background: var(--surface-container-low);
+  border-right: var(--neon-border-cyan);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-104%);
+  transition: transform var(--dur-short) var(--ease-out);
+  overflow: hidden;
+}
+#top-menu-drawer.is-open { transform: translateX(0); }
+
+.drawer-header {
+  padding: var(--space-md);
+  background: var(--surface-container);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+.drawer-kicker {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  text-shadow: var(--glow-text);
+  margin: 0 0 0.25rem;
+}
+.drawer-title {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--on-surface);
+}
+
+.drawer-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.drawer-section {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+.drawer-section-label {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+  margin: 0;
+}
+
+.drawer-btn-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-xs);
+}
+
+.btn-neon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 40px;
+  padding: 0.4rem 0.75rem;
+  background: var(--surface-container-high);
+  color: var(--primary);
+  border: var(--neon-border-lit);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: box-shadow var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+}
+.btn-neon:hover {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+}
+.btn-neon.is-cyan {
+  color: var(--secondary);
+  border-color: color-mix(in srgb, var(--secondary) 48%, transparent);
+}
+.btn-neon.is-cyan:hover {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+}
+.btn-neon.is-yellow {
+  color: var(--tertiary);
+  border-color: color-mix(in srgb, var(--tertiary) 48%, transparent);
+}
+.btn-neon.is-yellow:hover {
+  border-color: var(--tertiary);
+  box-shadow: var(--glow-tertiary);
+}
+.btn-neon.is-active {
+  background: color-mix(in srgb, var(--secondary) 16%, var(--surface-container-high));
+  border-color: var(--secondary);
+  color: var(--secondary);
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.field-label {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+.neon-select, .neon-input {
+  width: 100%;
+  min-height: 38px;
+  padding: 0.4rem 1.8rem 0.4rem 0.6rem;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-size: 0.82rem;
+}
+
+.phase-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+.phase-pill-btn {
+  flex: 1 1 auto;
+  min-height: 34px;
+  padding: 0.25rem 0.5rem;
+  background: var(--surface-container-low);
+  color: var(--on-surface-variant);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.phase-pill-btn.is-active {
+  color: var(--tertiary);
+  border-color: var(--tertiary);
+  background: color-mix(in srgb, var(--tertiary) 12%, var(--surface-container-low));
+}
+
+.skill-tree-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-xs);
+}
+.skill-node-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.2rem;
+  padding: 0.45rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color var(--dur-micro) var(--ease-out);
+}
+.skill-node-btn:hover, .skill-node-btn.is-current {
+  border-color: var(--secondary);
+}
+.skill-node-btn.is-mastered {
+  border-color: color-mix(in srgb, var(--secondary) 60%, transparent);
+  background: color-mix(in srgb, var(--secondary) 10%, var(--surface-container-low));
+}
+.skill-node-title {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--on-surface);
+  line-height: 1.25;
+}
+.skill-node-meta {
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  color: var(--on-surface-variant);
+}
+
+.hotkey-guide {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  color: var(--on-surface-variant);
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.45rem 0.65rem;
+  line-height: 1.5;
+}
+
+.inline-toast {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  color: var(--tertiary);
+  min-height: 1.1em;
+}
+
+/* Modals (Outcome Dossier & Loot Codex) */
+.xr-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+  background: var(--modal-backdrop);
+  backdrop-filter: blur(8px);
+}
+.xr-modal-overlay.is-open { display: flex; }
+
+.xr-modal-card {
+  width: min(980px, 95vw);
+  height: min(88dvh, 840px);
+  background: var(--surface-container);
+  border: var(--neon-border-cyan);
+  border-radius: var(--rounded-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-header-bar {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+.modal-status-title {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: clamp(0.95rem, 0.88rem + 0.35vw, 1.2rem);
+  font-weight: 700;
+}
+.modal-status-title.is-correct { color: var(--secondary); text-shadow: var(--glow-text); }
+.modal-status-title.is-wrong { color: var(--primary); text-shadow: var(--glow-text); }
+.modal-status-title.is-timeout { color: var(--tertiary); text-shadow: var(--glow-text); }
+
+.modal-scroll-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-md);
+}
+
+.dossier-stem-box {
+  width: 100%;
+  max-width: 82ch;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  text-align: center;
+}
+.dossier-stem-kicker {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  margin: 0 0 0.25rem;
+}
+.dossier-stem-text {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--on-surface);
+  text-align: center;
+}
+
+.choice-compare-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+.compare-box {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.25rem;
+}
+.compare-box.is-yours-correct { border-color: var(--secondary); }
+.compare-box.is-yours-wrong { border-color: var(--primary); }
+.compare-box.is-right { border-color: var(--secondary); }
+.compare-label {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+.compare-value {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--on-surface);
+  line-height: 1.35;
+}
+
+.dossier-sections-stack {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+}
+.dossier-card {
+  width: 100%;
+  max-width: 82ch;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.3rem;
+}
+.dossier-card-title {
+  margin: 0;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tertiary);
+}
+.dossier-bullets {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+.dossier-line {
+  margin: 0;
+  font-size: 0.87rem;
+  line-height: 1.48;
+  color: var(--on-surface);
+  text-align: center;
+}
+
+.phase-mini-grid {
+  width: 100%;
+  max-width: 82ch;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+.phase-mini-card {
+  padding: var(--space-sm);
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.22rem;
+}
+.phase-mini-card.is-current {
+  border-color: var(--secondary);
+  background: color-mix(in srgb, var(--secondary) 8%, var(--surface-container-low));
+}
+.phase-mini-tag {
+  font-family: var(--font-label);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: var(--secondary);
+}
+.phase-mini-angle {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--on-surface);
+}
+.phase-mini-ans {
+  font-size: 0.75rem;
+  color: var(--on-surface-variant);
+}
+
+.modal-footer-bar {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-container-high);
+  border-top: 1px solid var(--outline-variant);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+}
+
+/* 6-Column Master Loot Codex */
+.codex-toolbar {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+.codex-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+}
+.codex-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.8rem;
+}
+.codex-table th {
+  padding: 0.55rem 0.6rem;
+  background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--secondary);
+}
+.codex-table td {
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--outline-variant);
+  vertical-align: top;
+  color: var(--on-surface);
+  line-height: 1.4;
+}
+.codex-table tr:nth-child(even) td {
+  background: var(--surface-container-low);
+}
+.codex-jump-btn {
+  min-height: 30px;
+  padding: 0.2rem 0.45rem;
+}
+
+/* 3 Required Phone Media Queries (v3.8) */
+@media (max-width: 600px) {
+  #top-mini-bar { padding: 0.25rem 0.5rem; min-height: 40px; }
+  .tele-chip { font-size: 0.66rem; padding: 0.16rem 0.36rem; }
+  #question-stage { width: 96vw; margin-top: 0.25rem; padding: 0.45rem 0.6rem; }
+  #q-stem-text { font-size: 0.82rem; line-height: 1.38; }
+  #viewport-stage { padding: 0.35rem 0.5rem; }
+  #lanes-grid {
+    width: 96vw;
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+    margin-bottom: 0.5rem;
+  }
+  .lane-dom-card { min-height: 68px; padding: 0.55rem 0.65rem; }
+  .lane-card-head, .lane-key-label, .lane-xp-chip { display: none; }
+  .lane-choice-body { font-size: 0.82rem; line-height: 1.3; }
+  #xr-app.hints-visible #question-stage { padding: 0.35rem 0.5rem; }
+  #xr-app.hints-visible #q-stem-text { font-size: 0.76rem; line-height: 1.3; }
+  #xr-app.hints-visible .lane-dom-card { min-height: 54px; padding: 0.4rem 0.55rem; }
+  #xr-app.hints-visible .lane-choice-body { font-size: 0.76rem; }
+  .xr-modal-card { width: 96vw; height: 92dvh; }
+  .choice-compare-grid, .phase-mini-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-height: 500px) and (pointer: coarse) {
+  #top-mini-bar { min-height: 34px; padding: 0.15rem 0.5rem; }
+  #question-stage { margin-top: 0.2rem; padding: 0.3rem 0.55rem; }
+  #q-stem-text { font-size: 0.76rem; line-height: 1.26; }
+  #lanes-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.4rem; margin-bottom: 0.25rem; }
+  .lane-dom-card { min-height: 62px; padding: 0.35rem 0.45rem; }
+  .lane-card-head { margin-bottom: 0.15rem; font-size: 0.58rem; }
+  .lane-choice-body { font-size: 0.74rem; line-height: 1.22; }
+}
+
+@media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+  html { font-size: 200%; }
+  #lanes-grid { grid-template-columns: 1fr; gap: 0.45rem; margin-bottom: 0.5rem; }
+  .lane-dom-card { min-height: 70px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+<div id="xr-app" class="hints-hidden">
+  <canvas id="xr-canvas" aria-label="3D Synthwave Diagnostic Corridor"></canvas>
+
+  <!-- Band 1: Ultra-Slim Top Bar -->
+  <div id="top-mini-bar">
+    <button type="button" class="menu-trigger-btn" id="open-menu-btn" onclick="toggleMenuDrawer()" aria-expanded="false" aria-controls="top-menu-drawer">☰ MENU</button>
+    <div class="telemetry-strip">
+      <span class="tele-chip is-hp" id="chip-hp">HP 100</span>
+      <span class="tele-chip is-xp" id="chip-xp">XP 0</span>
+      <span class="tele-chip is-streak" id="chip-streak">⚡ 0</span>
+      <span class="tele-chip" id="chip-gate">Gate 1/45</span>
+      <span class="tele-chip is-timer" id="chip-timer">⏱ OFF</span>
+    </div>
+  </div>
+
+  <!-- Band 2: Top Question Stage + 3s Auto-Hiding Metadata -->
+  <section id="question-stage" aria-live="polite">
+    <div id="meta-badge-row">
+      <span class="meta-pill is-entity" id="badge-sector-entity">Sector I • Entity 1</span>
+      <span class="meta-pill" id="badge-angle">Angle: Mechanism</span>
+      <span class="meta-pill is-phase" id="badge-phase">Phase 1/3</span>
+      <span class="meta-pill is-corridor" id="badge-corridor">CORRIDOR: SYNAPSE</span>
+    </div>
+    <p id="q-stem-text" class="question-stem amboss-scan-target">Initializing diagnostic corridor…</p>
+  </section>
+
+  <!-- Band 3: Center 3D Viewport & 3 Frosted Frosted-Glass Cards -->
+  <main id="viewport-stage">
+    <div id="lanes-grid">
+      <div class="lane-dom-card is-targeted" id="lane-card-0" data-lane="0" role="button" tabindex="0" onclick="fireLaneDecision(0)" onkeydown="handleLaneKeydown(event, 0)">
+        <div class="lane-card-head">
+          <span class="lane-key-label">[← / A] LANE 1</span>
+          <span class="lane-xp-chip">+100 XP</span>
+        </div>
+        <div class="lane-choice-body amboss-scan-target" id="lane-0-text"><span>Choice A</span></div>
+      </div>
+
+      <div class="lane-dom-card" id="lane-card-1" data-lane="1" role="button" tabindex="0" onclick="fireLaneDecision(1)" onkeydown="handleLaneKeydown(event, 1)">
+        <div class="lane-card-head">
+          <span class="lane-key-label">[↓ / S] LANE 2</span>
+          <span class="lane-xp-chip">+100 XP</span>
+        </div>
+        <div class="lane-choice-body amboss-scan-target" id="lane-1-text"><span>Choice B</span></div>
+      </div>
+
+      <div class="lane-dom-card" id="lane-card-2" data-lane="2" role="button" tabindex="0" onclick="fireLaneDecision(2)" onkeydown="handleLaneKeydown(event, 2)">
+        <div class="lane-card-head">
+          <span class="lane-key-label">[→ / D] LANE 3</span>
+          <span class="lane-xp-chip">+100 XP</span>
+        </div>
+        <div class="lane-choice-body amboss-scan-target" id="lane-2-text"><span>Choice C</span></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Band 4: Bottom Tactical Hints Bar [H] -->
+  <aside id="hints-bar" aria-label="Tactical Clue">
+    <div class="hints-inner">
+      <span class="hints-kicker">Tactical Clue [H]</span>
+      <p id="q-clue-text" class="amboss-scan-target">Press H to toggle tactical hints.</p>
+    </div>
+  </aside>
+</div>
+
+<!-- Menu Drawer Backdrop & Panel -->
+<div id="drawer-backdrop" onclick="toggleMenuDrawer()"></div>
+<aside id="top-menu-drawer" aria-label="Runner Command Menu">
+  <div class="drawer-header">
+    <div>
+      <p class="drawer-kicker">COMLEX-USA / USMLE XR Diagnostic Raid • v3.8</p>
+      <h1 class="drawer-title">Psychiatry, Behavioral Medicine, Genetics &amp; Biochemistry</h1>
+    </div>
+    <button type="button" class="btn-neon is-cyan" onclick="toggleMenuDrawer()" aria-label="Close Menu">✕ Close</button>
+  </div>
+  <div class="drawer-body">
+    <div class="drawer-section">
+      <p class="drawer-section-label">Tactical Controls</p>
+      <div class="drawer-btn-grid">
+        <button type="button" class="btn-neon is-yellow" id="menu-hints-btn" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+        <button type="button" class="btn-neon is-cyan" onclick="openCodexFromMenu()">📖 Loot Codex [C]</button>
+        <button type="button" class="btn-neon" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+        <button type="button" class="btn-neon is-cyan" id="menu-timer-btn" onclick="toggleTimerMode()">⏱ 50s Timer: OFF [T]</button>
+        <button type="button" class="btn-neon is-yellow" onclick="startTimedRunFromMenu()">▶ Start 50s Timed Run</button>
+        <button type="button" class="btn-neon" onclick="restartOrderedDeck()">↺ Restart Ordered</button>
+        <button type="button" class="btn-neon is-cyan" onclick="shuffleDeckOrder()">🔀 Shuffle Deck</button>
+        <button type="button" class="btn-neon" id="reset-mastery-btn" onclick="resetMasteryState(this)">🗑 Reset Mastery</button>
+      </div>
+      <div class="inline-toast" id="menu-toast" aria-live="polite"></div>
+    </div>
+
+    <div class="drawer-section">
+      <p class="drawer-section-label">Synthesizer &amp; Custom Audio</p>
+      <div class="drawer-btn-grid">
+        <button type="button" class="btn-neon is-active" id="btn-master-sound" onclick="toggleMasterSound()">🔊 Sound: ON</button>
+        <button type="button" class="btn-neon is-active" id="btn-sfx-sound" onclick="toggleSfxSound()">🎛 SFX: ON</button>
+        <button type="button" class="btn-neon is-cyan" id="btn-bgm-sound" onclick="toggleProceduralBgm()">🎵 Synth BGM: OFF</button>
+        <label class="btn-neon is-yellow" for="custom-audio-input" style="cursor:pointer;">📂 Load MP3/WAV</label>
+        <input type="file" id="custom-audio-input" accept="audio/*" style="display:none;" onchange="loadCustomAudioFile(event)">
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="bgm-volume-slider">BGM Volume (<span id="bgm-vol-readout">35%</span>)</label>
+        <input type="range" id="bgm-volume-slider" min="0" max="100" value="35" oninput="updateBgmVolume(this.value)">
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <p class="drawer-section-label">Curriculum Routing &amp; Phase Filter</p>
+      <div class="field-group">
+        <label class="field-label" for="sector-filter-select">Sector / Review Filter</label>
+        <select id="sector-filter-select" class="neon-select" onchange="applySectorFilter(this.value)">
+          <option value="ALL">All 5 Sectors (45 Gates)</option>
+          <option value="MISSED">🎯 Missed Gates Only</option>
+          <option value="1">Sector I — Monoamines, Indoleamines &amp; GABA/Glu</option>
+          <option value="2">Sector II — Inborn Errors of Metabolism</option>
+          <option value="3">Sector III — Microdeletions, Imprinting &amp; Neurogenetics</option>
+          <option value="4">Sector IV — Pharmacogenomics, HLA &amp; Second Messengers</option>
+          <option value="5">Sector V — HPA Axis, Vitamins &amp; Psychosomatic OMT</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="entity-filter-select">Jump to Core Entity (1–15)</label>
+        <select id="entity-filter-select" class="neon-select" onchange="jumpToEntity(this.value)"></select>
+      </div>
+      <div class="field-group">
+        <span class="field-label">Phase Mix Filter</span>
+        <div class="phase-pills-row">
+          <button type="button" class="phase-pill-btn is-active" data-phase="ALL" onclick="setPhaseFilter('ALL', this)">All Phases</button>
+          <button type="button" class="phase-pill-btn" data-phase="1" onclick="setPhaseFilter('1', this)">P1 Mechanism</button>
+          <button type="button" class="phase-pill-btn" data-phase="2" onclick="setPhaseFilter('2', this)">P2 Clinical</button>
+          <button type="button" class="phase-pill-btn" data-phase="3" onclick="setPhaseFilter('3', this)">P3 Management</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <p class="drawer-section-label">15-Entity Diagnostic Skill Tree</p>
+      <div class="skill-tree-grid" id="skill-tree-grid"></div>
+    </div>
+
+    <div class="hotkey-guide">
+      Steering: Hover mouse across lanes or press A/← (Left), S/↓ (Center), D/→ (Right). Click or press 1/2/3/Enter to launch. [H] Tactical Hints • [C] Loot Codex • [T] 50s Timer • [Space/Enter] Advance Outcome Dossier.
+    </div>
+  </div>
+</aside>
+
+<!-- Outcome Dossier Review Modal -->
+<div id="outcome-modal" class="xr-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="outcome-modal-title">
+  <div class="xr-modal-card">
+    <div class="modal-header-bar">
+      <h2 id="outcome-modal-title" class="modal-status-title is-correct">✔ CORRECT</h2>
+      <span class="tele-chip" id="outcome-meta-chip">Gate 1/45</span>
+    </div>
+    <div id="outcome-scroll-body" class="modal-scroll-body">
+      <div class="dossier-stem-box">
+        <p class="dossier-stem-kicker" id="outcome-entity-kicker">Sector • Entity</p>
+        <p class="dossier-stem-text amboss-scan-target" id="outcome-stem-text"></p>
+      </div>
+      <div class="choice-compare-grid">
+        <div class="compare-box" id="compare-your-box">
+          <span class="compare-label">Your Diagnostic Lane</span>
+          <span class="compare-value amboss-scan-target" id="compare-your-text"></span>
+        </div>
+        <div class="compare-box is-right">
+          <span class="compare-label">Verified Answer</span>
+          <span class="compare-value amboss-scan-target" id="compare-right-text"></span>
+        </div>
+      </div>
+      <div class="dossier-sections-stack" id="outcome-dossier-sections"></div>
+      <div class="phase-mini-grid" id="outcome-phase-grid"></div>
+    </div>
+    <div class="modal-footer-bar">
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(-180)">▲ Up</button>
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(180)">▼ Down</button>
+      <button type="button" class="btn-neon" id="continue-runner-btn" onclick="continueToNextGate()">▶ Continue Runner [Space / Enter]</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6-Column Master Loot Codex Modal -->
+<div id="codex-modal" class="xr-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="codex-modal-title">
+  <div class="xr-modal-card">
+    <div class="modal-header-bar">
+      <h2 id="codex-modal-title" class="modal-status-title is-correct">📖 MASTER LOOT CODEX (45 GATES)</h2>
+      <button type="button" class="btn-neon is-cyan" onclick="closeCodex()">✕ Close [Esc]</button>
+    </div>
+    <div class="modal-scroll-body" style="align-items:stretch; text-align:left;">
+      <div class="codex-toolbar">
+        <div class="field-group" style="flex:1 1 220px;">
+          <label class="field-label" for="codex-search-input">Filter Gates / Entities</label>
+          <input type="text" id="codex-search-input" class="neon-input" placeholder="Search AIP, ATP7B, FMR1, CYP2D6, CV4…" oninput="renderCodexTable()">
+        </div>
+        <div class="field-group" style="flex:0 1 200px;">
+          <label class="field-label" for="codex-status-select">Mastery Status</label>
+          <select id="codex-status-select" class="neon-select" onchange="renderCodexTable()">
+            <option value="ALL">All Gates (45)</option>
+            <option value="MASTERED">Mastered</option>
+            <option value="MISSED">Missed</option>
+            <option value="UNSEEN">Unseen</option>
+          </select>
+        </div>
+      </div>
+      <div class="codex-table-wrap">
+        <table class="codex-table">
+          <thead>
+            <tr>
+              <th>Gate / Entity</th>
+              <th>Phase &amp; Angle</th>
+              <th>Core Answer</th>
+              <th>Biochem / Genetic Key</th>
+              <th>Clinical Pearl</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="codex-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<api-shim></api-shim>
+<script>
+const LO_VISUAL_THEMES = {
+  1:  { tag: 'CATECHOLAMINE SYNAPSE', gridRgb: '255,45,120',  dustColor: '#ff2d78' },
+  2:  { tag: 'INDOLEAMINE PINEAL',   gridRgb: '0,255,204',   dustColor: '#00ffcc' },
+  3:  { tag: 'GABA-GLUTAMATE SHUNT', gridRgb: '255,224,74',  dustColor: '#ffe04a' },
+  4:  { tag: 'HEME PORPHYRIA CORE',  gridRgb: '255,68,120',  dustColor: '#ff4488' },
+  5:  { tag: 'COPPER LENTICULAR',    gridRgb: '0,212,255',   dustColor: '#00d4ff' },
+  6:  { tag: 'PURINE & SULFUR',      gridRgb: '179,136,255', dustColor: '#b388ff' },
+  7:  { tag: '22Q11 CONOTRUNCAL',    gridRgb: '255,45,120',  dustColor: '#ff5c98' },
+  8:  { tag: 'FMR1 CGG METHYLATION', gridRgb: '0,255,204',   dustColor: '#33ffd6' },
+  9:  { tag: '15Q11 IMPRINTING',     gridRgb: '255,224,74',  dustColor: '#ffe875' },
+  10: { tag: 'CYP450 METABOLIZER',   gridRgb: '179,136,255', dustColor: '#c7a4ff' },
+  11: { tag: 'HLA-B*1502 SHIELD',    gridRgb: '255,68,68',   dustColor: '#ff6b6b' },
+  12: { tag: 'GSK-3B / INOSITOL',    gridRgb: '0,255,204',   dustColor: '#00e5ff' },
+  13: { tag: 'HPA CORTISOL AXIS',    gridRgb: '255,45,120',  dustColor: '#ff2d78' },
+  14: { tag: 'NEURO-VITAMIN COFACTOR', gridRgb: '255,224,74', dustColor: '#ffd43b' },
+  15: { tag: 'CRANIAL VAGAL / CV4',  gridRgb: '0,255,204',   dustColor: '#00ffcc' }
+};
+
+const ENTITIES = [
+  { id: 1, sector: 1, sectorName: 'Sector I: Monoamines & Amino Acids', name: 'Catecholamine Biosynthesis & Breakdown' },
+  { id: 2, sector: 1, sectorName: 'Sector I: Monoamines & Amino Acids', name: 'Serotonin & Melatonin Synthesis' },
+  { id: 3, sector: 1, sectorName: 'Sector I: Monoamines & Amino Acids', name: 'GABA & Glutamate Shunt' },
+  { id: 4, sector: 2, sectorName: 'Sector II: Inborn Errors of Metabolism', name: 'Acute Intermittent Porphyria (AIP)' },
+  { id: 5, sector: 2, sectorName: 'Sector II: Inborn Errors of Metabolism', name: 'Wilson Disease (ATP7B)' },
+  { id: 6, sector: 2, sectorName: 'Sector II: Inborn Errors of Metabolism', name: 'Lesch-Nyhan & Homocystinuria' },
+  { id: 7, sector: 3, sectorName: 'Sector III: Chromosomal & Neurogenetics', name: '22q11.2 Microdeletion Syndrome' },
+  { id: 8, sector: 3, sectorName: 'Sector III: Chromosomal & Neurogenetics', name: 'Fragile X Syndrome (FMR1)' },
+  { id: 9, sector: 3, sectorName: 'Sector III: Chromosomal & Neurogenetics', name: 'Prader-Willi, Angelman & Rett' },
+  { id: 10, sector: 4, sectorName: 'Sector IV: Pharmacogenomics & Signaling', name: 'CYP450 Pharmacogenomics' },
+  { id: 11, sector: 4, sectorName: 'Sector IV: Pharmacogenomics & Signaling', name: 'HLA-B*1502 & HLA-B*3101' },
+  { id: 12, sector: 4, sectorName: 'Sector IV: Pharmacogenomics & Signaling', name: 'Lithium Signaling & Neuroplasticity' },
+  { id: 13, sector: 5, sectorName: 'Sector V: Neuroendocrine, Vitamins & OMT', name: 'HPA Axis Hyperactivity in MDD' },
+  { id: 14, sector: 5, sectorName: 'Sector V: Neuroendocrine, Vitamins & OMT', name: 'B12, Folate & Thiamine Neuropsychiatry' },
+  { id: 15, sector: 5, sectorName: 'Sector V: Neuroendocrine, Vitamins & OMT', name: 'Autonomic Balancing, Suboccipital & CV4' }
+];
+
+// Compact builder to guarantee clean 7-part dossiers across all 45 gates
+function g(id, entityId, phase, angle, stem, choices, correct, shortAnswer, clue, d1, d2, d3, d4, d5, d6, d7) {
+  return {
+    id, entityId, phase, angle, stem, choices, correct, shortAnswer, clue,
+    dossier: [
+      { title: '1. Core Biochemical / Genetic Mechanism', lines: d1 },
+      { title: '2. Clinical Vignette & Behavioral Link', lines: d2 },
+      { title: '3. High-Yield Pathognomonic Findings', lines: d3 },
+      { title: '4. Diagnostic Workup & Labs', lines: d4 },
+      { title: '5. Pharmacology & Therapeutic Strategy', lines: d5 },
+      { title: '6. Distractor Trap Analysis', lines: d6 },
+      { title: '7. COMLEX / USMLE Board Takeaway', lines: d7 }
+    ]
+  };
+}
+
+const QUESTIONS = [
+  // Entity 1: Catecholamine Biosynthesis & Breakdown (Gates 1-3)
+  g(1, 1, 1, 'Rate-Limiting Enzyme & Cofactor',
+    `A 29-year-old man with severe treatment-resistant depression and refractory parkinsonian rigidity is evaluated for central catecholamine depletion. Which rate-limiting enzymatic step directly converts tyrosine to L-DOPA using tetrahydrobiopterin (BH4)?`,
+    [`Tyrosine hydroxylase`, `DOPA decarboxylase`, `Dopamine β-hydroxylase`], 0,
+    `Tyrosine hydroxylase (BH4)`,
+    `Look for the rate-limiting step of catecholamine synthesis inside the cytoplasm before vesicular uptake.`,
+    `Tyrosine hydroxylase catalyzes hydroxylation of L-tyrosine to L-DOPA using BH4 as an essential cofactor.\nRate-limiting step for dopamine, norepinephrine, and epinephrine biosynthesis.`,
+    `BH4 deficiency impairs both phenylalanine hydroxylase and tyrosine hydroxylase, producing dystonia and depression.`,
+    `Metyrosine is a tyrosine analog that inhibits tyrosine hydroxylase in inoperable pheochromocytoma.`,
+    `CSF homovanillic acid (HVA) and 5-HIAA are depressed in BH4 synthesis defects.`,
+    `L-DOPA + carbidopa bypasses tyrosine hydroxylase; BH4 supplementation restores cofactor activity.`,
+    `DOPA decarboxylase uses vitamin B6 (PLP) to make dopamine; dopamine β-hydroxylase uses vitamin C inside synaptic vesicles.`,
+    `Tyrosine -> L-DOPA via Tyrosine Hydroxylase + BH4 is the rate-limiting step of catecholamine synthesis.`
+  ),
+  g(2, 1, 2, 'Vesicular Conversion & Cofactor',
+    `A 44-year-old man with chronic malnutrition, gingival hemorrhage, and corkscrew hairs develops orthostatic hypotension and blunted sympathetic vasoconstriction. Impaired conversion of dopamine to norepinephrine inside synaptic vesicles reflects deficiency of which cofactor?`,
+    [`Pyridoxal phosphate (B6)`, `Ascorbic acid (Vitamin C)`, `S-adenosylmethionine (SAM)`], 1,
+    `Vitamin C (Dopamine β-hydroxylase)`,
+    `Gingival bleeding + corkscrew hairs point to scurvy; match the vesicular enzyme cofactor.`,
+    `Dopamine β-hydroxylase resides inside catecholamine storage vesicles and requires Vitamin C (ascorbate) and copper.\nIt converts dopamine into norepinephrine.`,
+    `Scurvy impairs collagen hydroxylation (prolyl/lysyl hydroxylase) and reduces sympathetic norepinephrine tone.`,
+    `Perifollicular hemorrhage, corkscrew hairs, ecchymoses, and orthostatic intolerance.`,
+    `Clinical diagnosis supported by low plasma ascorbic acid; check urine metanephrines if pheochromocytoma suspected.`,
+    `Oral Vitamin C rapidly restores dopamine β-hydroxylase activity and collagen cross-linking.`,
+    `B6 is required by DOPA decarboxylase; SAM is the methyl donor for PNMT (NE -> Epinephrine) in adrenal medulla.`,
+    `Inside vesicles: Dopamine -> Norepinephrine via Dopamine β-hydroxylase + Vitamin C.`
+  ),
+  g(3, 1, 3, 'Adrenal Methylation & Catabolism',
+    `A 38-year-old woman with episodic panic attacks, diaphoresis, and paroxysmal hypertension (210/118 mmHg) undergoes 24-hour urine collection. Which enzyme requires cortisol-induced expression and SAM as a methyl donor, and what terminal urinary metabolites confirm catecholamine excess?`,
+    [`PNMT; metanephrines and VMA`, `COMT; 5-HIAA and HVA`, `MAO-B; phenylacetate and lactate`], 0,
+    `PNMT; Metanephrines & VMA`,
+    `Pheochromocytoma secretes epinephrine via an adrenal medullary enzyme driven by adjacent cortical cortisol.`,
+    `Phenylethanolamine-N-methyltransferase (PNMT) converts norepinephrine to epinephrine using SAM.\nCortisol from the adrenal cortex induces PNMT via the intra-adrenal portal system.`,
+    `Episodic catecholamine surges mimic panic disorder (headache, palpitations, sweating, hypertension).`,
+    `Rule of 10s for pheochromocytoma; associated with MEN 2A/2B, VHL, NF1.`,
+    `Elevated plasma free metanephrines and 24-hour urine metanephrines/VMA (breakdown via MAO-A and COMT).`,
+    `Preoperative irreversible α-blockade (phenoxybenzamine) MUST precede β-blockade to prevent unopposed α1 crisis.`,
+    `5-HIAA is serotonin breakdown; HVA is dopamine breakdown; phenylacetate elevates in PKU.`,
+    `Cortisol induces PNMT (+SAM -> Epinephrine); MAO + COMT yield VMA and metanephrines.`
+  ),
+
+  // Entity 2: Serotonin & Melatonin Synthesis (Gates 4-6)
+  g(4, 2, 1, 'Indoleamine Pathway & Cofactors',
+    `A 26-year-old woman with SSRI-responsive OCD asks how dietary amino acids generate CNS serotonin. Which sequence of precursor, rate-limiting enzyme, and decarboxylase cofactor correctly describes serotonin synthesis?`,
+    [`Tryptophan -> Tryptophan hydroxylase (BH4) -> AADC (B6)`, `Tyrosine -> Tryptophan hydroxylase (B6) -> MAO-A (NAD+)`, `Histidine -> Histidine decarboxylase (B6) -> COMT (SAM)`], 0,
+    `Tryptophan -> TPH (BH4) -> AADC (B6)`,
+    `Serotonin is an indoleamine derived from an essential neutral amino acid.`,
+    `Tryptophan is hydroxylated to 5-HTP by tryptophan hydroxylase (rate-limiting, requires BH4).\n5-HTP is decarboxylated to 5-HT (serotonin) by aromatic L-amino acid decarboxylase (requires B6).`,
+    `CNS serotonin modulates mood, impulse control, sleep-wake rhythm, and migraine vasoreactivity.`,
+    `Raphe nuclei in the brainstem are the primary CNS serotonergic source.`,
+    `CSF 5-HIAA reflects central serotonin turnover; MAO-A degrades 5-HT to 5-HIAA.`,
+    `SSRIs block SERT reuptake; triptans act as 5-HT1B/1D agonists in migraine.`,
+    `Tyrosine makes catecholamines; histidine makes histamine via histidine decarboxylase.`,
+    `Tryptophan + BH4 (hydroxylation) + B6 (decarboxylation) = Serotonin (5-HT).`
+  ),
+  g(5, 2, 2, 'Carcinoid Tryptophan Diversion',
+    `A 59-year-old man with flushing, watery diarrhea, bronchospasm, and a tricuspid regurgitation murmur develops dementia, diarrhea, and a hyperpigmented C3/C4 "broad collar" rash. What biochemical mechanism explains his dermatitis and neurocognitive decline?`,
+    [`Tumor diversion of tryptophan into serotonin depleting niacin (B3) synthesis`, `Excess hepatic MAO-A consumption causing pyridoxine (B6) toxicity`, `Impaired renal reabsorption of neutral amino acids (Hartnup transporter)`], 0,
+    `Tryptophan Diversion -> Pellagra (B3)`,
+    `A neuroendocrine gut tumor with liver metastases steals the shared precursor of serotonin and vitamin B3.`,
+    `Malignant carcinoid tumor consumes up to 60% of dietary tryptophan to synthesize 5-HT.\nLess tryptophan remains for endogenous niacin (B3) -> NAD+/NADP+ synthesis.`,
+    `Pellagra presents with the 3 D's: Diarrhea, Dementia (delirium/psychosis), Dermatitis (Casal necklace).`,
+    `Right-sided valvular fibrosis (TR/PS) spares left heart because pulmonary MAO-A inactivates serotonin.`,
+    `24-hour urine 5-HIAA is markedly elevated; chromogranin A positive neuroendocrine cells.`,
+    `Octreotide (somatostatin analog) + nicotinamide (niacin) supplementation.`,
+    `Hartnup disease causes congenital pellagra via defective neutral amino acid transport, not flushing/TR.`,
+    `Carcinoid syndrome diverts Tryptophan -> 5-HT, causing secondary Niacin (B3) deficiency (Pellagra).`
+  ),
+  g(6, 2, 3, 'Pineal Melatonin & Circadian Phase',
+    `A 34-year-old night-shift physician with delayed sleep-wake phase disorder receives light therapy and evening melatonin. Inside pinealocytes, which enzymatic conversion and autonomic input regulate melatonin synthesis from serotonin?`,
+    [`N-acetylation and O-methylation triggered by darkness via SCN -> SCG norepinephrine`, `Direct hydroxylation of serotonin triggered by bright blue light via optic tract`, `Decarboxylation of 5-HIAA triggered by parasympathetic vagal afferents`], 0,
+    `Darkness -> SCN/SCG -> NAT + ASMT`,
+    `Light suppresses the pineal gland via the retinohypothalamic tract and superior cervical ganglion.`,
+    `Serotonin undergoes N-acetylation (AANAT) and O-methylation (ASMT, using SAM) to form melatonin.\nDarkness disinhibits the SCN -> PVN -> IML (T1-T2) -> Superior Cervical Ganglion (β1-NE release).`,
+    `Circadian misalignment drives insomnia, mood lability, and seasonal affective symptoms.`,
+    `Bright light hits melanopsin retinal ganglion cells, suppressing SCN-driven pineal melatonin output.`,
+    `Dim-light melatonin onset (DLMO) marks biological night phase.`,
+    `Low-dose evening melatonin or ramelteon (MT1/MT2 agonist) advances circadian phase.`,
+    `Bright light inhibits rather than triggers melatonin; vagus does not innervate pinealocytes.`,
+    `Darkness stimulates SCG sympathetic β1 input -> Pineal converts 5-HT to Melatonin.`
+  ),
+
+  // Entity 3: GABA & Glutamate Shunt (Gates 7-9)
+  g(7, 3, 1, 'GAD Cofactor & Seizure Susceptibility',
+    `A 32-year-old man receiving isoniazid (INH) monotherapy for latent tuberculosis develops peripheral paresthesias, refractory agitation, and generalized tonic-clonic seizures unresponsive to phenytoin. Which enzymatic failure explains his status epilepticus?`,
+    [`Inhibition of glutamate decarboxylase (GAD) due to pyridoxine (B6) depletion`, `Direct blockade of NMDA glycine co-agonist site in hippocampus`, `Activation of GABA transaminase causing glutamate overproduction`], 0,
+    `GAD Failure from B6 Depletion`,
+    `INH forms hydrazones that deplete the cofactor required to convert excitatory glutamate into inhibitory GABA.`,
+    `Glutamate decarboxylase (GAD) requires pyridoxal-5'-phosphate (Vitamin B6) to convert glutamate -> GABA.\nINH binds PLP and accelerates renal B6 excretion, crashing CNS GABA levels.`,
+    `Presents with refractory seizures, high anion gap metabolic acidosis, and peripheral neuropathy.`,
+    `Always co-prescribe pyridoxine (B6) with isoniazid; slow acetylators carry higher toxicity risk.`,
+    `Serum B6 deficiency; empirical IV pyridoxine gram-for-gram in acute INH overdose.`,
+    `High-dose IV Pyridoxine (Vitamin B6) + benzodiazepines abort INH-induced status epilepticus.`,
+    `NMDA blockade would reduce rather than trigger excitotoxic seizures.`,
+    `Glutamate -> GABA via GAD + Vitamin B6; INH depletes B6 -> refractory seizures.`
+  ),
+  g(8, 3, 2, 'GABA Reuptake & Transamination',
+    `A 24-year-old woman with bipolar I disorder and rapid-cycling mania starts valproic acid. Alongside Na+ channel blockade, how does valproate augment GABAergic neurotransmission within the synaptic cleft and mitochondrion?`,
+    [`Inhibits GABA transaminase (GABA-T) and stimulates GAD activity`, `Antagonizes postsynaptic GABAB metabotropic K+ channels`, `Blocks vesicular glutamate transporter VGLUT1 selectively`], 0,
+    `Inhibits GABA-T & Enhances GAD`,
+    `Compare valproate with tiagabine (GAT-1 blocker) and vigabatrin (irreversible GABA-T inhibitor).`,
+    `Valproate inhibits GABA transaminase (which normally degrades GABA to succinic semialdehyde) and enhances GAD.\nNet effect raises presynaptic and synaptic GABA pools.`,
+    `Stabilizes manic agitation and prevents migraine/seizure propagation.`,
+    `Valproate risks hepatotoxicity, pancreatitis, thrombocytopenia, weight gain, and neural tube defects (spina bifida).`,
+    `Check baseline LFTs, CBC, and pregnancy test before initiating valproate.`,
+    `Alternative mood stabilizers in pregnancy: lamotrigine or second-generation antipsychotics.`,
+    `GABAB antagonism would promote excitation; VGLUT1 blockade is not valproate's mechanism.`,
+    `Valproate increases GABA by inhibiting GABA transaminase (GABA-T) + blocking voltage-gated Na+ channels.`
+  ),
+  g(9, 3, 3, 'NMDA Excitotoxicity & Neurodegeneration',
+    `A 68-year-old man with moderate-to-severe Alzheimer disease is started on memantine. What pathophysiologic cascade does memantine attenuate by acting as an uncompetitive NMDA receptor antagonist?`,
+    [`Excessive Ca2+ influx triggering calpains, caspases, and neuronal apoptosis`, `Excessive Cl- influx causing hyperpolarization block of pyramidal cells`, `Downregulation of AMPA receptors during slow-wave sleep`], 0,
+    `Pathologic Ca2+ Influx / Excitotoxicity`,
+    `Glutamate overstimulation opens an ionotropic receptor permeable to both Na+ and Ca2+.`,
+    `Sustained glutamate release relieves the Mg2+ block of NMDA channels, causing pathologic Ca2+ entry.\nIntracellular Ca2+ overload activates phospholipases, endonucleases, calpains, and mitochondrial apoptosis.`,
+    `Contributes to progressive synaptic loss in Alzheimer dementia, ischemic stroke, and Huntington disease.`,
+    `NMDA receptor requires both glutamate and glycine co-agonist plus membrane depolarization.`,
+    `Memantine preserves physiologic phasic LTP while blocking tonic excitotoxic Ca2+ leak.`,
+    `Combine memantine with donepezil (AChE inhibitor) in moderate-to-severe Alzheimer disease.`,
+    `Cl- influx is mediated by GABAA/glycine receptors and is inhibitory, not excitotoxic.`,
+    `Excess Glutamate -> NMDA Ca2+ influx -> Excitotoxic apoptosis (blocked by Memantine).`
+  ),
+
+  // Entity 4: Acute Intermittent Porphyria (Gates 10-12)
+  g(10, 4, 1, 'Enzymatic Defect & Accumulated Precursors',
+    `A 27-year-old woman presents with severe colicky abdominal pain, paranoid hallucinations, proximal limb weakness, and dark reddish urine after starting phenobarbital. Which enzyme is deficient and which heme precursors accumulate?`,
+    [`Porphobilinogen deaminase (HMBS); δ-ALA and porphobilinogen`, `Ferrochelatase; protoporphyrin IX and ferritin`, `Uroporphyrinogen decarboxylase; uroporphyrin III`], 0,
+    `PBG Deaminase (HMBS); ALA & PBG`,
+    `Autosomal dominant hepatic porphyria without photosensitivity; urine darkens on standing.`,
+    `Deficiency of porphobilinogen deaminase (hydroxymethylbilane synthase) blocks conversion of PBG to hydroxymethylbilane.\nAccumulated δ-ALA and PBG cause neurovisceral toxicity without cutaneous photosensitivity.`,
+    `5 P's of AIP: Painful abdomen, Port-wine urine, Polyneuropathy, Psychological disturbances, Precipitated by drugs.`,
+    `Unexplained abdominal pain + negative surgical CT + hyponatremia (SIADH) + psychosis.`,
+    `Spot urine shows markedly elevated PBG and δ-ALA (urine turns dark purple-red upon light/air exposure).`,
+    `Avoid CYP450 inducers (barbiturates, phenytoin, carbamazepine, rifampin, sulfonamides, alcohol).`,
+    `Ferrochelatase defect causes erythropoietic protoporphyria; UROD defect causes porphyria cutanea tarda (blistering rash).`,
+    `AIP = AD PBG deaminase (HMBS) deficiency -> ↑ δ-ALA & PBG -> neuropsychiatric & abdominal crises.`
+  ),
+  g(11, 4, 2, 'Precipitating Triggers & Autonomic Neuropathy',
+    `A 31-year-old woman with AIP develops acute psychosis, tachycardia (134/min), hypertension (176/104 mmHg), and ascending motor weakness 3 days into a strict ketogenic crash diet. Why did caloric restriction precipitate this attack?`,
+    [`Fasting upregulates PGC-1α and hepatic ALA synthase (ALAS1), flooding PBG`, `Hypoglycemia directly lyses erythrocytes, releasing free ferrochelatase`, `Ketosis inhibits renal excretion of coproporphyrinogen`], 0,
+    `Fasting Induces Hepatic ALAS1`,
+    `Think about the rate-limiting step of heme synthesis in the liver and what suppresses it.`,
+    `Fasting induces PGC-1α, which transcriptionally activates δ-ALA synthase 1 (ALAS1), the rate-limiting hepatic enzyme.\nBecause PBG deaminase is bottlenecked, δ-ALA and PBG surge into CSF and peripheral nerves.`,
+    `Autonomic neuropathy mimics pheochromocytoma; motor neuropathy can progress to respiratory failure.`,
+    `Triggers: 4 F's/drugs — Fasting, Female hormones (luteal phase), Fever/infection, P450-inducing drugs.`,
+    `Monitor electrolytes (SIADH), vital capacity, and spot urine PBG during acute flares.`,
+    `Administer high-dose dextrose immediately to suppress hepatic PGC-1α/ALAS1 transcription.`,
+    `RBCs lack mitochondria for ALAS1 regulation; coproporphyrinogen is not the primary driver of AIP crises.`,
+    `Fasting & CYP450 inducers derepress ALAS1 -> neurotoxic δ-ALA & PBG surge.`
+  ),
+  g(12, 4, 3, 'Acute Crisis Management',
+    `A 29-year-old man with confirmed AIP is admitted with agitated delirium, severe ileus, and hyponatremia (Na+ 121 mEq/L). What is the definitive first-line pharmacotherapy to terminate the metabolic crisis?`,
+    [`IV hemin plus IV glucose infusion`, `Oral hydroxychloroquine and serial phlebotomy`, `IV deferoxamine and N-acetylcysteine`], 0,
+    `IV Hemin + IV Glucose`,
+    `Provide negative feedback directly on the rate-limiting enzyme ALAS1.`,
+    `Exogenous IV hemin replenishes the hepatic free heme pool, exerting potent negative feedback inhibition on ALAS1 synthesis and mitochondrial import.\nIV glucose suppresses PGC-1α-mediated ALAS1 transcription.`,
+    `Halts progression of acute psychosis, autonomic storm, and axonal polyneuropathy.`,
+    `Use non-porphyrinogenic antipsychotics (e.g., haloperidol/olanzapine) and beta-blockers for tachycardia.`,
+    `Follow serial urine PBG/ALA; avoid fluid overload in SIADH.`,
+    `Givosiran (siRNA targeting ALAS1) prevents recurrent attacks in chronic severe AIP.`,
+    `Phlebotomy + hydroxychloroquine treat porphyria cutanea tarda; deferoxamine chelates iron.`,
+    `Treat acute AIP attacks with IV Hemin + Glucose to downregulate ALAS1.`
+  ),
+
+  // Entity 5: Wilson Disease (Gates 13-15)
+  g(13, 5, 1, 'ATP7B Copper Transport Defect',
+    `A 19-year-old college student presents with new-onset paranoid delusions, dysarthria, asymmetric resting tremor, and elevated transaminases. Slit-lamp exam shows golden-brown corneal rings. Which gene and chromosome are mutated?`,
+    [`ATP7B on chromosome 13`, `ATP7A on the X chromosome`, `HFE on chromosome 6`], 0,
+    `ATP7B on Chromosome 13`,
+    `Hepatolenticular degeneration impairs biliary copper excretion and ceruloplasmin loading.`,
+    `Autosomal recessive mutation in ATP7B (chromosome 13) encodes a P-type copper-transporting ATPase in the trans-Golgi network of hepatocytes.\nCopper fails to enter bile or bind apoceruloplasmin, causing free radical (Fenton) injury.`,
+    `Presents before age 40 with liver disease, basal ganglia movement disorders (parkinsonism, dystonia, wing-beating tremor), and psychiatric illness.`,
+    `Kayser-Fleischer rings represent copper deposition in Descemet membrane of the cornea.`,
+    `Low serum ceruloplasmin, elevated 24-hour urinary copper, elevated hepatic copper on biopsy (>250 µg/g).`,
+    `Lifelong chelation + dietary avoidance of shellfish, organ meats, nuts, and chocolate.`,
+    `ATP7A (X-linked) causes Menkes kinky hair disease (copper deficiency); HFE causes hereditary hemochromatosis.`,
+    `Wilson disease = AR ATP7B (Chr 13) -> low ceruloplasmin, high urine Cu, Kayser-Fleischer rings.`
+  ),
+  g(14, 5, 2, 'Neuropsychiatric & Lenticular Pathology',
+    `A 23-year-old woman initially diagnosed with bipolar disorder and catatonia fails lithium and develops drooling, risus sardonicus, and a "face of the giant panda" sign in the midbrain on T2 MRI. Which brain structures bear the brunt of copper toxicity?`,
+    [`Lenticular nuclei (putamen and globus pallidus) and basal ganglia`, `Substantia nigra pars compacta exclusively with Lewy bodies`, `Mammillary bodies and anterior thalamic nuclei`], 0,
+    `Lenticular Nuclei (Putamen / Globus Pallidus)`,
+    `The historic name "hepatolenticular degeneration" identifies the cerebral target.`,
+    `Unbound serum copper crosses the blood-brain barrier and deposits heavily in the putamen, globus pallidus, caudate, and brainstem.\nReactive oxygen species cause cavitary necrosis and astrogliosis (Alzheimer type II astrocytes).`,
+    `Up to 20-30% present with isolated psychiatric symptoms (personality change, depression, psychosis, impulsivity) years before hepatic failure.`,
+    `"Face of the giant panda" on midbrain T2 MRI + Kayser-Fleischer rings (present in >95% of neurologic cases).`,
+    `Always screen young adults (<40) with new atypical psychosis + movement disorder or unexplained LFT elevation.`,
+    `Avoid high-potency D2 blockers that worsen severe dystonia; treat the underlying copper overload.`,
+    `Lewy bodies occur in Parkinson disease; mammillary bodies degenerate in Wernicke-Korsakoff.`,
+    `Wilson disease targets the lenticular nuclei (putamen/globus pallidus) -> psychosis + dystonia.`
+  ),
+  g(15, 5, 3, 'Chelation & Maintenance Therapy',
+    `A 21-year-old man newly diagnosed with neurologic Wilson disease requires therapy that binds tissue copper for urinary excretion while minimizing paradoxical neurologic worsening. Which agents are used for chelation and long-term blockade of intestinal copper uptake?`,
+    [`Trientine or D-penicillamine (chelation); oral zinc (metallothionein induction)`, `Deferasirox (chelation); oral vitamin C (urinary acidification)`, `Dimercaprol (BAL); weekly therapeutic phlebotomy`], 0,
+    `Trientine / Penicillamine + Oral Zinc`,
+    `One class mobilizes tissue copper into urine; the other induces enterocyte metallothionein to trap dietary copper.`,
+    `Penicillamine and trientine (better tolerated, lower risk of paradoxical neurologic deterioration) chelate copper for renal excretion.\nOral zinc induces intestinal metallothionein, trapping dietary copper in enterocytes that slough into stool.`,
+    `Penicillamine can cause B6 deficiency (supplement pyridoxine), drug-induced lupus, and nephrotic syndrome.`,
+    `Trientine is preferred in neurologic Wilson disease to limit abrupt mobilization of hepatic copper into the brain.`,
+    `Monitor 24-hour urine copper excretion and non-ceruloplasmin-bound copper.`,
+    `Fulminant hepatic failure with Coombs-negative hemolytic anemia requires urgent liver transplantation (curative).`,
+    `Deferasirox chelates iron; phlebotomy treats hemochromatosis.`,
+    `Treat Wilson disease with Trientine or Penicillamine (chelators) + Zinc (blocks gut absorption).`
+  ),
+
+  // Entity 6: Lesch-Nyhan & Homocystinuria (Gates 16-18)
+  g(16, 6, 1, 'HGPRT Purine Salvage & Self-Mutilation',
+    `A 4-year-old boy with developmental delay, spasticity, and orange crystals in his diaper bites his lower lip and fingertips to the point of tissue loss unless restrained. Which enzymatic defect and downstream purine pathway abnormality explain his syndrome?`,
+    [`HGPRT deficiency; ↑ PRPP amidotransferase and uric acid production`, `Adenosine deaminase deficiency; ↑ dATP inhibiting ribonucleotide reductase`, `Xanthine oxidase deficiency; hypouricemia and xanthine stones`], 0,
+    `HGPRT Deficiency (Lesch-Nyhan)`,
+    `Inability to salvage hypoxanthine and guanine leaves excess PRPP to drive de novo purine synthesis.`,
+    `X-linked recessive deficiency of hypoxanthine-guanine phosphoribosyltransferase (HGPRT) prevents conversion of hypoxanthine -> IMP and guanine -> GMP.\nAccumulating PRPP hyperactivates de novo purine synthesis -> massive uric acid overproduction.`,
+    `Compulsive self-injurious behavior (lip/finger biting), choreoathetosis, dystonia, gout, and uric acid nephrolithiasis.`,
+    `Pathognomonic orange "sand" (sodium urate crystals) in infancy.`,
+    `Markedly elevated serum/urine uric acid; absent HGPRT enzyme activity in RBCs/fibroblasts.`,
+    `Allopurinol or febuxostat lowers uric acid and prevents nephropathy, though it does not reverse CNS self-mutilation.`,
+    `ADA deficiency causes autosomal recessive SCID; xanthine oxidase deficiency causes low uric acid.`,
+    `Lesch-Nyhan = XR HGPRT deficiency -> ↑ PRPP -> hyperuricemia, dystonia, self-mutilation.`
+  ),
+  g(17, 6, 2, 'Homocystinuria vs Marfan Phenotype',
+    `A 17-year-old tall, thin boy with mild intellectual disability, scoliosis, and pectus excavatum presents with acute right hemiparesis from carotid thrombosis. Slit-lamp exam reveals downward and inward lens subluxation. What is the most common enzyme defect?`,
+    [`Cystathionine β-synthase (CBS) deficiency`, `Fibrillin-1 (FBN1) glycoprotein mutation`, `Lysyl hydroxylase deficiency (Ehlers-Danlos)`], 0,
+    `Cystathionine β-Synthase (CBS)`,
+    `Marfanoid habitus + intellectual disability + thrombosis + "down and in" lens dislocation.`,
+    `Autosomal recessive cystathionine β-synthase (CBS) deficiency blocks conversion of homocysteine + serine -> cystathionine (using Vitamin B6).\nHomocysteine accumulates in blood/urine, damaging vascular endothelium and zonular fibers.`,
+    `Distinguished from Marfan syndrome by AR inheritance, intellectual disability/psychiatric symptoms, thromboembolism (MI/stroke), and downward-nasal lens subluxation.`,
+    `Marfan lens subluxes upward and outward ("Marfan fans out"); homocystinuria goes "down and in."`,
+    `Elevated plasma homocysteine and methionine; positive urinary cyanide-nitroprusside test.`,
+    `High-dose Vitamin B6 (pyridoxine) for B6-responsive CBS, plus folate, B12, betaine, and methionine restriction.`,
+    `FBN1 causes autosomal dominant Marfan syndrome with normal intellect and aortic root dilation.`,
+    `CBS deficiency = Homocystinuria: marfanoid + intellectual disability + thrombosis + down/in lens.`
+  ),
+  g(18, 6, 3, 'One-Carbon Remethylation & Psychiatric Risk',
+    `A 22-year-old man with CBS-deficient homocystinuria develops recurrent depressive psychosis despite partial methionine restriction. Which cofactor combination lowers toxic homocysteine by enhancing remethylation back to methionine or transsulfuration?`,
+    [`Pyridoxine (B6), folate, vitamin B12, and betaine (trimethylglycine)`, `Allopurinol, probenecid, and high-dose niacin`, `Aspartame-rich diet and high-dose ascorbic acid`], 0,
+    `B6 + Folate + B12 + Betaine`,
+    `Support both the transsulfuration branch (B6) and alternate remethylation pathways (folate/B12 & betaine).`,
+    `Vitamin B6 enhances residual CBS affinity; 5-methyl-THF (folate) + methylcobalamin (B12) drive methionine synthase.\nBetaine provides an alternate hepatic methyl donor via betaine-homocysteine methyltransferase (BHMT).`,
+    `Lowering plasma homocysteine reduces endothelial oxidative injury, DVT/stroke risk, and psychiatric morbidity.`,
+    `Cysteine becomes an essential amino acid in CBS deficiency and must be supplemented.`,
+    `Monitor plasma total homocysteine, methionine, and amino acid profiles.`,
+    `Avoid oral contraceptives or pro-thrombotic triggers that compound stroke risk.`,
+    `Aspartame yields phenylalanine (toxic in PKU); allopurinol treats hyperuricemia.`,
+    `Manage Homocystinuria with B6 (transsulfuration) + Folate/B12/Betaine (remethylation) + low methionine.`
+  ),
+
+  // Entity 7: 22q11.2 Microdeletion Syndrome (Gates 19-21)
+  g(19, 7, 1, 'Embryology & Schizophrenia Risk',
+    `A 19-year-old man with hypernasal speech, a history of repaired truncus arteriosus, and neonatal hypocalcemic seizures develops auditory hallucinations and persecutory delusions. Deletion of which chromosomal locus and transcription factor underlies his syndrome?`,
+    [`22q11.2 microdeletion (TBX1 loss)`, `7q11.23 microdeletion (ELN loss)`, `5p15.2 deletion (Cri-du-chat)`], 0,
+    `22q11.2 Deletion (TBX1)`,
+    `3rd & 4th pharyngeal pouch failure + conotruncal heart defects + 25-30% lifetime schizophrenia risk.`,
+    `Microdeletion at 22q11.2 deletes TBX1 (plus COMT in many patients), impairing neural crest migration into the 3rd and 4th pharyngeal pouches.\nProduces thymic hypoplasia, parathyroid hypoplasia, cleft palate, and conotruncal anomalies.`,
+    `22q11.2 deletion syndrome is the strongest known monogenic/microdeletion risk factor for schizophrenia (25-30% penetrance).`,
+    `CATCH-22: Cardiac defects (TOF/truncus), Abnormal facies, Thymic aplasia, Cleft palate, Hypocalcemia.`,
+    `FISH or chromosomal microarray confirms 22q11.2 deletion; absent thymic shadow on newborn CXR.`,
+    `Standard antipsychotics for psychosis (monitor QTc/calcium closely); calcium + vitamin D for hypocalcemia.`,
+    `7q11.23 causes Williams syndrome ("cocktail party" hyper-sociability, elfin facies, supravalvular AS).`,
+    `22q11.2 (TBX1) = Pharyngeal pouches 3 & 4 failure + conotruncal defects + high schizophrenia risk.`
+  ),
+  g(20, 7, 2, 'COMT Haploinsufficiency & Psychosis',
+    `In patients with 22q11.2 deletion syndrome, why does haploinsufficiency of a second gene within the deleted 3-Mb region predispose to prefrontal cortical dopamine dysregulation and executive psychosis?`,
+    [`Loss of one copy of COMT impairs prefrontal dopamine degradation`, `Loss of UBE3A causes paternal imprinting overexpression in striatum`, `Triplication of SNCA produces Lewy bodies in substantia nigra`], 0,
+    `COMT Haploinsufficiency`,
+    `The prefrontal cortex lacks dense DAT reuptake transporters and relies heavily on enzymatic methylation of dopamine.`,
+    `The COMT (catechol-O-methyltransferase) gene maps directly inside the 22q11.2 microdeletion locus.\nReduced COMT activity (especially with a low-activity Met allele on the remaining chromosome) alters prefrontal dopamine tone.`,
+    `Contributes to working memory deficits, ADHD, anxiety, and early-onset schizophrenia spectrum illness.`,
+    `Check serum ionized calcium before attributing acute agitation or neuromuscular spasms purely to psychosis.`,
+    `Chromosomal microarray defines deletion size; obtain baseline ECG and parathyroid hormone.`,
+    `Clozapine or risperidone can be used carefully, though clozapine lowers seizure threshold (watch hypocalcemia).`,
+    `UBE3A is on 15q11-13 (Angelman); SNCA is alpha-synuclein in Parkinson disease.`,
+    `22q11.2 deletes COMT alongside TBX1, disrupting prefrontal dopamine clearance.`
+  ),
+  g(21, 7, 3, 'Immunologic & Cardiac Vigilance in Psychiatric Care',
+    `A 14-year-old girl with 22q11.2 deletion syndrome and severe anxiety requires routine immunizations and antipsychotic therapy. Which immunologic precaution and metabolic monitoring step are critical?`,
+    [`Avoid live-attenuated vaccines if T-cell count is severely low; monitor serum Ca2+ and QTc`, `Administer live MMR immediately; restrict dietary vitamin D`, `Perform prophylactic splenectomy for IgA hypergammaglobulinemia`], 0,
+    `Avoid Live Vaccines (Low T-cells) + Monitor Ca2+/QTc`,
+    `Thymic hypoplasia impairs T-lymphocyte maturation, while hypoparathyroidism causes hypocalcemia (prolonging QT).`,
+    `Failure of the 3rd pharyngeal pouch reduces thymic T-cell output (CD3+/CD4+ lymphopenia).\nFailure of the 3rd/4th pouches reduces PTH, causing hypocalcemia that prolongs the QTc interval.`,
+    `Combining hypocalcemia with QT-prolonging psychotropics (ziprasidone, haloperidol, citalopram) elevates Torsades risk.`,
+    `Irradiated CMV-negative blood products are required if transfusion is needed (prevent GVHD).`,
+    `Flow cytometry for T-cell subsets, serum calcium/PTH, and baseline/follow-up ECG.`,
+    `Correct hypocalcemia with calcitriol/calcium and choose lower-QT-risk antipsychotics (e.g., aripiprazole).`,
+    `Restricting vitamin D worsens hypocalcemia; splenectomy is unrelated to DiGeorge syndrome.`,
+    `22q11.2: Screen T-cells before live vaccines + monitor Ca2+ & QTc before psychotropics.`
+  ),
+
+  // Entity 8: Fragile X Syndrome (Gates 22-24)
+  g(22, 8, 1, 'FMR1 CGG Expansion & Epigenetic Silencing',
+    `A 7-year-old boy with autism spectrum disorder, hand flapping, gaze avoidance, an elongated face, and large everted ears is evaluated. Which molecular mechanism silences the FMR1 gene on Xq27.3?`,
+    [`CGG trinucleotide repeat expansion (>200) causing CpG promoter hypermethylation`, `CAG trinucleotide repeat expansion in exon 1 causing toxic polyglutamine gain-of-function`, `GAA intronic repeat expansion depleting mitochondrial frataxin`], 0,
+    `CGG Repeat (>200) + Hypermethylation`,
+    `The most common inherited cause of intellectual disability and monogenic autism.`,
+    `Full mutation (>200 CGG repeats) in the 5' UTR of FMR1 triggers hypermethylation of the promoter CpG island.\nChromatin condensation silences transcription of Fragile X Mental Retardation Protein (FMRP).`,
+    `FMRP normally binds dendritic mRNAs to repress excessive synaptic protein translation; loss causes immature dendritic spines.`,
+    `Physical triad in postpubertal males: long narrow face, large prominent ears, macroorchidism (plus MVP).`,
+    `PCR + Southern blot methylation analysis for FMR1 CGG repeat sizing.`,
+    `Behavioral therapy, SSRIs/stimulants for ADHD/anxiety, and genetic counseling for maternal premutation carriers.`,
+    `CAG is Huntington disease; GAA is Friedreich ataxia.`,
+    `Fragile X = X-linked FMR1 5' UTR CGG (>200) -> Hypermethylation -> Loss of FMRP.`
+  ),
+  g(23, 8, 2, 'Premutation Disorders (FXTAS & FXPOI)',
+    `The 61-year-old maternal grandfather of a boy with Fragile X syndrome develops progressive intention tremor, cerebellar gait ataxia, parkinsonism, and cognitive decline; his daughter experienced menopause at age 34. What repeat range and RNA mechanism explain their conditions?`,
+    [`55-200 CGG premutation causing toxic mRNA gain-of-function (FXTAS / FXPOI)`, `>200 CGG repeats causing complete FMRP protein absence in both`, `CTG repeat expansion in DMPK causing myotonic dystrophy`], 0,
+    `55-200 CGG Premutation (Toxic mRNA)`,
+    `Unlike full mutations that silence the gene, premutations overproduce CGG-bearing mRNA.`,
+    `Premutation alleles (55-200 CGG repeats) remain unmethylated and generate elevated FMR1 mRNA.\nExcess CGG-repeat mRNA sequesters nuclear RNA-binding proteins (toxic RNA gain-of-function), forming intranuclear inclusions.`,
+    `Males develop FXTAS (Fragile X-associated tremor/ataxia syndrome); females develop FXPOI (primary ovarian insufficiency).`,
+    `MRI in FXTAS shows hyperintensity in the middle cerebellar peduncles (MCP sign).`,
+    `Genetic testing reveals 55-200 CGG repeats (premutation) with expansion risk during maternal meiosis (anticipation).`,
+    `Offer family cascade screening and reproductive counseling for premutation carriers.`,
+    `Full mutations (>200) silence FMR1 rather than causing toxic mRNA gain-of-function; DMPK is myotonic dystrophy.`,
+    `FMR1 Premutation (55-200 CGG) -> Toxic mRNA -> FXTAS (tremor/ataxia) & FXPOI (early menopause).`
+  ),
+  g(24, 8, 3, 'Synaptic mGluR5 Theory & Clinical Care',
+    `A 9-year-old boy with Fragile X syndrome has severe hyperactivity, social anxiety, and a harsh midsystolic click at the cardiac apex. Which synaptic pathway is disinhibited by FMRP loss, and which cardiac finding explains his murmur?`,
+    [`Exaggerated mGluR5-dependent LTD and protein synthesis; mitral valve prolapse`, `Absent postsynaptic GABAA expression; tetralogy of Fallot`, `Excessive myelin basic protein synthesis; coarctation of the aorta`], 0,
+    `Excess mGluR5 Signaling; Mitral Valve Prolapse`,
+    `FMRP acts as a translational brake downstream of metabotropic glutamate receptors.`,
+    `Without FMRP, metabotropic glutamate receptor 5 (mGluR5) stimulation triggers unchecked dendritic protein synthesis and excessive AMPA internalization (LTD).\nConnective tissue laxity produces joint hypermobility and mitral valve prolapse (MVP).`,
+    `Presents with ADHD, sensory hypersensitivity, gaze aversion, and midsystolic click +/- late systolic murmur.`,
+    `MVP click moves earlier with Valsalva/standing (decreased preload) and later with squatting.`,
+    `Echocardiogram confirms MVP; evaluate for sleep apnea and strabismus.`,
+    `Targeted behavioral interventions, α2-agonists (guanfacine) or stimulants for ADHD, and SSRIs for anxiety.`,
+    `Tetralogy of Fallot is classic for 22q11.2; coarctation is classic for Turner syndrome (45,X).`,
+    `Loss of FMRP -> Disinhibited mGluR5 synaptic plasticity + Connective tissue laxity (MVP).`
+  ),
+
+  // Entity 9: Prader-Willi, Angelman & Rett Syndromes (Gates 25-27)
+  g(25, 9, 1, 'Prader-Willi Paternal 15q11-q13 Imprinting',
+    `A 6-year-old boy with a history of severe neonatal hypotonia and poor feeding now exhibits insatiable hyperphagia, food-hoarding, morbid obesity, skin-picking (OCD traits), and small hands/feet. Which genomic imprinting mechanism causes this syndrome?`,
+    [`Deletion of paternal 15q11-q13 or maternal uniparental disomy (UPD)`, `Deletion of maternal UBE3A on 15q11-q13 or paternal UPD`, `X-linked dominant MECP2 mutation`], 0,
+    `Paternal 15q11 Deletion / Maternal UPD`,
+    `Think "P for Paternal = Prader-Willi": loss of paternally expressed genes on chromosome 15.`,
+    `Prader-Willi syndrome arises from loss of the active paternal 15q11-q13 locus (~70% paternal deletion, ~25% maternal UPD 15).\nThe maternal copy is normally silenced (imprinted) via DNA methylation.`,
+    `Biphasic course: infantile hypotonia/failure to thrive -> childhood hyperphagia, obesity, temper tantrums, OCD, hypogonadism.`,
+    `Hypothalamic dysfunction impairs satiety signaling (elevated ghrelin) and GnRH/GH release.`,
+    `DNA methylation analysis of SNRPN locus on 15q11-q13 confirms loss of the paternal unmethylated allele.`,
+    `Strict environmental food locks, growth hormone therapy, and SSRIs/behavioral support for obsessive skin-picking.`,
+    `Maternal UBE3A loss causes Angelman syndrome; MECP2 causes Rett syndrome.`,
+    `Prader-Willi = Absent Paternal 15q11-q13 (Deletion or Maternal UPD) -> Hyperphagia & Hypotonia.`
+  ),
+  g(26, 9, 2, 'Angelman Maternal UBE3A Imprinting',
+    `A 4-year-old girl has severe speech delay (no words), wide-based jerky ataxia, refractory epilepsy, microcephaly, and frequent paroxysms of inappropriate laughter. Which imprinted gene is lost on chromosome 15q11-q13?`,
+    [`Maternally expressed UBE3A (ubiquitin-protein ligase E3A)`, `Paternally expressed SNRPN snoRNA cluster`, `Maternally inherited mitochondrial tRNA-Leu`], 0,
+    `Maternal UBE3A Loss (Angelman)`,
+    `Think "M for Maternal = Angelman" (happy demeanor, ataxia, seizures, absent speech).`,
+    `In CNS neurons, the paternal UBE3A allele is epigenetically silenced by an antisense transcript, leaving only the maternal UBE3A active.\nMaternal 15q11-q13 deletion (~70%), paternal UPD (~5%), or UBE3A point mutation eliminates UBE3A.`,
+    `Presents with happy disposition, paroxysmal laughter, puppet-like ataxia, absent speech, and hand flapping.`,
+    `EEG shows characteristic high-amplitude slow-wave / notched delta bursts.`,
+    `15q11-q13 DNA methylation test (shows only paternal methylated pattern) + UBE3A sequencing if methylation is normal.`,
+    `Antiepileptics (valproate/levetiracetam/clonazepam) and augmentative communication therapy.`,
+    `SNRPN is paternally expressed (lost in Prader-Willi); mitochondrial tRNA-Leu causes MELAS.`,
+    `Angelman = Absent Maternal UBE3A (15q11-q13) -> Ataxia, Seizures, Absent Speech, Inappropriate Laughter.`
+  ),
+  g(27, 9, 3, 'Rett Syndrome (MECP2 Regression)',
+    `A 2-year-old girl who met normal developmental milestones until 12 months now shows deceleration of head growth, loss of purposeful hand use, repetitive midline hand-wringing, and episodic hyperventilation. Which gene and inheritance pattern explain her regression?`,
+    [`MECP2 gene mutation on X chromosome (X-linked dominant, de novo)`, `UBE3A maternal deletion on chromosome 15 (genomic imprinting)`, `HEX-A autosomal recessive deficiency on chromosome 15`], 0,
+    `MECP2 (X-Linked Dominant)`,
+    `Normal early infancy -> developmental regression at 1-4 years in girls with midline hand-wringing.`,
+    `De novo X-linked dominant mutation in MECP2 (methyl-CpG-binding protein 2), a transcriptional regulator critical for synaptic maturation.\nUsually lethal prenatally in hemizygous 46,XY males, so seen almost exclusively in girls.`,
+    `Hallmark regression: loss of speech and hand skills, acquired microcephaly, stereotypic hand-wringing, ataxia, and breathing irregularities.`,
+    `Often misdiagnosed initially as autism spectrum disorder; watch for acquired deceleration of head circumference.`,
+    `MECP2 sequencing confirms diagnosis; screen ECG for prolonged QTc (autonomic instability).`,
+    `Physical/occupational therapy, seizure management, and trofinetide (IGF-1 analog) for Rett syndrome.`,
+    `Angelman lacks normal first year followed by regression; Tay-Sachs (HEXA) presents with cherry-red macula & hyperacusis.`,
+    `Rett = De novo XLD MECP2 in girls -> Regression (1-4y) + Microcephaly + Hand-wringing.`
+  ),
+
+  // Entity 10: CYP450 Pharmacogenomics (Gates 28-30)
+  g(28, 10, 1, 'CYP2D6 Poor vs Ultra-Rapid Metabolizers',
+    `A 35-year-old man started on standard-dose amitriptyline (25 mg) develops severe dry mouth, urinary retention, blurry vision, and QRS widening (124 ms). Pharmacogenomic testing reveals two non-functional CYP2D6 alleles. What phenotype and drug class risk does this represent?`,
+    [`CYP2D6 poor metabolizer accumulating toxic parent tricyclic levels`, `CYP2D6 ultra-rapid metabolizer converting amitriptyline into morphine`, `CYP3A4 auto-induction clearing amitriptyline before absorption`], 0,
+    `CYP2D6 Poor Metabolizer -> TCA Toxicity`,
+    `Amitriptyline and nortriptyline rely on CYP2D6 hydroxylation for clearance.`,
+    `CYP2D6 poor metabolizers (~5-10% of Europeans) cannot clear TCAs, risperidone, aripiprazole, or atomoxetine.\nParent drug surges cause anticholinergic delirium, α1 orthostasis, and Na+ channel blockade (wide QRS).`,
+    `Conversely, CYP2D6 ultra-rapid metabolizers (gene duplications) convert codeine/tramadol to morphine dangerously fast (respiratory depression).`,
+    `QRS >100 ms in TCA toxicity predicts seizures and ventricular arrhythmias.`,
+    `CPIC guidelines recommend avoiding TCAs or reducing dose by 50% with therapeutic drug monitoring in CYP2D6 PM.`,
+    `Sodium bicarbonate (NaHCO3) treats TCA-induced QRS widening; switch depression therapy to sertraline or desvenlafaxine.`,
+    `Ultra-rapid metabolizers suffer treatment failure on TCAs (subtherapeutic), not parent accumulation.`,
+    `CYP2D6 PM = TCA/aripiprazole toxicity; CYP2D6 UM = Codeine -> Morphine overdose or TCA failure.`
+  ),
+  g(29, 10, 2, 'CYP2C19 & SSRI QTc Prolongation',
+    `A 48-year-old woman taking citalopram 40 mg/day develops dizziness and syncope; ECG shows QTc 528 ms. Which pharmacogenomic variant explains supra-therapeutic citalopram exposure and mandates a 20 mg/day ceiling or agent switch?`,
+    [`CYP2C19 poor metabolizer (*2/*2 or *3/*3)`, `CYP1A2 ultra-rapid metabolizer triggered by smoking`, `UGT1A1*28 promoter polymorphism`], 0,
+    `CYP2C19 Poor Metabolizer -> ↑ Citalopram/QTc`,
+    `Citalopram and escitalopram are primarily cleared by CYP2C19.`,
+    `CYP2C19 loss-of-function alleles (*2, *3) sharply increase plasma citalopram and escitalopram AUC.\nCitalopram blocks cardiac hERG K+ channels in a dose-dependent manner, prolonging QTc.`,
+    `Risk of Torsades de pointes rises when combined with omeprazole (CYP2C19 inhibitor) or hypokalemia.`,
+    `FDA caps citalopram at 20 mg/day in CYP2C19 poor metabolizers, age >60, or concurrent CYP2C19 inhibitors.`,
+    `CYP2C19 genotyping + baseline/follow-up ECG QTc measurement.`,
+    `Switch to an SSRI minimally dependent on CYP2C19 (e.g., fluoxetine or paroxetine via 2D6, or mirtazapine).`,
+    `CYP1A2 induced by smoking clears clozapine/olanzapine; UGT1A1*28 causes Gilbert/irinotecan toxicity.`,
+    `CYP2C19 Poor Metabolizer + Citalopram/Escitalopram = Dose-dependent QTc prolongation.`
+  ),
+  g(30, 10, 3, 'Smoking Induction of CYP1A2 (Clozapine)',
+    `A 31-year-old man with schizophrenia stabilized on clozapine 400 mg/day is admitted to a smoke-free psychiatric unit. Five days after abruptly quitting his 2-pack/day cigarette habit, he develops hypersalivation, myoclonus, and a tonic-clonic seizure. Why?`,
+    [`Loss of polycyclic aromatic hydrocarbon CYP1A2 induction caused clozapine levels to surge`, `Nicotine withdrawal directly upregulates hepatic CYP3A4 clearance`, `Nicotine patch competitively inhibits renal tubular secretion of clozapine`], 0,
+    `Smoking Cessation -> Loss of CYP1A2 Induction`,
+    `Hydrocarbons in tobacco smoke (NOT nicotine itself) induce CYP1A2; quitting removes the induction.`,
+    `Polycyclic aromatic hydrocarbons (PAHs) in cigarette smoke strongly induce hepatic CYP1A2, accelerating clozapine and olanzapine clearance.\nUpon smoking cessation, CYP1A2 activity drops over days, causing plasma clozapine to spike 50-100%.`,
+    `Clozapine toxicity presents with severe sedation, sialorrhea, orthostasis, myoclonus, and dose-dependent seizures.`,
+    `Nicotine replacement therapy (NRT) does NOT maintain CYP1A2 induction because NRT lacks PAHs.`,
+    `Check trough serum clozapine level immediately and obtain ANC (monitor agranulocytosis).`,
+    `Proactively reduce clozapine dose by ~30-50% upon smoke-free admission; consider valproate for seizure prophylaxis if levels >600 ng/mL.`,
+    `CYP3A4 upregulation would lower clozapine; NRT does not alter renal clozapine clearance.`,
+    `Tobacco smoke PAHs induce CYP1A2 -> Smoking cessation spikes Clozapine & Olanzapine toxicity.`
+  ),
+
+  // Entity 11: HLA-B*1502 & HLA-B*3101 (Gates 31-33)
+  g(31, 11, 1, 'HLA-B*1502 Mandatory Screening & SJS/TEN',
+    `A 26-year-old Han Chinese man with trigeminal neuralgia and bipolar mania is scheduled to begin carbamazepine. Which pharmacogenomic screening test is FDA-mandated prior to initiation, and what life-threatening reaction does it prevent?`,
+    [`HLA-B*1502; Stevens-Johnson syndrome / Toxic Epidermal Necrolysis (SJS/TEN)`, `HLA-B*5701; Abacavir hypersensitivity syndrome`, `HLA-DQ2/DQ8; Gluten-sensitive enteropathy`], 0,
+    `HLA-B*1502 -> SJS/TEN Prevention`,
+    `Carbamazepine + Asian ancestry requires pre-treatment MHC Class I screening.`,
+    `Carbamazepine binds directly to the HLA-B*1502 peptide-binding groove (pharmacologic interaction / p-i model), activating CD8+ cytotoxic T cells.\nCD8+ T cells release granulysin, perforin, and FasL, causing widespread keratinocyte apoptosis.`,
+    `SJS (<10% BSA) and TEN (>30% BSA) present with fever, painful targetoid lesions, mucosal sloughing, and positive Nikolsky sign.`,
+    `Highest allele frequency in Han Chinese, Thai, Malaysian, Filipino, and South Asian populations.`,
+    `PCR-based HLA-B*1502 genotyping before prescribing carbamazepine, oxcarbazepine, or phenytoin.`,
+    `If HLA-B*1502 positive, avoid carbamazepine/oxcarbazepine/phenytoin; use valproate, lithium, or gabapentin instead.`,
+    `HLA-B*5701 screens for abacavir (HIV); HLA-DQ2/DQ8 is celiac disease.`,
+    `Screen Asian-ancestry patients for HLA-B*1502 before Carbamazepine to prevent SJS/TEN.`
+  ),
+  g(32, 11, 2, 'HLA-B*3101 in European/Japanese Ancestry',
+    `A 42-year-old Japanese woman tests negative for HLA-B*1502, starts carbamazepine, and 3 weeks later develops fever, facial edema, morbilliform rash, eosinophilia, and elevated transaminases. Which secondary HLA allele predicts DRESS and hypersensitivity across European and Japanese populations?`,
+    [`HLA-B*3101`, `HLA-B*27`, `HLA-DR4`], 0,
+    `HLA-B*3101 (DRESS / HSR)`,
+    `A different Class I allele drives carbamazepine hypersensitivity in Japanese and European cohorts.`,
+    `HLA-B*3101 confers strong susceptibility across the spectrum of carbamazepine-induced cutaneous reactions (MPE, DRESS, and SJS) in European and Japanese patients.\nUnlike HLA-B*1502 (restricted to SJS/TEN), HLA-B*3101 predicts Drug Reaction with Eosinophilia and Systemic Symptoms (DRESS).`,
+    `DRESS presents 2-8 weeks post-exposure with fever, lymphadenopathy, eosinophilia, atypical lymphocytosis, and hepatitis/nephritis.`,
+    `Often linked to HHV-6 reactivation alongside drug-specific T-cell activation.`,
+    `CBC with differential (eosinophilia), LFTs, renal panel, and HLA-B*3101 pharmacogenomic testing.`,
+    `Immediately discontinue carbamazepine permanently and initiate systemic corticosteroids for organ involvement.`,
+    `HLA-B*27 associates with spondyloarthropathies; HLA-DR4 with rheumatoid arthritis.`,
+    `HLA-B*3101 predicts Carbamazepine DRESS/hypersensitivity in European & Japanese patients.`
+  ),
+  g(33, 11, 3, 'Immune Pathogenesis & Safe Alternatives',
+    `A patient with bipolar I disorder carries HLA-B*1502 and requires mood stabilization without risking aromatic anticonvulsant cross-reactivity. Which alternative agent avoids shared MHC-I presentation while providing acute antimanic and maintenance efficacy?`,
+    [`Lithium carbonate or valproate (with teratogenicity precautions)`, `Oxcarbazepine`, `Phenytoin`], 0,
+    `Lithium or Valproate (Avoid Aromatic AEDs)`,
+    `Oxcarbazepine and phenytoin share structural cross-reactivity on HLA-B*1502.`,
+    `Aromatic anticonvulsants (carbamazepine, oxcarbazepine, phenytoin, and partially lamotrigine) share tricyclic/aromatic ring motifs recognized by HLA-B*1502.\nNon-aromatic stabilizers (lithium, valproate) do not bind the HLA-B*1502 groove.`,
+    `Remember: lamotrigine carries its own dose-titration SJS risk (especially when co-administered with valproate, which inhibits UGT glucuronidation).`,
+    `Always check renal function, TSH, and pregnancy status when selecting lithium vs valproate.`,
+    `Document HLA-B*1502 positivity as a permanent electronic allergy alert against all aromatic sodium channel blockers.`,
+    `Lithium (anti-suicidal gold standard) or atypical antipsychotics (quetiapine, aripiprazole) are safe alternatives.`,
+    `Oxcarbazepine and phenytoin carry documented SJS/TEN cross-reactivity in HLA-B*1502 carriers.`,
+    `HLA-B*1502 positive -> Avoid Carbamazepine, Oxcarbazepine, Phenytoin; choose Lithium or Valproate.`
+  ),
+
+  // Entity 12: Lithium Signaling & Neuroplasticity (Gates 34-36)
+  g(34, 12, 1, 'Inositol Depletion Hypothesis (Gq/IP3)',
+    `A 29-year-old man with acute mania improves significantly after 10 days of lithium carbonate (serum level 0.9 mEq/L). According to the inositol depletion hypothesis, which enzymes does lithium inhibit to dampen hyperactive Gq/IP3 signaling?`,
+    [`Inositol monophosphatase (IMPase) and inositol polyphosphate 1-phosphatase`, `Adenylate cyclase and phosphodiesterase-5 selectively`, `Protein kinase A and calmodulin-dependent kinase II`], 0,
+    `IMPase & IPP Inhibition (↓ Free Inositol)`,
+    `Lithium acts uncompetitively on phosphatases that recycle inositol phosphate back into free myo-inositol for PIP2.`,
+    `Lithium inhibits inositol monophosphatase (IMPase) and inositol polyphosphate-1-phosphatase (IPP).\nDepletion of free myo-inositol prevents regeneration of membrane PIP2, selectively dampening overactive Gq-coupled IP3/DAG cascades.`,
+    `Because inhibition is uncompetitive, hyperactive manic circuits are preferentially attenuated while baseline neurotransmission is spared.`,
+    `Lithium also reduces Gs-coupled adenylate cyclase signaling, contributing to nephrogenic DI (V2) and hypothyroidism (TSH).`,
+    `Target therapeutic serum lithium: 0.6-1.2 mEq/L (draw trough 12 hours post-dose).`,
+    `Maintain steady hydration and sodium intake; thiazides, NSAIDs, and ACEi raise lithium levels.`,
+    `PDE-5 inhibitors target cGMP; PKA sits downstream of Gs/cAMP, not IMPase.`,
+    `Lithium inhibits IMPase/IPP -> Depletes free Inositol -> Blunts hyperactive Gq/IP3-DAG signaling.`
+  ),
+  g(35, 12, 2, 'GSK-3β Inhibition & BDNF Neuroplasticity',
+    `Beyond dampening acute mania, long-term lithium therapy uniquely lowers suicide risk and preserves gray matter volume in bipolar disorder. Which serine/threonine kinase does lithium directly inhibit to upregulate Bcl-2, β-catenin, and BDNF?`,
+    [`Glycogen synthase kinase-3β (GSK-3β)`, `Janus kinase 2 (JAK2)`, `Caspase-3 effector protease`], 0,
+    `Direct GSK-3β Inhibition -> ↑ BDNF / Bcl-2`,
+    `Lithium competes with Mg2+ at the catalytic core of a pro-apoptotic kinase regulating Wnt/β-catenin and neurogenesis.`,
+    `Lithium directly inhibits GSK-3β by competing with Mg2+ and indirectly via Akt-mediated Ser9 phosphorylation.\nGSK-3β inhibition stabilizes β-catenin, enhances CREB -> BDNF/TrkB expression, and upregulates anti-apoptotic Bcl-2.`,
+    `Promotes hippocampal neurogenesis, dendritic arborization, and anti-suicidal neuroprotection.`,
+    `Lithium is one of the few psychiatric medications proven to reduce completed suicide in mood disorders.`,
+    `Monitor serum creatinine/eGFR, TSH, calcium (hyperparathyroidism), and ECG every 6-12 months.`,
+    `Maintain maintenance lithium at 0.6-0.8 mEq/L for long-term neuroprotection and relapse prevention.`,
+    `JAK2 mediates cytokine receptors; caspase-3 is an executioner protease rather than lithium's primary Mg2+-competitive target.`,
+    `Lithium inhibits GSK-3β -> ↑ β-catenin, Bcl-2, & BDNF -> Neuroplasticity & Anti-suicidal benefit.`
+  ),
+  g(36, 12, 3, 'Renal Clearance & Toxicity Thresholds',
+    `A 54-year-old woman on stable lithium carbonate starts ibuprofen for knee osteoarthritis and develops coarse tremor, ataxia, dysarthria, and confusion (lithium 2.4 mEq/L). What renal mechanism precipitated lithium toxicity?`,
+    [`NSAIDs reduce renal prostaglandins, decreasing GFR and increasing proximal Na+/Li+ reabsorption`, `NSAIDs induce hepatic CYP2D6 metabolism of lithium into toxic metabolites`, `NSAIDs block aldosterone in the collecting duct, trapping lithium in ENaC`], 0,
+    `NSAIDs ↓ GFR & ↑ Proximal Li+ Reabsorption`,
+    `Lithium is NOT hepatically metabolized; the kidney handles Li+ almost identically to Na+ in the proximal tubule.`,
+    `NSAIDs inhibit COX-mediated afferent arteriolar vasodilation (PGE2/PGI2), lowering GFR.\nReduced tubular flow and compensatory proximal tubule Na+ reabsorption pull lithium back into plasma.`,
+    `Acute-on-chronic toxicity manifests with coarse tremor, ataxia, hyperreflexia, GI distress, and seizures.`,
+    `Distinguish benign fine tremor (treat with propranolol) from toxic coarse tremor + CNS ataxia.`,
+    `Check stat serum lithium, BMP/creatinine, and ECG.`,
+    `Stop lithium & NSAID; hydrate with IV 0.9% NaCl; perform hemodialysis for levels >2.5 mEq/L or severe neurotoxicity.`,
+    `Lithium has zero hepatic CYP metabolism; ENaC is the entry channel for nephrogenic DI, not NSAID toxicity.`,
+    `Lithium is handled like Na+ in the PCT; NSAIDs, Thiazides, and ACEi/ARBs precipitate Lithium toxicity.`
+  ),
+
+  // Entity 13: HPA Axis Hyperactivity in MDD (Gates 37-39)
+  g(37, 13, 1, 'CRH Hypersecretion & Feedback Resistance',
+    `A 45-year-old man with severe melancholic major depressive disorder exhibits early-morning awakening, anhedonia, weight loss, and elevated late-evening salivary cortisol. Failure of exogenous dexamethasone to suppress morning cortisol reflects which neuroendocrine defect?`,
+    [`Downregulated hippocampal/pituitary glucocorticoid receptors impairing negative feedback`, `Autoimmune destruction of adrenal zona fasciculata (Addison disease)`, `Excessive somatostatin release from the arcuate nucleus`], 0,
+    `Impaired Glucocorticoid Receptor Feedback`,
+    `In severe MDD, chronic stress desensitizes central glucocorticoid receptors that normally brake PVN CRH release.`,
+    `Hypersecretion of hypothalamic CRH drives pituitary ACTH and adrenal cortisol excess.\nDownregulation/resistance of hippocampal and pituitary glucocorticoid receptors (GR) causes non-suppression on the Dexamethasone Suppression Test (DST).`,
+    `Associated with melancholic features, insomnia, hyperarousal, visceral adiposity, and sympathetic overactivity.`,
+    `DST non-suppression (~40-50% of severe melancholic MDD) normalizes as depression remits.`,
+    `Rule out true Cushing disease (ACTH-dependent pituitary adenoma) via clinical exam and 24h UFC/midnight salivary cortisol.`,
+    `Effective antidepressant therapy (SSRIs, SNRIs, ECT) restores GR expression and normalizes HPA feedback.`,
+    `Addison disease causes hypocortisolism; somatostatin inhibits GH and TSH rather than causing DST non-suppression.`,
+    `Severe MDD -> Impaired GR negative feedback -> ↑ CRH/ACTH/Cortisol -> DST non-suppression.`
+  ),
+  g(38, 13, 2, 'Hippocampal Atrophy & BDNF Suppression',
+    `Structural MRI in patients with chronic recurrent major depression often demonstrates reduced volume of the hippocampus and prefrontal cortex. How does sustained hypercortisolemia mediate this neurostructural loss?`,
+    [`Chronic glucocorticoid exposure suppresses BDNF transcription and causes CA3 dendritic retraction`, `Cortisol cross-links extracellular β-amyloid into neuritic plaques`, `Elevated ACTH directly demyelinates optic and corticospinal tracts`], 0,
+    `Glucocorticoid Suppression of BDNF & Neurogenesis`,
+    `Excess cortisol acts directly on hippocampal neurons to reduce neurotrophic support and heighten excitotoxicity.`,
+    `Sustained glucocorticoid receptor activation represses BDNF and TrkB signaling in the dentate gyrus and CA3 region.\nCombined with elevated extracellular glutamate, this produces dendritic atrophy and suppressed adult neurogenesis.`,
+    `Manifests clinically as impaired declarative memory, cognitive slowing, and emotional dysregulation.`,
+    `Inverse correlation between total duration of untreated depressive episodes and hippocampal volume.`,
+    `Neuropsychological testing shows deficits in episodic memory and executive flexibility.`,
+    `Antidepressants, aerobic exercise, and ECT upregulate CREB and BDNF, reversing hippocampal dendritic retraction.`,
+    `β-amyloid plaques characterize Alzheimer disease; demyelination characterizes MS.`,
+    `Chronic Hypercortisolemia -> ↓ BDNF & neurogenesis -> Hippocampal CA3 dendritic retraction.`
+  ),
+  g(39, 13, 3, 'Melancholic vs Atypical HPA Signatures',
+    `A 30-year-old woman presents with depressed mood that brightens temporarily when friends visit, hypersomnia (12 hours/day), hyperphagia, and "leaden paralysis." How does the HPA axis profile of atypical depression differ from melancholic MDD?`,
+    [`Hypofunctioning CRH/HPA axis (hypocortisolemia) vs hyperactive HPA in melancholia`, `Markedly elevated CRH and DST non-suppression identical to Cushing syndrome`, `Complete absence of pineal melatonin synthesis`], 0,
+    `Hypoactive CRH/HPA in Atypical Depression`,
+    `Melancholia features hyperarousal, insomnia, and high CRH; atypical depression features lethargy, hypersomnia, and low CRH.`,
+    `Atypical depression exhibits downregulated hypothalamic CRH release and enhanced glucocorticoid negative feedback sensitivity.\nMelancholic MDD shows hypercortisolemia, elevated CSF CRH, and blunted ACTH response to CRH.`,
+    `Atypical features: mood reactivity, hypersomnia, hyperphagia/weight gain, leaden paralysis, and rejection sensitivity.`,
+    `Most common depression subtype in outpatient clinics.`,
+    `Clinical diagnosis via DSM-5 criteria; screen for bipolar II history before starting monotherapy antidepressants.`,
+    `CBT and SSRIs are first-line (MAOIs are historically effective but reserved due to tyramine/hypertensive crisis risk).`,
+    `Melancholia—not atypical depression—features high CRH and DST non-suppression.`,
+    `Melancholic MDD = ↑ CRH / ↑ Cortisol; Atypical Depression = ↓ CRH / Hypersomnia / Mood Reactivity.`
+  ),
+
+  // Entity 14: B12, Folate & Thiamine Neuropsychiatry (Gates 40-42)
+  g(40, 14, 1, 'B12 vs Folate: Methylmalonic Acid & Myelopathy',
+    `A 63-year-old vegan man presents with subacute progressive dementia, paranoid irritability, loss of vibration/proprioception in the feet, and spastic paraparesis. Labs show MCV 112 fL and hypersegmented neutrophils. Which metabolite pattern confirms vitamin B12 deficiency over folate deficiency?`,
+    [`Elevated homocysteine AND elevated methylmalonic acid (MMA)`, `Elevated homocysteine with NORMAL methylmalonic acid`, `Elevated orotic acid with normal homocysteine`], 0,
+    `↑ Homocysteine + ↑ MMA (B12 Deficiency)`,
+    `B12 is required by BOTH methionine synthase and methylmalonyl-CoA mutase; folate is only required by the first.`,
+    `Vitamin B12 (cobalamin) is a cofactor for methionine synthase (homocysteine -> methionine) and methylmalonyl-CoA mutase (methylmalonyl-CoA -> succinyl-CoA).\nOdd-chain fatty acid/propionyl-CoA accumulation (MMA) incorporates abnormal fatty acids into myelin sheaths.`,
+    `Subacute combined degeneration affects dorsal columns (vibration/proprioception) and lateral corticospinal tracts (UMN spasticity/Babinski) plus "megaloblastic madness."`,
+    `Folate supplementation corrects megaloblastic anemia in B12 deficiency but DOES NOT halt irreversible spinal/neuropsychiatric demyelination.`,
+    `Check serum B12, methylmalonic acid (↑), homocysteine (↑), and anti-intrinsic factor antibodies (pernicious anemia).`,
+    `Parenteral IM cyanocobalamin/hydroxocobalamin rapidly halts neurologic progression.`,
+    `Folate deficiency raises homocysteine ONLY (normal MMA) and lacks subacute combined degeneration; orotic acid rises in OTC deficiency/orotic aciduria.`,
+    `B12 Deficiency = ↑ Homocysteine + ↑ MMA -> Subacute Combined Degeneration + Reversible Dementia.`
+  ),
+  g(41, 14, 2, 'Thiamine (B1) Failure & Wernicke Encephalopathy',
+    `A 52-year-old man with severe alcohol use disorder is brought to the ED confused and hypotensive. Shortly after receiving an IV D5W bolus without prior vitamins, he develops horizontal nystagmus, bilateral abducens palsy, and broad-based gait ataxia. Which enzymes failed acutely?`,
+    [`Pyruvate dehydrogenase, α-ketoglutarate dehydrogenase, and transketolase`, `Pyruvate carboxylase, biotinidase, and propionyl-CoA carboxylase`, `Glucose-6-phosphate dehydrogenase and glutathione reductase`], 0,
+    `PDH, α-KGDH & Transketolase (Thiamine B1)`,
+    `Glucose infusion burns through residual thiamine pyrophosphate (TPP), starving high-ATP neurons.`,
+    `Thiamine (B1) as TPP is an obligate cofactor for pyruvate dehydrogenase, α-ketoglutarate dehydrogenase (TCA), branched-chain α-ketoacid dehydrogenase, and transketolase (HMP shunt).\nIV dextrose accelerates glycolysis and precipitates acute ATP depletion in metabolically demanding brainstem/thalamic nuclei.`,
+    `Wernicke triad (CorONA): Confusion, Ophthalmoplegia/Nystagmus (CN VI), Ataxia.`,
+    `Acute reversible medical emergency; delayed treatment progresses to permanent Korsakoff syndrome.`,
+    `Clinical diagnosis; supported by reduced RBC transketolase activity (increases upon adding TPP) and MRI mammillary body hyperintensity.`,
+    `Give high-dose IV thiamine BEFORE dextrose in any malnourished or alcohol-use patient.`,
+    `Pyruvate carboxylase/propionyl-CoA carboxylase require biotin (B7); G6PD uses NADP+ to protect RBCs.`,
+    `Always give IV Thiamine BEFORE Glucose to prevent PDH/α-KGDH/Transketolase collapse (Wernicke).`
+  ),
+  g(42, 14, 3, 'Korsakoff Amnestic Circuit Pathology',
+    `Following partial recovery from Wernicke encephalopathy, the patient exhibits profound inability to form new episodic memories and invents elaborate, plausible-sounding stories to fill memory gaps. Which neuroanatomic structures show petechial hemorrhage and necrosis?`,
+    [`Mammillary bodies and dorsomedial nucleus of the thalamus`, `Bilateral amygdalae and uncus`, `Subthalamic nucleus and red nucleus`], 0,
+    `Mammillary Bodies & Dorsomedial Thalamus`,
+    `Part of the Papez limbic memory circuit damaged irreversibly by untreated thiamine deficiency.`,
+    `Prolonged thiamine deficiency causes focal necrosis, astrogliosis, and hemosiderin-laden petechial hemorrhages in the mammillary bodies, periaqueductal gray, and medial dorsal thalamic nuclei.\nDisrupts hippocampal-diencephalic memory consolidation.`,
+    `Korsakoff syndrome: severe anterograde > retrograde amnesia, confabulation, and apathy with preserved procedural memory.`,
+    `Unlike acute Wernicke encephalopathy, Korsakoff amnesia is largely permanent (~20-25% full recovery).`,
+    `Brain MRI demonstrates mammillary body atrophy and periventricular/thalamic signal changes.`,
+    `Long-term oral thiamine, alcohol cessation support (naltrexone/acamprosate), and structured memory rehabilitation.`,
+    `Bilateral amygdala lesions produce Klüver-Bucy syndrome; subthalamic nucleus lesions produce hemiballismus.`,
+    `Korsakoff Syndrome = Mammillary Bodies + Dorsomedial Thalamus -> Anterograde Amnesia & Confabulation.`
+  ),
+
+  // Entity 15: Autonomic Balancing, Suboccipital Release & CV4 (Gates 43-45)
+  g(43, 15, 1, 'Viscerosomatic Sympathetics & Vagal Condylar Entrapment',
+    `A 36-year-old woman with panic disorder and somatization complains of palpitations, upper thoracic stiffness, and dyspepsia. Osteopathic structural exam reveals T1-T4 paraspinal hypertonicity and occipitoatlantal (OA) compression. How does OA compression impair parasympathetic balance?`,
+    [`Compresses the vagus nerve (CN X) exiting the jugular foramen between occiput and temporal bone`, `Blocks sympathetic preganglionic outflow exiting the cribriform plate`, `Stimulates glossopharyngeal motor fibers to the sinoatrial node`], 0,
+    `OA Compression -> CN X (Jugular Foramen) Impingement`,
+    `Look at the cranial base exit of the primary parasympathetic nerve to the thorax and foregut/midgut.`,
+    `Upper thoracic sympathetics (T1-T4/T5) accelerate heart rate and sympathetic arousal during panic.\nConversely, ~75% of parasympathetic tone travels via CN X (vagus), exiting the jugular foramen adjacent to the occipital condyles.`,
+    `OA somatic dysfunction and suboccipital muscle hypertonicity irritate the jugular foramen region, blunting vagal heart-rate variability.`,
+    `Upper thoracic viscerosomatic reflexes (T1-T4) mirror cardiopulmonary sympathetic overdrive.`,
+    `Osteopathic palpatory findings: boggy paraspinal tissues at T1-T4 and restricted OA flexion/extension.`,
+    `Suboccipital release (condylar decompression) frees OA tension, restores vagal tone, and pairs with rib raising to balance T1-T4 sympathetics.`,
+    `Sympathetics exit T1-L2 spinal cord (not cribriform plate); CN IX does not drive SA node slowing.`,
+    `OA Suboccipital Release decompresses CN X (jugular foramen) to restore parasympathetic homeostasis.`
+  ),
+  g(44, 15, 2, 'CV4 Technique Mechanism & Still Point',
+    `A 41-year-old combat veteran with PTSD, hypervigilance, and insomnia undergoes osteopathic manipulative treatment. The physician cups the lateral angles of the occiput medial to the occipitomastoid suture, resists flexion, and holds gentle medial compression until a brief pause occurs. What is the physiologic goal of this CV4 technique?`,
+    [`Induce a cranial rhythmic impulse (CRI) still point to quiet sympathetic tone and normalize CSF/autonomic homeostasis`, `Forcefully distract the sphenobasilar synchondrosis into flexion to spike sympathetic outflow`, `Perform high-velocity low-amplitude (HVLA) rotation of C1-C2`], 0,
+    `CV4 -> Still Point -> ↓ Sympathetic Arousal`,
+    `Compression of the Fourth Ventricle (CV4) gently compresses the squamous occiput during cranial extension.`,
+    `CV4 places the occiput in extension (squamous part narrows laterally) and resists flexion until the Cranial Rhythmic Impulse (CRI) reaches a quiescent "still point."\nThis resets central autonomic tone, reduces sympathetic hyperarousal, and enhances CSF fluctuation.`,
+    `Clinically indicated for severe anxiety, PTSD hypervigilance, insomnia, headache, and somatic stress syndromes.`,
+    `Always watch for the palpable softening, warmth, and deep sigh/relaxation marking the therapeutic still point.`,
+    `Contraindications include acute intracranial hemorrhage, skull fracture, or elevated ICP (where compression is unsafe).`,
+    `Combine CV4 with abdominal/thoracic diaphragmatic doming and rib raising for full autonomic integration.`,
+    `CV4 resists flexion (does not force SBS flexion or use cervical HVLA).`,
+    `CV4 resists cranial flexion -> Induces CRI Still Point -> Calms sympathetic tone & promotes sleep.`
+  ),
+  g(45, 15, 3, 'Integrated Psychosomatic OMT Prescription',
+    `A 28-year-old medical resident with generalized anxiety disorder, tension headaches, and irritable bowel symptoms seeks non-pharmacologic osteopathic care alongside CBT. Which targeted OMT sequence best downregulates sympathetic hypertonicity (T1-L2) while augmenting vagal/sacral parasympathetic balance?`,
+    [`Suboccipital release + thoracic rib raising (T1-T12) + sacral/pelvic diaphragm release + CV4`, `Lumbar HVLA thrusting + aggressive pectoral stretching only`, `Deep cervical effleurage without cranial or thoracic modulation`], 0,
+    `Suboccipital + Rib Raising + Sacral + CV4`,
+    `Address BOTH ends of the craniosacral parasympathetic system (OA/CN X + S2-S4) and the thoracolumbar sympathetic chain.`,
+    `Parasympathetic outflow is craniosacral (CN III, VII, IX, X at cranial base; S2-S4 pelvic splanchnics to hindgut).\nSympathetic outflow is thoracolumbar (T1-L2; rib heads articulate directly adjacent to sympathetic chain ganglia).`,
+    `Addressing OA (CN X), T1-T12 (rib raising), and sacrum (S2-S4) directly targets palpatory somatic dysfunction in anxiety/IBS.`,
+    `Rib raising initially stimulates then reflexively normalizes hyperactive sympathetic ganglia.`,
+    `Reassess TART findings (Tenderness, Asymmetry, Restriction, Tissue texture change) pre- and post-OMT.`,
+    `Pair OMT with CBT, diaphragmatic breathing biofeedback, and SSRI if indicated.`,
+    `Isolated lumbar HVLA ignores cranial base vagal entrapment and thoracic sympathetic chain ganglia.`,
+    `Psychosomatic OMT balances Craniosacral Parasympathetics (OA/Sacrum/CV4) + Thoracolumbar Sympathetics (Rib Raising).`
+  )
+];
+
+// App State
+const APP_STATE = {
+  deck: [],
+  currentIdx: 0,
+  hp: 100,
+  xp: 0,
+  streak: 0,
+  masteredIds: [],
+  missedIds: [],
+  seenIds: [],
+  sectorFilter: 'ALL',
+  phaseFilter: 'ALL',
+  isTimerEnabled: false,
+  timerSeconds: 50,
+  timerHandle: null,
+  isPausedForModal: false,
+  isMenuOpen: false,
+  isHintsVisible: false,
+  soundMaster: true,
+  soundSfx: true,
+  bgmPlaying: false,
+  bgmVolume: 0.35,
+  targetLane: 1,
+  metaFadeTimer: null
+};
+
+// 3D Canvas Engine State
+const CANVAS_ENGINE = {
+  canvas: null,
+  ctx: null,
+  w: 800,
+  h: 600,
+  dpr: 1,
+  rafId: null,
+  scrollZ: 0,
+  shipX: 0.5,
+  shipTilt: 0,
+  particles: [],
+  pulsePhase: 0,
+  flashAlpha: 0,
+  flashColor: '0, 255, 204'
+};
+
+// Audio Synthesizer State
+const AUDIO_ENGINE = {
+  ctx: null,
+  bgmTimer: null,
+  bgmStep: 0,
+  customEl: null,
+  customUrl: null
+};
+
+function initAudioContext() {
+  if (!AUDIO_ENGINE.ctx) {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (AudioCtx) AUDIO_ENGINE.ctx = new AudioCtx();
+  }
+  if (AUDIO_ENGINE.ctx && AUDIO_ENGINE.ctx.state === 'suspended') {
+    AUDIO_ENGINE.ctx.resume().catch(() => {});
+  }
+}
+
+function playSfx(type) {
+  if (!APP_STATE.soundMaster || !APP_STATE.soundSfx) return;
+  initAudioContext();
+  const ctx = AUDIO_ENGINE.ctx;
+  if (!ctx) return;
+
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  if (type === 'steer') {
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(340, now);
+    osc.frequency.exponentialRampToValueAtTime(520, now + 0.06);
+    gain.gain.setValueAtTime(0.05, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+    osc.start(now);
+    osc.stop(now + 0.08);
+  } else if (type === 'correct') {
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(523.25, now);
+    osc.frequency.setValueAtTime(659.25, now + 0.08);
+    osc.frequency.setValueAtTime(783.99, now + 0.16);
+    gain.gain.setValueAtTime(0.11, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.34);
+    osc.start(now);
+    osc.stop(now + 0.35);
+  } else if (type === 'wrong') {
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(210, now);
+    osc.frequency.exponentialRampToValueAtTime(95, now + 0.25);
+    gain.gain.setValueAtTime(0.1, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+    osc.start(now);
+    osc.stop(now + 0.29);
+  }
+}
+
+function startProceduralBgmLoop() {
+  stopProceduralBgmLoop();
+  if (!APP_STATE.bgmPlaying || !APP_STATE.soundMaster) return;
+  initAudioContext();
+  const notes = [110, 130.81, 146.83, 164.81, 110, 130.81, 196, 164.81];
+  AUDIO_ENGINE.bgmTimer = setInterval(() => {
+    if (!APP_STATE.bgmPlaying || !APP_STATE.soundMaster || !AUDIO_ENGINE.ctx) return;
+    if (AUDIO_ENGINE.customEl && !AUDIO_ENGINE.customEl.paused) return;
+    const ctx = AUDIO_ENGINE.ctx;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    const freq = notes[AUDIO_ENGINE.bgmStep % notes.length];
+    AUDIO_ENGINE.bgmStep++;
+    osc.frequency.setValueAtTime(freq, now);
+    const vol = Math.max(0.001, APP_STATE.bgmVolume * 0.08);
+    gain.gain.setValueAtTime(vol, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.24);
+  }, 240);
+}
+
+function stopProceduralBgmLoop() {
+  if (AUDIO_ENGINE.bgmTimer) {
+    clearInterval(AUDIO_ENGINE.bgmTimer);
+    AUDIO_ENGINE.bgmTimer = null;
+  }
+}
+
+function toggleMasterSound() {
+  APP_STATE.soundMaster = !APP_STATE.soundMaster;
+  if (!APP_STATE.soundMaster && AUDIO_ENGINE.customEl) AUDIO_ENGINE.customEl.pause();
+  if (APP_STATE.soundMaster && APP_STATE.bgmPlaying) {
+    if (AUDIO_ENGINE.customEl) AUDIO_ENGINE.customEl.play().catch(() => {});
+    else startProceduralBgmLoop();
+  }
+  syncAudioUI();
+  persistAppState();
+}
+
+function toggleSfxSound() {
+  APP_STATE.soundSfx = !APP_STATE.soundSfx;
+  syncAudioUI();
+  persistAppState();
+}
+
+function toggleProceduralBgm() {
+  APP_STATE.bgmPlaying = !APP_STATE.bgmPlaying;
+  if (APP_STATE.bgmPlaying && APP_STATE.soundMaster) {
+    if (AUDIO_ENGINE.customEl) AUDIO_ENGINE.customEl.play().catch(() => {});
+    else startProceduralBgmLoop();
+  } else {
+    stopProceduralBgmLoop();
+    if (AUDIO_ENGINE.customEl) AUDIO_ENGINE.customEl.pause();
+  }
+  syncAudioUI();
+  persistAppState();
+}
+
+function loadCustomAudioFile(event) {
+  const file = event && event.target && event.target.files && event.target.files[0];
+  if (!file) return;
+  if (AUDIO_ENGINE.customUrl) URL.revokeObjectURL(AUDIO_ENGINE.customUrl);
+  AUDIO_ENGINE.customUrl = URL.createObjectURL(file);
+  if (!AUDIO_ENGINE.customEl) AUDIO_ENGINE.customEl = new Audio();
+  AUDIO_ENGINE.customEl.src = AUDIO_ENGINE.customUrl;
+  AUDIO_ENGINE.customEl.loop = true;
+  AUDIO_ENGINE.customEl.volume = APP_STATE.bgmVolume;
+  stopProceduralBgmLoop();
+  APP_STATE.bgmPlaying = true;
+  if (APP_STATE.soundMaster) AUDIO_ENGINE.customEl.play().catch(() => {});
+  syncAudioUI();
+  showMenuToast(`Loaded custom track: ${file.name}`);
+}
+
+function updateBgmVolume(val) {
+  const pct = Math.max(0, Math.min(100, Number(val) || 0));
+  APP_STATE.bgmVolume = pct / 100;
+  const readout = document.getElementById('bgm-vol-readout');
+  if (readout) readout.textContent = `${pct}%`;
+  if (AUDIO_ENGINE.customEl) AUDIO_ENGINE.customEl.volume = APP_STATE.bgmVolume;
+  persistAppState();
+}
+
+function syncAudioUI() {
+  const mBtn = document.getElementById('btn-master-sound');
+  const sBtn = document.getElementById('btn-sfx-sound');
+  const bBtn = document.getElementById('btn-bgm-sound');
+  if (mBtn) {
+    mBtn.textContent = APP_STATE.soundMaster ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+    mBtn.classList.toggle('is-active', APP_STATE.soundMaster);
+  }
+  if (sBtn) {
+    sBtn.textContent = APP_STATE.soundSfx ? '🎛 SFX: ON' : '🎛 SFX: OFF';
+    sBtn.classList.toggle('is-active', APP_STATE.soundSfx);
+  }
+  if (bBtn) {
+    bBtn.textContent = APP_STATE.bgmPlaying ? '🎵 Synth BGM: ON' : '🎵 Synth BGM: OFF';
+    bBtn.classList.toggle('is-active', APP_STATE.bgmPlaying);
+  }
+}
+
+// 3D Canvas Wireframe Engine (150 3D Square Pixel-Dust, 3 Teal Rails, Diamond Craft, 1:1 Portal Fusion)
+function initCanvasEngine() {
+  const canvas = document.getElementById('xr-canvas');
+  if (!canvas) return;
+  CANVAS_ENGINE.canvas = canvas;
+  CANVAS_ENGINE.ctx = canvas.getContext('2d');
+  resizeCanvas();
+
+  CANVAS_ENGINE.particles = [];
+  for (let i = 0; i < 150; i++) {
+    CANVAS_ENGINE.particles.push({
+      x: (Math.random() - 0.5) * 2.6,
+      y: Math.random() * 1.15 - 0.15,
+      z: Math.random(),
+      size: 1.5 + Math.random() * 2.5,
+      speed: 0.002 + Math.random() * 0.0045
+    });
+  }
+
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const relX = (e.clientX - rect.left) / Math.max(1, rect.width);
+    const lane = relX < 0.36 ? 0 : (relX > 0.64 ? 2 : 1);
+    setTargetLane(lane);
+  });
+
+  window.addEventListener('resize', resizeCanvas);
+  if (CANVAS_ENGINE.rafId) cancelAnimationFrame(CANVAS_ENGINE.rafId);
+  renderCanvasFrame();
+}
+
+function resizeCanvas() {
+  const canvas = CANVAS_ENGINE.canvas;
+  if (!canvas) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  CANVAS_ENGINE.dpr = dpr;
+  CANVAS_ENGINE.w = window.innerWidth;
+  CANVAS_ENGINE.h = window.innerHeight;
+  canvas.width = Math.floor(CANVAS_ENGINE.w * dpr);
+  canvas.height = Math.floor(CANVAS_ENGINE.h * dpr);
+}
+
+function getLaneCardCenterX(laneIdx) {
+  const el = document.getElementById(`lane-card-${laneIdx}`);
+  if (!el) return CANVAS_ENGINE.w * (0.22 + laneIdx * 0.28);
+  const rect = el.getBoundingClientRect();
+  return rect.left + rect.width * 0.5;
+}
+
+function renderCanvasFrame() {
+  const ctx = CANVAS_ENGINE.ctx;
+  const w = CANVAS_ENGINE.w;
+  const h = CANVAS_ENGINE.h;
+  const dpr = CANVAS_ENGINE.dpr;
+  if (!ctx) return;
+
+  ctx.save();
+  ctx.scale(dpr, dpr);
+
+  // Void background
+  ctx.fillStyle = '#070812';
+  ctx.fillRect(0, 0, w, h);
+
+  const q = getCurrentQuestion();
+  const theme = LO_VISUAL_THEMES[q ? q.entityId : 1] || LO_VISUAL_THEMES[1];
+  const horizonY = h * 0.36;
+  const centerX = w * 0.5;
+
+  // Horizon radial aura
+  const grad = ctx.createRadialGradient(centerX, horizonY, 10, centerX, horizonY, w * 0.55);
+  grad.addColorStop(0, `rgba(${theme.gridRgb}, 0.22)`);
+  grad.addColorStop(1, 'rgba(7, 8, 18, 0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+
+  // 150 crisp 3D square pixel-dust particles (fillRect only)
+  ctx.fillStyle = theme.dustColor;
+  for (let i = 0; i < CANVAS_ENGINE.particles.length; i++) {
+    const p = CANVAS_ENGINE.particles[i];
+    p.z -= p.speed;
+    if (p.z <= 0.05) {
+      p.z = 1.0;
+      p.x = (Math.random() - 0.5) * 2.6;
+      p.y = Math.random() * 1.15 - 0.15;
+    }
+    const scale = 1 / p.z;
+    const sx = centerX + p.x * w * 0.35 * scale;
+    const sy = horizonY - p.y * h * 0.22 * scale;
+    const sz = Math.max(1.5, p.size * Math.min(2.2, scale * 0.45));
+    ctx.globalAlpha = Math.max(0.15, Math.min(0.9, 1 - p.z * 0.75));
+    ctx.fillRect(sx - sz * 0.5, sy - sz * 0.5, sz, sz);
+  }
+  ctx.globalAlpha = 1;
+
+  // Infinite perspective wireframe floor grid
+  CANVAS_ENGINE.scrollZ = (CANVAS_ENGINE.scrollZ + 0.018) % 1;
+  ctx.strokeStyle = `rgba(${theme.gridRgb}, 0.24)`;
+  ctx.lineWidth = 1;
+
+  const numVerts = 16;
+  for (let i = -numVerts; i <= numVerts; i++) {
+    const bottomX = centerX + i * (w * 0.095);
+    const topX = centerX + i * (w * 0.008);
+    ctx.beginPath();
+    ctx.moveTo(topX, horizonY);
+    ctx.lineTo(bottomX, h);
+    ctx.stroke();
+  }
+
+  const numHoriz = 14;
+  for (let i = 0; i < numHoriz; i++) {
+    const t = ((i + CANVAS_ENGINE.scrollZ) / numHoriz);
+    const py = horizonY + Math.pow(t, 2.2) * (h - horizonY);
+    ctx.beginPath();
+    ctx.moveTo(0, py);
+    ctx.lineTo(w, py);
+    ctx.stroke();
+  }
+
+  // 3 Teal perspective track rails converging toward live card centers
+  const railTargets = [getLaneCardCenterX(0), getLaneCardCenterX(1), getLaneCardCenterX(2)];
+  const laneColors = ['#ff2d78', '#00ffcc', '#ffe04a'];
+
+  for (let l = 0; l < 3; l++) {
+    const topX = centerX + (l - 1) * (w * 0.025);
+    const botX = railTargets[l];
+    const isTarget = APP_STATE.targetLane === l;
+    ctx.strokeStyle = isTarget ? laneColors[l] : 'rgba(0, 255, 204, 0.42)';
+    ctx.lineWidth = isTarget ? 2.4 : 1.3;
+    ctx.beginPath();
+    ctx.moveTo(topX, horizonY);
+    ctx.lineTo(botX, h);
+    ctx.stroke();
+  }
+
+  // 1:1 Portal Fusion locked to live getBoundingClientRect() of the 3 answer cards
+  CANVAS_ENGINE.pulsePhase += 0.04;
+  for (let l = 0; l < 3; l++) {
+    const cardEl = document.getElementById(`lane-card-${l}`);
+    if (cardEl) {
+      const rect = cardEl.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        const isTarget = APP_STATE.targetLane === l;
+        const pad = isTarget ? 5 + Math.sin(CANVAS_ENGINE.pulsePhase) * 1.5 : 2;
+        ctx.save();
+        ctx.strokeStyle = laneColors[l];
+        ctx.lineWidth = isTarget ? 2.6 : 1.2;
+        ctx.globalAlpha = isTarget ? 0.92 : 0.42;
+        ctx.shadowColor = laneColors[l];
+        ctx.shadowBlur = isTarget ? 18 : 6;
+        ctx.strokeRect(rect.left - pad, rect.top - pad, rect.width + pad * 2, rect.height + pad * 2);
+        ctx.restore();
+      }
+    }
+  }
+
+  // Solid Geometric Teal Diamond Craft with smooth interpolation & dynamic banking roll tilt
+  const targetX = railTargets[APP_STATE.targetLane] || centerX;
+  CANVAS_ENGINE.shipX += (targetX - CANVAS_ENGINE.shipX) * 0.18;
+  CANVAS_ENGINE.shipTilt = (targetX - CANVAS_ENGINE.shipX) * 0.06;
+
+  const craftY = h - 38;
+  ctx.save();
+  ctx.translate(CANVAS_ENGINE.shipX, craftY);
+  ctx.rotate(Math.max(-0.42, Math.min(0.42, CANVAS_ENGINE.shipTilt * 0.04)));
+
+  // Craft shadow & outer diamond
+  ctx.shadowColor = '#00ffcc';
+  ctx.shadowBlur = 16;
+  ctx.fillStyle = '#00ffcc';
+  ctx.beginPath();
+  ctx.moveTo(0, -24);
+  ctx.lineTo(22, 6);
+  ctx.lineTo(0, 18);
+  ctx.lineTo(-22, 6);
+  ctx.closePath();
+  ctx.fill();
+
+  // Inner geometric core facet
+  ctx.fillStyle = '#0a1426';
+  ctx.beginPath();
+  ctx.moveTo(0, -14);
+  ctx.lineTo(10, 4);
+  ctx.lineTo(0, 10);
+  ctx.lineTo(-10, 4);
+  ctx.closePath();
+  ctx.fill();
+
+  // Thruster chevron
+  ctx.fillStyle = laneColors[APP_STATE.targetLane];
+  ctx.fillRect(-4, 14, 8, 5);
+  ctx.restore();
+
+  // Subtle screen feedback flash
+  if (CANVAS_ENGINE.flashAlpha > 0.01) {
+    ctx.fillStyle = `rgba(${CANVAS_ENGINE.flashColor}, ${CANVAS_ENGINE.flashAlpha})`;
+    ctx.fillRect(0, 0, w, h);
+    CANVAS_ENGINE.flashAlpha *= 0.88;
+  }
+
+  ctx.restore();
+  CANVAS_ENGINE.rafId = requestAnimationFrame(renderCanvasFrame);
+}
+
+// Steering & Lane Wiring
+function setTargetLane(laneIdx) {
+  const clamped = Math.max(0, Math.min(2, laneIdx));
+  if (APP_STATE.targetLane !== clamped) {
+    APP_STATE.targetLane = clamped;
+    playSfx('steer');
+    syncLaneTargetClasses();
+  }
+}
+
+function syncLaneTargetClasses() {
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`lane-card-${i}`);
+    if (card) card.classList.toggle('is-targeted', APP_STATE.targetLane === i);
+  }
+}
+
+function wireMouseSurfing() {
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`lane-card-${i}`);
+    const body = document.getElementById(`lane-${i}-text`);
+    [card, body].forEach((el) => {
+      if (!el) return;
+      el.addEventListener('mouseenter', () => setTargetLane(i));
+      el.addEventListener('mousemove', () => setTargetLane(i));
+    });
+  }
+}
+
+function handleLaneKeydown(event, laneIdx) {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    fireLaneDecision(laneIdx);
+  }
+}
+
+// Deck Building & Filtering
+function buildFilteredDeck(shuffle) {
+  let list = QUESTIONS.slice();
+  if (APP_STATE.sectorFilter === 'MISSED') {
+    const missedSet = new Set(APP_STATE.missedIds);
+    const subset = list.filter((q) => missedSet.has(q.id));
+    if (subset.length > 0) list = subset;
+  } else if (APP_STATE.sectorFilter !== 'ALL') {
+    const secNum = Number(APP_STATE.sectorFilter);
+    list = list.filter((q) => {
+      const ent = ENTITIES.find((e) => e.id === q.entityId);
+      return ent && ent.sector === secNum;
+    });
+  }
+
+  if (APP_STATE.phaseFilter !== 'ALL') {
+    const ph = Number(APP_STATE.phaseFilter);
+    const sub = list.filter((q) => q.phase === ph);
+    if (sub.length > 0) list = sub;
+  }
+
+  if (shuffle) {
+    for (let i = list.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = list[i];
+      list[i] = list[j];
+      list[j] = tmp;
+    }
+  }
+  APP_STATE.deck = list;
+  APP_STATE.currentIdx = 0;
+}
+
+function getCurrentQuestion() {
+  if (!APP_STATE.deck.length) buildFilteredDeck(false);
+  return APP_STATE.deck[APP_STATE.currentIdx] || QUESTIONS[0];
+}
+
+function renderCurrentGate() {
+  const q = getCurrentQuestion();
+  if (!q) return;
+  const ent = ENTITIES.find((e) => e.id === q.entityId) || ENTITIES[0];
+  const theme = LO_VISUAL_THEMES[q.entityId] || LO_VISUAL_THEMES[1];
+
+  const bSector = document.getElementById('badge-sector-entity');
+  const bAngle = document.getElementById('badge-angle');
+  const bPhase = document.getElementById('badge-phase');
+  const bCorr = document.getElementById('badge-corridor');
+  const metaRow = document.getElementById('meta-badge-row');
+
+  if (bSector) bSector.textContent = `${ent.sectorName.split(':')[0]} • ${ent.name}`;
+  if (bAngle) bAngle.textContent = `Angle: ${q.angle}`;
+  if (bPhase) bPhase.textContent = `Phase ${q.phase}/3`;
+  if (bCorr) bCorr.textContent = `CORRIDOR: ${theme.tag}`;
+
+  if (metaRow) {
+    metaRow.classList.remove('is-faded');
+    if (APP_STATE.metaFadeTimer) clearTimeout(APP_STATE.metaFadeTimer);
+    APP_STATE.metaFadeTimer = setTimeout(() => {
+      metaRow.classList.add('is-faded');
+    }, 3000);
+  }
+
+  const stemEl = document.getElementById('q-stem-text');
+  if (stemEl) stemEl.textContent = q.stem;
+
+  const clueEl = document.getElementById('q-clue-text');
+  if (clueEl) clueEl.textContent = q.clue;
+
+  for (let i = 0; i < 3; i++) {
+    const cBody = document.getElementById(`lane-${i}-text`);
+    if (cBody) {
+      cBody.innerHTML = `<span>${escapeHtml(q.choices[i] || '')}</span>`;
+    }
+  }
+
+  updateTelemetryUI();
+  renderSkillTreeGrid();
+  resetGateTimer();
+}
+
+function updateTelemetryUI() {
+  const hpEl = document.getElementById('chip-hp');
+  const xpEl = document.getElementById('chip-xp');
+  const stEl = document.getElementById('chip-streak');
+  const gtEl = document.getElementById('chip-gate');
+  const tmEl = document.getElementById('chip-timer');
+
+  if (hpEl) hpEl.textContent = `HP ${APP_STATE.hp}`;
+  if (xpEl) xpEl.textContent = `XP ${APP_STATE.xp}`;
+  if (stEl) stEl.textContent = `⚡ ${APP_STATE.streak}`;
+  if (gtEl) gtEl.textContent = `Gate ${APP_STATE.currentIdx + 1}/${APP_STATE.deck.length}`;
+  if (tmEl) {
+    if (!APP_STATE.isTimerEnabled) {
+      tmEl.textContent = '⏱ OFF';
+      tmEl.classList.remove('is-urgent');
+    } else {
+      tmEl.textContent = `⏱ ${APP_STATE.timerSeconds}s`;
+      tmEl.classList.toggle('is-urgent', APP_STATE.timerSeconds <= 10);
+    }
+  }
+}
+
+// Timer Management
+function resetGateTimer() {
+  if (APP_STATE.timerHandle) {
+    clearInterval(APP_STATE.timerHandle);
+    APP_STATE.timerHandle = null;
+  }
+  APP_STATE.timerSeconds = 50;
+  updateTelemetryUI();
+  if (!APP_STATE.isTimerEnabled || APP_STATE.isPausedForModal) return;
+
+  APP_STATE.timerHandle = setInterval(() => {
+    if (APP_STATE.isPausedForModal || !APP_STATE.isTimerEnabled) return;
+    APP_STATE.timerSeconds = Math.max(0, APP_STATE.timerSeconds - 1);
+    updateTelemetryUI();
+    if (APP_STATE.timerSeconds <= 0) {
+      clearInterval(APP_STATE.timerHandle);
+      APP_STATE.timerHandle = null;
+      resolveQuestionAttempt(APP_STATE.targetLane, true);
+    }
+  }, 1000);
+}
+
+function toggleTimerMode() {
+  APP_STATE.isTimerEnabled = !APP_STATE.isTimerEnabled;
+  syncTimerControlsUI();
+  resetGateTimer();
+  persistAppState();
+}
+
+function startTimedRunFromMenu() {
+  APP_STATE.isTimerEnabled = true;
+  syncTimerControlsUI();
+  if (APP_STATE.isMenuOpen) toggleMenuDrawer();
+  restartOrderedDeck();
+}
+
+function syncTimerControlsUI() {
+  const btn = document.getElementById('menu-timer-btn');
+  if (btn) {
+    btn.textContent = APP_STATE.isTimerEnabled ? '⏱ 50s Timer: ON [T]' : '⏱ 50s Timer: OFF [T]';
+    btn.classList.toggle('is-active', APP_STATE.isTimerEnabled);
+  }
+  updateTelemetryUI();
+}
+
+// Decision & Outcome Dossier
+function fireLaneDecision(laneIdx) {
+  if (APP_STATE.isPausedForModal) return;
+  setTargetLane(laneIdx);
+  resolveQuestionAttempt(laneIdx, false);
+}
+
+function resolveQuestionAttempt(chosenLane, isTimesUp) {
+  const q = getCurrentQuestion();
+  if (!q) return;
+  APP_STATE.isPausedForModal = true;
+  if (APP_STATE.timerHandle) {
+    clearInterval(APP_STATE.timerHandle);
+    APP_STATE.timerHandle = null;
+  }
+
+  const isCorrect = !isTimesUp && chosenLane === q.correct;
+  if (!APP_STATE.seenIds.includes(q.id)) APP_STATE.seenIds.push(q.id);
+
+  if (isCorrect) {
+    APP_STATE.streak += 1;
+    const bonus = Math.min(100, (APP_STATE.streak - 1) * 15);
+    APP_STATE.xp += 100 + bonus;
+    APP_STATE.hp = Math.min(100, APP_STATE.hp + 5);
+    if (!APP_STATE.masteredIds.includes(q.id)) APP_STATE.masteredIds.push(q.id);
+    APP_STATE.missedIds = APP_STATE.missedIds.filter((id) => id !== q.id);
+    CANVAS_ENGINE.flashColor = '0, 255, 204';
+    CANVAS_ENGINE.flashAlpha = 0.22;
+    playSfx('correct');
+  } else {
+    APP_STATE.streak = 0;
+    APP_STATE.hp = Math.max(10, APP_STATE.hp - 15);
+    if (!APP_STATE.missedIds.includes(q.id)) APP_STATE.missedIds.push(q.id);
+    APP_STATE.masteredIds = APP_STATE.masteredIds.filter((id) => id !== q.id);
+    CANVAS_ENGINE.flashColor = '255, 45, 120';
+    CANVAS_ENGINE.flashAlpha = 0.24;
+    playSfx('wrong');
+  }
+
+  updateTelemetryUI();
+  populateOutcomeModal(q, chosenLane, isCorrect, isTimesUp);
+  persistAppState();
+}
+
+function renderDossierBullets(el, lines) {
+  if (!el) return;
+  const items = (Array.isArray(lines) ? lines : [lines])
+    .flatMap((line) => String(line || '').split(/\n|<br\s*\/?>/i))
+    .map((line) => line.replace(/^\s*[•\-\*]\s*/, '').trim())
+    .filter(Boolean);
+  el.innerHTML = items.map((line) => `<p class="dossier-line amboss-scan-target">• ${escapeHtml(line)}</p>`).join('');
+}
+
+function populateOutcomeModal(q, chosenLane, isCorrect, isTimesUp) {
+  const modal = document.getElementById('outcome-modal');
+  const titleEl = document.getElementById('outcome-modal-title');
+  const metaChip = document.getElementById('outcome-meta-chip');
+  const kickerEl = document.getElementById('outcome-entity-kicker');
+  const stemEl = document.getElementById('outcome-stem-text');
+  const yourBox = document.getElementById('compare-your-box');
+  const yourText = document.getElementById('compare-your-text');
+  const rightText = document.getElementById('compare-right-text');
+  const stackEl = document.getElementById('outcome-dossier-sections');
+  const phaseGrid = document.getElementById('outcome-phase-grid');
+
+  const ent = ENTITIES.find((e) => e.id === q.entityId) || ENTITIES[0];
+
+  if (titleEl) {
+    titleEl.className = 'modal-status-title';
+    if (isTimesUp) {
+      titleEl.textContent = `⏱ TIME'S UP — ${q.shortAnswer}`;
+      titleEl.classList.add('is-timeout');
+    } else if (isCorrect) {
+      titleEl.textContent = `✔ CORRECT — ${q.shortAnswer}`;
+      titleEl.classList.add('is-correct');
+    } else {
+      titleEl.textContent = `✖ INCORRECT — ${q.shortAnswer}`;
+      titleEl.classList.add('is-wrong');
+    }
+  }
+
+  if (metaChip) metaChip.textContent = `Gate ${q.id}/45 • Phase ${q.phase}/3`;
+  if (kickerEl) kickerEl.textContent = `${ent.sectorName} • ${ent.name} (${q.angle})`;
+  if (stemEl) stemEl.textContent = q.stem;
+
+  if (yourBox) {
+    yourBox.className = 'compare-box ' + (isCorrect ? 'is-yours-correct' : 'is-yours-wrong');
+  }
+  if (yourText) yourText.textContent = isTimesUp ? 'Timer Expired (No Lock)' : (q.choices[chosenLane] || '');
+  if (rightText) rightText.textContent = q.choices[q.correct] || '';
+
+  if (stackEl) {
+    stackEl.innerHTML = '';
+    q.dossier.forEach((sec) => {
+      const card = document.createElement('div');
+      card.className = 'dossier-card';
+      const h3 = document.createElement('h3');
+      h3.className = 'dossier-card-title';
+      h3.textContent = sec.title;
+      const bullets = document.createElement('div');
+      bullets.className = 'dossier-bullets';
+      renderDossierBullets(bullets, sec.lines);
+      card.appendChild(h3);
+      card.appendChild(bullets);
+      stackEl.appendChild(card);
+    });
+  }
+
+  if (phaseGrid) {
+    const siblings = QUESTIONS.filter((item) => item.entityId === q.entityId);
+    phaseGrid.innerHTML = siblings.map((sib) => `
+      <div class="phase-mini-card ${sib.id === q.id ? 'is-current' : ''}">
+        <span class="phase-mini-tag">Phase ${sib.phase}/3</span>
+        <span class="phase-mini-angle">${escapeHtml(sib.angle)}</span>
+        <span class="phase-mini-ans amboss-scan-target">${escapeHtml(sib.shortAnswer)}</span>
+      </div>
+    `).join('');
+  }
+
+  const scrollBody = document.getElementById('outcome-scroll-body');
+  if (scrollBody) scrollBody.scrollTop = 0;
+  if (modal) modal.classList.add('is-open');
+}
+
+function scrollOutcomeBody(deltaY) {
+  const scrollBody = document.getElementById('outcome-scroll-body');
+  if (scrollBody) {
+    if (typeof scrollBody.scrollBy === 'function') {
+      scrollBody.scrollBy({ top: deltaY, behavior: 'smooth' });
+    } else {
+      scrollBody.scrollTop += deltaY;
+    }
+  }
+}
+
+function continueToNextGate() {
+  const modal = document.getElementById('outcome-modal');
+  if (modal) modal.classList.remove('is-open');
+  APP_STATE.isPausedForModal = false;
+  APP_STATE.currentIdx = (APP_STATE.currentIdx + 1) % APP_STATE.deck.length;
+  renderCurrentGate();
+  persistAppState();
+}
+
+// Hints, Menu, Deck & Codex Controls
+function syncHintsUI() {
+  const app = document.getElementById('xr-app');
+  if (app) {
+    app.classList.toggle('hints-visible', APP_STATE.isHintsVisible);
+    app.classList.toggle('hints-hidden', !APP_STATE.isHintsVisible);
+  }
+  const menuBtn = document.getElementById('menu-hints-btn');
+  if (menuBtn) {
+    menuBtn.textContent = APP_STATE.isHintsVisible ? '💡 Hints: ON [H]' : '💡 Hints: OFF [H]';
+    menuBtn.classList.toggle('is-active', APP_STATE.isHintsVisible);
+  }
+}
+
+function toggleHintsBar() {
+  APP_STATE.isHintsVisible = !APP_STATE.isHintsVisible;
+  syncHintsUI();
+  playSfx('steer');
+  persistAppState();
+}
+
+function toggleMenuDrawer() {
+  APP_STATE.isMenuOpen = !APP_STATE.isMenuOpen;
+  const drawer = document.getElementById('top-menu-drawer');
+  const backdrop = document.getElementById('drawer-backdrop');
+  const trigger = document.getElementById('open-menu-btn');
+  if (drawer) drawer.classList.toggle('is-open', APP_STATE.isMenuOpen);
+  if (backdrop) backdrop.classList.toggle('is-open', APP_STATE.isMenuOpen);
+  if (trigger) trigger.setAttribute('aria-expanded', String(APP_STATE.isMenuOpen));
+}
+
+function openCodexFromMenu() {
+  if (APP_STATE.isMenuOpen) toggleMenuDrawer();
+  openCodex();
+}
+
+function skipFromMenu() {
+  if (APP_STATE.isMenuOpen) toggleMenuDrawer();
+  skipCurrentQuestion();
+}
+
+function skipCurrentQuestion() {
+  if (APP_STATE.isPausedForModal) return;
+  APP_STATE.currentIdx = (APP_STATE.currentIdx + 1) % APP_STATE.deck.length;
+  playSfx('steer');
+  renderCurrentGate();
+  persistAppState();
+}
+
+function restartOrderedDeck() {
+  buildFilteredDeck(false);
+  renderCurrentGate();
+  showMenuToast('Deck restarted in ordered sequence.');
+  persistAppState();
+}
+
+function shuffleDeckOrder() {
+  buildFilteredDeck(true);
+  renderCurrentGate();
+  showMenuToast('Deck shuffled.');
+  persistAppState();
+}
+
+function resetMasteryState(btn) {
+  if (btn && btn.dataset.armed !== 'true') {
+    btn.dataset.armed = 'true';
+    btn.textContent = '⚠ Tap Again to Confirm';
+    setTimeout(() => {
+      if (btn.dataset.armed === 'true') {
+        btn.dataset.armed = 'false';
+        btn.textContent = '🗑 Reset Mastery';
+      }
+    }, 3500);
+    return;
+  }
+  if (btn) {
+    btn.dataset.armed = 'false';
+    btn.textContent = '🗑 Reset Mastery';
+  }
+  APP_STATE.hp = 100;
+  APP_STATE.xp = 0;
+  APP_STATE.streak = 0;
+  APP_STATE.masteredIds = [];
+  APP_STATE.missedIds = [];
+  APP_STATE.seenIds = [];
+  buildFilteredDeck(false);
+  renderCurrentGate();
+  showMenuToast('Mastery telemetry reset.');
+  persistAppState();
+}
+
+function applySectorFilter(val) {
+  APP_STATE.sectorFilter = val;
+  if (val === 'MISSED' && APP_STATE.missedIds.length === 0) {
+    showMenuToast('No missed gates recorded yet — showing all gates.');
+  }
+  buildFilteredDeck(false);
+  renderCurrentGate();
+  persistAppState();
+}
+
+function setPhaseFilter(val, btn) {
+  APP_STATE.phaseFilter = val;
+  document.querySelectorAll('.phase-pill-btn').forEach((el) => {
+    el.classList.toggle('is-active', el.dataset.phase === val);
+  });
+  buildFilteredDeck(false);
+  renderCurrentGate();
+  persistAppState();
+}
+
+function jumpToEntity(entityIdStr) {
+  const entId = Number(entityIdStr);
+  if (!entId) return;
+  APP_STATE.sectorFilter = 'ALL';
+  APP_STATE.phaseFilter = 'ALL';
+  const secSel = document.getElementById('sector-filter-select');
+  if (secSel) secSel.value = 'ALL';
+  document.querySelectorAll('.phase-pill-btn').forEach((el) => {
+    el.classList.toggle('is-active', el.dataset.phase === 'ALL');
+  });
+  buildFilteredDeck(false);
+  const idx = APP_STATE.deck.findIndex((q) => q.entityId === entId);
+  if (idx >= 0) APP_STATE.currentIdx = idx;
+  if (APP_STATE.isMenuOpen) toggleMenuDrawer();
+  renderCurrentGate();
+  persistAppState();
+}
+
+function populateEntityDropdown() {
+  const sel = document.getElementById('entity-filter-select');
+  if (!sel) return;
+  sel.innerHTML = ENTITIES.map((e) => `<option value="${e.id}">${e.id}. ${escapeHtml(e.name)}</option>`).join('');
+}
+
+function renderSkillTreeGrid() {
+  const grid = document.getElementById('skill-tree-grid');
+  if (!grid) return;
+  const currentQ = getCurrentQuestion();
+  grid.innerHTML = ENTITIES.map((ent) => {
+    const qs = QUESTIONS.filter((q) => q.entityId === ent.id);
+    const done = qs.filter((q) => APP_STATE.masteredIds.includes(q.id)).length;
+    const isCurr = currentQ && currentQ.entityId === ent.id;
+    const isMast = done === qs.length;
+    return `
+      <button type="button" class="skill-node-btn ${isCurr ? 'is-current' : ''} ${isMast ? 'is-mastered' : ''}" onclick="jumpToEntity(${ent.id})">
+        <span class="skill-node-title">${ent.id}. ${escapeHtml(ent.name)}</span>
+        <span class="skill-node-meta">${done}/${qs.length} Mastered</span>
+      </button>
+    `;
+  }).join('');
+}
+
+function showMenuToast(msg) {
+  const el = document.getElementById('menu-toast');
+  if (!el) return;
+  el.textContent = msg;
+  setTimeout(() => {
+    if (el.textContent === msg) el.textContent = '';
+  }, 3200);
+}
+
+// 6-Column Master Loot Codex
+function openCodex() {
+  APP_STATE.isPausedForModal = true;
+  if (APP_STATE.timerHandle) {
+    clearInterval(APP_STATE.timerHandle);
+    APP_STATE.timerHandle = null;
+  }
+  renderCodexTable();
+  const modal = document.getElementById('codex-modal');
+  if (modal) modal.classList.add('is-open');
+}
+
+function closeCodex() {
+  const modal = document.getElementById('codex-modal');
+  if (modal) modal.classList.remove('is-open');
+  const outcomeOpen = document.getElementById('outcome-modal')?.classList.contains('is-open');
+  if (!outcomeOpen) {
+    APP_STATE.isPausedForModal = false;
+    resetGateTimer();
+  }
+}
+
+function renderCodexTable() {
+  const tbody = document.getElementById('codex-table-body');
+  if (!tbody) return;
+  const query = (document.getElementById('codex-search-input')?.value || '').trim().toLowerCase();
+  const statusFilter = document.getElementById('codex-status-select')?.value || 'ALL';
+
+  const rows = QUESTIONS.filter((q) => {
+    const ent = ENTITIES.find((e) => e.id === q.entityId) || ENTITIES[0];
+    const isMast = APP_STATE.masteredIds.includes(q.id);
+    const isMiss = APP_STATE.missedIds.includes(q.id);
+    const status = isMast ? 'MASTERED' : (isMiss ? 'MISSED' : 'UNSEEN');
+    if (statusFilter !== 'ALL' && status !== statusFilter) return false;
+    if (!query) return true;
+    const hay = `${ent.name} ${q.angle} ${q.shortAnswer} ${q.stem} ${q.dossier[0].lines} ${q.dossier[6].lines}`.toLowerCase();
+    return hay.includes(query);
+  });
+
+  tbody.innerHTML = rows.map((q) => {
+    const ent = ENTITIES.find((e) => e.id === q.entityId) || ENTITIES[0];
+    const isMast = APP_STATE.masteredIds.includes(q.id);
+    const isMiss = APP_STATE.missedIds.includes(q.id);
+    const badge = isMast ? '✔ Mastered' : (isMiss ? '✖ Missed' : '• Unseen');
+    const mech = String(q.dossier[0].lines).split('\n')[0];
+    const pearl = String(q.dossier[6].lines).split('\n')[0];
+    return `
+      <tr>
+        <td class="amboss-scan-target"><strong>#${q.id}</strong> ${escapeHtml(ent.name)}</td>
+        <td class="amboss-scan-target">P${q.phase}: ${escapeHtml(q.angle)}</td>
+        <td class="amboss-scan-target">${escapeHtml(q.shortAnswer)}</td>
+        <td class="amboss-scan-target">${escapeHtml(mech)}</td>
+        <td class="amboss-scan-target">${escapeHtml(pearl)}</td>
+        <td><button type="button" class="btn-neon is-cyan codex-jump-btn" onclick="jumpFromCodex(${q.id})">${badge} ↗</button></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function jumpFromCodex(qId) {
+  closeCodex();
+  APP_STATE.sectorFilter = 'ALL';
+  APP_STATE.phaseFilter = 'ALL';
+  buildFilteredDeck(false);
+  const idx = APP_STATE.deck.findIndex((q) => q.id === qId);
+  if (idx >= 0) APP_STATE.currentIdx = idx;
+  renderCurrentGate();
+}
+
+// Keyboard Navigation
+function bindGlobalKeyboard() {
+  document.addEventListener('keydown', (e) => {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) return;
+    const outcomeOpen = document.getElementById('outcome-modal')?.classList.contains('is-open');
+    const codexOpen = document.getElementById('codex-modal')?.classList.contains('is-open');
+
+    if (codexOpen) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeCodex();
+      }
+      return;
+    }
+
+    if (outcomeOpen) {
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        scrollOutcomeBody(-180);
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        scrollOutcomeBody(180);
+      } else if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        continueToNextGate();
+      }
+      return;
+    }
+
+    const key = e.key.toLowerCase();
+    if (e.key === 'ArrowLeft' || key === 'a') {
+      e.preventDefault();
+      setTargetLane(0);
+    } else if (e.key === 'ArrowDown' || key === 's') {
+      if (key === 's' && e.shiftKey) {
+        e.preventDefault();
+        skipCurrentQuestion();
+      } else {
+        e.preventDefault();
+        setTargetLane(1);
+      }
+    } else if (e.key === 'ArrowRight' || key === 'd') {
+      e.preventDefault();
+      setTargetLane(2);
+    } else if (key === '1') {
+      e.preventDefault();
+      fireLaneDecision(0);
+    } else if (key === '2') {
+      e.preventDefault();
+      fireLaneDecision(1);
+    } else if (key === '3') {
+      e.preventDefault();
+      fireLaneDecision(2);
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      fireLaneDecision(APP_STATE.targetLane);
+    } else if (key === 'h') {
+      e.preventDefault();
+      toggleHintsBar();
+    } else if (key === 'c') {
+      e.preventDefault();
+      openCodex();
+    } else if (key === 't') {
+      e.preventDefault();
+      toggleTimerMode();
+    } else if (e.key === 'Escape' && APP_STATE.isMenuOpen) {
+      e.preventDefault();
+      toggleMenuDrawer();
+    }
+  });
+}
+
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// Persistence via Gemini Notebook Shim API
+async function persistAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.setAppState !== 'function') return;
+  try {
+    await window.notebookAppApi.setAppState({
+      currentIdx: APP_STATE.currentIdx,
+      hp: APP_STATE.hp,
+      xp: APP_STATE.xp,
+      streak: APP_STATE.streak,
+      masteredIds: APP_STATE.masteredIds,
+      missedIds: APP_STATE.missedIds,
+      seenIds: APP_STATE.seenIds,
+      sectorFilter: APP_STATE.sectorFilter,
+      phaseFilter: APP_STATE.phaseFilter,
+      isTimerEnabled: APP_STATE.isTimerEnabled,
+      isHintsVisible: APP_STATE.isHintsVisible,
+      soundMaster: APP_STATE.soundMaster,
+      soundSfx: APP_STATE.soundSfx,
+      bgmVolume: APP_STATE.bgmVolume
+    });
+  } catch (err) {
+    // Ignore transient persistence errors
+  }
+}
+
+async function restoreAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.getAppState !== 'function') return;
+  try {
+    const saved = await window.notebookAppApi.getAppState();
+    if (!saved || typeof saved !== 'object') return;
+    if (typeof saved.hp === 'number') APP_STATE.hp = saved.hp;
+    if (typeof saved.xp === 'number') APP_STATE.xp = saved.xp;
+    if (typeof saved.streak === 'number') APP_STATE.streak = saved.streak;
+    if (Array.isArray(saved.masteredIds)) APP_STATE.masteredIds = saved.masteredIds;
+    if (Array.isArray(saved.missedIds)) APP_STATE.missedIds = saved.missedIds;
+    if (Array.isArray(saved.seenIds)) APP_STATE.seenIds = saved.seenIds;
+    if (typeof saved.sectorFilter === 'string') APP_STATE.sectorFilter = saved.sectorFilter;
+    if (typeof saved.phaseFilter === 'string') APP_STATE.phaseFilter = saved.phaseFilter;
+    if (typeof saved.isTimerEnabled === 'boolean') APP_STATE.isTimerEnabled = saved.isTimerEnabled;
+    if (typeof saved.isHintsVisible === 'boolean') APP_STATE.isHintsVisible = saved.isHintsVisible;
+    if (typeof saved.soundMaster === 'boolean') APP_STATE.soundMaster = saved.soundMaster;
+    if (typeof saved.soundSfx === 'boolean') APP_STATE.soundSfx = saved.soundSfx;
+    if (typeof saved.bgmVolume === 'number') APP_STATE.bgmVolume = saved.bgmVolume;
+
+    buildFilteredDeck(false);
+    if (typeof saved.currentIdx === 'number' && saved.currentIdx < APP_STATE.deck.length) {
+      APP_STATE.currentIdx = saved.currentIdx;
+    }
+  } catch (err) {
+    // Fallback to clean state
+  }
+}
+
+async function bootDiagnosticRunner() {
+  populateEntityDropdown();
+  await restoreAppState();
+
+  const secSel = document.getElementById('sector-filter-select');
+  if (secSel) secSel.value = APP_STATE.sectorFilter;
+  document.querySelectorAll('.phase-pill-btn').forEach((el) => {
+    el.classList.toggle('is-active', el.dataset.phase === APP_STATE.phaseFilter);
+  });
+  const volSlider = document.getElementById('bgm-volume-slider');
+  const volReadout = document.getElementById('bgm-vol-readout');
+  const pct = Math.round(APP_STATE.bgmVolume * 100);
+  if (volSlider) volSlider.value = String(pct);
+  if (volReadout) volReadout.textContent = `${pct}%`;
+
+  syncHintsUI();
+  syncTimerControlsUI();
+  syncAudioUI();
+  syncLaneTargetClasses();
+  wireMouseSurfing();
+  bindGlobalKeyboard();
+  initCanvasEngine();
+  renderCurrentGate();
+
+  if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === 'function') {
+    window.notebookAppApi.notifyAppReady();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', bootDiagnosticRunner);
+</script>
+</body>
+</html>
