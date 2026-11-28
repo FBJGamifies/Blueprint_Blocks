@@ -1,0 +1,3405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="artifact-type" content="tool">
+<meta name="design-style" content="neon_noir">
+<title>Psychiatry &amp; Behavioral Medicine: Neuropsychiatric Virology — COMLEX-USA XR Runner</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+
+  /* 1. Neon Noir Palette & Surfaces */
+  --background: #0a0a12;
+  --surface-container-low: #111118;
+  --surface-container: #141422;
+  --surface-container-high: #1e1e30;
+  --surface-glass: rgba(16, 17, 30, 0.84);
+  --surface-glass-hover: rgba(24, 26, 46, 0.94);
+  --backdrop-menu: rgba(6, 6, 12, 0.72);
+  --backdrop-modal: rgba(5, 6, 14, 0.82);
+
+  /* Text */
+  --on-surface: #e8e0f0;
+  --on-surface-variant: #a098b0;
+
+  /* Lines */
+  --outline: #5a5068;
+  --outline-variant: #302840;
+
+  /* Neon accents & 3-Portal Colors */
+  --primary: #ff2d78;
+  --on-primary: #1a0010;
+  --primary-container: #b3004e;
+  --on-primary-container: #ffe0ec;
+  --secondary: #00ffcc;
+  --tertiary: #ffe04a;
+  --error: #ff4444;
+  --on-error: #1a0000;
+
+  /* Data series */
+  --data-1: #ff2d78;
+  --data-2: #00ffcc;
+  --data-3: #ffe04a;
+  --data-4: #b388ff;
+  --data-context: #6e6680;
+
+  /* Fonts */
+  --font-headline: 'Sora', system-ui, -apple-system, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-label: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Shape */
+  --rounded: 0.125rem;
+  --rounded-lg: 0.25rem;
+  --rounded-full: 0.75rem;
+
+  /* Style effects */
+  --glow-text: 0 0 8px currentColor;
+  --glow-primary: 0 0 16px color-mix(in srgb, var(--primary) 42%, transparent);
+  --glow-secondary: 0 0 16px color-mix(in srgb, var(--secondary) 38%, transparent);
+  --glow-tertiary: 0 0 16px color-mix(in srgb, var(--tertiary) 38%, transparent);
+  --neon-border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  --cyan-border: 1px solid color-mix(in srgb, var(--secondary) 35%, transparent);
+  --yellow-border: 1px solid color-mix(in srgb, var(--tertiary) 35%, transparent);
+  --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+  --scanlines: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in srgb, var(--on-surface) 2.5%, transparent) 3px 4px);
+
+  /* 3. Shared Tokens */
+  --positive: #00ffcc;
+  --warning: #ffe04a;
+  --focus: #00ffcc;
+
+  /* Type scale for Focused Tool / HUD */
+  --display-size: clamp(1.4rem, 1.1rem + 1.1vw, 1.9rem);
+  --headline-size: clamp(1.1rem, 1rem + 0.45vw, 1.35rem);
+  --subhead-size: clamp(0.95rem, 0.9rem + 0.22vw, 1.08rem);
+  --body-size: clamp(0.9375rem, 0.88rem + 0.16vw, 1rem);
+  --label-size: 0.75rem;
+
+  /* Spacing scale */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+}
+
+/* Base reset */
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  overflow-x: clip;
+  overflow-y: hidden;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh;
+  background-color: var(--background);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: var(--body-size);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+button, input, select {
+  font-family: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* 4-Band Cockpit Shell */
+#xr-app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background);
+  background-image: var(--scanlines);
+  overflow: hidden;
+}
+
+/* Band 3 Canvas sits as full-bleed stage layer behind interactive HUD */
+#xr-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Band 1 — Ultra-Slim Top Bar */
+#top-bar {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-md);
+  min-height: 46px;
+  background: color-mix(in srgb, var(--surface-container-low) 88%, transparent);
+  border-bottom: 1px solid var(--outline-variant);
+  backdrop-filter: blur(8px);
+}
+
+#menu-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: 36px;
+  padding: var(--space-xs) var(--space-md);
+  background: var(--surface-container);
+  color: var(--secondary);
+  border: var(--cyan-border);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out), text-shadow var(--dur-micro) var(--ease-out);
+}
+#menu-btn:hover {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+  text-shadow: var(--glow-text);
+}
+
+.telemetry-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.telemetry-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  letter-spacing: 0.04em;
+  color: var(--on-surface);
+  white-space: nowrap;
+}
+.telemetry-chip.is-hp { border-color: color-mix(in srgb, var(--primary) 45%, transparent); color: var(--primary); }
+.telemetry-chip.is-xp { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+.telemetry-chip.is-streak { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+.telemetry-chip.is-timer { border-color: color-mix(in srgb, var(--tertiary) 55%, transparent); color: var(--tertiary); }
+.telemetry-chip.is-timer.is-urgent { border-color: var(--error); color: var(--error); text-shadow: var(--glow-text); }
+
+/* Band 2 — Top Question Stage + 3s Auto-Hiding Metadata */
+#question-stage {
+  position: relative;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-sm) var(--space-lg);
+  margin: var(--space-sm) auto 0;
+  width: min(1040px, 94vw);
+  background: var(--surface-glass);
+  border: var(--neon-border);
+  box-shadow: var(--neon-inset);
+  border-radius: var(--rounded-lg);
+  backdrop-filter: blur(10px);
+  text-align: center;
+  transition: padding var(--dur-short) var(--ease-out);
+}
+
+#q-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-xs);
+  max-height: 60px;
+  opacity: 1;
+  overflow: hidden;
+  transition: opacity var(--dur-long) var(--ease-out), max-height var(--dur-long) var(--ease-out), margin-bottom var(--dur-long) var(--ease-out);
+}
+#q-meta-row.is-faded {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+}
+
+.meta-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.14rem 0.5rem;
+  border-radius: var(--rounded);
+  border: 1px solid var(--outline-variant);
+  background: var(--surface-container-low);
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+.meta-badge.is-sector { border-color: color-mix(in srgb, var(--secondary) 40%, transparent); color: var(--secondary); }
+.meta-badge.is-phase { border-color: color-mix(in srgb, var(--primary) 40%, transparent); color: var(--primary); }
+.meta-badge.is-corridor { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+
+#q-stem-text {
+  margin: 0;
+  max-width: 82ch;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: clamp(0.95rem, 0.88rem + 0.35vw, 1.12rem);
+  font-weight: 500;
+  line-height: 1.48;
+  color: var(--on-surface);
+  user-select: text;
+}
+
+/* Band 3 — Interactive 3-Lane Runner Stage (Centered Answer Cards Fused to Portals) */
+#runner-stage {
+  position: relative;
+  z-index: 10;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md) var(--space-lg);
+}
+
+#lanes-grid {
+  width: min(1140px, 96vw);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-lg);
+  align-items: stretch;
+  margin-bottom: clamp(2.5rem, 7vh, 5.5rem);
+}
+
+.lane-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--space-sm);
+  min-height: clamp(130px, 21vh, 195px);
+  padding: var(--space-md) var(--space-md);
+  background: var(--surface-glass);
+  border-radius: var(--rounded-lg);
+  border: 1px solid var(--outline-variant);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: transform var(--dur-micro) var(--ease-out),
+              border-color var(--dur-micro) var(--ease-out),
+              box-shadow var(--dur-micro) var(--ease-out),
+              background-color var(--dur-micro) var(--ease-out);
+}
+
+.lane-card[data-lane="0"] {
+  border-color: color-mix(in srgb, var(--primary) 50%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--primary) 12%, transparent);
+}
+.lane-card[data-lane="1"] {
+  border-color: color-mix(in srgb, var(--secondary) 50%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--secondary) 12%, transparent);
+}
+.lane-card[data-lane="2"] {
+  border-color: color-mix(in srgb, var(--tertiary) 50%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--tertiary) 12%, transparent);
+}
+
+.lane-card:hover,
+.lane-card.is-banked {
+  transform: translateY(-4px) scale(1.015);
+  background: var(--surface-glass-hover);
+}
+.lane-card[data-lane="0"]:hover,
+.lane-card[data-lane="0"].is-banked {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary), inset 0 0 18px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+.lane-card[data-lane="1"]:hover,
+.lane-card[data-lane="1"].is-banked {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary), inset 0 0 18px color-mix(in srgb, var(--secondary) 18%, transparent);
+}
+.lane-card[data-lane="2"]:hover,
+.lane-card[data-lane="2"].is-banked {
+  border-color: var(--tertiary);
+  box-shadow: var(--glow-tertiary), inset 0 0 18px color-mix(in srgb, var(--tertiary) 18%, transparent);
+}
+
+.lane-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  width: 100%;
+}
+
+.lane-key-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.12rem 0.45rem;
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline);
+}
+.lane-card[data-lane="0"] .lane-key-label { color: var(--primary); border-color: color-mix(in srgb, var(--primary) 55%, transparent); }
+.lane-card[data-lane="1"] .lane-key-label { color: var(--secondary); border-color: color-mix(in srgb, var(--secondary) 55%, transparent); }
+.lane-card[data-lane="2"] .lane-key-label { color: var(--tertiary); border-color: color-mix(in srgb, var(--tertiary) 55%, transparent); }
+
+.lane-answer-text {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: clamp(0.9rem, 0.84rem + 0.28vw, 1.02rem);
+  font-weight: 500;
+  line-height: 1.42;
+  color: var(--on-surface);
+  user-select: text;
+}
+
+/* Band 4 — Bottom Hints Bar [H] with Proportional Auto-Resizing */
+#hints-bar {
+  position: relative;
+  z-index: 15;
+  width: min(1040px, 94vw);
+  margin: 0 auto var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  background: var(--surface-glass);
+  border: var(--cyan-border);
+  box-shadow: inset 0 0 12px color-mix(in srgb, var(--secondary) 10%, transparent);
+  border-radius: var(--rounded-lg);
+  backdrop-filter: blur(10px);
+  text-align: center;
+  transition: opacity var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out);
+}
+
+#xr-app.hints-hidden #hints-bar {
+  display: none;
+}
+#xr-app.hints-visible #hints-bar {
+  display: block;
+}
+#xr-app.hints-visible #question-stage {
+  padding: 0.45rem var(--space-md);
+}
+#xr-app.hints-visible #lanes-grid {
+  margin-bottom: clamp(1.2rem, 3.5vh, 2.5rem);
+}
+#xr-app.hints-visible .lane-card {
+  min-height: clamp(105px, 16vh, 155px);
+  padding: var(--space-sm) var(--space-md);
+}
+
+.hints-kicker {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  margin-bottom: 0.2rem;
+}
+
+#q-clue-text {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(0.85rem, 0.8rem + 0.2vw, 0.95rem);
+  color: var(--on-surface);
+  line-height: 1.42;
+  user-select: text;
+}
+
+/* Menu Drawer (#top-menu-drawer) — Houses Title & ALL Controls */
+#menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: var(--backdrop-menu);
+  backdrop-filter: blur(4px);
+  display: none;
+}
+#menu-backdrop.is-open { display: block; }
+
+#top-menu-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 50;
+  width: min(460px, 92vw);
+  background: var(--surface-container-low);
+  border-right: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-104%);
+  transition: transform var(--dur-short) var(--ease-out);
+}
+#top-menu-drawer.is-open {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--outline-variant);
+  background: var(--surface-container);
+}
+
+.drawer-kicker {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  text-shadow: var(--glow-text);
+  margin-bottom: 0.2rem;
+}
+
+.drawer-title {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: var(--headline-size);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--on-surface);
+}
+
+.drawer-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.drawer-section {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.drawer-section-label {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+
+.drawer-btn-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-xs);
+}
+
+.menu-action-btn {
+  min-height: 38px;
+  padding: 0.4rem 0.65rem;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  letter-spacing: 0.03em;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+}
+.menu-action-btn:hover {
+  border-color: var(--secondary);
+  color: var(--secondary);
+}
+.menu-action-btn.is-active {
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: inset 0 0 10px color-mix(in srgb, var(--primary) 16%, transparent);
+}
+.menu-action-btn.is-cyan-active {
+  border-color: var(--secondary);
+  color: var(--secondary);
+  box-shadow: inset 0 0 10px color-mix(in srgb, var(--secondary) 16%, transparent);
+}
+.menu-action-btn.is-danger {
+  border-color: color-mix(in srgb, var(--error) 55%, transparent);
+  color: var(--error);
+}
+
+.drawer-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.drawer-field label {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--on-surface-variant);
+}
+.drawer-select,
+.drawer-input {
+  width: 100%;
+  min-height: 38px;
+  padding: 0.4rem 0.6rem;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+}
+.drawer-select:focus,
+.drawer-input:focus {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+}
+
+.phase-pills {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-xs);
+}
+
+.skill-tree-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-xs);
+}
+
+.skill-node-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  padding: 0.45rem 0.55rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--dur-micro) var(--ease-out);
+}
+.skill-node-btn:hover {
+  border-color: var(--secondary);
+}
+.skill-node-btn.is-mastered {
+  border-color: color-mix(in srgb, var(--secondary) 55%, transparent);
+}
+.skill-node-btn.is-current {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 10px color-mix(in srgb, var(--primary) 16%, transparent);
+}
+.skill-node-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--on-surface);
+  line-height: 1.25;
+}
+.skill-node-meta {
+  font-family: var(--font-label);
+  font-size: 0.65rem;
+  color: var(--on-surface-variant);
+}
+
+.hotkey-guide {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  color: var(--on-surface-variant);
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.5rem 0.65rem;
+  line-height: 1.55;
+}
+
+.volume-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+.volume-row input[type="range"] {
+  flex: 1 1 auto;
+  accent-color: var(--secondary);
+}
+
+/* Modals (7-Part Review Dossier & 6-Column Loot Codex) */
+.xr-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--backdrop-modal);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+}
+.xr-modal-overlay.is-open {
+  display: flex;
+}
+
+.xr-modal-card {
+  width: min(920px, 94vw);
+  max-height: 88dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  overflow: hidden;
+}
+
+.xr-modal-card.is-codex {
+  width: min(1160px, 96vw);
+  border-color: color-mix(in srgb, var(--secondary) 55%, transparent);
+  box-shadow: var(--glow-secondary);
+}
+
+.xr-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.xr-modal-title-wrap {
+  flex: 1 1 auto;
+  text-align: center;
+}
+
+.xr-modal-kicker {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--secondary);
+}
+
+.xr-modal-title {
+  margin: 0.15rem 0 0;
+  font-family: var(--font-headline);
+  font-size: var(--headline-size);
+  font-weight: 700;
+  color: var(--on-surface);
+}
+.xr-modal-title.is-pass { color: var(--secondary); text-shadow: var(--glow-text); }
+.xr-modal-title.is-miss { color: var(--primary); text-shadow: var(--glow-text); }
+
+.xr-modal-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  scroll-behavior: smooth;
+}
+
+.dossier-answer-banner {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  text-align: center;
+}
+
+.dossier-section {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-left: 3px solid var(--secondary);
+  border-radius: var(--rounded);
+  padding: var(--space-sm) var(--space-md);
+  text-align: center;
+}
+.dossier-section.is-pink { border-left-color: var(--primary); }
+.dossier-section.is-yellow { border-left-color: var(--tertiary); }
+
+.dossier-section-head {
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  margin-bottom: 0.3rem;
+}
+.dossier-section.is-pink .dossier-section-head { color: var(--primary); }
+.dossier-section.is-yellow .dossier-section-head { color: var(--tertiary); }
+
+.dossier-section-text {
+  margin: 0 auto;
+  max-width: 75ch;
+  font-size: 0.94rem;
+  line-height: 1.55;
+  color: var(--on-surface);
+  user-select: text;
+}
+
+.xr-modal-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  background: var(--surface-container-high);
+  border-top: 1px solid var(--outline-variant);
+}
+
+.scroll-nav-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.btn-neon {
+  min-height: 40px;
+  padding: 0.45rem 1rem;
+  background: var(--surface-container);
+  color: var(--primary);
+  border: var(--neon-border-lit);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out), text-shadow var(--dur-micro) var(--ease-out);
+}
+.btn-neon:hover {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+  text-shadow: var(--glow-text);
+}
+.btn-neon.is-cyan {
+  color: var(--secondary);
+  border-color: color-mix(in srgb, var(--secondary) 55%, transparent);
+}
+.btn-neon.is-cyan:hover {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+}
+
+/* 6-Column Loot Codex Table */
+.codex-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: var(--space-sm);
+  align-items: end;
+}
+
+.codex-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+}
+
+.codex-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+
+.codex-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-container-high);
+  color: var(--secondary);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.6rem 0.65rem;
+  text-align: left;
+  border-bottom: 1px solid var(--outline);
+}
+
+.codex-table td {
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid var(--outline-variant);
+  vertical-align: top;
+  color: var(--on-surface);
+  user-select: text;
+}
+.codex-table tbody tr:nth-child(even) {
+  background: var(--surface-container-low);
+}
+.codex-table tbody tr:hover {
+  background: var(--surface-container-high);
+  cursor: pointer;
+}
+
+.codex-status-pill {
+  display: inline-block;
+  padding: 0.12rem 0.45rem;
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  border: 1px solid var(--outline);
+}
+.codex-status-pill.is-mastered { color: var(--secondary); border-color: var(--secondary); }
+.codex-status-pill.is-missed { color: var(--primary); border-color: var(--primary); }
+
+/* Toast */
+.inline-toast {
+  position: fixed;
+  bottom: 1.2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  z-index: 80;
+  padding: 0.5rem 1rem;
+  background: var(--surface-container-high);
+  border: 1px solid var(--secondary);
+  box-shadow: var(--glow-secondary);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.78rem;
+  color: var(--secondary);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out);
+}
+.inline-toast.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* =========================================================================
+   PHONE OPTIMIZATION WITHOUT ALTERING TABLETS (v3.8 EXACT MEDIA QUERIES)
+   ========================================================================= */
+@media (max-width: 600px) {
+  #top-bar { padding: 0.25rem 0.45rem; min-height: 40px; }
+  .telemetry-chip.is-xp { display: none; }
+  .telemetry-chip { padding: 0.15rem 0.4rem; font-size: 0.68rem; }
+  #question-stage { width: 96vw; padding: 0.45rem 0.65rem; margin-top: 0.25rem; }
+  #q-stem-text { font-size: 0.84rem; line-height: 1.38; }
+  #runner-stage { padding: 0.35rem 0.5rem; }
+  #lanes-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    width: 96vw;
+    margin-bottom: 0.5rem;
+  }
+  .lane-card {
+    min-height: 68px;
+    padding: 0.5rem 0.7rem;
+  }
+  .lane-card-head, .lane-key-label { display: none; }
+  .lane-answer-text { font-size: 0.84rem; line-height: 1.32; }
+  #xr-app.hints-visible #question-stage { padding: 0.35rem 0.55rem; }
+  #xr-app.hints-visible .lane-card { min-height: 54px; padding: 0.38rem 0.6rem; }
+  #xr-app.hints-visible #hints-bar { padding: 0.35rem 0.55rem; margin-bottom: 0.25rem; }
+  .xr-modal-card, .xr-modal-card.is-codex { width: 96vw; max-height: 92dvh; }
+  .codex-controls { grid-template-columns: 1fr; }
+}
+
+@media (max-height: 500px) and (pointer: coarse) {
+  #top-bar { min-height: 34px; padding: 0.15rem 0.5rem; }
+  #question-stage { padding: 0.3rem 0.6rem; margin-top: 0.15rem; }
+  #q-meta-row { display: none; }
+  #q-stem-text { font-size: 0.8rem; line-height: 1.28; }
+  #runner-stage { padding: 0.2rem 0.5rem; }
+  #lanes-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+    margin-bottom: 0.4rem;
+  }
+  .lane-card { min-height: 76px; padding: 0.35rem 0.45rem; }
+  .lane-answer-text { font-size: 0.76rem; line-height: 1.25; }
+}
+
+@media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+  html { font-size: 200%; }
+  #lanes-grid { grid-template-columns: 1fr; gap: 0.5rem; }
+  .lane-card { min-height: 70px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+<div id="xr-app" class="hints-hidden">
+  <!-- Band 3 Full-Bleed 3D Synthwave Void & Wireframe Runner Canvas -->
+  <canvas id="xr-canvas" aria-hidden="true"></canvas>
+
+  <!-- Band 1 — Ultra-Slim Top Bar (Small Menu Button + Read-Only Telemetry Only) -->
+  <header id="top-bar">
+    <button id="menu-btn" type="button" onclick="toggleMenuDrawer()" aria-label="Open Mission Control Menu">☰ MENU</button>
+    <div class="telemetry-strip" aria-live="polite">
+      <span class="telemetry-chip is-hp" id="chip-hp">♥ HP 100%</span>
+      <span class="telemetry-chip is-xp" id="chip-xp">★ XP 0</span>
+      <span class="telemetry-chip is-streak" id="chip-streak">⚡ 0</span>
+      <span class="telemetry-chip" id="chip-gate">GATE 1/45</span>
+      <span class="telemetry-chip is-timer" id="chip-timer">⏱ OFF</span>
+    </div>
+  </header>
+
+  <!-- Band 2 — Top Question Stage + 3-Second Auto-Hiding Metadata -->
+  <section id="question-stage" aria-label="Clinical Vignette">
+    <div id="q-meta-row">
+      <span class="meta-badge is-sector" id="meta-sector">SECTOR I</span>
+      <span class="meta-badge" id="meta-entity">ENTITY 1</span>
+      <span class="meta-badge is-phase" id="meta-phase">PHASE 1</span>
+      <span class="meta-badge is-corridor" id="meta-corridor">CORRIDOR // RETROVIRAL CORE</span>
+    </div>
+    <p id="q-stem-text" class="amboss-scan-target">Initializing diagnostic corridor…</p>
+  </section>
+
+  <!-- Band 3 — 3 Centered Frosted Dark-Glass Answer Cards (1:1 Portal Fusion) -->
+  <main id="runner-stage">
+    <div id="lanes-grid" role="group" aria-label="Diagnostic Portal Choices">
+      <button type="button" class="lane-card" id="lane-0-card" data-lane="0"
+              onmouseenter="hoverLane(0)" onfocus="hoverLane(0)" onclick="selectLane(0)">
+        <div class="lane-card-head">
+          <span class="lane-key-label">[1] PINK PORTAL</span>
+        </div>
+        <p class="lane-answer-text amboss-scan-target" id="lane-0-text">Loading option A…</p>
+      </button>
+
+      <button type="button" class="lane-card" id="lane-1-card" data-lane="1"
+              onmouseenter="hoverLane(1)" onfocus="hoverLane(1)" onclick="selectLane(1)">
+        <div class="lane-card-head">
+          <span class="lane-key-label">[2] CYAN PORTAL</span>
+        </div>
+        <p class="lane-answer-text amboss-scan-target" id="lane-1-text">Loading option B…</p>
+      </button>
+
+      <button type="button" class="lane-card" id="lane-2-card" data-lane="2"
+              onmouseenter="hoverLane(2)" onfocus="hoverLane(2)" onclick="selectLane(2)">
+        <div class="lane-card-head">
+          <span class="lane-key-label">[3] YELLOW PORTAL</span>
+        </div>
+        <p class="lane-answer-text amboss-scan-target" id="lane-2-text">Loading option C…</p>
+      </button>
+    </div>
+  </main>
+
+  <!-- Band 4 — Collapsible Bottom Hints Bar [H] -->
+  <aside id="hints-bar" aria-label="Diagnostic Clue">
+    <div class="hints-kicker">DIAGNOSTIC CLUE [H]</div>
+    <p id="q-clue-text" class="amboss-scan-target">Clue standby…</p>
+  </aside>
+</div>
+
+<!-- Menu Drawer Backdrop & #top-menu-drawer -->
+<div id="menu-backdrop" onclick="toggleMenuDrawer()"></div>
+<aside id="top-menu-drawer" aria-label="Command Drawer">
+  <div class="drawer-header">
+    <div>
+      <div class="drawer-kicker">COMLEX-USA LEVEL 1 &amp; 2 • BEHAVIORAL HEALTH</div>
+      <h1 class="drawer-title">Psychiatry &amp; Behavioral Medicine: Neuropsychiatric Virology</h1>
+    </div>
+    <button type="button" class="menu-action-btn" onclick="toggleMenuDrawer()" aria-label="Close Menu">✕</button>
+  </div>
+
+  <div class="drawer-body">
+    <!-- Core Runner Controls -->
+    <div class="drawer-section">
+      <div class="drawer-section-label">Cockpit Controls</div>
+      <div class="drawer-btn-grid">
+        <button type="button" class="menu-action-btn" id="menu-hints-btn" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+        <button type="button" class="menu-action-btn" id="menu-codex-btn" onclick="openCodexFromMenu()">📜 Loot Codex [C]</button>
+        <button type="button" class="menu-action-btn" id="menu-skip-btn" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+        <button type="button" class="menu-action-btn" id="menu-timer-btn" onclick="toggleTimerMode()">⏱ 50s Timer: OFF [T]</button>
+        <button type="button" class="menu-action-btn is-cyan-active" id="menu-timed-run-btn" onclick="startTimedRun()">▶ Start 50s Timed Run</button>
+        <button type="button" class="menu-action-btn" onclick="exportProgressCsv()">⬇ Export CSV</button>
+      </div>
+    </div>
+
+    <!-- Audio Engine -->
+    <div class="drawer-section">
+      <div class="drawer-section-label">Synthwave &amp; SFX Engine</div>
+      <div class="drawer-btn-grid">
+        <button type="button" class="menu-action-btn is-cyan-active" id="menu-sound-btn" onclick="toggleMasterSound()">🔊 Sound: ON</button>
+        <button type="button" class="menu-action-btn is-cyan-active" id="menu-sfx-btn" onclick="toggleSfx()">🎵 SFX: ON</button>
+        <button type="button" class="menu-action-btn" id="menu-bgm-btn" onclick="toggleProceduralBgm()">🎹 Synthwave BGM: OFF</button>
+        <button type="button" class="menu-action-btn" onclick="triggerCustomAudioPick()">📁 Load MP3/WAV</button>
+      </div>
+      <input type="file" id="custom-audio-input" accept="audio/*" style="display:none" onchange="handleCustomAudioFile(this)">
+      <div class="drawer-field">
+        <label for="bgm-volume-slider">BGM Volume (<span id="bgm-vol-label">35%</span>)</label>
+        <div class="volume-row">
+          <input type="range" id="bgm-volume-slider" min="0" max="100" value="35" oninput="setBgmVolume(this.value)">
+        </div>
+      </div>
+    </div>
+
+    <!-- Deck & Mastery Controls -->
+    <div class="drawer-section">
+      <div class="drawer-section-label">Deck &amp; Filtering</div>
+      <div class="drawer-btn-grid">
+        <button type="button" class="menu-action-btn" onclick="restartOrderedDeck()">🔄 Restart Ordered</button>
+        <button type="button" class="menu-action-btn" onclick="shuffleActiveDeck()">🔀 Shuffle Deck</button>
+      </div>
+      <button type="button" class="menu-action-btn is-danger" id="reset-mastery-btn" onclick="handleResetMastery(this)">🧹 Reset Mastery</button>
+
+      <div class="drawer-field">
+        <label for="sector-select">Sector Filter</label>
+        <select id="sector-select" class="drawer-select" onchange="onSectorFilterChange(this.value)">
+          <option value="ALL">All Sectors (45 Gates)</option>
+          <option value="1">Sector I: Retroviruses &amp; HAND (Gates 1–9)</option>
+          <option value="2">Sector II: Herpesviridae &amp; Limbic (Gates 10–18)</option>
+          <option value="3">Sector III: Zoonotic, Rabies &amp; Arboviral (Gates 19–27)</option>
+          <option value="4">Sector IV: Pediatric Slow Viral &amp; Anti-NMDA (Gates 28–36)</option>
+          <option value="5">Sector V: Antivirals, Prions &amp; OMT (Gates 37–45)</option>
+          <option value="MISSED">🎯 Missed Gates Only</option>
+        </select>
+      </div>
+
+      <div class="drawer-field">
+        <label for="entity-select">Neuropsychiatric Entity Filter</label>
+        <select id="entity-select" class="drawer-select" onchange="onEntityFilterChange(this.value)">
+          <option value="ALL">All 15 Entities</option>
+        </select>
+      </div>
+
+      <div class="drawer-field">
+        <label>Pedagogical Phase Mix</label>
+        <div class="phase-pills">
+          <button type="button" class="menu-action-btn is-active" id="phase-btn-ALL" onclick="setPhaseFilter('ALL')">All Phases</button>
+          <button type="button" class="menu-action-btn" id="phase-btn-1" onclick="setPhaseFilter('1')">P1: Recognition</button>
+          <button type="button" class="menu-action-btn" id="phase-btn-2" onclick="setPhaseFilter('2')">P2: Mechanism</button>
+          <button type="button" class="menu-action-btn" id="phase-btn-3" onclick="setPhaseFilter('3')">P3: Tx &amp; OMT</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 15-Entity Skill Tree Grid -->
+    <div class="drawer-section">
+      <div class="drawer-section-label">15-Entity Neurovirology Skill Tree</div>
+      <div id="skill-tree-grid" class="skill-tree-grid"></div>
+    </div>
+
+    <div class="hotkey-guide">
+      MOUSE: Hover card to surf &amp; bank ship • Click card to launch<br>
+      KEYS: [1/2/3] Direct portal • [←/↓/→] Bank + [Enter/Space] Launch<br>
+      HUD: [H] Hints • [C] Codex • [S] Skip • [T] 50s Timer • [M] Menu
+    </div>
+  </div>
+</aside>
+
+<!-- 7-Part Outcome Dossier Review Modal -->
+<div id="review-modal" class="xr-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="review-modal-title">
+  <div class="xr-modal-card">
+    <div class="xr-modal-head">
+      <div class="xr-modal-title-wrap">
+        <div class="xr-modal-kicker" id="review-modal-kicker">GATE OUTCOME DOSSIER</div>
+        <h2 class="xr-modal-title" id="review-modal-title">Diagnostic Analysis</h2>
+      </div>
+      <button type="button" class="menu-action-btn" onclick="closeReviewModal()" aria-label="Close Dossier">✕</button>
+    </div>
+
+    <div class="xr-modal-body" id="review-modal-body">
+      <div class="dossier-answer-banner">
+        <div class="hints-kicker" id="review-choice-meta">VERDICT SUMMARY</div>
+        <p id="review-correct-answer" class="dossier-section-text amboss-scan-target"></p>
+      </div>
+      <div id="dossier-sections-container"></div>
+    </div>
+
+    <div class="xr-modal-foot">
+      <div class="scroll-nav-group">
+        <button type="button" class="menu-action-btn" id="dossier-scroll-up" onclick="scrollDossier(-220)">▲ Up</button>
+        <button type="button" class="menu-action-btn" id="dossier-scroll-down" onclick="scrollDossier(220)">▼ Down</button>
+      </div>
+      <button type="button" class="btn-neon is-cyan" id="review-next-btn" onclick="advanceFromReview()">Next Gate [Enter]</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6-Column Loot Codex Modal -->
+<div id="codex-modal" class="xr-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="codex-modal-title">
+  <div class="xr-modal-card is-codex">
+    <div class="xr-modal-head">
+      <div class="xr-modal-title-wrap">
+        <div class="xr-modal-kicker">HIGH-YIELD COMLEX-USA / USMLE ARCHIVE</div>
+        <h2 class="xr-modal-title" id="codex-modal-title">6-Column Neuropsychiatric Virology Codex</h2>
+      </div>
+      <button type="button" class="menu-action-btn" onclick="closeCodex()" aria-label="Close Codex">✕</button>
+    </div>
+
+    <div class="xr-modal-body">
+      <div class="codex-controls">
+        <div class="drawer-field">
+          <label for="codex-search-input">Search Virus, Syndrome, Mechanism, or OMT</label>
+          <input type="text" id="codex-search-input" class="drawer-input" placeholder="Filter e.g. Klüver-Bucy, Negri, CV4, Foscarnet…" oninput="renderCodexTable()">
+        </div>
+        <div class="drawer-field">
+          <label for="codex-sector-filter">Filter by Sector</label>
+          <select id="codex-sector-filter" class="drawer-select" onchange="renderCodexTable()">
+            <option value="ALL">All Sectors (45 Gates)</option>
+            <option value="1">Sector I: Retroviruses &amp; HAND</option>
+            <option value="2">Sector II: Herpesviridae &amp; Limbic</option>
+            <option value="3">Sector III: Zoonotic &amp; Arboviral</option>
+            <option value="4">Sector IV: Pediatric &amp; Anti-NMDA</option>
+            <option value="5">Sector V: Antivirals, Prions &amp; OMT</option>
+          </select>
+        </div>
+        <button type="button" class="btn-neon is-cyan" onclick="closeCodex()">Return to Runner</button>
+      </div>
+
+      <div class="codex-table-wrap">
+        <table class="codex-table">
+          <thead>
+            <tr>
+              <th>Gate / LO</th>
+              <th>Clinical Entity</th>
+              <th>Diagnostic Clue</th>
+              <th>Mechanism &amp; Path</th>
+              <th>Tx &amp; OMT</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="codex-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="inline-toast" class="inline-toast" role="status" aria-live="polite"></div>
+
+<api-shim></api-shim>
+<script>
+// =========================================================================
+// 1. LO_VISUAL_THEMES (Keys 1..15) — Unique Corridor Tags, Square Dust & Floor Grid
+// =========================================================================
+const LO_VISUAL_THEMES = {
+  1:  { entity: `HIV-Associated Neurocognitive Disorder (HAND)`, sector: 1, corridor: `SUBCORTICAL MICROGLIAL CORE`, dustRgb: `0, 255, 204`, gridRgb: `0, 175, 160` },
+  2:  { entity: `Opportunistic CNS Reactivation (PML / Toxo / Crypto)`, sector: 1, corridor: `OLIGODENDROCYTE DEMYELINATION`, dustRgb: `255, 45, 120`, gridRgb: `165, 45, 120` },
+  3:  { entity: `HIV Myelopathy & Antiretroviral Mood Toxicity`, sector: 1, corridor: `VACUOLAR SPINAL TRACT`, dustRgb: `179, 136, 255`, gridRgb: `110, 85, 195` },
+  4:  { entity: `HSV-1 Limbic Encephalitis & Klüver-Bucy`, sector: 2, corridor: `TEMPORAL HEMORRHAGIC LIMBIC`, dustRgb: `255, 45, 120`, gridRgb: `200, 45, 105` },
+  5:  { entity: `VZV Vasculopathy, Ramsay Hunt & PHN`, sector: 2, corridor: `TRIGEMINAL GANGLION V1`, dustRgb: `255, 224, 74`, gridRgb: `175, 145, 45` },
+  6:  { entity: `EBV Post-Viral Affective Fatigue & CMV Ventriculitis`, sector: 2, corridor: `PERIVENTRICULAR EPENDYMA`, dustRgb: `0, 255, 204`, gridRgb: `30, 160, 180` },
+  7:  { entity: `Rabies Furious Agitation & Paralytic Encephalitis`, sector: 3, corridor: `RETROGRADE DYNEIN AXON`, dustRgb: `255, 68, 68`, gridRgb: `185, 45, 60` },
+  8:  { entity: `West Nile Virus Apathy & Parkinsonian Tremor`, sector: 3, corridor: `SUBSTANTIA NIGRA FLAVIVIRUS`, dustRgb: `0, 255, 204`, gridRgb: `0, 140, 165` },
+  9:  { entity: `Borna Virus, Arboviruses & Limbic Mood Circuits`, sector: 3, corridor: `KYNURENINE LIMBIC NEXUS`, dustRgb: `179, 136, 255`, gridRgb: `125, 80, 190` },
+  10: { entity: `Measles SSPE (Defective M Protein)`, sector: 4, corridor: `SLOW MEASLES PANENCEPHALITIS`, dustRgb: `255, 224, 74`, gridRgb: `170, 130, 45` },
+  11: { entity: `Progressive Rubella Panencephalitis (PRP)`, sector: 4, corridor: `RUBELLA WHITE MATTER GLIOSIS`, dustRgb: `255, 45, 120`, gridRgb: `170, 55, 125` },
+  12: { entity: `Post-Viral Anti-NMDA Receptor Encephalitis`, sector: 4, corridor: `SYNAPTIC GLUN1 AUTOANTIBODY`, dustRgb: `0, 255, 204`, gridRgb: `20, 185, 165` },
+  13: { entity: `Antiviral Neurotoxicity & Foscarnet Seizures`, sector: 5, corridor: `CRYSTALLINE TUBULAR MATRIX`, dustRgb: `255, 224, 74`, gridRgb: `185, 150, 50` },
+  14: { entity: `Prion Neuropsychiatry (CJD, vCJD & FFI)`, sector: 5, corridor: `SPONGIFORM BETA-SHEET`, dustRgb: `255, 45, 120`, gridRgb: `165, 35, 95` },
+  15: { entity: `Cranial & Autonomic OMT (OA, CV4, T1–T5)`, sector: 5, corridor: `CRANIOSACRAL AUTONOMIC GRID`, dustRgb: `0, 255, 204`, gridRgb: `0, 190, 150` }
+};
+
+// =========================================================================
+// 2. 45 CLINICAL VIGNETTE GATES (5 Sectors × 3 Entities × 3 Phases)
+// =========================================================================
+const GATES_DATA = [
+  // --- SECTOR I: RETROVIRUSES & CHRONIC NEUROCOGNITIVE DECLINE (Gates 1-9) ---
+  {
+    id: 1, sector: 1, lo: 1, phase: 1, angle: `Clinical Presentation`,
+    stem: `A 46-year-old man with untreated HIV (CD4 count 140 cells/mm³) develops progressive psychomotor slowing, apathy, forgetfulness, and unsteady gait over 6 months without focal weakness. MRI shows diffuse symmetric cerebral atrophy without mass effect. Which diagnosis best explains this subcortical dementia?`,
+    options: [
+      `HIV-associated neurocognitive disorder (HAND / HIV encephalopathy)`,
+      `Sporadic Creutzfeldt-Jakob disease with cortical ribboning`,
+      `Acute HSV-1 hemorrhagic limbic encephalitis`
+    ],
+    correct: 0,
+    clue: `Subcortical triad of cognitive slowing, apathy/mood blunting, and motor/gait disturbance in chronic HIV with diffuse symmetric atrophy.`,
+    dossier: {
+      verdict: `• HIV-associated neurocognitive disorder (HAND / HIV-associated dementia) presents as a subcortical dementia with psychomotor slowing, apathy, impaired executive function, and gait instability in advanced untreated HIV.`,
+      path: `• HIV-1 crosses the blood-brain barrier early via infected monocytes ("Trojan horse" mechanism) and infects CNS microglia and macrophages via CD4 and CCR5 receptors, releasing neurotoxic viral proteins (gp120, Tat) and inflammatory cytokines.`,
+      neuro: `• Predominantly involves subcortical gray matter (basal ganglia, thalamus) and deep periventricular white matter, producing diffuse symmetric cerebral atrophy and ex vacuo ventriculomegaly on MRI without mass effect.`,
+      ddx: `• Unlike major depressive disorder ("pseudodementia"), HAND shows progressive motor slowing and frontal-subcortical deficits. Unlike CJD, progression is months-to-years without startle myoclonus or periodic sharp-wave EEG complexes.`,
+      tx: `• Initiate or optimize combination antiretroviral therapy (ART) with high CNS penetration-effectiveness (CPE), such as dolutegravir plus emtricitabine/tenofovir.`,
+      omt: `• Gentle suboccipital decompression and thoracic rib raising (T1–T5) can support autonomic balance and sleep quality as adjuncts without replacing ART.`,
+      pearl: `• Board Pearl: HAND is a subcortical dementia (apathy + bradykinesia + memory retrieval deficits), whereas Alzheimer disease is a cortical dementia (amnesia + aphasia/agnosia).`
+    }
+  },
+  {
+    id: 2, sector: 1, lo: 1, phase: 2, angle: `Neuropathology`,
+    stem: `Autopsy brain histology from a patient who died with advanced HIV encephalopathy and severe apathy demonstrates perivascular lymphocytic cuffs, microglial nodules, and multinucleated giant cells within subcortical white matter. Which cell type harbors the productive HIV infection driving this pathology?`,
+    options: [
+      `Microglia and perivascular macrophages fused into syncytia`,
+      `Cortical pyramidal neurons forming eosinophilic Negri bodies`,
+      `Oligodendrocytes with intranuclear Cowdry type A inclusions`
+    ],
+    correct: 0,
+    clue: `Look for the classic pathognomonic brain biopsy triad in HIV dementia: microglial nodules + multinucleated giant cells.`,
+    dossier: {
+      verdict: `• Microglia and CNS macrophages are the primary productively infected cells in HIV encephalopathy, fusing via gp120/gp41 into pathognomonic multinucleated giant cells within microglial nodules.`,
+      path: `• Neurons themselves are rarely infected directly; instead, activated microglia/macrophages secrete TNF-alpha, IL-1beta, quinolinic acid (NMDA agonist), and gp120, driving excitotoxic dendritic pruning and apoptosis.`,
+      neuro: `• Basal ganglia, caudate, and deep frontal white matter bear the heaviest microglial nodule burden, correlating directly with apathy, bradykinesia, and executive dysfunction.`,
+      ddx: `• Negri bodies in hippocampal/Purkinje neurons indicate rabies. Cowdry type A inclusions in neurons/glia occur in HSV or CMV, whereas JC virus destroys oligodendrocytes in PML.`,
+      tx: `• Early sustained ART suppresses CNS viral replication and prevents microglial syncytial fusion and excitotoxic neuronal loss.`,
+      omt: `• Lymphatic pump techniques (thoracic inlet release, pedal pump) may aid systemic immune circulation in stable patients on ART, avoiding vigorous cervical HVLA if severe osteopenia is present.`,
+      pearl: `• Pathognomonic HIV Encephalitis Triad: diffuse gray/white atrophy + microglial nodules + multinucleated giant cells.`
+    }
+  },
+  {
+    id: 3, sector: 1, lo: 1, phase: 3, angle: `Management & CNS Penetration`,
+    stem: `A 38-year-old woman with HIV-associated neurocognitive disorder (CD4 185/mm³, CSF HIV RNA detectable despite low plasma viral load) has worsening depression and executive decline. Which pharmacotherapeutic strategy best addresses CNS viral compartmentalization?`,
+    options: [
+      `Switch to a regimen with higher CNS penetration-effectiveness (e.g., dolutegravir/abacavir/lamivudine)`,
+      `Discontinue all antiretrovirals and treat empirically with high-dose haloperidol`,
+      `Administer IV foscarnet monotherapy for 21 days without ART`
+    ],
+    correct: 0,
+    clue: `CSF viral escape requires optimizing blood-brain barrier penetration of the antiretroviral regimen.`,
+    dossier: {
+      verdict: `• Transitioning to an ART regimen with high CNS penetration-effectiveness (CPE), such as integrase strand transfer inhibitors (dolutegravir) with abacavir/lamivudine or zidovudine, suppresses CSF viral escape.`,
+      path: `• Tight junctions of the blood-brain barrier and efflux transporters (P-glycoprotein) limit penetration of certain antiretrovirals, allowing HIV to replicate independently in CNS microglia.`,
+      neuro: `• Persistent CSF HIV replication fuels frontostriatal dopaminergic depletion, manifesting clinically as abulia, psychomotor retardation, and treatment-resistant depression.`,
+      ddx: `• Antipsychotic monotherapy masks agitation without halting viral neurotoxicity, and HIV patients are exquisitely sensitive to extrapyramidal symptoms from high-potency D2 blockers like haloperidol.`,
+      tx: `• Optimize high-CPE ART and pair with an SSRI lacking strong CYP450 interactions (e.g., sertraline or escitalopram) if depressive symptoms persist.`,
+      omt: `• CV4 (compression of the fourth ventricle) and cranial venous sinus drainage techniques gently optimize CNS fluid dynamics and calm sympathetic overdrive.`,
+      pearl: `• Never use first-generation high-potency antipsychotics as first-line for HAND agitation due to severe risk of tardive dyskinesia and parkinsonism in basal ganglia-injured HIV patients.`
+    }
+  },
+  {
+    id: 4, sector: 1, lo: 2, phase: 1, angle: `CD4 Stratification & MRI`,
+    stem: `A 41-year-old man with AIDS (CD4 count 65 cells/mm³) presents with 3 weeks of progressive personality change, homonymous hemianopsia, and left-sided weakness without fever or headache. Brain MRI reveals asymmetric, non-enhancing T2-hyperintense lesions in the parieto-occipital white matter with no mass effect. What is the diagnosis?`,
+    options: [
+      `Progressive multifocal leukoencephalopathy (PML) due to JC virus`,
+      `Cerebral toxoplasmosis with multiple ring-enhancing basal ganglia lesions`,
+      `Primary CNS lymphoma driven by Epstein-Barr virus`
+    ],
+    correct: 0,
+    clue: `Asymmetric, NON-enhancing white matter lesions with NO mass effect in AIDS (CD4 < 200) and visual/behavioral deficits.`,
+    dossier: {
+      verdict: `• Progressive multifocal leukoencephalopathy (PML) caused by reactivation of latent JC polyomavirus in severely immunocompromised patients (CD4 < 200 cells/mm³).`,
+      path: `• Naked circular dsDNA JC virus lytically infects and destroys CNS oligodendrocytes, causing patchy, coalescing demyelination without triggering significant perivascular inflammation.`,
+      neuro: `• Predominantly involves subcortical U-fibers of the parieto-occipital lobes, producing cortical blindness/hemianopsia, hemiparesis, ataxia, and subacute cognitive/behavioral decline.`,
+      ddx: `• Toxoplasmosis produces multiple ring-enhancing lesions with surrounding edema and mass effect in the basal ganglia. Primary CNS lymphoma (EBV-driven) typically shows a solitary periventricular enhancing mass.`,
+      tx: `• No specific antiviral exists against JC virus; the sole effective intervention is immediate initiation or optimization of ART to restore CD4+ T-cell immunity.`,
+      omt: `• Supportive osteopathic care focuses on gentle myofascial release of spastic extremities and suboccipital release for visual-vestibular strain, avoiding aggressive thrusts.`,
+      pearl: `• Remember PML vs Toxo/PCNSL: PML = NO enhancement, NO mass effect, parieto-occipital white matter (also seen with natalizumab in MS).`
+    }
+  },
+  {
+    id: 5, sector: 1, lo: 2, phase: 2, angle: `Pathologic Mechanism`,
+    stem: `Brain biopsy of a patient with natalizumab-treated multiple sclerosis who developed rapid cognitive decline and visual loss shows enlarged oligodendrocyte nuclei filled with glassy amphophilic viral inclusions, bizarre giant astrocytes, and lipid-laden macrophages. Which receptor-mediated risk factor underlies this condition?`,
+    options: [
+      `Impaired alpha-4 integrin-mediated T-cell CNS immune surveillance permitting JC virus reactivation`,
+      `Direct viral destruction of Schwann cells via molecular mimicry against gangliosides`,
+      `IgG autoantibodies internalizing postsynaptic GluN1 NMDA receptors`
+    ],
+    correct: 0,
+    clue: `Natalizumab blocks VLA-4 (alpha-4 integrin), preventing lymphocytes from entering the CNS to suppress latent polyomavirus.`,
+    dossier: {
+      verdict: `• Natalizumab blocks alpha-4 integrin on leukocytes, halting T-lymphocyte CNS surveillance and allowing latent JC polyomavirus to reactivate and lyse oligodendrocytes.`,
+      path: `• JC virus replicates inside oligodendrocyte nuclei (creating glassy inclusions), halting myelin synthesis across multiple white matter foci.`,
+      neuro: `• Bizarre reactive astrocytes mimic neoplastic glioblastoma on superficial smear, while myelin loss disrupts long-range parieto-occipital and corticospinal white matter tracts.`,
+      ddx: `• Guillain-Barré syndrome targets peripheral Schwann cells via ganglioside mimicry. Anti-NMDA encephalitis targets synaptic glutamate receptors rather than oligodendrocyte nuclei.`,
+      tx: `• Immediately discontinue natalizumab and perform plasma exchange (PLEX) to accelerate drug clearance, monitoring closely for immune reconstitution inflammatory syndrome (IRIS).`,
+      omt: `• Post-stabilization rib raising and diaphragmatic doming assist respiratory mechanics when motor weakness compromises ventilatory excursion.`,
+      pearl: `• Natalizumab (alpha-4 integrin inhibitor) carries a black-box warning for PML; always check anti-JC virus antibody index prior to therapy.`
+    }
+  },
+  {
+    id: 6, sector: 1, lo: 2, phase: 3, angle: `Differential Management`,
+    stem: `A 34-year-old man with AIDS (CD4 count 42 cells/mm³) develops new-onset confusion, lethargy, and focal seizures. MRI shows three ring-enhancing lesions in the basal ganglia and corticomedullary junction with surrounding edema. Serum Toxoplasma IgG is positive. What is the first-line treatment?`,
+    options: [
+      `Pyrimethamine plus sulfadiazine with leucovorin rescue`,
+      `Oral fluconazole lifelong maintenance monotherapy`,
+      `Intravenous acyclovir plus high-dose dexamethasone alone`
+    ],
+    correct: 0,
+    clue: `Multiple ring-enhancing basal ganglia lesions in CD4 < 100 = cerebral toxoplasmosis; treat folate synthesis at two steps + protect bone marrow.`,
+    dossier: {
+      verdict: `• Empirical therapy with pyrimethamine + sulfadiazine + leucovorin (folinic acid) treats cerebral toxoplasmosis, with clinical and radiographic improvement expected within 1–2 weeks.`,
+      path: `• Reactivation of latent Toxoplasma gondii bradyzoites into tachyzoites causes necrotizing abscesses; sulfadiazine inhibits dihydropteroate synthase and pyrimethamine inhibits dihydrofolate reductase.`,
+      neuro: `• Basal ganglia and thalamus involvement frequently causes acute delirium, apathy, chorea, or focal seizures alongside mass effect.`,
+      ddx: `• If lesions fail to shrink after 14 days of anti-Toxoplasma therapy, proceed to brain biopsy to rule out EBV-associated Primary CNS Lymphoma. Cryptococcus typically causes meningitis ("soap bubble" lesions) without ring enhancement.`,
+      tx: `• Add leucovorin to prevent pyrimethamine-induced megaloblastic anemia/pancytopenia; start ART after initial stabilization to avoid severe IRIS.`,
+      omt: `• Elevated intracranial pressure and space-occupying lesions are strict contraindications to cranial OMT (CV4) or cervical HVLA; defer cranial manipulation until edema resolves.`,
+      pearl: `• Toxoplasma prophylaxis starts at CD4 < 100 with TMP-SMX; treatment is Pyrimethamine + Sulfadiazine + Leucovorin.`
+    }
+  },
+  {
+    id: 7, sector: 1, lo: 3, phase: 1, angle: `Spinal Cord & Behavioral Overlap`,
+    stem: `A 49-year-old man with longstanding poorly controlled HIV develops progressive spastic paraparesis, urinary urgency, and loss of vibration and proprioception in the lower extremities, accompanied by depressed mood. Serum vitamin B12, folate, and RPR are normal. Which HIV complication is most likely?`,
+    options: [
+      `HIV-associated vacuolar myelopathy`,
+      `HTLV-1 tropical spastic paraparesis with adult T-cell leukemia`,
+      `Acute anterior spinal artery occlusion`
+    ],
+    correct: 0,
+    clue: `Dorsal column + lateral corticospinal tract syndrome mimicking subacute combined degeneration (B12 deficiency) in chronic HIV.`,
+    dossier: {
+      verdict: `• HIV-associated vacuolar myelopathy produces a subacute combined degeneration-like syndrome (dorsal columns + lateral corticospinal tracts) in advanced HIV despite normal vitamin B12 levels.`,
+      path: `• Macrophage-driven myelin vacuolation and macrophage lipid accumulation occur primarily in the thoracic spinal cord, linked to impaired methylation pathways and cytokine injury.`,
+      neuro: `• Simultaneous loss of dorsal columns (proprioception/vibration ataxia) and corticospinal tracts (spasticity, hyperreflexia, Babinski sign) causes progressive gait disability and secondary reactive depression.`,
+      ddx: `• Always rule out vitamin B12 deficiency, neurosyphilis (tabes dorsalis), and compressive epidural abscess/lymphoma with spine MRI before diagnosing HIV vacuolar myelopathy.`,
+      tx: `• Potent ART is the primary disease-modifying therapy; physical therapy, baclofen for spasticity, and SSRIs for comorbid depression improve quality of life.`,
+      omt: `• Sacral rocking, psoas myofascial release, and gentle lumbar soft tissue work improve gait mechanics and pelvic autonomic tone once structural cord compression is excluded.`,
+      pearl: `• HIV vacuolar myelopathy histologically and clinically mimics B12 deficiency (posterior + lateral columns), so always check B12 and methylmalonic acid first.`
+    }
+  },
+  {
+    id: 8, sector: 1, lo: 3, phase: 2, angle: `Antiretroviral Neuropsychiatry`,
+    stem: `Two weeks after starting an antiretroviral regimen containing efavirenz, emtricitabine, and tenofovir, a 29-year-old man reports vivid nightmares, daytime dizziness, worsening depression, and transient suicidal ideation. What is the mechanism of this acute neuropsychiatric presentation?`,
+    options: [
+      `Direct CNS penetration and 5-HT2A/GABAergic receptor modulation by the NNRTI efavirenz`,
+      `Protease inhibitor-induced serotonin syndrome from CYP2D6 hyperactivation`,
+      `Integrase inhibitor blockade of peripheral nicotinic acetylcholine receptors`
+    ],
+    correct: 0,
+    clue: `Classic NNRTI CNS toxicity: vivid dreams, insomnia, mood destabilization, and suicidality during the first weeks of therapy.`,
+    dossier: {
+      verdict: `• Efavirenz (non-nucleoside reverse transcriptase inhibitor, NNRTI) crosses the blood-brain barrier readily and causes acute neuropsychiatric adverse effects including vivid dreams, depression, and suicidality.`,
+      path: `• Efavirenz and its 8-hydroxy metabolite modulate cortical 5-HT2A, GABA-A, and glutamatergic signaling, causing dendritic spine injury and sleep-architecture disruption.`,
+      neuro: `• Disrupted REM sleep and frontolimbic serotonin dysregulation precipitate acute dysphoria, anxiety, and suicidal ideation, especially in patients with prior psychiatric history.`,
+      ddx: `• Distinguish drug-induced neuropsychiatric toxicity (acute onset within days-to-weeks of starting efavirenz) from indolent HAND (months-to-years in untreated HIV).`,
+      tx: `• Switch off efavirenz to an integrase strand transfer inhibitor (e.g., bictegravir or dolutegravir) or rilpivirine; symptoms typically resolve within 2–4 weeks of discontinuation.`,
+      omt: `• Suboccipital release and gentle cranial vault hold can ease sleep-onset hyperarousal while transitioning ART regimens.`,
+      pearl: `• Efavirenz = vivid nightmares, CNS dizziness, depression, and suicidality; avoid in patients with baseline depression or bipolar disorder.`
+    }
+  },
+  {
+    id: 9, sector: 1, lo: 3, phase: 3, angle: `Psychotropic-ART Interactions`,
+    stem: `A 36-year-old man with HIV on ritonavir-boosted darunavir develops major depressive disorder and panic attacks. Which antidepressant or psychotropic choice requires the greatest caution due to potent CYP3A4/CYP2D6 inhibition by ritonavir?`,
+    options: [
+      `Quetiapine or trazodone, due to toxic serum accumulation and QT prolongation/sedation`,
+      `Gabapentin, due to extensive hepatic CYP3A4 first-pass metabolism`,
+      `Lithium carbonate, due to UGT1A1 glucuronidation inhibition`
+    ],
+    correct: 0,
+    clue: `Ritonavir and cobicistat are among the strongest CYP3A4 inhibitors in clinical medicine; avoid drugs heavily cleared by CYP3A4.`,
+    dossier: {
+      verdict: `• Ritonavir potently inhibits CYP3A4 (and moderately inhibits CYP2D6), causing dangerous accumulation of CYP3A4 substrates such as quetiapine, trazodone, alprazolam, and midazolam.`,
+      path: `• Ritonavir irreversibly inhibits intestinal and hepatic CYP3A4 to "boost" protease inhibitor levels, inadvertently multiplying the bioavailability of co-administered psychotropics.`,
+      neuro: `• Supratherapeutic quetiapine or trazodone levels trigger severe orthostasis, delirium, priapism, and torsades de pointes.`,
+      ddx: `• Gabapentin and lithium are renally excreted unchanged without hepatic CYP450 metabolism, making them safe from ritonavir CYP3A4 boosting.`,
+      tx: `• Prefer escitalopram/sertraline (start low, titrate slowly) or switch ART from ritonavir-boosted protease inhibitors to an unboosted integrase inhibitor like bictegravir or dolutegravir.`,
+      omt: `• Thoracic outlet and T1–T4 sympathetic rib raising help attenuate somatic panic symptoms alongside safe pharmacotherapy.`,
+      pearl: `• Ritonavir/cobicistat = potent CYP3A4 inhibitors; NEVER combine with oral midazolam, triazolam, or standard-dose quetiapine.`
+    }
+  },
+
+  // --- SECTOR II: HERPESVIRIDAE & LIMBIC / AFFECTIVE SYNDROMES (Gates 10-18) ---
+  {
+    id: 10, sector: 2, lo: 4, phase: 1, angle: `Limbic Behavioral Syndrome`,
+    stem: `A 52-year-old woman is brought to the emergency department for 2 days of fever, bizarre disorganized behavior, olfactory hallucinations of burning rubber, and word-finding difficulty, followed by a focal-to-bilateral tonic-clonic seizure. MRI shows asymmetric hyperintensity and hemorrhage in the left medial temporal lobe. What is the diagnosis?`,
+    options: [
+      `Herpes simplex virus type 1 (HSV-1) limbic encephalitis`,
+      `HSV-2 benign aseptic meningitis`,
+      `Subacute sclerosing panencephalitis`
+    ],
+    correct: 0,
+    clue: `Most common cause of sporadic fatal encephalitis in the US: fever + bizarre behavior/olfactory hallucinations + temporal lobe MRI abnormality.`,
+    dossier: {
+      verdict: `• HSV-1 encephalitis is the most common cause of sporadic viral encephalitis in the United States, classically targeting the inferior frontal and medial temporal lobes.`,
+      path: `• Enveloped linear dsDNA HSV-1 reactivates from the trigeminal ganglion or enters via the olfactory bulb, inducing necrotizing, hemorrhagic inflammation with Cowdry type A intranuclear inclusions.`,
+      neuro: `• Destruction of the hippocampus, amygdala, uncus, and insular cortex causes olfactory hallucinations (uncinate fits), aphasia, acute psychosis/bizarre behavior, and seizures.`,
+      ddx: `• HSV-2 typically causes self-limited aseptic meningitis in immunocompetent adults or neonatal encephalitis. Temporal lobe necrosis with RBCs in CSF is classic for HSV-1.`,
+      tx: `• Start empiric IV acyclovir immediately upon clinical suspicion—do not delay for CSF HSV PCR results—and hydrate aggressively to protect renal tubules.`,
+      omt: `• Acute infectious encephalitis with fever and seizure risk is a contraindication to cranial manipulation; focus on medical stabilization first.`,
+      pearl: `• Classic HSV-1 triad: Fever + Altered behavior/olfactory hallucinations + Temporal lobe hemorrhagic necrosis on MRI (RBCs + lymphocytes in CSF).`
+    }
+  },
+  {
+    id: 11, sector: 2, lo: 4, phase: 2, angle: `Post-Encephalitic Limbic Circuitry`,
+    stem: `Three weeks after surviving severe HSV-1 encephalitis with bilateral temporal lobe damage, a 39-year-old man exhibits extreme placidity, attempts to put non-food objects into his mouth, and makes inappropriate sexual advances toward hospital staff. Damage to which bilateral limbic structure produces this syndrome?`,
+    options: [
+      `Bilateral amygdalae (Klüver-Bucy syndrome)`,
+      `Bilateral mammillary bodies (Korsakoff syndrome)`,
+      `Substantia nigra pars compacta (Parkinsonism)`
+    ],
+    correct: 0,
+    clue: `Hyperorality, hypersexuality, hypermetamorphosis, visual agnosia, and placidity following bilateral temporal/HSV-1 injury.`,
+    dossier: {
+      verdict: `• Bilateral destruction of the amygdalae (and anterior temporal cortex) produces Klüver-Bucy syndrome: hyperorality, hypersexuality, docility/placidity, hypermetamorphosis, and visual agnosia.`,
+      path: `• Hemorrhagic necrosis from HSV-1 selectively ablates the amygdaloid nuclear complex, severing emotional salience and threat-appraisal circuits.`,
+      neuro: `• Without amygdaloid inhibition and fear conditioning via projections to the hypothalamus and orbitofrontal cortex, patients lose normal social/alimentary boundaries.`,
+      ddx: `• Mammillary body/dorsomedial thalamic damage from thiamine deficiency causes Korsakoff anterograde amnesia and confabulation rather than hyperorality/hypersexuality.`,
+      tx: `• Behavioral environmental structuring paired with SSRIs (for hypersexuality/impulsivity) or carbamazepine/propranolol for disinhibited aggression.`,
+      omt: `• Gentle myofascial release of cervical/suboccipital tension may help calm autonomic agitation during neurorehabilitation.`,
+      pearl: `• Klüver-Bucy = Bilateral Amygdala lesion (classic sequela of HSV-1 encephalitis) -> Hyperorality, Hypersexuality, Docility.`
+    }
+  },
+  {
+    id: 12, sector: 2, lo: 4, phase: 3, angle: `Urgent Empiric Therapy`,
+    stem: `A 61-year-old man presents with fever (39.1°C), acute confusion, and temporal lobe slowing (PLEDs) on EEG. Lumbar puncture reveals 85 lymphocytes/mm³, 140 RBCs/mm³, elevated protein, and normal glucose; HSV-1 PCR will take 24 hours to result. What is the correct immediate management?`,
+    options: [
+      `Administer IV acyclovir immediately with vigorous IV normal saline hydration`,
+      `Await CSF HSV-1 PCR confirmation before initiating antiviral therapy`,
+      `Begin oral valacyclovir and discharge with psychiatric follow-up`
+    ],
+    correct: 0,
+    clue: `Every hour of delay in HSV-1 encephalitis increases mortality; acyclovir requires viral thymidine kinase phosphorylation.`,
+    dossier: {
+      verdict: `• Immediate empiric IV acyclovir (10 mg/kg q8h) must be initiated before CSF PCR results return, accompanied by adequate IV hydration to prevent obstructive crystalline nephropathy.`,
+      path: `• Acyclovir is a guanosine analog monophosphorylated selectively by HSV viral thymidine kinase, then triphosphorylated by host kinases to inhibit viral DNA polymerase and terminate DNA chains.`,
+      neuro: `• Early viral DNA chain termination halts hemorrhagic necrosis of the temporal limbic cortex, preserving language and episodic memory networks.`,
+      ddx: `• Periodic lateralizing epileptiform discharges (PLEDs) over the temporal region plus CSF lymphocytosis with RBCs strongly indicate HSV-1 over bacterial meningitis (which has PMNs and low glucose).`,
+      tx: `• Infuse IV acyclovir slowly over 1 hour with pre/post IV hydration; continue for 14–21 days if PCR is positive.`,
+      omt: `• Post-acute inpatient recovery can utilize gentle rib raising and diaphragm doming to prevent atelectasis and normalize vagal tone.`,
+      pearl: `• Never wait for PCR to start IV acyclovir in suspected HSV encephalitis; untreated mortality exceeds 70%.`
+    }
+  },
+  {
+    id: 13, sector: 2, lo: 5, phase: 1, angle: `VZV Cranial & Vascular Neuropsychiatry`,
+    stem: `A 71-year-old immunocompetent man develops painful vesicular lesions on the tip of his nose and forehead, followed 4 weeks later by acute abulia, executive dysfunction, and right-sided hemiparesis. MRA demonstrates focal stenosis of the left middle cerebral artery. What is the underlying mechanism?`,
+    options: [
+      `Varicella-zoster virus (VZV) granulomatous vasculopathy following ophthalmic zoster`,
+      `HSV-1 retrograde spread along the olfactory tract`,
+      `JC virus oligodendrocyte demyelination of the internal capsule`
+    ],
+    correct: 0,
+    clue: `Vesicles on the tip of the nose (Hutchinson sign, nasociliary V1 branch) followed weeks later by large-vessel ischemic stroke and abulia.`,
+    dossier: {
+      verdict: `• Herpes zoster ophthalmicus (V1 reactivation, Hutchinson sign on nasal tip) can spread transaxonally to cerebral arteries, causing VZV granulomatous vasculopathy and ischemic stroke.`,
+      path: `• VZV reactivates from the trigeminal ganglion and migrates along afferent trigeminal perivascular nerves directly into the adventitia of the carotid/MCA branches, triggering transmural inflammation.`,
+      neuro: `• Left MCA/anterior cerebral watershed ischemia produces abulia (anterior frontal-subcortical apathy), expressive deficits, and contralateral hemiparesis.`,
+      ddx: `• Unlike typical atherosclerotic stroke, VZV vasculopathy occurs weeks to months after a zoster rash and shows CSF anti-VZV IgG antibodies (more sensitive than PCR late in the course).`,
+      tx: `• Treat VZV vasculopathy with IV acyclovir for 14 days plus a short course of oral prednisone to reduce arterial wall inflammation, alongside urgent ophthalmology evaluation for V1 keratitis.`,
+      omt: `• Avoid direct manipulation over active vesicular skin lesions or inflamed carotid/cervical vessels; focus on distant somatic support.`,
+      pearl: `• Hutchinson sign (vesicles on tip/side of nose) = nasociliary V1 nerve involvement -> high risk for ocular keratitis and delayed VZV CNS vasculopathy.`
+    }
+  },
+  {
+    id: 14, sector: 2, lo: 5, phase: 2, angle: `Ganglionic Latency & Neuropathy`,
+    stem: `A 64-year-old woman with severe reactive depression and insomnia develops ear pain, vesicles in the external auditory canal, loss of taste on the anterior two-thirds of the tongue, and ipsilateral facial paralysis involving the forehead. Which ganglion harbors the reactivated virus?`,
+    options: [
+      `Geniculate ganglion of the facial nerve (CN VII — Ramsay Hunt syndrome)`,
+      `Trigeminal ganglion (CN V3 — mandibular neuralgia)`,
+      `Spiral ganglion of the vestibulocochlear nerve (CN VIII)`
+    ],
+    correct: 0,
+    clue: `Ear canal vesicles + lower motor neuron CN VII palsy (forehead involved) + anterior 2/3 taste loss = herpes zoster oticus.`,
+    dossier: {
+      verdict: `• Ramsay Hunt syndrome (herpes zoster oticus) results from VZV reactivation in the geniculate ganglion of CN VII, causing LMN facial paralysis, auricular/canal vesicles, and taste loss.`,
+      path: `• VZV remains latent in sensory dorsal root and cranial nerve ganglia (trigeminal, geniculate); stress or immunosenescence triggers reactivation and axonal inflammation.`,
+      neuro: `• Involvement of the geniculate ganglion affects motor fibers to the face (including frontalis), special sensory chorda tympani (anterior 2/3 tongue), and adjacent CN VIII (vertigo/hearing loss).`,
+      ddx: `• Bell palsy causes LMN CN VII paralysis without vesicles. Central UMN stroke spares the forehead due to bilateral corticobulbar innervation.`,
+      tx: `• Start oral valacyclovir (or famciclovir) plus prednisone within 72 hours of symptom onset, protect the cornea with lubricating drops, and screen for secondary depression.`,
+      omt: `• Once vesicles crust over, gentle facial myofascial release and suboccipital decompression (avoiding active lesions) can relieve ipsilateral muscular asymmetry and headache.`,
+      pearl: `• Ramsay Hunt = VZV in Geniculate Ganglion (CN VII) -> Ear vesicles + LMN facial palsy + vertigo/tinnitus.`
+    }
+  },
+  {
+    id: 15, sector: 2, lo: 5, phase: 3, angle: `Postherpetic Pain & Mood Management`,
+    stem: `A 74-year-old man who had thoracic T5 shingles 5 months ago now experiences severe burning allodynia along the T5 dermatome, sleep deprivation, and major depressive symptoms. Which dual-benefit pharmacotherapy addresses both his neuropathic pain and affective symptoms?`,
+    options: [
+      `Duloxetine or a tricyclic antidepressant (nortriptyline) plus gabapentin`,
+      `Oral acyclovir suppression indefinitely`,
+      `High-dose oxycodone monotherapy`
+    ],
+    correct: 0,
+    clue: `Postherpetic neuralgia (PHN) is chronic neuropathic pain; SNRIs and TCAs modulate descending serotonergic/noradrenergic pain pathways and treat depression.`,
+    dossier: {
+      verdict: `• First-line management of postherpetic neuralgia with comorbid depression includes gabapentin/pregabalin and/or an SNRI (duloxetine) or secondary-amine TCA (nortriptyline), plus topical lidocaine.`,
+      path: `• VZV-induced dorsal root ganglion necrosis and central sensitization cause spontaneous C-fiber ectopic firing and loss of descending inhibitory pain modulation.`,
+      neuro: `• Enhancing synaptic norepinephrine and serotonin in the nucleus raphe magnus and locus coeruleus activates spinal enkephalinergic interneurons that gate ascending dorsal horn pain signals.`,
+      ddx: `• Continuing antivirals months after rash resolution does not reverse established PHN; valacyclovir/famciclovir only shorten acute neuritis if started within 72 hours of rash onset.`,
+      tx: `• Prefer nortriptyline or duloxetine over amitriptyline in elderly patients to minimize anticholinergic delirium and orthostasis; recommend recombinant zoster vaccine (Shingrix) for prevention.`,
+      omt: `• Gentle thoracic rib raising and paraspinal myofascial release at T4–T6 (once skin is completely healed) reduce sympathetic facilitation in the painful dermatome.`,
+      pearl: `• Descending pain inhibition (locus coeruleus NE + raphe magnus 5-HT) explains why SNRIs and TCAs treat both neuropathic pain and depression.`
+    }
+  },
+  {
+    id: 16, sector: 2, lo: 6, phase: 1, angle: `Post-Viral Affective Syndrome`,
+    stem: `A 20-year-old college athlete develops exudative pharyngitis, posterior cervical lymphadenopathy, splenomegaly, and atypical lymphocytosis (positive Monospot). Four months later, the acute illness has resolved, but she has persistent anergia, hypersomnia, depressed mood, and difficulty concentrating. What is the most accurate clinical framing?`,
+    options: [
+      `Post-viral depressive/chronic fatigue syndrome following Epstein-Barr virus (EBV) mononucleosis`,
+      `Acute EBV-induced hemorrhagic temporal lobe encephalitis`,
+      `Subacute sclerosing panencephalitis from persistent EBV M protein`
+    ],
+    correct: 0,
+    clue: `Classic mononucleosis (CD21 B-cell tropism, reactive CD8+ T cells) is strongly associated with prolonged post-infectious fatigue and depressive symptoms.`,
+    dossier: {
+      verdict: `• EBV infectious mononucleosis frequently triggers a prolonged post-viral fatigue and depressive syndrome lasting months after acute pharyngitis and splenomegaly resolve.`,
+      path: `• Enveloped dsDNA EBV binds B-cell CD21 receptors, triggering robust CD8+ cytotoxic T-cell proliferation and persistent systemic/neuroimmune cytokine signaling (IL-6, IFN-gamma).`,
+      neuro: `• Sustained pro-inflammatory cytokines divert tryptophan toward kynurenine instead of serotonin and blunt mesolimbic dopamine release, producing severe fatigue, hypersomnia, and anhedonia.`,
+      ddx: `• Distinguish post-viral affective/fatigue syndrome from hypothyroidism, anemia, or primary CNS lymphoma (seen in severely immunosuppressed AIDS patients, not immunocompetent students).`,
+      tx: `• Supportive graded pacing, sleep hygiene, cognitive-behavioral therapy, and SSRI therapy if criteria for Major Depressive Disorder are met; avoid contact sports until splenomegaly resolves.`,
+      omt: `• Splenic pump is strictly contraindicated during acute EBV splenomegaly (rupture risk), but gentle suboccipital release and thoracic inlet normalization support post-viral recovery.`,
+      pearl: `• EBV binds B-cell CD21; Downey cells (atypical lymphocytes) are reactive CD8+ T cells attacking EBV-infected B cells.`
+    }
+  },
+  {
+    id: 17, sector: 2, lo: 6, phase: 2, angle: `Immunosuppressed CNS Ventriculitis`,
+    stem: `A 33-year-old man with AIDS (CD4 count 18 cells/mm³) develops rapid-onset confusion, apathy, cranial nerve palsies, and blurred vision with "pizza-pie" retinal hemorrhages. MRI shows periventricular ependymal enhancement, and autopsy shows enlarged cells with basophilic intranuclear "owl-eye" inclusions. Which pathogen is responsible?`,
+    options: [
+      `Cytomegalovirus (CMV / HHV-5)`,
+      `Herpes simplex virus type 2`,
+      `Varicella-zoster virus`
+    ],
+    correct: 0,
+    clue: `CD4 < 50 + retinitis + periventricular ependymal enhancement + intranuclear "owl-eye" inclusions.`,
+    dossier: {
+      verdict: `• Cytomegalovirus (CMV) causes ventriculoencephalitis and retinitis in severely immunocompromised AIDS patients (CD4 < 50 cells/mm³), characterized histologically by "owl-eye" intranuclear inclusions.`,
+      path: `• CMV infects endothelial and ependymal cells lining the ventricles, producing necrotizing periventricular inflammation, microglial nodules, and cytomegaly.`,
+      neuro: `• Periventricular ependymitis disrupts subcortical white matter and cranial nerve nuclei, manifesting as subacute delirium, apathy, nystagmus, and brainstem cranial neuropathies.`,
+      ddx: `• Unlike PML (non-enhancing parieto-occipital white matter, CD4 < 200), CMV encephalitis occurs at CD4 < 50 with crisp periventricular ependymal enhancement and concurrent retinitis.`,
+      tx: `• First-line therapy is IV ganciclovir (or oral valganciclovir); use foscarnet or cidofovir for UL97 kinase-mutated ganciclovir-resistant strains.`,
+      omt: `• Gentle cranial osteopathy is deferred in acute ventriculitis; supportive supine myofascial comfort techniques aid hospitalized care.`,
+      pearl: `• CMV CNS disease = CD4 < 50 + Periventricular enhancement + Retinitis + "Owl-eye" inclusions.`
+    }
+  },
+  {
+    id: 18, sector: 2, lo: 6, phase: 3, angle: `CMV Antiviral Resistance & Toxicity`,
+    stem: `A patient with AIDS and CMV ventriculoencephalitis develops severe neutropenia (ANC 350/mm³) and thrombocytopenia while receiving IV ganciclovir. Switching to which agent avoids myelosuppression, and what electrolyte disturbance must be closely monitored?`,
+    options: [
+      `Switch to foscarnet; monitor for hypocalcemia, hypomagnesemia, hypokalemia, and seizures`,
+      `Switch to valganciclovir; monitor for gingival hyperplasia and hirsutism`,
+      `Switch to acyclovir; monitor for SIADH and hyponatremia`
+    ],
+    correct: 0,
+    clue: `Ganciclovir causes myelosuppression; its backup pyrophosphate analog directly inhibits viral DNA polymerase without kinase activation.`,
+    dossier: {
+      verdict: `• Switch to IV foscarnet when ganciclovir causes dose-limiting myelosuppression (or UL97 resistance); monitor closely for nephrotoxicity, hypocalcemia, hypomagnesemia, hypokalemia, and seizures.`,
+      path: `• Ganciclovir requires CMV UL97 viral kinase phosphorylation and frequently suppresses host bone marrow progenitors. Foscarnet is a pyrophosphate analog that directly blocks viral DNA polymerase.`,
+      neuro: `• Foscarnet chelates serum ionized calcium and causes renal magnesium/potassium wasting, lowering neuronal seizure threshold and provoking paresthesias, delirium, or generalized seizures.`,
+      ddx: `• Valganciclovir is an oral prodrug of ganciclovir and shares the exact same myelosuppressive toxicity; acyclovir has poor activity against CMV because CMV lacks thymidine kinase.`,
+      tx: `• Pre-hydrate with normal saline before foscarnet infusion and aggressively replete Ca2+, Mg2+, and K+ to prevent tetany and seizures.`,
+      omt: `• Avoid forceful maneuvers in thrombocytopenic patients (bleeding/bruising risk); use only gentle indirect positional/balanced ligamentous tension.`,
+      pearl: `• Ganciclovir = bone marrow suppression (neutropenia); Foscarnet = renal toxicity + low Ca2+/Mg2+/K+ -> seizures.`
+    }
+  },
+
+  // --- SECTOR III: ZOONOTIC, RHABDOVIRIDAE & ARBOVIRAL BEHAVIORAL SYNDROMES (Gates 19-27) ---
+  {
+    id: 19, sector: 3, lo: 7, phase: 1, angle: `Furious Encephalitic Presentation`,
+    stem: `A 27-year-old spelunker who woke up with a bat in his tent 6 weeks ago now presents with anxiety, paresthesias at the forearm, fluctuating episodes of extreme agitation, pharyngeal spasms when offered water (hydrophobia), and hypersalivation. What is the diagnosis?`,
+    options: [
+      `Furious rabies encephalomyelitis`,
+      `Tetanus toxin-mediated lockjaw and opisthotonus`,
+      `Acute catatonic schizophrenia`
+    ],
+    correct: 0,
+    clue: `Bat exposure + weeks-long incubation + paresthesias + hydrophobia/aerophobia + hypersalivation and furious agitation.`,
+    dossier: {
+      verdict: `• Furious (encephalitic) rabies presents after a weeks-to-months incubation with prodromal wound paresthesias, followed by agitation, hydrophobia, aerophobia, hypersalivation, and autonomic storm.`,
+      path: `• Bullet-shaped, enveloped negative-sense ssRNA rhabdovirus replicates locally in muscle, binds postsynaptic nicotinic acetylcholine receptors at the NMJ, and ascends CNS axons.`,
+      neuro: `• Selective brainstem and limbic infection (hippocampus, amygdala, medullary respiratory/swallowing centers) causes terror, inspiratory/pharyngeal spasms upon seeing water, and violent agitation.`,
+      ddx: `• Tetanus causes continuous trismus (lockjaw) and opisthotonus with clear sensorium within days of injury. Rabies causes intermittent spasms with encephalopathy and hydrophobia.`,
+      tx: `• Once clinical symptoms appear, rabies is nearly 100% fatal; management is palliative sedation (benzodiazepines, ketamine) and strict isolation precautions.`,
+      omt: `• Strict medical isolation and sedation take priority; OMT has no role in symptomatic clinical rabies.`,
+      pearl: `• Any unrecognized bat contact in a sleeping person warrants immediate rabies post-exposure prophylaxis, even without a visible bite mark.`
+    }
+  },
+  {
+    id: 20, sector: 3, lo: 7, phase: 2, angle: `Axonal Transport & Histology`,
+    stem: `Postmortem examination of the patient with furious rabies reveals intact synaptic architecture alongside eosinophilic, cytoplasmic inclusion bodies inside hippocampal pyramidal neurons and cerebellar Purkinje cells. By which molecular motor did the virus reach the central nervous system?`,
+    options: [
+      `Retrograde axonal transport via cytoplasmic dynein motors after binding nicotinic ACh receptors`,
+      `Anterograde axonal transport via kinesin motors from olfactory mucosa`,
+      `Hematogenous spread across fenestrated capillaries into choroid plexus`
+    ],
+    correct: 0,
+    clue: `Negri bodies in hippocampus & Purkinje cells; retrograde motor = Dynein ("back to the cell body").`,
+    dossier: {
+      verdict: `• Rabies virus binds nicotinic acetylcholine receptors (nAChR) at the neuromuscular junction and travels in a retrograde direction along peripheral motor axons via dynein motors to reach the CNS, forming Negri bodies.`,
+      path: `• Viral ribonucleoprotein complexes hijack dynein retrograde transport along microtubules toward the soma, then spread trans-synaptically throughout the spinal cord, brainstem, cerebellum, and limbic system.`,
+      neuro: `• Negri bodies (eosinophilic cytoplasmic viral factory inclusions) classically accumulate in hippocampal pyramidal neurons (Ammon horn) and cerebellar Purkinje cells, driving limbic agitation and ataxia.`,
+      ddx: `• Compare Negri bodies (cytoplasmic, eosinophilic, rabies) with Cowdry A bodies (intranuclear, HSV) and Lewy bodies (cytoplasmic alpha-synuclein in substantia nigra, Parkinson disease).`,
+      tx: `• Prevention of retrograde entry at the NMJ before axonal uptake is the sole window for effective intervention.`,
+      omt: `• Educational correlation: somatic afferent/efferent axonal transport physiology underpins neural-somatic communication pathways.`,
+      pearl: `• Dynein = Dragging back (retrograde); Kinesin = Kicking out (anterograde). Negri bodies = Hippocampus + Purkinje cells.`
+    }
+  },
+  {
+    id: 21, sector: 3, lo: 7, phase: 3, angle: `Post-Exposure Prophylaxis`,
+    stem: `A previously unvaccinated hiker is bitten on the hand by a stray raccoon that escapes into the woods. After thorough soap-and-water wound irrigation, what is the correct post-exposure prophylaxis (PEP) regimen?`,
+    options: [
+      `Human rabies immune globulin (RIG) infiltrated around the wound plus killed rabies vaccine series (days 0, 3, 7, 14)`,
+      `Wait 10 days to observe for neurologic symptoms before giving live-attenuated vaccine`,
+      `IV acyclovir plus tetanus toxoid alone`
+    ],
+    correct: 0,
+    clue: `Classic example of passive-active immunity: preformed antibody at the wound + inactivated (killed) vaccine at a distant site.`,
+    dossier: {
+      verdict: `• Immediate wound cleansing followed by passive immunization (rabies immunoglobulin infiltrated into and around the wound) plus active immunization (killed rabies vaccine series) prevents CNS invasion.`,
+      path: `• Human RIG neutralizes free virions at the neuromuscular junction immediately while the killed vaccine stimulates endogenous neutralizing IgG production over 7–14 days.`,
+      neuro: `• Neutralizing virions locally prevents nAChR binding and retrograde dynein transport into dorsal root ganglia and motor neurons.`,
+      ddx: `• Previously vaccinated individuals receive only vaccine boosters (no RIG). Never inject RIG and the vaccine in the same syringe or anatomic site.`,
+      tx: `• Infiltrate as much RIG as anatomically feasible into the wound; administer killed vaccine IM in the deltoid on days 0, 3, 7, and 14 (add day 28 if immunocompromised).`,
+      omt: `• Once healed and cleared, gentle myofascial release around scar tissue restores local hand mobility without affecting immunization efficacy.`,
+      pearl: `• Rabies PEP = Passive-Active Immunity (RIG + Killed Vaccine). Always give PEP for bat exposure in a sleeping room even without a visible bite.`
+    }
+  },
+  {
+    id: 22, sector: 3, lo: 8, phase: 1, angle: `Arboviral Neuropsychiatric Syndrome`,
+    stem: `In late August, a 68-year-old gardener presents with 4 days of fever, maculopapular rash, profound neuropsychiatric apathy, asymmetric flaccid paralysis of the right arm, and a new resting hand tremor with cogwheel rigidity. CSF shows lymphocytic pleocytosis and normal glucose. Which virus is most likely?`,
+    options: [
+      `West Nile virus (flavivirus)`,
+      `Coxsackievirus B enteroviral meningitis`,
+      `Measles virus`
+    ],
+    correct: 0,
+    clue: `Late-summer Culex mosquito exposure + asymmetric anterior horn flaccid weakness + parkinsonian tremor/apathy.`,
+    dossier: {
+      verdict: `• West Nile virus (WNV) neuroinvasive disease classically combines viral encephalitis/apathy, asymmetric poliomyelitis-like acute flaccid paralysis, and extrapyramidal parkinsonian tremor/myoclonus.`,
+      path: `• Positive-sense ssRNA flavivirus transmitted by Culex mosquitoes crosses the BBB and shows striking tropism for anterior horn motor neurons, brainstem nuclei, thalamus, and substantia nigra.`,
+      neuro: `• Substantia nigra and basal ganglia inflammation produces acute parkinsonism (bradykinesia, cogwheel rigidity, tremor) and profound apathy, while anterior horn destruction causes asymmetric LMN paralysis.`,
+      ddx: `• Unlike Guillain-Barré syndrome (symmetric ascending weakness, albuminocytologic dissociation), WNV causes asymmetric flaccid paralysis with CSF pleocytosis (often early neutrophils shifting to lymphocytes).`,
+      tx: `• Diagnosis is confirmed by CSF WNV IgM ELISA; treatment is supportive (airway protection, physical therapy), as no specific antiviral is approved.`,
+      omt: `• During post-acute rehabilitation, gentle rib raising and diaphragm doming assist respiratory muscle recovery if cervical/thoracic anterior horn cells are affected.`,
+      pearl: `• West Nile Virus = Summer mosquito + Asymmetric LMN flaccid paralysis + Parkinsonian tremor/apathy + CSF WNV IgM.`
+    }
+  },
+  {
+    id: 23, sector: 3, lo: 8, phase: 2, angle: `Pathologic Tropism`,
+    stem: `Why does West Nile virus neuroinvasive encephalitis produce both a polio-like lower motor neuron paralysis and a reversible parkinsonian movement disorder with behavioral apathy?`,
+    options: [
+      `Dual viral tropism for spinal cord anterior horn motor neurons and midbrain substantia nigra/basal ganglia`,
+      `Selective autoimmune demyelination of peripheral Schwann cells`,
+      `Prion-mediated spongiform vacuolation of the cerebral cortex`
+    ],
+    correct: 0,
+    clue: `Flavivirus neuronal apoptosis targets two motor hubs simultaneously: spinal anterior horns (LMN) and substantia nigra (extrapyramidal).`,
+    dossier: {
+      verdict: `• West Nile virus directly infects and induces apoptosis in both spinal anterior horn cells (causing asymmetric LMN flaccid weakness) and substantia nigra/striatal neurons (causing parkinsonism and apathy).`,
+      path: `• Flavivirus replication activates caspase-3 neuronal apoptosis and microglial activation concentrated in deep gray nuclei and spinal ventral horns.`,
+      neuro: `• Nigrostriatal dopaminergic disruption manifests as bradykinesia, masked facies, postural tremor, and frontostriatal abulia/apathy.`,
+      ddx: `• Deep gray matter T2 hyperintensities on MRI (thalamus, basal ganglia, substantia nigra) distinguish WNV from HSV-1 (medial temporal lobes) and GBS (normal brain MRI).`,
+      tx: `• Supportive neurorehabilitation; selected patients with disabling persistent post-WNV parkinsonism may obtain modest symptomatic relief from a trial of carbidopa-levodopa.`,
+      omt: `• Counterstrain and gentle myofascial release for hypertonic/rigid neck and paraspinal muscles reduce discomfort in post-encephalitic parkinsonism.`,
+      pearl: `• Deep gray nuclei (basal ganglia/thalamus/substantia nigra) MRI hyperintensity in late summer = Flavivirus (West Nile, St. Louis, Japanese encephalitis).`
+    }
+  },
+  {
+    id: 24, sector: 3, lo: 8, phase: 3, angle: `Diagnostic Differentiation`,
+    stem: `A 63-year-old man develops acute asymmetric right leg flaccid weakness, absent right patellar reflex, fever, confusion, and coarse postural tremor 1 week after multiple mosquito bites. Which diagnostic test best confirms the etiology while ruling out Guillain-Barré syndrome?`,
+    options: [
+      `CSF West Nile virus IgM antibody assay alongside CSF cell count showing pleocytosis`,
+      `Sural nerve biopsy showing segmental Schwann cell demyelination`,
+      `Serum anti-acetylcholine receptor antibody titer`
+    ],
+    correct: 0,
+    clue: `WNV produces active CSF pleocytosis and intrathecal IgM, whereas GBS shows normal WBC count with high protein (albuminocytologic dissociation).`,
+    dossier: {
+      verdict: `• CSF WNV-specific IgM ELISA (which does not cross the intact BBB and reflects intrathecal synthesis) plus CSF pleocytosis confirms neuroinvasive WNV and rules out GBS.`,
+      path: `• WNV viremia is brief and often cleared by symptom onset, making CSF PCR insensitive (~55%), whereas CSF IgM is >95% sensitive by day 8 of illness.`,
+      neuro: `• Absent deep tendon reflexes with preserved sensation in one limb localizes to the anterior horn cell (polio-like myelitis) rather than mixed sensorimotor polyneuropathy.`,
+      ddx: `• GBS presents 1–3 weeks post-GI/URI (e.g., Campylobacter) with symmetric ascending weakness and albuminocytologic dissociation (elevated protein, normal WBC).`,
+      tx: `• Avoid unnecessary plasma exchange or IVIG once WNV myelitis is confirmed; focus on aggressive PT/OT and monitoring FVC/NIF for bulbar or diaphragmatic spread.`,
+      omt: `• Thoracic inlet release and gentle lymphatic techniques support fluid clearance in immobilized limbs; monitor respiratory mechanics closely.`,
+      pearl: `• CSF WNV IgM > CSF WNV PCR for diagnosis because viremia clears early.`
+    }
+  },
+  {
+    id: 25, sector: 3, lo: 9, phase: 1, angle: `Limbic Viral Mood Tropism`,
+    stem: `A 32-year-old equestrian trainer presents with unexplained subacute bipolar-like mood lability, severe apathy alternating with agitation, and hippocampal MRI signal changes after negative HSV-1, WNV, and autoimmune panels. Research literature historically linked which non-cytolytic negative-sense RNA virus with limbic tropism to neuropsychiatric mood syndromes?`,
+    options: [
+      `Borna disease virus (BDV / orthobornavirus)`,
+      `Norovirus (calicivirus)`,
+      `Hepatitis A picornavirus`
+    ],
+    correct: 0,
+    clue: `Non-cytolytic neurotropic negative-sense ssRNA virus infecting horses/mammals with persistent limbic system tropism.`,
+    dossier: {
+      verdict: `• Borna disease virus (BDV) is a persistent, non-cytolytic negative-sense ssRNA virus with selective tropism for the limbic system (hippocampus, amygdala) studied in animal and human behavioral/mood syndromes.`,
+      path: `• Unlike lytic viruses (HSV-1, rabies), BDV replicates in the host cell nucleus without lysing neurons, altering synaptic plasticity, neurotrophin (BDNF) signaling, and neurotransmitter release.`,
+      neuro: `• Persistent limbic viral protein expression impairs hippocampal neurogenesis and glutamatergic/dopaminergic balance, producing affective lability, apathy, and cognitive slowing.`,
+      ddx: `• In clinical practice, always first exclude treatable mimics: HSV-1 encephalitis, anti-NMDA receptor encephalitis, neurosyphilis, HIV, and primary bipolar disorder.`,
+      tx: `• Mood stabilization (e.g., valproate or lithium) and supportive psychiatric care while completing thorough infectious/autoimmune encephalitis workup.`,
+      omt: `• Suboccipital OA release and CV4 cranial vault compression support limbic-autonomic down-regulation and sleep restoration.`,
+      pearl: `• Borna disease virus = persistent nuclear-replicating (-)ssRNA virus targeting the limbic system without acute cell lysis.`
+    }
+  },
+  {
+    id: 26, sector: 3, lo: 9, phase: 2, angle: `Cytokine-Kynurenine Mechanism`,
+    stem: `During chronic neurotropic viral infection of the CNS, sustained release of interferon-gamma and TNF-alpha activates microglial indoleamine 2,3-dioxygenase (IDO). How does this enzymatic shift directly precipitate clinical depression and anhedonia?`,
+    options: [
+      `Shunts tryptophan away from serotonin synthesis toward neurotoxic quinolinic acid (NMDA agonist)`,
+      `Accelerates tyrosine hydroxylase conversion of tyrosine into dopamine`,
+      `Blocks GABA transaminase, causing excessive cortical inhibition`
+    ],
+    correct: 0,
+    clue: `Inflammatory cytokines steal the precursor of 5-HT and convert it into an excitotoxic NMDA glutamate receptor agonist.`,
+    dossier: {
+      verdict: `• Microglial IDO activation shunts dietary tryptophan into the kynurenine pathway, depleting CNS serotonin synthesis while generating quinolinic acid, an NMDA receptor agonist.`,
+      path: `• Viral PAMPs and IFN-gamma upregulate IDO1 in microglia and astrocytes, creating both monoamine depletion and glutamatergic excitotoxicity.`,
+      neuro: `• Reduced raphe serotonergic tone plus excessive frontolimbic NMDA-mediated glutamate stress manifest as melancholic depression, psychomotor retardation, and anhedonia.`,
+      ddx: `• Distinguishes neuroinflammatory/post-viral depression ("sickness behavior" persisted) from pure psychosocial adjustment disorder.`,
+      tx: `• SSRIs/SNRIs restore synaptic monoamine availability; treating the underlying viral inflammation reduces IDO drive.`,
+      omt: `• Rib raising (T1–T5) and celiac/mesenteric ganglion myofascial release help rebalance neuroimmune autonomic tone.`,
+      pearl: `• IDO Pathway: IFN-gamma -> Tryptophan -> Kynurenine -> Quinolinic acid (NMDA excitotoxin) + Serotonin depletion = Viral Depression.`
+    }
+  },
+  {
+    id: 27, sector: 3, lo: 9, phase: 3, angle: `Psychiatric Stabilization in Arboviral Recovery`,
+    stem: `A 44-year-old man recovering from St. Louis encephalitis experiences persistent post-encephalitic insomnia, irritability, and akathisia-like restlessness without active fever or elevated ICP. Which medication class should be AVOIDED because it worsens post-encephalitic extrapyramidal symptoms?`,
+    options: [
+      `High-potency first-generation antipsychotics (e.g., haloperidol)`,
+      `Low-dose benzodiazepines or melatonin receptor agonists for sleep`,
+      `Selective serotonin reuptake inhibitors (e.g., sertraline)`
+    ],
+    correct: 0,
+    clue: `Post-flavivirus basal ganglia injury renders patients exquisitely vulnerable to acute dystonia, oculogyric crisis, and neuroleptic malignant syndrome.`,
+    dossier: {
+      verdict: `• High-potency D2-receptor antagonists (haloperidol, fluphenazine) should be avoided in post-encephalitic basal ganglia injury due to severe risk of acute dystonia, parkinsonism, and NMS.`,
+      path: `• Flavivirus-damaged striatal D2 neurons have depleted dopaminergic reserve; potent D2 blockade precipitates immediate extrapyramidal decompensation.`,
+      neuro: `• Akathisia (subjective motor restlessness), spasmodic torticollis, and oculogyric crisis are frequently misdiagnosed as worsening psychiatric agitation, leading to dangerous dose escalation.`,
+      ddx: `• Differentiate post-encephalitic akathisia/agitation from primary psychotic relapse; check for cogwheel rigidity, fever, and elevated CK.`,
+      tx: `• Use non-D2-blocking calming agents (short-course lorazepam, trazodone, or low-dose quetiapine if psychosis requires treatment) alongside propranolol for akathisia.`,
+      omt: `• Once acute infection and elevated ICP have resolved, CV4 compression and suboccipital decompression promote parasympathetic sleep onset safely.`,
+      pearl: `• Post-encephalitic patients with basal ganglia injury are hyper-sensitive to D2 blockers -> high risk of dystonia, parkinsonism, and NMS.`
+    }
+  },
+
+  // --- SECTOR IV: PEDIATRIC POST-INFECTIOUS, SLOW VIRAL & SUBACUTE SYNDROMES (Gates 28-36) ---
+  {
+    id: 28, sector: 4, lo: 10, phase: 1, angle: `Slow Viral Personality Decline`,
+    stem: `A 12-year-old boy who immigrated without childhood vaccinations develops progressive school failure, irritable personality changes, and emotional lability over 4 months, followed by frequent brief myoclonic jerks and chorioretinitis. EEG shows periodic generalized burst-suppression complexes. Which childhood infection occurred years earlier?`,
+    options: [
+      `Measles (rubeola) leading to subacute sclerosing panencephalitis (SSPE)`,
+      `Varicella-zoster chickenpox leading to Reye syndrome`,
+      `Parvovirus B19 erythema infectiosum`
+    ],
+    correct: 0,
+    clue: `Insidious personality/academic decline 6–10 years after natural measles infection + myoclonic jerks + high CSF anti-measles IgG.`,
+    dossier: {
+      verdict: `• Subacute sclerosing panencephalitis (SSPE) is a fatal, slowly progressive panencephalitis occurring 6–10 years after wild-type measles infection (especially if contracted before age 2).`,
+      path: `• Persistent, replication-defective measles virus spreads slowly cell-to-cell across neurons and glia, forming eosinophilic intranuclear and cytoplasmic inclusions in gray and white matter.`,
+      neuro: `• Early frontal-subcortical invasion presents subtly as behavioral regression, declining grades, and mood lability (Stage 1) before advancing to myoclonus (Stage 2), rigidity, and coma (Stages 3–4).`,
+      ddx: `• Reye syndrome is an acute hepatic/mitochondrial encephalopathy days after aspirin use in viral illness, not years later. CJD occurs in older adults over weeks-to-months.`,
+      tx: `• No curative treatment exists (ribavirin/isoprinosine offer minimal slowing); universal MMR vaccination prevents SSPE.`,
+      omt: `• Palliative comfort care using gentle myofascial release for spasticity and rib raising to ease secretions in advanced stages.`,
+      pearl: `• SSPE = Measles in infancy -> years later personality/school decline -> myoclonic jerks -> death. Prevented completely by MMR vaccine.`
+    }
+  },
+  {
+    id: 29, sector: 4, lo: 10, phase: 2, angle: `Molecular Virology`,
+    stem: `Genetic sequencing of measles virus isolated from the brain of a patient with SSPE reveals hypermutation of a single viral structural gene, preventing viral budding while allowing trans-synaptic spread inside the CNS. Which viral protein is defective in SSPE?`,
+    options: [
+      `Matrix (M) protein`,
+      `Neuraminidase (NA) protein`,
+      `Reverse transcriptase (Pol) enzyme`
+    ],
+    correct: 0,
+    clue: `This structural protein normally lines the inner viral envelope and orchestrates budding/assembly; its loss traps virus inside neurons.`,
+    dossier: {
+      verdict: `• A defective measles matrix (M) protein prevents mature virion assembly and budding, allowing the virus to evade neutralizing antibodies and spread cell-to-cell throughout the brain.`,
+      path: `• Paramyxovirus M protein links the ribonucleocapsid core to surface hemagglutinin (HA) and fusion (F) glycoproteins. Biased hypermutation disables M protein, leaving F protein active for direct cell-cell fusion.`,
+      neuro: `• Persistent intracellular replication induces massive intrathecal anti-measles IgG synthesis (oligoclonal bands) and progressive gray-and-white matter panencephalitis.`,
+      ddx: `• Influenza (orthomyxovirus) utilizes neuraminidase for virion release; HIV utilizes Pol reverse transcriptase.`,
+      tx: `• CSF shows markedly elevated anti-measles IgG titers; live-attenuated MMR vaccine does NOT cause SSPE and prevents wild-type persistence.`,
+      omt: `• Supportive positioning and gentle thoracic lymphatic/respiratory techniques maintain airway clearance during progressive bulbar decline.`,
+      pearl: `• SSPE Mechanism = Defective Measles Matrix (M) Protein -> No budding -> Persistent trans-synaptic panencephalitis.`
+    }
+  },
+  {
+    id: 30, sector: 4, lo: 10, phase: 3, angle: `Diagnostic & Preventive Strategy`,
+    stem: `A 9-year-old unvaccinated child presents with 3 months of worsening irritability, visual loss, and sudden drop attacks with myoclonic jerks. Which combination of diagnostic findings confirms SSPE?`,
+    options: [
+      `Markedly elevated CSF anti-measles IgG antibodies and periodic generalized high-voltage slow-wave EEG complexes (Radermecker complexes)`,
+      `Positive CSF 14-3-3 protein with periodic sharp-wave complexes in a 68-year-old`,
+      `CSF glucose < 20 mg/dL with > 1,000 neutrophils/mm³`
+    ],
+    correct: 0,
+    clue: `Diagnostic hallmark: intrathecal measles-specific IgG synthesis + stereotyped periodic EEG bursts.`,
+    dossier: {
+      verdict: `• Elevated CSF-to-serum anti-measles IgG ratio alongside stereotyped periodic high-voltage slow-wave EEG complexes (Radermecker complexes) confirms SSPE.`,
+      path: `• Intrathecal plasma cells produce oligoclonal IgG antibodies directed against measles nucleoprotein and phosphoprotein despite absent viral budding.`,
+      neuro: `• Periodic EEG complexes correlate temporally with synchronous myoclonic jerks as cortical-subcortical networks destabilize.`,
+      ddx: `• CJD features 14-3-3 protein and 1-Hz periodic sharp waves in older adults. Bacterial meningitis features low CSF glucose and neutrophilic pleocytosis.`,
+      tx: `• Symptomatic anticonvulsants (valproate or clonazepam) for myoclonus; counsel families on herd immunity and timely 2-dose MMR vaccination (12–15 months and 4–6 years).`,
+      omt: `• Avoid forceful spinal maneuvers in patients with frequent myoclonic spasms; gentle cranial/myofascial holding may ease post-spasm soreness.`,
+      pearl: `• SSPE CSF = High anti-measles IgG + Oligoclonal bands + Radermecker periodic EEG complexes.`
+    }
+  },
+  {
+    id: 31, sector: 4, lo: 11, phase: 1, angle: `Congenital Slow Viral Regression`,
+    stem: `A 14-year-old boy with a history of congenital sensorineural deafness, bilateral cataracts, and a repaired patent ductus arteriosus develops progressive behavioral regression, dementia, cerebellar ataxia, and spasticity over 18 months. CSF shows elevated protein, lymphocytic pleocytosis, and anti-rubella IgG. What is the diagnosis?`,
+    options: [
+      `Progressive rubella panencephalitis (PRP)`,
+      `Subacute sclerosing panencephalitis (SSPE)`,
+      `Tay-Sachs hexosaminidase A deficiency`
+    ],
+    correct: 0,
+    clue: `Classic congenital rubella triad (cataracts, deafness, PDA) followed in adolescence by slow panencephalitis and ataxia.`,
+    dossier: {
+      verdict: `• Progressive rubella panencephalitis (PRP) is an ultra-rare, fatal slow viral encephalitis developing in the second decade of life in patients with congenital rubella syndrome (or rarely childhood rubella).`,
+      path: `• Enveloped positive-sense ssRNA togavirus persists in CNS tissue for over a decade before triggering chronic perivascular inflammation, white matter gliosis, and cerebellar atrophy.`,
+      neuro: `• Unlike SSPE (which starts with myoclonus and macular chorioretinitis), PRP features prominent cerebellar ataxia, spasticity, and behavioral/cognitive deterioration with fewer myoclonic jerks.`,
+      ddx: `• Distinguish from juvenile Huntington disease (chorea, family history) and Wilson disease (Kayser-Fleischer rings, low ceruloplasmin) by the history of congenital rubella stigmata and CSF anti-rubella IgG.`,
+      tx: `• No specific antiviral therapy exists; supportive neurorehabilitation, spasticity management, and MMR immunization for population prevention.`,
+      omt: `• Gentle myofascial release and sacral balancing help manage progressive lower-extremity spasticity.`,
+      pearl: `• Congenital Rubella Triad: Cataracts + Sensorineural Deafness + Patent Ductus Arteriosus -> late risk for Progressive Rubella Panencephalitis.`
+    }
+  },
+  {
+    id: 32, sector: 4, lo: 11, phase: 2, angle: `Histopathology Comparison`,
+    stem: `Comparing neuropathology between progressive rubella panencephalitis (PRP) and measles SSPE, which histologic feature distinguishes PRP?`,
+    options: [
+      `Absence of viral inclusion bodies with prominent cerebellar atrophy and fibrinoid vasculopathy/mineralization`,
+      `Abundant eosinophilic Cowdry type A intranuclear inclusions in temporal neurons`,
+      `Diffuse spongiform vacuolation of the cerebral cortex without inflammation`
+    ],
+    correct: 0,
+    clue: `SSPE has prominent viral inclusions; PRP shows intense vasculitis, perivascular mineralization, and severe cerebellar white matter destruction without inclusions.`,
+    dossier: {
+      verdict: `• Progressive rubella panencephalitis lacks the prominent viral intranuclear inclusions seen in SSPE, instead showing diffuse white matter destruction, cerebellar Purkinje loss, and perivascular fibrinoid vasculopathy with mineralization.`,
+      path: `• Chronic immune-complex deposition and microglial activation drive demyelination and vascular calcification in deep white matter and cerebellum.`,
+      neuro: `• Severe cerebellar folia atrophy explains why gait and limb ataxia dominate early clinical presentation alongside frontal behavioral regression.`,
+      ddx: `• Cowdry type A inclusions occur in HSV/CMV/SSPE; non-inflammatory spongiform vacuoles occur in prion disease (CJD).`,
+      tx: `• Multidisciplinary supportive care; prevent congenital rubella by verifying rubella immunity prior to pregnancy (avoid live MMR during pregnancy).`,
+      omt: `• Cerebellar ataxia increases fall risk; osteopathic postural/proprioceptive somatic dysfunction care focuses on safe seated myofascial balancing.`,
+      pearl: `• PRP vs SSPE: PRP = Congenital rubella history + Ataxia + NO inclusions + Cerebellar vasculopathy.`
+    }
+  },
+  {
+    id: 33, sector: 4, lo: 11, phase: 3, angle: `Prenatal & Pediatric Screening`,
+    stem: `A 26-year-old woman planning pregnancy has a negative rubella IgG titer. To prevent both congenital rubella syndrome and future progressive rubella panencephalitis in her child, when should the live-attenuated MMR vaccine be administered?`,
+    options: [
+      `Prior to conception, advising her to avoid pregnancy for at least 4 weeks post-vaccination`,
+      `During the first trimester of pregnancy for optimal transplacental transfer`,
+      `Wait until delivery and never vaccinate women of childbearing age`
+    ],
+    correct: 0,
+    clue: `MMR is a live-attenuated viral vaccine; contraindicated during pregnancy, safe and essential pre-conception or postpartum.`,
+    dossier: {
+      verdict: `• Administer live-attenuated MMR vaccine before conception (with contraception for 4 weeks) or immediately postpartum if already pregnant.`,
+      path: `• Live-attenuated rubella poses a theoretical teratogenic risk to the developing fetus if given during gestation, whereas pre-conception maternal IgG provides complete fetal protection.`,
+      neuro: `• Preventing fetal rubella infection eliminates microcephaly, sensorineural deafness, intellectual disability, and delayed PRP.`,
+      ddx: `• Inactivated vaccines (Tdap, inactivated influenza) are given during pregnancy; live vaccines (MMR, varicella) are deferred until postpartum if not given pre-conception.`,
+      tx: `• Document rubella immunity at the first prenatal visit; vaccinate non-immune mothers before hospital discharge postpartum.`,
+      omt: `• Safe prenatal OMT (avoiding deep uterine pressure) relieves musculoskeletal strain throughout pregnancy while standard obstetric immunization protocols protect fetal neurodevelopment.`,
+      pearl: `• Live-attenuated MMR = Give BEFORE pregnancy (wait 4 weeks) or POSTPARTUM; NEVER during pregnancy.`
+    }
+  },
+  {
+    id: 34, sector: 4, lo: 12, phase: 1, angle: `Post-Viral Autoimmune Psychosis`,
+    stem: `Four weeks after recovering from PCR-confirmed HSV-1 encephalitis, a 24-year-old woman develops acute paranoid psychosis, catatonia, repetitive chewing/lip-smacking orofacial dyskinesias, and fluctuating tachycardia/hypertension. Repeat CSF HSV-1 PCR is negative. What is the diagnosis?`,
+    options: [
+      `Post-viral autoimmune anti-NMDA receptor encephalitis`,
+      `Acute relapse of lytic HSV-1 viral replication`,
+      `Neuroleptic malignant syndrome from acyclovir`
+    ],
+    correct: 0,
+    clue: `Young woman + post-HSV relapse with NEGATIVE repeat PCR + psychosis + catatonia + orofacial dyskinesias + autonomic instability.`,
+    dossier: {
+      verdict: `• Anti-NMDA receptor encephalitis is a classic autoimmune complication triggered either by an ovarian teratoma or ~3–6 weeks after HSV-1 encephalitis (with negative repeat HSV PCR).`,
+      path: `• Neuronal damage from HSV-1 exposes synaptic antigens, inducing IgG autoantibodies against the GluN1 subunit of NMDA glutamate receptors.`,
+      neuro: `• Simultaneous psychiatric (paranoia, hallucinations, catatonia), movement (orofacial dyskinesias, dystonia), and autonomic (tachycardia, labile BP, hypoventilation) signs reflect diffuse cortical-limbic-brainstem receptor loss.`,
+      ddx: `• Crucial distinction: HSV relapse shows positive CSF PCR and worsening temporal necrosis; anti-NMDA relapse shows negative HSV PCR and positive CSF anti-GluN1 IgG.`,
+      tx: `• Immediate first-line immunotherapy: high-dose IV methylprednisolone PLUS IVIG or plasmapheresis, plus pelvic ultrasound/MRI to exclude ovarian teratoma.`,
+      omt: `• Autonomic instability and catatonia require close ICU monitoring; gentle suboccipital and rib-raising techniques are reserved for post-immunotherapy recovery.`,
+      pearl: `• Post-HSV behavioral relapse + Negative HSV PCR + Orofacial dyskinesias/Catatonia = Anti-NMDA Receptor Encephalitis.`
+    }
+  },
+  {
+    id: 35, sector: 4, lo: 12, phase: 2, angle: `Synaptic Receptor Pathophysiology`,
+    stem: `How do pathogenic IgG autoantibodies in anti-NMDA receptor encephalitis alter glutamatergic neurotransmission to produce psychosis and catatonia?`,
+    options: [
+      `Cross-link and internalize surface GluN1 NMDA receptors, causing reversible synaptic hypofunction`,
+      `Irreversibly lyse hippocampal pyramidal neurons via complement membrane attack complex`,
+      `Block presynaptic acetylcholine release at the neuromuscular junction`
+    ],
+    correct: 0,
+    clue: `Antibody-mediated receptor capping and endocytosis—explaining why patients can recover dramatically after immunotherapy.`,
+    dossier: {
+      verdict: `• Anti-GluN1 IgG antibodies cross-link adjacent NMDA receptors, triggering selective receptor capping and internalization without complement-mediated neuronal death.`,
+      path: `• Because the synapse remains structurally intact, removing antibodies and suppressing B cells allows NMDA receptors to repopulate the postsynaptic membrane.`,
+      neuro: `• Selective NMDA hypofunction on GABAergic interneurons disinhibits prefrontal/limbic glutamate and dopamine release—biochemically mimicking phencyclidine (PCP) or ketamine psychosis and catatonia.`,
+      ddx: `• Unlike paraneoplastic intracellular antigen syndromes (anti-Hu, anti-Yo) driven by cytotoxic CD8+ T cells with poor prognosis, surface receptor antibodies (anti-NMDA) respond well to immunotherapy.`,
+      tx: `• If first-line steroids + IVIG/PLEX fail, escalate promptly to second-line rituximab (anti-CD20) or cyclophosphamide; use benzodiazepines (lorazepam) for catatonia.`,
+      omt: `• Avoid forceful cervical manipulation in catatonic/dystonic rigidity; gentle myofascial release aids musculoskeletal recovery once immunized.`,
+      pearl: `• Anti-NMDA antibodies internalize GluN1 receptors (reversible PCP-like synaptic hypofunction) -> excellent recovery with early immunotherapy.`
+    }
+  },
+  {
+    id: 36, sector: 4, lo: 12, phase: 3, angle: `Psychotropic Pitfalls & Workup`,
+    stem: `A 19-year-old woman with new-onset psychosis, mutism, and lip-smacking movements receives intramuscular haloperidol in the psychiatric ED and immediately develops fever (39.6°C), lead-pipe rigidity, and CK 14,000 U/L. Aside from stopping haloperidol and starting dantrolene/bromocriptine, what diagnostic workup is essential?`,
+    options: [
+      `CSF anti-NMDA receptor (GluN1) IgG testing and pelvic imaging for ovarian teratoma`,
+      `Single serum prolactin level without CSF or imaging studies`,
+      `Immediate electroconvulsive therapy without medical clearance`
+    ],
+    correct: 0,
+    clue: `Patients with anti-NMDA encephalitis exhibit severe neuroleptic intolerance mimicking NMS; always test CSF GluN1 IgG (more sensitive than serum) and image the pelvis.`,
+    dossier: {
+      verdict: `• Extreme neuroleptic sensitivity (NMS-like rigidity, rhabdomyolysis, autonomic instability) in a young woman with acute psychosis and dyskinesias mandates CSF anti-NMDA receptor IgG testing and pelvic MRI/ultrasound.`,
+      path: `• CSF anti-GluN1 IgG is significantly more sensitive and specific than serum testing alone; up to 50% of adult women harbor a mature or immature ovarian teratoma containing neural tissue.`,
+      neuro: `• Underlying NMDA receptor loss destabilizes hypothalamic thermoregulation and striatal motor tone, priming patients for severe D2-blocker toxicity.`,
+      ddx: `• Primary schizophrenia rarely presents acutely with dyskinesias, seizures, hypoventilation, and NMS-like hyperthermia upon first antipsychotic exposure.`,
+      tx: `• Stop antipsychotics, treat NMS acutely, initiate IV steroids + IVIG/PLEX, and resect any identified ovarian teratoma promptly.`,
+      omt: `• Medical/ICU stabilization of rhabdomyolysis and hyperthermia takes absolute priority; defer OMT until autonomic crisis resolves.`,
+      pearl: `• CSF anti-NMDA IgG > Serum; extreme antipsychotic intolerance + catatonia in a young woman = rule out anti-NMDA encephalitis & ovarian teratoma.`
+    }
+  },
+
+  // --- SECTOR V: NEUROPSYCHIATRIC ANTIVIRALS, PRION NEUROPSYCHIATRY & OMT (Gates 37-45) ---
+  {
+    id: 37, sector: 5, lo: 13, phase: 1, angle: `Antiviral Neurotoxicity vs Relapse`,
+    stem: `A 72-year-old man with mild chronic kidney disease receiving high-dose IV acyclovir for herpes zoster ophthalmicus develops acute visual hallucinations, confusion, tremor, and myoclonus on day 4 of therapy. Serum creatinine has risen from 1.1 to 2.9 mg/dL, and urinalysis shows needle-shaped crystals. What is the cause of his delirium?`,
+    options: [
+      `Acyclovir-induced crystalline nephropathy leading to acyclovir neurotoxicity`,
+      `VZV progression into subacute sclerosing panencephalitis`,
+      `Anticholinergic syndrome from valacyclovir`
+    ],
+    correct: 0,
+    clue: `Renally cleared acyclovir precipitates in renal tubules when under-hydrated -> acute kidney injury -> toxic CNS accumulation of 9-carboxymethoxymethylguanine (CMMG).`,
+    dossier: {
+      verdict: `• Acyclovir neurotoxicity results from impaired renal clearance (often precipitated by acyclovir crystalline nephropathy), causing toxic accumulation of acyclovir and its neurotoxic metabolite CMMG.`,
+      path: `• Acyclovir is poorly soluble in urine and precipitates as birefringent needle-shaped crystals inside distal renal tubules, causing obstructive AKI that halts its own renal excretion.`,
+      neuro: `• High CNS CMMG levels produce visual hallucinations, delirium, dysarthria, asterixis, and myoclonus—frequently mistaken for worsening viral encephalitis.`,
+      ddx: `• Key clue distinguishing acyclovir neurotoxicity from viral encephalitis: absence of fever/new CSF pleocytosis, concurrent rising creatinine/needle crystals, and rapid improvement after stopping acyclovir or hemodialysis.`,
+      tx: `• Hold acyclovir, administer aggressive IV normal saline hydration, and perform hemodialysis in severe CNS toxicity/anuria to clear the drug.`,
+      omt: `• Gentle renal/thoracolumbar myofascial normalization (T10–L1) may follow medical stabilization, avoiding forceful maneuvers during uremic delirium.`,
+      pearl: `• IV Acyclovir + Poor Hydration = Needle-shaped tubular crystals -> AKI -> Visual hallucinations & myoclonus (CMMG neurotoxicity).`
+    }
+  },
+  {
+    id: 38, sector: 5, lo: 13, phase: 2, angle: `Antiviral Electrolyte Seizures`,
+    stem: `A 40-year-old transplant recipient receiving IV foscarnet for acyclovir-resistant HSV develops perioral numbness, carpopedal spasm (positive Trousseau sign), QTc prolongation (520 ms), and a generalized tonic-clonic seizure. Which metabolic mechanism triggered the seizure?`,
+    options: [
+      `Foscarnet chelation of ionized calcium and renal magnesium/potassium wasting`,
+      `Direct GABA-A receptor antagonism by acyclovir crystals`,
+      `SIADH-induced hypernatremia from cidofovir`
+    ],
+    correct: 0,
+    clue: `Pyrophosphate analog chelates divalent cations (Ca2+, Mg2+) and injures renal tubular cells.`,
+    dossier: {
+      verdict: `• Foscarnet directly chelates serum ionized calcium and induces renal tubular wasting of magnesium and potassium, precipitating hypocalcemic tetany, QTc prolongation, and seizures.`,
+      path: `• As a structural mimic of pyrophosphate, foscarnet binds divalent cations in plasma and causes direct proximal/distal tubular toxicity.`,
+      neuro: `• Hypocalcemia increases voltage-gated sodium channel permeability in axonal membranes, causing spontaneous repetitive firing (paresthesias, Trousseau/Chvostek signs, and generalized seizures).`,
+      ddx: `• Carbamazepine causes hyponatremia via SIADH; isoniazid causes seizures via vitamin B6 (GABA) depletion; foscarnet causes hypocalcemia/hypomagnesemia/hypokalemia.`,
+      tx: `• Administer IV calcium gluconate and IV magnesium sulfate immediately, hydrate with normal saline, and consider switching to cidofovir co-administered with probenecid and IV hydration.`,
+      omt: `• Acute tetany and seizure activity require immediate IV electrolyte rescue; defer OMT until neuromuscular excitability normalizes.`,
+      pearl: `• Foscarnet ("Car with a Net") catches Ca2+, Mg2+, and K+ -> Tetany + Long QT + Seizures.`
+    }
+  },
+  {
+    id: 39, sector: 5, lo: 13, phase: 3, angle: `Resistant Herpesvirus Rescue`,
+    stem: `An immunocompromised patient with AIDS develops severe mucocutaneous HSV ulcers and encephalitis that fail to respond to IV acyclovir due to a mutated viral thymidine kinase gene. Which two parenteral antivirals bypass viral kinase phosphorylation to directly inhibit viral DNA polymerase?`,
+    options: [
+      `Foscarnet or cidofovir (with probenecid + IV hydration for cidofovir)`,
+      `Valacyclovir or famciclovir`,
+      `Ganciclovir or valganciclovir`
+    ],
+    correct: 0,
+    clue: `Nucleoside analogs require viral thymidine kinase (HSV/VZV) or UL97 kinase (CMV); pyrophosphate and nucleotide phosphonate analogs skip step 1.`,
+    dossier: {
+      verdict: `• Both foscarnet (pyrophosphate analog) and cidofovir (acyclic nucleoside phosphonate) bypass viral thymidine kinase activation and directly inhibit viral DNA polymerase.`,
+      path: `• HSV/VZV resistance to acyclovir/valacyclovir/famciclovir arises almost exclusively from mutations in viral thymidine kinase; cidofovir already carries a phosphonate group, needing only host cellular kinases.`,
+      neuro: `• Maintaining CNS viral suppression halts necrotizing encephalitis while avoiding ineffective nucleoside escalation.`,
+      ddx: `• Valacyclovir and famciclovir are oral prodrugs that still require viral thymidine kinase, so they remain completely ineffective against TK-deficient strains.`,
+      tx: `• When using cidofovir, always co-administer oral probenecid and IV normal saline to block organic anion tubular secretion and prevent severe proximal tubular nephrotoxicity.`,
+      omt: `• In stabilized immunocompromised patients, gentle lymphatic drainage and thoracic rib raising support systemic immune comfort.`,
+      pearl: `• Acyclovir/Ganciclovir-resistant HSV/CMV (mutated viral kinase) -> Use Foscarnet or Cidofovir (+ probenecid).`
+    }
+  },
+  {
+    id: 40, sector: 5, lo: 14, phase: 1, angle: `Rapidly Progressive Dementia`,
+    stem: `A 66-year-old retired carpenter develops rapidly progressive dementia, emotional lability, visual spatial distortion, and gait ataxia over 10 weeks. On exam, clapping loudly triggers sudden involuntary myoclonic jerks. Brain MRI shows cortical ribboning and pulvinar/caudate hyperintensity on DWI, and EEG shows 1-Hz periodic sharp-wave complexes. What is the diagnosis?`,
+    options: [
+      `Sporadic Creutzfeldt-Jakob disease (CJD)`,
+      `Alzheimer disease with early Lewy bodies`,
+      `Normal pressure hydrocephalus`
+    ],
+    correct: 0,
+    clue: `Rapid dementia (< 1 year) + cerebellar ataxia + startle myoclonus + periodic sharp waves on EEG + DWI cortical ribboning.`,
+    dossier: {
+      verdict: `• Sporadic Creutzfeldt-Jakob disease (CJD) is the most common human prion spongiform encephalopathy, presenting with rapidly progressive dementia, ataxia, and startle myoclonus.`,
+      path: `• Spontaneous misfolding of normal alpha-helical cellular prion protein (PrPc) into protease-resistant beta-pleated scrapie prion (PrPsc) initiates autocatalytic conformational templating.`,
+      neuro: `• Intracellular vacuolation of neurons and glia ("spongiform cortex") without inflammation produces rapid cortical-basal ganglia-cerebellar failure, death typically within 6–12 months.`,
+      ddx: `• Alzheimer disease progresses over 5–10 years without startle myoclonus. Normal pressure hydrocephalus causes the "wet, wobbly, wacky" triad reversible with LP. Always rule out Hashimoto encephalopathy and autoimmune encephalitis.`,
+      tx: `• CSF RT-QuIC (most specific) and CSF 14-3-3 protein support diagnosis; no cure exists—focus on palliative care and clonazepam/levetiracetam for distressing myoclonus.`,
+      omt: `• Palliative comfort-only positioning; standard surgical/reusable instruments contacting CNS tissue require specialized prion-decontamination protocols.`,
+      pearl: `• CJD Triad: Rapidly progressive dementia (< 1 yr) + Startle Myoclonus + Ataxia -> 1-Hz periodic sharp waves + CSF RT-QuIC / 14-3-3.`
+    }
+  },
+  {
+    id: 41, sector: 5, lo: 14, phase: 2, angle: `Prion Protein Conformational Shift`,
+    stem: `Which biophysical transition converts benign host PrPc into the transmissible, protease-resistant, and autoclave-resistant PrPsc isoform in prion neuropsychiatry?`,
+    options: [
+      `Conformational shift from predominantly alpha-helical PrPc to an insoluble beta-pleated sheet PrPsc`,
+      `Hyperphosphorylation of microtubule-associated tau protein inside cortical neurons`,
+      `Trinucleotide (CAG) repeat expansion on chromosome 4`
+    ],
+    correct: 0,
+    clue: `Same primary amino acid sequence, radically altered secondary/tertiary folding resistant to standard autoclaving and proteases.`,
+    dossier: {
+      verdict: `• Conversion of normal alpha-helical PrPc into an insoluble, beta-pleated sheet PrPsc conformation creates protease-resistant amyloid fibrils that template further misfolding.`,
+      path: `• PrPsc lacks nucleic acids yet resists proteinase K, formalin, ionizing radiation, and standard 121°C autoclaving; variant CJD arises from bovine spongiform encephalopathy ("mad cow") ingestion.`,
+      neuro: `• Accumulation of PrPsc vacuoles destroys cortical, thalamic, and cerebellar neurons without eliciting any lymphocytic or humoral inflammatory response.`,
+      ddx: `• Hyperphosphorylated tau forms neurofibrillary tangles in Alzheimer disease and Pick bodies in frontotemporal dementia; CAG expansion drives Huntington chorea.`,
+      tx: `• Infection control requires incineration or harsh sodium hydroxide + extended 134°C autoclaving for neurosurgical/corneal instruments.`,
+      omt: `• Recognize that non-inflammatory spongiform degeneration causes irreversible rigidity and myoclonus; avoid aggressive joint mobilization.`,
+      pearl: `• PrPc (alpha-helix) -> PrPsc (beta-pleated sheet) -> Protease & standard autoclave resistant -> Spongiform vacuolation WITHOUT inflammation.`
+    }
+  },
+  {
+    id: 42, sector: 5, lo: 14, phase: 3, angle: `Fatal Familial Insomnia`,
+    stem: `A 48-year-old man with an autosomal dominant family history of severe refractory insomnia, vivid dream enactment, dysautonomia (profuse diaphoresis, tachycardia, hypertension), and late ataxia dies within 14 months. Autopsy shows severe selective neuronal loss and gliosis in the anterior ventral and dorsomedial thalamic nuclei. What is the diagnosis?`,
+    options: [
+      `Fatal familial insomnia (autosomal dominant PRNP prion disease)`,
+      `Narcolepsy type 1 from lateral hypothalamic orexin deficiency`,
+      `Korsakoff syndrome from chronic alcohol use`
+    ],
+    correct: 0,
+    clue: `Autosomal dominant prion mutation (D178N-129M in PRNP) destroying thalamic sleep-autonomic nuclei.`,
+    dossier: {
+      verdict: `• Fatal familial insomnia (FFI) is an inherited autosomal dominant prion disorder (PRNP D178N mutation) causing progressive untreatable insomnia, dysautonomia, exaggerated startle, and thalamic degeneration.`,
+      path: `• Mutant PrPsc selectively destroys neurons in the anterior ventral and dorsomedial thalamic nuclei, abolishing sleep spindles and slow-wave sleep generation.`,
+      neuro: `• Loss of thalamo-limbic-autonomic gating unleashes relentless sympathetic hyperactivity (tachycardia, hypertension, hyperthermia, diaphoresis) and oneiric stupor.`,
+      ddx: `• Narcolepsy presents with daytime sleep attacks, cataplexy, and low CSF hypocretin/orexin, not fatal autonomic storm. Korsakoff features confabulation with intact sleep-wake autonomic stability.`,
+      tx: `• Sedatives and hypnotics fail to restore physiological sleep; genetic counseling for at-risk relatives and palliative autonomic symptom control are essential.`,
+      omt: `• In terminal palliative care, gentle non-invasive comfort touch reduces musculoskeletal tension without expecting sleep restoration.`,
+      pearl: `• Fatal Familial Insomnia = AD PRNP prion mutation -> Dorsomedial & Anterior Thalamic degeneration -> Untreatable insomnia + Sympathetic storm.`
+    }
+  },
+  {
+    id: 43, sector: 5, lo: 15, phase: 1, angle: `Suboccipital & Vagal OMT`,
+    stem: `A 31-year-old woman recovering from post-viral EBV/CMV affective fatigue has chronic tension headaches, hypertonicity of the suboccipital musculature, and reduced heart rate variability. After ruling out acute meningitis or elevated ICP, which osteopathic technique directly relieves tension on the dural attachments and vagus nerve (CN X) at the occipitoatlantal junction?`,
+    options: [
+      `Suboccipital decompression (occipitoatlantal / OA release)`,
+      `High-velocity low-amplitude (HVLA) lumbar roll`,
+      `Thoracic inlet compression with abdominal guarding`
+    ],
+    correct: 0,
+    clue: `Targets the myodural bridge (rectus capitis posterior minor) and jugular foramen / OA region to normalize parasympathetic vagal tone.`,
+    dossier: {
+      verdict: `• Suboccipital decompression (OA release) relaxes suboccipital myofascial hypertonicity, releases myodural bridge tension at the foramen magnum, and optimizes parasympathetic CN X (vagus) outflow.`,
+      path: `• Suboccipital muscles insert directly onto the posterior atlanto-occipital membrane and spinal dura mater; chronic somatic dysfunction perpetuates nociceptive trigeminocervical input and vagal suppression.`,
+      neuro: `• Restoring OA somatic motion balances parasympathetic vagal tone (increasing heart rate variability) and eases post-viral tension-type cephalgia and anxiety.`,
+      ddx: `• Always screen for nuchal rigidity (meningitis), papilledema (elevated ICP), and vertebral artery insufficiency before any upper cervical OMT.`,
+      tx: `• Place fingertips just inferior to the occiput along the suboccipital muscles, applying gentle anterior-superior traction until tissue texture softening and cranial base release occur.`,
+      omt: `• Contraindicated in acute bacterial/viral meningitis, Arnold-Chiari malformation with brainstem compression, or unstable cervical fracture.`,
+      pearl: `• OA Decompression = Myodural bridge release + Vagus (CN X) parasympathetic normalization + Tension headache relief.`
+    }
+  },
+  {
+    id: 44, sector: 5, lo: 15, phase: 2, angle: `Cranial CV4 & CSF Fluctuation`,
+    stem: `During convalescence from viral mood disturbance and persistent sympathetic hyperarousal with insomnia, a patient receives Compression of the Fourth Ventricle (CV4) at the lateral angles of the occipital squama. What physiological effect does CV4 produce?`,
+    options: [
+      `Enhances cerebrospinal fluid fluctuation, calms sympathetic tone, and promotes parasympathetic sleep onset`,
+      `Stimulates T1–T5 sympathetic chain ganglia to raise heart rate and blood pressure`,
+      `Directly inhibits viral reverse transcriptase in CNS microglia`
+    ],
+    correct: 0,
+    clue: `Classic cranial osteopathic still-point technique gently holding the occiput medial to the occipitomastoid sutures during extension.`,
+    dossier: {
+      verdict: `• Compression of the Fourth Ventricle (CV4) gently resists cranial flexion and encourages extension until a "still point" is reached, calming sympathetic hyperactivity and enhancing CSF/glymphatic fluctuation.`,
+      path: `• Gently compressing the occipital squama medial to the occipitomastoid sutures influences dural venous sinuses and fourth-ventricle fluid dynamics surrounding brainstem autonomic centers.`,
+      neuro: `• Inducing a cranial still point down-regulates brainstem reticular activating and locus coeruleus sympathetic output, reducing anxiety, pain perception, and insomnia.`,
+      ddx: `• Unlike rib raising (which modulates paravertebral sympathetic chain ganglia directly), CV4 acts centrally via the primary respiratory mechanism and dural membranes.`,
+      tx: `• Perform in a quiet room for 2–4 minutes until warmth, deep sighing respiration, and symmetric cranial rhythmic impulse return.`,
+      omt: `• Strict Contraindications to CV4: acute intracranial hemorrhage, space-occupying brain tumor/abscess, acute stroke, or elevated intracranial pressure.`,
+      pearl: `• CV4 = Induces still point -> Decreases sympathetic tone + Enhances CSF fluctuation + Aids insomnia/anxiety (NEVER use in acute elevated ICP).`
+    }
+  },
+  {
+    id: 45, sector: 5, lo: 15, phase: 3, angle: `Thoracic Sympathetic OMT`,
+    stem: `A 37-year-old patient with post-viral anxiety, palpitations, and shallow upper-chest breathing exhibits T1–T5 paraspinal tissue texture changes (boggy, warm, hypertonic) and inhalation somatic dysfunction of ribs 2–4. Which OMT sequence best normalizes upper thoracic sympathetic outflow and restores diaphragmatic mechanics?`,
+    options: [
+      `Rib raising (T1–T5) paired with thoracic inlet release and diaphragm doming`,
+      `Aggressive cervical HVLA without screening for ligamentous laxity`,
+      `Sacral inhibition alone without addressing the T1–T5 viscerosomatic reflex`
+    ],
+    correct: 0,
+    clue: `T1–T5 houses preganglionic sympathetic cell bodies to the head, neck, heart, and lungs; rib raising modulates the adjacent sympathetic chain.`,
+    dossier: {
+      verdict: `• Thoracic rib raising (T1–T5) directly attenuates hyperactive sympathetic chain ganglia (head, neck, cardiopulmonary), while thoracic inlet release and diaphragm doming optimize venous/lymphatic return and breathing.`,
+      path: `• Preganglionic sympathetic neurons for the head/neck (T1–T4 -> superior cervical ganglion) and heart/lungs (T1–T5) exit the intermediolateral cell column and synapse in paravertebral ganglia lying just anterior to the rib heads.`,
+      neuro: `• Mechanical stretching of the costovertebral ligaments during rib raising initially stimulates then reflexively inhibits sympathetic hypertonia, calming tachycardia and air hunger.`,
+      ddx: `• T1–T4 = Head, neck, and heart sympathetics; T5–T9 = Greater splanchnic (foregut); T10–L2 = Kidneys/pelvis; OA/AA/C2 + Sacrum (S2–S4) = Parasympathetics.`,
+      tx: `• Sequence: Thoracic inlet myofascial release -> T1–T5 rib raising -> Diaphragm doming -> Suboccipital OA release to balance both autonomic limbs.`,
+      omt: `• Use gentle supine rib raising in frail or osteopenic patients; avoid rib raising over acute rib fractures or unstable spinal metastases.`,
+      pearl: `• Autonomic OMT Map: Sympathetics to Head/Neck/Heart = T1–T5 (Rib Raising); Parasympathetics = OA/AA/C2 (CN X) & S2–S4.`
+    }
+  }
+];
+
+// =========================================================================
+// 3. STATE MANAGEMENT & PERSISTENCE (notebookAppApi)
+// =========================================================================
+const DEFAULT_APP_STATE = {
+  xp: 0,
+  hp: 100,
+  streak: 0,
+  gateIndex: 0,
+  sectorFilter: `ALL`,
+  entityFilter: `ALL`,
+  phaseFilter: `ALL`,
+  isHintsVisible: false,
+  isTimerEnabled: false,
+  soundEnabled: true,
+  sfxEnabled: true,
+  bgmEnabled: false,
+  bgmVolume: 0.35,
+  masteredIds: [],
+  missedIds: [],
+  deckOrder: GATES_DATA.map(function (g) { return g.id; })
+};
+
+let appState = Object.assign({}, DEFAULT_APP_STATE);
+let activeDeck = [];
+let hoveredLane = 1;
+let isMenuOpen = false;
+let isReviewOpen = false;
+let isCodexOpen = false;
+let metaFadeTimerId = null;
+let countdownIntervalId = null;
+let timeLeftSec = 50;
+let lastOutcome = null;
+
+// Canvas 3D Runner Engine State
+let canvasEl = null;
+let ctx2d = null;
+let animFrameId = null;
+let dustParticles = [];
+let shipXNorm = 0.5;
+let targetShipXNorm = 0.5;
+let shipBankAngle = 0;
+let gridOffset = 0;
+let portalPulse = 0;
+let launchEffectTimer = 0;
+let launchLaneColor = `0, 255, 204`;
+
+// Web Audio Procedural Synthwave & SFX Engine
+let audioCtx = null;
+let bgmGainNode = null;
+let bgmIntervalId = null;
+let bgmStep = 0;
+let customAudioEl = null;
+let customAudioUrl = null;
+
+function showToast(msg) {
+  const el = document.getElementById(`inline-toast`);
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add(`is-visible`);
+  clearTimeout(showToast._tid);
+  showToast._tid = setTimeout(function () {
+    el.classList.remove(`is-visible`);
+  }, 2400);
+}
+
+async function persistAppState() {
+  try {
+    if (window.notebookAppApi && typeof window.notebookAppApi.setAppState === `function`) {
+      await window.notebookAppApi.setAppState({
+        xp: appState.xp,
+        hp: appState.hp,
+        streak: appState.streak,
+        gateIndex: appState.gateIndex,
+        sectorFilter: appState.sectorFilter,
+        entityFilter: appState.entityFilter,
+        phaseFilter: appState.phaseFilter,
+        isHintsVisible: appState.isHintsVisible,
+        isTimerEnabled: appState.isTimerEnabled,
+        soundEnabled: appState.soundEnabled,
+        sfxEnabled: appState.sfxEnabled,
+        bgmEnabled: appState.bgmEnabled,
+        bgmVolume: appState.bgmVolume,
+        masteredIds: appState.masteredIds,
+        missedIds: appState.missedIds,
+        deckOrder: appState.deckOrder
+      });
+    }
+  } catch (err) {
+    // Fail silently in offline standalone mode if shim unavailable
+  }
+}
+
+async function restoreStateOnStartup() {
+  try {
+    if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === `function`) {
+      const saved = await window.notebookAppApi.getAppState();
+      if (saved && typeof saved === `object`) {
+        appState = Object.assign({}, DEFAULT_APP_STATE, saved);
+        if (!Array.isArray(appState.masteredIds)) appState.masteredIds = [];
+        if (!Array.isArray(appState.missedIds)) appState.missedIds = [];
+        if (!Array.isArray(appState.deckOrder) || appState.deckOrder.length !== GATES_DATA.length) {
+          appState.deckOrder = GATES_DATA.map(function (g) { return g.id; });
+        }
+      }
+    }
+  } catch (err) {
+    // Use defaults
+  }
+}
+
+// =========================================================================
+// 4. WEB AUDIO ENGINE (SFX + PROCEDURAL SYNTHWAVE BGM + LOCAL AUDIO)
+// =========================================================================
+function ensureAudioContext() {
+  if (!audioCtx) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (Ctx) audioCtx = new Ctx();
+  }
+  if (audioCtx && audioCtx.state === `suspended`) {
+    audioCtx.resume().catch(function () {});
+  }
+  return audioCtx;
+}
+
+function playSfx(type) {
+  if (!appState.soundEnabled || !appState.sfxEnabled) return;
+  const ctx = ensureAudioContext();
+  if (!ctx) return;
+
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  if (type === `steer`) {
+    osc.type = `triangle`;
+    osc.frequency.setValueAtTime(320, now);
+    osc.frequency.exponentialRampToValueAtTime(480, now + 0.06);
+    gain.gain.setValueAtTime(0.06, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+    osc.start(now);
+    osc.stop(now + 0.08);
+  } else if (type === `pass`) {
+    osc.type = `sine`;
+    osc.frequency.setValueAtTime(523.25, now);
+    osc.frequency.setValueAtTime(659.25, now + 0.08);
+    osc.frequency.setValueAtTime(783.99, now + 0.16);
+    gain.gain.setValueAtTime(0.11, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.34);
+    osc.start(now);
+    osc.stop(now + 0.35);
+  } else if (type === `miss`) {
+    osc.type = `sawtooth`;
+    osc.frequency.setValueAtTime(210, now);
+    osc.frequency.exponentialRampToValueAtTime(95, now + 0.28);
+    gain.gain.setValueAtTime(0.09, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+    osc.start(now);
+    osc.stop(now + 0.31);
+  }
+}
+
+function startProceduralBgmLoop() {
+  stopProceduralBgmLoop();
+  if (!appState.soundEnabled || !appState.bgmEnabled) return;
+  if (customAudioEl && customAudioUrl) {
+    customAudioEl.volume = appState.bgmVolume;
+    customAudioEl.play().catch(function () {});
+    return;
+  }
+  const ctx = ensureAudioContext();
+  if (!ctx) return;
+
+  if (!bgmGainNode) {
+    bgmGainNode = ctx.createGain();
+    bgmGainNode.connect(ctx.destination);
+  }
+  bgmGainNode.gain.setValueAtTime(appState.bgmVolume * 0.24, ctx.currentTime);
+
+  const bassNotes = [55, 55, 65.41, 65.41, 73.42, 73.42, 61.74, 65.41];
+  const arpNotes = [220, 261.63, 329.63, 440, 329.63, 261.63, 293.66, 392];
+
+  bgmIntervalId = setInterval(function () {
+    if (!appState.soundEnabled || !appState.bgmEnabled || !audioCtx) return;
+    const t = audioCtx.currentTime;
+    const bassFreq = bassNotes[bgmStep % bassNotes.length];
+    const arpFreq = arpNotes[bgmStep % arpNotes.length];
+
+    const bOsc = audioCtx.createOscillator();
+    const bGain = audioCtx.createGain();
+    bOsc.type = `sawtooth`;
+    bOsc.frequency.setValueAtTime(bassFreq, t);
+    bGain.gain.setValueAtTime(0.18, t);
+    bGain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+    bOsc.connect(bGain);
+    bGain.connect(bgmGainNode);
+    bOsc.start(t);
+    bOsc.stop(t + 0.23);
+
+    if (bgmStep % 2 === 0) {
+      const aOsc = audioCtx.createOscillator();
+      const aGain = audioCtx.createGain();
+      aOsc.type = `triangle`;
+      aOsc.frequency.setValueAtTime(arpFreq, t);
+      aGain.gain.setValueAtTime(0.1, t);
+      aGain.gain.exponentialRampToValueAtTime(0.001, t + 0.19);
+      aOsc.connect(aGain);
+      aGain.connect(bgmGainNode);
+      aOsc.start(t);
+      aOsc.stop(t + 0.2);
+    }
+    bgmStep += 1;
+  }, 240);
+}
+
+function stopProceduralBgmLoop() {
+  if (bgmIntervalId) {
+    clearInterval(bgmIntervalId);
+    bgmIntervalId = null;
+  }
+  if (customAudioEl) {
+    customAudioEl.pause();
+  }
+}
+
+function syncAudioButtonsUI() {
+  const soundBtn = document.getElementById(`menu-sound-btn`);
+  const sfxBtn = document.getElementById(`menu-sfx-btn`);
+  const bgmBtn = document.getElementById(`menu-bgm-btn`);
+  const volSlider = document.getElementById(`bgm-volume-slider`);
+  const volLabel = document.getElementById(`bgm-vol-label`);
+
+  if (soundBtn) {
+    soundBtn.textContent = appState.soundEnabled ? `🔊 Sound: ON` : `🔇 Sound: OFF`;
+    soundBtn.classList.toggle(`is-cyan-active`, appState.soundEnabled);
+  }
+  if (sfxBtn) {
+    sfxBtn.textContent = appState.sfxEnabled ? `🎵 SFX: ON` : `🎵 SFX: OFF`;
+    sfxBtn.classList.toggle(`is-cyan-active`, appState.sfxEnabled);
+  }
+  if (bgmBtn) {
+    bgmBtn.textContent = appState.bgmEnabled ? `🎹 Synthwave BGM: ON` : `🎹 Synthwave BGM: OFF`;
+    bgmBtn.classList.toggle(`is-cyan-active`, appState.bgmEnabled);
+  }
+  if (volSlider) volSlider.value = String(Math.round(appState.bgmVolume * 100));
+  if (volLabel) volLabel.textContent = `${Math.round(appState.bgmVolume * 100)}%`;
+}
+
+function toggleMasterSound() {
+  appState.soundEnabled = !appState.soundEnabled;
+  if (!appState.soundEnabled) stopProceduralBgmLoop();
+  else if (appState.bgmEnabled) startProceduralBgmLoop();
+  syncAudioButtonsUI();
+  persistAppState();
+}
+
+function toggleSfx() {
+  appState.sfxEnabled = !appState.sfxEnabled;
+  if (appState.sfxEnabled) playSfx(`steer`);
+  syncAudioButtonsUI();
+  persistAppState();
+}
+
+function toggleProceduralBgm() {
+  appState.bgmEnabled = !appState.bgmEnabled;
+  if (appState.bgmEnabled && appState.soundEnabled) startProceduralBgmLoop();
+  else stopProceduralBgmLoop();
+  syncAudioButtonsUI();
+  persistAppState();
+}
+
+function triggerCustomAudioPick() {
+  const input = document.getElementById(`custom-audio-input`);
+  if (input) input.click();
+}
+
+function handleCustomAudioFile(input) {
+  if (!input || !input.files || !input.files[0]) return;
+  const file = input.files[0];
+  if (customAudioUrl) URL.revokeObjectURL(customAudioUrl);
+  customAudioUrl = URL.createObjectURL(file);
+  if (!customAudioEl) {
+    customAudioEl = new Audio();
+    customAudioEl.loop = true;
+  }
+  customAudioEl.src = customAudioUrl;
+  appState.bgmEnabled = true;
+  appState.soundEnabled = true;
+  startProceduralBgmLoop();
+  syncAudioButtonsUI();
+  showToast(`Loaded BGM: ${file.name}`);
+}
+
+function setBgmVolume(val) {
+  const pct = Math.max(0, Math.min(100, Number(val) || 0));
+  appState.bgmVolume = pct / 100;
+  if (bgmGainNode && audioCtx) {
+    bgmGainNode.gain.setValueAtTime(appState.bgmVolume * 0.24, audioCtx.currentTime);
+  }
+  if (customAudioEl) {
+    customAudioEl.volume = appState.bgmVolume;
+  }
+  const volLabel = document.getElementById(`bgm-vol-label`);
+  if (volLabel) volLabel.textContent = `${pct}%`;
+  persistAppState();
+}
+
+// =========================================================================
+// 5. DECK FILTERING, 3D CANVAS ENGINE & 1:1 PORTAL FUSION
+// =========================================================================
+function buildActiveDeck() {
+  const gateMap = new Map();
+  GATES_DATA.forEach(function (g) { gateMap.set(g.id, g); });
+
+  const ordered = appState.deckOrder
+    .map(function (id) { return gateMap.get(id); })
+    .filter(Boolean);
+
+  activeDeck = ordered.filter(function (g) {
+    if (appState.sectorFilter === `MISSED`) {
+      if (!appState.missedIds.includes(g.id)) return false;
+    } else if (appState.sectorFilter !== `ALL`) {
+      if (String(g.sector) !== String(appState.sectorFilter)) return false;
+    }
+    if (appState.entityFilter !== `ALL`) {
+      if (String(g.lo) !== String(appState.entityFilter)) return false;
+    }
+    if (appState.phaseFilter !== `ALL`) {
+      if (String(g.phase) !== String(appState.phaseFilter)) return false;
+    }
+    return true;
+  });
+
+  if (activeDeck.length === 0) {
+    if (appState.sectorFilter === `MISSED`) {
+      showToast(`No missed gates right now — showing all 45 gates.`);
+      appState.sectorFilter = `ALL`;
+      const secEl = document.getElementById(`sector-select`);
+      if (secEl) secEl.value = `ALL`;
+    }
+    activeDeck = ordered.slice();
+  }
+  if (appState.gateIndex >= activeDeck.length) appState.gateIndex = 0;
+}
+
+function getCurrentGate() {
+  if (!activeDeck.length) buildActiveDeck();
+  return activeDeck[appState.gateIndex] || GATES_DATA[0];
+}
+
+function getThemeForGate(gate) {
+  return LO_VISUAL_THEMES[gate ? gate.lo : 1] || LO_VISUAL_THEMES[1];
+}
+
+function initCanvasRunner() {
+  canvasEl = document.getElementById(`xr-canvas`);
+  if (!canvasEl) return;
+  ctx2d = canvasEl.getContext(`2d`);
+  if (!ctx2d) return;
+
+  function resizeCanvas() {
+    if (!canvasEl) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvasEl.width = Math.max(1, Math.floor(window.innerWidth * dpr));
+    canvasEl.height = Math.max(1, Math.floor(window.innerHeight * dpr));
+    ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  resizeCanvas();
+  window.addEventListener(`resize`, resizeCanvas);
+
+  // Exactly 150 crisp 3D square pixel-dust particles
+  dustParticles = [];
+  for (let i = 0; i < 150; i++) {
+    dustParticles.push({
+      x: (Math.random() - 0.5) * 2.2,
+      y: (Math.random() - 0.5) * 1.4,
+      z: Math.random() * 1.0 + 0.05,
+      size: Math.random() < 0.7 ? 2 : 3
+    });
+  }
+
+  // Mouse surfing across Band 3 stage
+  document.addEventListener(`mousemove`, function (e) {
+    if (isMenuOpen || isReviewOpen || isCodexOpen) return;
+    const ratio = e.clientX / Math.max(1, window.innerWidth);
+    const lane = ratio < 0.36 ? 0 : (ratio > 0.64 ? 2 : 1);
+    if (lane !== hoveredLane) {
+      setShipLaneTarget(lane, false);
+    }
+  });
+
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  renderCanvasFrame();
+}
+
+function renderCanvasFrame() {
+  if (!ctx2d || !canvasEl) return;
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const gate = getCurrentGate();
+  const theme = getThemeForGate(gate);
+
+  ctx2d.clearRect(0, 0, w, h);
+
+  // Deep midnight-navy void gradient
+  const bgGrad = ctx2d.createLinearGradient(0, 0, 0, h);
+  bgGrad.addColorStop(0, `#070812`);
+  bgGrad.addColorStop(0.42, `#0b0c1c`);
+  bgGrad.addColorStop(1, `#06060d`);
+  ctx2d.fillStyle = bgGrad;
+  ctx2d.fillRect(0, 0, w, h);
+
+  const horizonY = h * 0.36;
+  const vanishX = w * 0.5;
+
+  // Horizon atmospheric glow
+  const hGlow = ctx2d.createRadialGradient(vanishX, horizonY, 4, vanishX, horizonY, w * 0.42);
+  hGlow.addColorStop(0, `rgba(${theme.gridRgb}, 0.28)`);
+  hGlow.addColorStop(1, `rgba(10, 10, 18, 0)`);
+  ctx2d.fillStyle = hGlow;
+  ctx2d.fillRect(0, horizonY - h * 0.25, w, h * 0.5);
+
+  // 150 crisp 3D square pixel-dust particles (no ovals or blobs)
+  const dustSpeed = launchEffectTimer > 0 ? 0.018 : 0.0045;
+  for (let i = 0; i < dustParticles.length; i++) {
+    const p = dustParticles[i];
+    p.z -= dustSpeed;
+    if (p.z <= 0.02) {
+      p.z = 1.0;
+      p.x = (Math.random() - 0.5) * 2.2;
+      p.y = (Math.random() - 0.5) * 1.4;
+    }
+    const sx = vanishX + (p.x / p.z) * (w * 0.42);
+    const sy = horizonY + (p.y / p.z) * (h * 0.34);
+    if (sx >= 0 && sx <= w && sy >= 0 && sy <= h) {
+      const alpha = Math.min(0.85, (1 - p.z) * 0.95);
+      const pxSize = Math.max(1.5, p.size * (1.25 - p.z * 0.7));
+      ctx2d.fillStyle = `rgba(${theme.dustRgb}, ${alpha.toFixed(2)})`;
+      ctx2d.fillRect(Math.round(sx), Math.round(sy), Math.round(pxSize), Math.round(pxSize));
+    }
+  }
+
+  // Infinite full-width 3D perspective wireframe floor
+  gridOffset = (gridOffset + (launchEffectTimer > 0 ? 0.045 : 0.012)) % 1;
+  ctx2d.save();
+  ctx2d.strokeStyle = `rgba(${theme.gridRgb}, 0.28)`;
+  ctx2d.lineWidth = 1;
+
+  // Perspective longitude lines
+  const numCols = 18;
+  for (let c = -numCols; c <= numCols; c++) {
+    const bottomX = vanishX + c * (w * 0.09);
+    ctx2d.beginPath();
+    ctx2d.moveTo(vanishX, horizonY);
+    ctx2d.lineTo(bottomX, h);
+    ctx2d.stroke();
+  }
+
+  // Perspective latitude lines
+  const numRows = 14;
+  for (let r = 0; r < numRows; r++) {
+    const t = (r + gridOffset) / numRows;
+    const persp = Math.pow(t, 2.2);
+    const y = horizonY + persp * (h - horizonY);
+    ctx2d.strokeStyle = `rgba(${theme.gridRgb}, ${(0.12 + persp * 0.32).toFixed(2)})`;
+    ctx2d.beginPath();
+    ctx2d.moveTo(0, y);
+    ctx2d.lineTo(w, y);
+    ctx2d.stroke();
+  }
+  ctx2d.restore();
+
+  // 3 Teal Perspective Track Rails & Live 1:1 Portal Fusion with Card Rects
+  const portalSpecs = [
+    { id: `lane-0-card`, rgb: `255, 45, 120`, fallbackX: w * 0.2 },
+    { id: `lane-1-card`, rgb: `0, 255, 204`,  fallbackX: w * 0.5 },
+    { id: `lane-2-card`, rgb: `255, 224, 74`, fallbackX: w * 0.8 }
+  ];
+
+  portalPulse += 0.045;
+  const laneBottomXs = [];
+
+  for (let lane = 0; lane < 3; lane++) {
+    const cardEl = document.getElementById(portalSpecs[lane].id);
+    const rect = cardEl ? cardEl.getBoundingClientRect() : null;
+    const cx = rect && rect.width > 0 ? rect.left + rect.width * 0.5 : portalSpecs[lane].fallbackX;
+    const cy = rect && rect.height > 0 ? rect.top + rect.height * 0.5 : h * 0.58;
+    const pw = rect && rect.width > 0 ? rect.width : w * 0.25;
+    const ph = rect && rect.height > 0 ? rect.height : 140;
+
+    laneBottomXs.push({ x: cx, y: cy });
+
+    // Teal perspective rail leading from horizon through portal to bottom edge
+    const railEndX = vanishX + (cx - vanishX) * 1.45;
+    ctx2d.strokeStyle = hoveredLane === lane ? `rgba(0, 255, 204, 0.85)` : `rgba(0, 255, 204, 0.35)`;
+    ctx2d.lineWidth = hoveredLane === lane ? 2.4 : 1.3;
+    ctx2d.beginPath();
+    ctx2d.moveTo(vanishX + (lane - 1) * 26, horizonY);
+    ctx2d.lineTo(railEndX, h);
+    ctx2d.stroke();
+
+    // 1:1 Fused Glowing Portal Frame tracking getBoundingClientRect()
+    const pulse = 0.5 + 0.5 * Math.sin(portalPulse + lane * 1.1);
+    const pad = hoveredLane === lane ? 11 + pulse * 4 : 6;
+    ctx2d.save();
+    ctx2d.strokeStyle = `rgba(${portalSpecs[lane].rgb}, ${(hoveredLane === lane ? 0.92 : 0.42).toFixed(2)})`;
+    ctx2d.lineWidth = hoveredLane === lane ? 2.5 : 1.4;
+    ctx2d.shadowColor = `rgba(${portalSpecs[lane].rgb}, 0.75)`;
+    ctx2d.shadowBlur = hoveredLane === lane ? 22 : 10;
+    ctx2d.strokeRect(cx - pw * 0.5 - pad, cy - ph * 0.5 - pad, pw + pad * 2, ph + pad * 2);
+
+    // Subtle corner brackets on portal
+    const bLen = 14;
+    const x1 = cx - pw * 0.5 - pad - 4;
+    const y1 = cy - ph * 0.5 - pad - 4;
+    const x2 = cx + pw * 0.5 + pad + 4;
+    const y2 = cy + ph * 0.5 + pad + 4;
+    ctx2d.lineWidth = 2;
+    ctx2d.beginPath();
+    ctx2d.moveTo(x1, y1 + bLen); ctx2d.lineTo(x1, y1); ctx2d.lineTo(x1 + bLen, y1);
+    ctx2d.moveTo(x2 - bLen, y1); ctx2d.lineTo(x2, y1); ctx2d.lineTo(x2, y1 + bLen);
+    ctx2d.moveTo(x1, y2 - bLen); ctx2d.lineTo(x1, y2); ctx2d.lineTo(x1 + bLen, y2);
+    ctx2d.moveTo(x2 - bLen, y2); ctx2d.lineTo(x2, y2); ctx2d.lineTo(x2, y2 - bLen);
+    ctx2d.stroke();
+    ctx2d.restore();
+  }
+
+  // Smooth ship steering & banking toward hoveredLane
+  const activeTarget = laneBottomXs[hoveredLane] || { x: w * 0.5, y: h * 0.6 };
+  targetShipXNorm = activeTarget.x / Math.max(1, w);
+  const dx = targetShipXNorm - shipXNorm;
+  shipXNorm += dx * 0.16;
+  shipBankAngle += (Math.max(-0.42, Math.min(0.42, dx * 6.5)) - shipBankAngle) * 0.2;
+
+  const shipPxX = shipXNorm * w;
+  const shipPxY = Math.min(h - 36, Math.max(activeTarget.y + 115, h * 0.85));
+
+  // Solid Geometric Teal Diamond Player Craft
+  ctx2d.save();
+  ctx2d.translate(shipPxX, shipPxY);
+  ctx2d.rotate(shipBankAngle);
+
+  // Thruster trail
+  const thrusterLen = launchEffectTimer > 0 ? 34 : 18 + Math.sin(portalPulse * 3) * 4;
+  ctx2d.fillStyle = launchEffectTimer > 0 ? `rgba(${launchLaneColor}, 0.9)` : `rgba(0, 255, 204, 0.72)`;
+  ctx2d.beginPath();
+  ctx2d.moveTo(-6, 14);
+  ctx2d.lineTo(6, 14);
+  ctx2d.lineTo(0, 14 + thrusterLen);
+  ctx2d.closePath();
+  ctx2d.fill();
+
+  // Outer diamond chassis
+  ctx2d.shadowColor = `rgba(0, 255, 204, 0.85)`;
+  ctx2d.shadowBlur = 16;
+  ctx2d.fillStyle = `#00d9b8`;
+  ctx2d.strokeStyle = `#b8fff2`;
+  ctx2d.lineWidth = 1.6;
+  ctx2d.beginPath();
+  ctx2d.moveTo(0, -24);
+  ctx2d.lineTo(20, 4);
+  ctx2d.lineTo(0, 16);
+  ctx2d.lineTo(-20, 4);
+  ctx2d.closePath();
+  ctx2d.fill();
+  ctx2d.stroke();
+
+  // Inner geometric diamond core
+  ctx2d.fillStyle = `#0a1a24`;
+  ctx2d.beginPath();
+  ctx2d.moveTo(0, -12);
+  ctx2d.lineTo(8, 3);
+  ctx2d.lineTo(0, 9);
+  ctx2d.lineTo(-8, 3);
+  ctx2d.closePath();
+  ctx2d.fill();
+
+  ctx2d.restore();
+
+  if (launchEffectTimer > 0) launchEffectTimer -= 1;
+  animFrameId = requestAnimationFrame(renderCanvasFrame);
+}
+
+// =========================================================================
+// 6. GAMEPLAY LOOP, 3-SECOND METADATA FADE & 50s TIMER
+// =========================================================================
+function setShipLaneTarget(lane, withSound) {
+  hoveredLane = Math.max(0, Math.min(2, lane));
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`lane-${i}-card`);
+    if (card) card.classList.toggle(`is-banked`, i === hoveredLane);
+  }
+  if (withSound) playSfx(`steer`);
+}
+
+function hoverLane(lane) {
+  if (hoveredLane !== lane) {
+    setShipLaneTarget(lane, false);
+  }
+}
+
+function renderCurrentGate() {
+  const gate = getCurrentGate();
+  const theme = getThemeForGate(gate);
+
+  // Telemetry chips
+  const hpEl = document.getElementById(`chip-hp`);
+  const xpEl = document.getElementById(`chip-xp`);
+  const strEl = document.getElementById(`chip-streak`);
+  const gateEl = document.getElementById(`chip-gate`);
+  if (hpEl) hpEl.textContent = `♥ HP ${appState.hp}%`;
+  if (xpEl) xpEl.textContent = `★ XP ${appState.xp}`;
+  if (strEl) strEl.textContent = `⚡ ${appState.streak}`;
+  if (gateEl) gateEl.textContent = `GATE ${appState.gateIndex + 1}/${activeDeck.length}`;
+
+  // Band 2 Question + 3s Auto-Hiding Metadata
+  const metaRow = document.getElementById(`q-meta-row`);
+  const metaSector = document.getElementById(`meta-sector`);
+  const metaEntity = document.getElementById(`meta-entity`);
+  const metaPhase = document.getElementById(`meta-phase`);
+  const metaCorridor = document.getElementById(`meta-corridor`);
+  const stemEl = document.getElementById(`q-stem-text`);
+  const clueEl = document.getElementById(`q-clue-text`);
+
+  if (metaSector) metaSector.textContent = `SECTOR ${gate.sector}`;
+  if (metaEntity) metaEntity.textContent = `LO ${gate.lo}: ${theme.entity}`;
+  if (metaPhase) metaPhase.textContent = `PHASE ${gate.phase} • ${gate.angle}`;
+  if (metaCorridor) metaCorridor.textContent = `CORRIDOR // ${theme.corridor}`;
+  if (stemEl) stemEl.textContent = gate.stem;
+  if (clueEl) clueEl.textContent = gate.clue;
+
+  if (metaRow) {
+    metaRow.classList.remove(`is-faded`);
+    clearTimeout(metaFadeTimerId);
+    metaFadeTimerId = setTimeout(function () {
+      if (metaRow) metaRow.classList.add(`is-faded`);
+    }, 3000);
+  }
+
+  // Band 3 Answer Cards
+  for (let i = 0; i < 3; i++) {
+    const optEl = document.getElementById(`lane-${i}-text`);
+    if (optEl) optEl.textContent = gate.options[i] || ``;
+  }
+
+  setShipLaneTarget(hoveredLane, false);
+  renderSkillTreeGrid();
+  resetGateTimer();
+}
+
+function selectLane(lane) {
+  if (isReviewOpen || isCodexOpen || isMenuOpen) return;
+  setShipLaneTarget(lane, false);
+
+  const gate = getCurrentGate();
+  const isCorrect = lane === gate.correct;
+
+  const laneColors = [`255, 45, 120`, `0, 255, 204`, `255, 224, 74`];
+  launchLaneColor = laneColors[lane] || laneColors[1];
+  launchEffectTimer = 26;
+
+  stopGateTimer();
+
+  if (isCorrect) {
+    appState.streak += 1;
+    const bonus = Math.min(50, appState.streak * 10);
+    appState.xp += 100 + bonus;
+    appState.hp = Math.min(100, appState.hp + 5);
+    if (!appState.masteredIds.includes(gate.id)) appState.masteredIds.push(gate.id);
+    appState.missedIds = appState.missedIds.filter(function (id) { return id !== gate.id; });
+    playSfx(`pass`);
+  } else {
+    appState.streak = 0;
+    appState.hp = Math.max(10, appState.hp - 15);
+    if (!appState.missedIds.includes(gate.id)) appState.missedIds.push(gate.id);
+    playSfx(`miss`);
+  }
+
+  lastOutcome = {
+    gate: gate,
+    chosenLane: lane,
+    isCorrect: isCorrect,
+    timedOut: false
+  };
+
+  persistAppState();
+  openReviewModal(lastOutcome);
+}
+
+// =========================================================================
+// 7. 50-SECOND COUNTDOWN TIMER CONTROLS
+// =========================================================================
+function syncTimerControlsUI() {
+  const menuBtn = document.getElementById(`menu-timer-btn`);
+  const chip = document.getElementById(`chip-timer`);
+  if (menuBtn) {
+    menuBtn.textContent = appState.isTimerEnabled ? `⏱ 50s Timer: ON [T]` : `⏱ 50s Timer: OFF [T]`;
+    menuBtn.classList.toggle(`is-active`, appState.isTimerEnabled);
+  }
+  if (chip) {
+    chip.textContent = appState.isTimerEnabled ? `⏱ ${timeLeftSec}s` : `⏱ OFF`;
+    chip.classList.toggle(`is-urgent`, appState.isTimerEnabled && timeLeftSec <= 10);
+  }
+}
+
+function stopGateTimer() {
+  if (countdownIntervalId) {
+    clearInterval(countdownIntervalId);
+    countdownIntervalId = null;
+  }
+}
+
+function resetGateTimer() {
+  stopGateTimer();
+  timeLeftSec = 50;
+  syncTimerControlsUI();
+  if (!appState.isTimerEnabled) return;
+
+  countdownIntervalId = setInterval(function () {
+    if (isMenuOpen || isReviewOpen || isCodexOpen) return;
+    timeLeftSec -= 1;
+    syncTimerControlsUI();
+    if (timeLeftSec <= 0) {
+      stopGateTimer();
+      const gate = getCurrentGate();
+      appState.streak = 0;
+      appState.hp = Math.max(10, appState.hp - 15);
+      if (!appState.missedIds.includes(gate.id)) appState.missedIds.push(gate.id);
+      playSfx(`miss`);
+      lastOutcome = {
+        gate: gate,
+        chosenLane: -1,
+        isCorrect: false,
+        timedOut: true
+      };
+      persistAppState();
+      openReviewModal(lastOutcome);
+    }
+  }, 1000);
+}
+
+function toggleTimerMode() {
+  appState.isTimerEnabled = !appState.isTimerEnabled;
+  resetGateTimer();
+  playSfx(`steer`);
+  persistAppState();
+}
+
+function startTimedRun() {
+  appState.isTimerEnabled = true;
+  appState.gateIndex = 0;
+  appState.hp = 100;
+  appState.streak = 0;
+  if (isMenuOpen) toggleMenuDrawer();
+  renderCurrentGate();
+  playSfx(`pass`);
+  showToast(`50s Timed Raid Initiated!`);
+  persistAppState();
+}
+
+// =========================================================================
+// 8. HINTS BAR [H], MENU DRAWER, FILTERS & SKILL TREE
+// =========================================================================
+function syncHintsUI() {
+  const appEl = document.getElementById(`xr-app`);
+  const menuBtn = document.getElementById(`menu-hints-btn`);
+  if (appEl) {
+    appEl.classList.toggle(`hints-visible`, appState.isHintsVisible);
+    appEl.classList.toggle(`hints-hidden`, !appState.isHintsVisible);
+  }
+  if (menuBtn) {
+    menuBtn.textContent = appState.isHintsVisible ? `💡 Hints: ON [H]` : `💡 Hints: OFF [H]`;
+    menuBtn.classList.toggle(`is-active`, appState.isHintsVisible);
+  }
+}
+
+function toggleHintsBar() {
+  appState.isHintsVisible = !appState.isHintsVisible;
+  syncHintsUI();
+  playSfx(`steer`);
+  persistAppState();
+}
+
+function toggleMenuDrawer() {
+  isMenuOpen = !isMenuOpen;
+  const drawer = document.getElementById(`top-menu-drawer`);
+  const backdrop = document.getElementById(`menu-backdrop`);
+  if (drawer) drawer.classList.toggle(`is-open`, isMenuOpen);
+  if (backdrop) backdrop.classList.toggle(`is-open`, isMenuOpen);
+}
+
+function openCodexFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  openCodex();
+}
+
+function skipCurrentQuestion() {
+  if (!activeDeck.length) return;
+  appState.gateIndex = (appState.gateIndex + 1) % activeDeck.length;
+  playSfx(`steer`);
+  renderCurrentGate();
+  persistAppState();
+}
+
+function skipFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  skipCurrentQuestion();
+}
+
+function populateEntityDropdown() {
+  const sel = document.getElementById(`entity-select`);
+  if (!sel) return;
+  sel.innerHTML = `<option value="ALL">All 15 Entities</option>`;
+  for (let i = 1; i <= 15; i++) {
+    const t = LO_VISUAL_THEMES[i];
+    const opt = document.createElement(`option`);
+    opt.value = String(i);
+    opt.textContent = `LO ${i} (S${t.sector}): ${t.entity}`;
+    sel.appendChild(opt);
+  }
+  sel.value = String(appState.entityFilter);
+}
+
+function renderSkillTreeGrid() {
+  const grid = document.getElementById(`skill-tree-grid`);
+  if (!grid) return;
+  const currentGate = getCurrentGate();
+  grid.innerHTML = ``;
+
+  for (let lo = 1; lo <= 15; lo++) {
+    const theme = LO_VISUAL_THEMES[lo];
+    const gatesForLo = GATES_DATA.filter(function (g) { return g.lo === lo; });
+    const masteredCount = gatesForLo.filter(function (g) { return appState.masteredIds.includes(g.id); }).length;
+
+    const btn = document.createElement(`button`);
+    btn.type = `button`;
+    btn.className = `skill-node-btn`;
+    if (masteredCount === gatesForLo.length) btn.classList.add(`is-mastered`);
+    if (currentGate && currentGate.lo === lo) btn.classList.add(`is-current`);
+    btn.onclick = (function (targetLo) {
+      return function () { jumpToEntity(targetLo); };
+    })(lo);
+
+    const titleSpan = document.createElement(`span`);
+    titleSpan.className = `skill-node-title`;
+    titleSpan.textContent = `${lo}. ${theme.entity}`;
+
+    const metaSpan = document.createElement(`span`);
+    metaSpan.className = `skill-node-meta`;
+    metaSpan.textContent = `Sector ${theme.sector} • ${masteredCount}/${gatesForLo.length} Mastered`;
+
+    btn.appendChild(titleSpan);
+    btn.appendChild(metaSpan);
+    grid.appendChild(btn);
+  }
+}
+
+function jumpToEntity(lo) {
+  appState.sectorFilter = `ALL`;
+  appState.entityFilter = String(lo);
+  appState.phaseFilter = `ALL`;
+  appState.gateIndex = 0;
+
+  const secEl = document.getElementById(`sector-select`);
+  const entEl = document.getElementById(`entity-select`);
+  if (secEl) secEl.value = `ALL`;
+  if (entEl) entEl.value = String(lo);
+  syncPhasePillsUI();
+
+  buildActiveDeck();
+  if (isMenuOpen) toggleMenuDrawer();
+  renderCurrentGate();
+  persistAppState();
+}
+
+function onSectorFilterChange(val) {
+  appState.sectorFilter = val;
+  appState.entityFilter = `ALL`;
+  appState.gateIndex = 0;
+  const entEl = document.getElementById(`entity-select`);
+  if (entEl) entEl.value = `ALL`;
+  buildActiveDeck();
+  renderCurrentGate();
+  persistAppState();
+}
+
+function onEntityFilterChange(val) {
+  appState.entityFilter = val;
+  appState.gateIndex = 0;
+  buildActiveDeck();
+  renderCurrentGate();
+  persistAppState();
+}
+
+function syncPhasePillsUI() {
+  const keys = [`ALL`, `1`, `2`, `3`];
+  keys.forEach(function (k) {
+    const btn = document.getElementById(`phase-btn-${k}`);
+    if (btn) btn.classList.toggle(`is-active`, String(appState.phaseFilter) === k);
+  });
+}
+
+function setPhaseFilter(phase) {
+  appState.phaseFilter = phase;
+  appState.gateIndex = 0;
+  syncPhasePillsUI();
+  buildActiveDeck();
+  renderCurrentGate();
+  persistAppState();
+}
+
+function restartOrderedDeck() {
+  appState.deckOrder = GATES_DATA.map(function (g) { return g.id; });
+  appState.gateIndex = 0;
+  buildActiveDeck();
+  if (isMenuOpen) toggleMenuDrawer();
+  renderCurrentGate();
+  showToast(`Deck reset to ordered sequence (Gates 1–45).`);
+  persistAppState();
+}
+
+function shuffleActiveDeck() {
+  const copy = appState.deckOrder.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = copy[i];
+    copy[i] = copy[j];
+    copy[j] = tmp;
+  }
+  appState.deckOrder = copy;
+  appState.gateIndex = 0;
+  buildActiveDeck();
+  if (isMenuOpen) toggleMenuDrawer();
+  renderCurrentGate();
+  showToast(`45-Gate Deck Shuffled!`);
+  persistAppState();
+}
+
+function handleResetMastery(btn) {
+  if (!btn) return;
+  if (btn.dataset.armed !== `true`) {
+    btn.dataset.armed = `true`;
+    btn.textContent = `⚠ Confirm Reset? (Tap Again)`;
+    setTimeout(function () {
+      if (btn.dataset.armed === `true`) {
+        btn.dataset.armed = `false`;
+        btn.textContent = `🧹 Reset Mastery`;
+      }
+    }, 3500);
+    return;
+  }
+  btn.dataset.armed = `false`;
+  btn.textContent = `🧹 Reset Mastery`;
+  appState.xp = 0;
+  appState.hp = 100;
+  appState.streak = 0;
+  appState.masteredIds = [];
+  appState.missedIds = [];
+  appState.gateIndex = 0;
+  buildActiveDeck();
+  renderCurrentGate();
+  showToast(`All mastery & telemetry reset.`);
+  persistAppState();
+}
+
+// =========================================================================
+// 9. 7-PART OUTCOME DOSSIER REVIEW MODAL + ▲/▼ SCROLL NAVIGATION
+// =========================================================================
+function openReviewModal(outcome) {
+  if (!outcome || !outcome.gate) return;
+  isReviewOpen = true;
+  const gate = outcome.gate;
+  const theme = getThemeForGate(gate);
+
+  const kickerEl = document.getElementById(`review-modal-kicker`);
+  const titleEl = document.getElementById(`review-modal-title`);
+  const metaEl = document.getElementById(`review-choice-meta`);
+  const ansEl = document.getElementById(`review-correct-answer`);
+  const container = document.getElementById(`dossier-sections-container`);
+  const bodyEl = document.getElementById(`review-modal-body`);
+
+  if (kickerEl) kickerEl.textContent = `GATE ${gate.id} • SECTOR ${gate.sector} • ${theme.entity}`;
+  if (titleEl) {
+    if (outcome.timedOut) {
+      titleEl.textContent = `⏱ TIMER EXPIRED — SHIELD IMPACT (-15% HP)`;
+      titleEl.className = `xr-modal-title is-miss`;
+    } else if (outcome.isCorrect) {
+      titleEl.textContent = `✅ PORTAL SYNCHRONIZED (+XP & +5% HP)`;
+      titleEl.className = `xr-modal-title is-pass`;
+    } else {
+      titleEl.textContent = `⚠️ WRONG PORTAL — SHIELD IMPACT (-15% HP)`;
+      titleEl.className = `xr-modal-title is-miss`;
+    }
+  }
+
+  if (metaEl) {
+    metaEl.textContent = outcome.isCorrect
+      ? `SELECTED CORRECT PORTAL [${outcome.chosenLane + 1}]`
+      : `CORRECT DIAGNOSTIC PORTAL [${gate.correct + 1}]`;
+  }
+  if (ansEl) {
+    ansEl.textContent = `• ${gate.options[gate.correct]}`;
+  }
+
+  if (container) {
+    const parts = [
+      { head: `1. Clinical Verdict & Key Diagnostic`, text: gate.dossier.verdict, cls: `` },
+      { head: `2. Pathophysiology & Viral Neurotropism`, text: gate.dossier.path, cls: `is-pink` },
+      { head: `3. Neuroanatomy & Circuit Localization`, text: gate.dossier.neuro, cls: `` },
+      { head: `4. Behavioral & Psychiatric Differential`, text: gate.dossier.ddx, cls: `is-yellow` },
+      { head: `5. Pharmacotherapy & Antiviral Toxicity`, text: gate.dossier.tx, cls: `is-pink` },
+      { head: `6. Osteopathic Manipulative Treatment (OMT) & Autonomics`, text: gate.dossier.omt, cls: `` },
+      { head: `7. High-Yield Board Pearl & Distractor Analysis`, text: gate.dossier.pearl, cls: `is-yellow` }
+    ];
+
+    container.innerHTML = ``;
+    parts.forEach(function (p) {
+      const sec = document.createElement(`div`);
+      sec.className = `dossier-section ${p.cls}`.trim();
+
+      const h = document.createElement(`div`);
+      h.className = `dossier-section-head`;
+      h.textContent = p.head;
+
+      const txt = document.createElement(`p`);
+      txt.className = `dossier-section-text amboss-scan-target`;
+      txt.textContent = p.text;
+
+      sec.appendChild(h);
+      sec.appendChild(txt);
+      container.appendChild(sec);
+    });
+  }
+
+  if (bodyEl) bodyEl.scrollTop = 0;
+
+  const modal = document.getElementById(`review-modal`);
+  if (modal) modal.classList.add(`is-open`);
+}
+
+function closeReviewModal() {
+  isReviewOpen = false;
+  const modal = document.getElementById(`review-modal`);
+  if (modal) modal.classList.remove(`is-open`);
+}
+
+function scrollDossier(deltaY) {
+  const bodyEl = document.getElementById(`review-modal-body`);
+  if (!bodyEl) return;
+  if (typeof bodyEl.scrollBy === `function`) {
+    bodyEl.scrollBy({ top: deltaY, behavior: `smooth` });
+  } else {
+    bodyEl.scrollTop += deltaY;
+  }
+}
+
+function advanceFromReview() {
+  closeReviewModal();
+  if (activeDeck.length > 0) {
+    appState.gateIndex = (appState.gateIndex + 1) % activeDeck.length;
+  }
+  renderCurrentGate();
+  persistAppState();
+}
+
+// =========================================================================
+// 10. 6-COLUMN LOOT CODEX MODAL & CSV EXPORT
+// =========================================================================
+function openCodex() {
+  isCodexOpen = true;
+  renderCodexTable();
+  const modal = document.getElementById(`codex-modal`);
+  if (modal) modal.classList.add(`is-open`);
+}
+
+function closeCodex() {
+  isCodexOpen = false;
+  const modal = document.getElementById(`codex-modal`);
+  if (modal) modal.classList.remove(`is-open`);
+}
+
+function renderCodexTable() {
+  const tbody = document.getElementById(`codex-table-body`);
+  const searchEl = document.getElementById(`codex-search-input`);
+  const sectorEl = document.getElementById(`codex-sector-filter`);
+  if (!tbody) return;
+
+  const q = (searchEl ? searchEl.value : ``).trim().toLowerCase();
+  const secVal = sectorEl ? sectorEl.value : `ALL`;
+
+  tbody.innerHTML = ``;
+
+  GATES_DATA.forEach(function (g) {
+    if (secVal !== `ALL` && String(g.sector) !== secVal) return;
+    const theme = getThemeForGate(g);
+    const haystack = `${theme.entity} ${g.stem} ${g.clue} ${g.dossier.path} ${g.dossier.tx} ${g.dossier.omt}`.toLowerCase();
+    if (q && haystack.indexOf(q) === -1) return;
+
+    const tr = document.createElement(`tr`);
+    tr.onclick = function () {
+      closeCodex();
+      appState.sectorFilter = `ALL`;
+      appState.entityFilter = `ALL`;
+      appState.phaseFilter = `ALL`;
+      const sSel = document.getElementById(`sector-select`);
+      const eSel = document.getElementById(`entity-select`);
+      if (sSel) sSel.value = `ALL`;
+      if (eSel) eSel.value = `ALL`;
+      syncPhasePillsUI();
+      buildActiveDeck();
+      const idx = activeDeck.findIndex(function (item) { return item.id === g.id; });
+      if (idx !== -1) appState.gateIndex = idx;
+      renderCurrentGate();
+      persistAppState();
+    };
+
+    const isMastered = appState.masteredIds.includes(g.id);
+    const isMissed = appState.missedIds.includes(g.id);
+    const statusText = isMastered ? `Mastered` : (isMissed ? `Missed` : `Unseen`);
+    const statusCls = isMastered ? `is-mastered` : (isMissed ? `is-missed` : ``);
+
+    const cells = [
+      `G${g.id} • S${g.sector} P${g.phase}`,
+      theme.entity,
+      g.clue,
+      g.dossier.path.replace(/^•\s*/, ``),
+      `${g.dossier.tx.replace(/^•\s*/, ``)} | ${g.dossier.omt.replace(/^•\s*/, ``)}`,
+      statusText
+    ];
+
+    cells.forEach(function (val, idx) {
+      const td = document.createElement(`td`);
+      td.className = `amboss-scan-target`;
+      if (idx === 5) {
+        const pill = document.createElement(`span`);
+        pill.className = `codex-status-pill ${statusCls}`.trim();
+        pill.textContent = val;
+        td.appendChild(pill);
+      } else {
+        td.textContent = val;
+      }
+      tr.appendChild(td);
+    });
+
+    tbody.appendChild(tr);
+  });
+}
+
+function exportProgressCsv() {
+  const rows = [`Gate,Sector,LO,Phase,Entity,Status`];
+  GATES_DATA.forEach(function (g) {
+    const theme = getThemeForGate(g);
+    const status = appState.masteredIds.includes(g.id)
+      ? `Mastered`
+      : (appState.missedIds.includes(g.id) ? `Missed` : `Unseen`);
+    rows.push(`${g.id},${g.sector},${g.lo},${g.phase},"${theme.entity.replace(/"/g, `""`)}",${status}`);
+  });
+  const csv = rows.join(`\n`);
+  if (window.notebookAppApi && typeof window.notebookAppApi.triggerFileDownload === `function`) {
+    window.notebookAppApi.triggerFileDownload({
+      content: csv,
+      contentType: `text/csv`,
+      encoding: `UTF-8`,
+      filename: `neuropsychiatric_virology_progress.csv`
+    });
+    showToast(`Exported 45-Gate Mastery CSV.`);
+  } else {
+    showToast(`Mastered ${appState.masteredIds.length}/45 gates (XP: ${appState.xp}).`);
+  }
+}
+
+// =========================================================================
+// 11. KEYBOARD NAVIGATION
+// =========================================================================
+document.addEventListener(`keydown`, function (e) {
+  const tag = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : ``;
+  if (tag === `input` || tag === `select` || tag === `textarea`) return;
+
+  const key = e.key;
+  if (key === `Escape`) {
+    if (isReviewOpen) { closeReviewModal(); return; }
+    if (isCodexOpen) { closeCodex(); return; }
+    if (isMenuOpen) { toggleMenuDrawer(); return; }
+  }
+
+  if (isReviewOpen) {
+    if (key === `Enter` || key === ` `) { e.preventDefault(); advanceFromReview(); return; }
+    if (key === `ArrowUp`) { e.preventDefault(); scrollDossier(-160); return; }
+    if (key === `ArrowDown`) { e.preventDefault(); scrollDossier(160); return; }
+    return;
+  }
+
+  if (isCodexOpen) return;
+
+  if (key === `m` || key === `M`) { e.preventDefault(); toggleMenuDrawer(); return; }
+  if (key === `h` || key === `H`) { e.preventDefault(); toggleHintsBar(); return; }
+  if (key === `c` || key === `C`) { e.preventDefault(); openCodex(); return; }
+  if (key === `s` || key === `S`) { e.preventDefault(); skipCurrentQuestion(); return; }
+  if (key === `t` || key === `T`) { e.preventDefault(); toggleTimerMode(); return; }
+
+  if (isMenuOpen) return;
+
+  if (key === `1`) { e.preventDefault(); selectLane(0); return; }
+  if (key === `2`) { e.preventDefault(); selectLane(1); return; }
+  if (key === `3`) { e.preventDefault(); selectLane(2); return; }
+  if (key === `ArrowLeft`) { e.preventDefault(); setShipLaneTarget(Math.max(0, hoveredLane - 1), true); return; }
+  if (key === `ArrowRight`) { e.preventDefault(); setShipLaneTarget(Math.min(2, hoveredLane + 1), true); return; }
+  if (key === `ArrowDown`) { e.preventDefault(); setShipLaneTarget(1, true); return; }
+  if (key === `Enter` || key === ` `) { e.preventDefault(); selectLane(hoveredLane); }
+});
+
+// =========================================================================
+// 12. INITIALIZATION
+// =========================================================================
+async function initApp() {
+  await restoreStateOnStartup();
+
+  populateEntityDropdown();
+  const secEl = document.getElementById(`sector-select`);
+  const entEl = document.getElementById(`entity-select`);
+  if (secEl) secEl.value = String(appState.sectorFilter);
+  if (entEl) entEl.value = String(appState.entityFilter);
+  syncPhasePillsUI();
+  syncHintsUI();
+  syncAudioButtonsUI();
+  syncTimerControlsUI();
+
+  buildActiveDeck();
+  initCanvasRunner();
+  renderCurrentGate();
+
+  if (appState.bgmEnabled && appState.soundEnabled) {
+    startProceduralBgmLoop();
+  }
+
+  if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === `function`) {
+    window.notebookAppApi.notifyAppReady();
+  }
+}
+
+document.addEventListener(`DOMContentLoaded`, initApp);
+</script>
+</body>
+</html>

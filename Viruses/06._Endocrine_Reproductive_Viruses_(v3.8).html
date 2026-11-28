@@ -1,0 +1,3090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="artifact-type" content="tool">
+<meta name="design-style" content="neon_noir">
+<title>06. Endocrine &amp; Reproductive Viruses — XR 3-Lane Diagnostic Runner (v3.8)</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --background: #0a0a12;
+  --surface-container-low: #111118;
+  --surface-container: #141422;
+  --surface-container-high: #1e1e30;
+  --on-surface: #e8e0f0;
+  --on-surface-variant: #a098b0;
+  --outline: #5a5068;
+  --outline-variant: #302840;
+  --primary: #ff2d78;
+  --on-primary: #1a0010;
+  --primary-container: #b3004e;
+  --on-primary-container: #ffe0ec;
+  --secondary: #00ffcc;
+  --tertiary: #ffe04a;
+  --error: #ff4444;
+  --on-error: #1a0000;
+  --positive: #00ffcc;
+  --warning: #ffe04a;
+  --focus: #ff2d78;
+  --rail-teal: #34a88f;
+  --glass-bg: rgba(14, 16, 28, 0.78);
+  --glass-bg-heavy: rgba(10, 12, 22, 0.92);
+  --lane-pink-tint: rgba(255, 45, 120, 0.14);
+  --lane-cyan-tint: rgba(0, 255, 204, 0.14);
+  --lane-yellow-tint: rgba(255, 224, 74, 0.14);
+  --data-1: #ff2d78;
+  --data-2: #00ffcc;
+  --data-3: #ffe04a;
+  --data-4: #b388ff;
+  --data-context: #6e6680;
+  --font-headline: 'Sora', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-label: 'Space Mono', monospace;
+  --display-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+  --headline-size: clamp(1.15rem, 1rem + 0.45vw, 1.4rem);
+  --subhead-size: clamp(1rem, 0.95rem + 0.25vw, 1.15rem);
+  --body-size: clamp(0.875rem, 0.84rem + 0.15vw, 0.98rem);
+  --label-size: 0.75rem;
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --rounded: 0.125rem;
+  --rounded-lg: 0.25rem;
+  --rounded-full: 0.75rem;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+  --glow-text: 0 0 8px currentColor;
+  --glow-primary: 0 0 16px color-mix(in srgb, var(--primary) 40%, transparent);
+  --glow-secondary: 0 0 16px color-mix(in srgb, var(--secondary) 35%, transparent);
+  --glow-tertiary: 0 0 16px color-mix(in srgb, var(--tertiary) 35%, transparent);
+  --neon-border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+  --scanlines: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in srgb, var(--on-surface) 3%, transparent) 3px 4px);
+  --card-min-h: clamp(118px, 19dvh, 178px);
+  --card-font: clamp(0.84rem, 0.8rem + 0.25vw, 1rem);
+  --stem-font: clamp(0.86rem, 0.82rem + 0.28vw, 1.02rem);
+  --stem-pad: 0.55rem 0.9rem;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overflow-x: clip;
+  background-color: var(--background);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: var(--body-size);
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+}
+header { position: static !important; }
+button, input, select { font-family: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+#xr-app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--background);
+  background-image: var(--scanlines);
+}
+#xr-app.hints-visible {
+  --card-min-h: clamp(92px, 14dvh, 140px);
+  --card-font: clamp(0.78rem, 0.75rem + 0.2vw, 0.92rem);
+  --stem-font: clamp(0.8rem, 0.77rem + 0.2vw, 0.94rem);
+  --stem-pad: 0.42rem 0.8rem;
+}
+
+#xr-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* BAND 1: ULTRA-SLIM TOP BAR */
+#top-mini-bar {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-md);
+  background: var(--glass-bg-heavy);
+  border-bottom: 1px solid var(--outline-variant);
+  min-height: 44px;
+  flex-shrink: 0;
+}
+#menu-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 36px;
+  padding: 0.3rem 0.75rem;
+  background: var(--surface-container);
+  color: var(--secondary);
+  border: 1px solid color-mix(in srgb, var(--secondary) 45%, transparent);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+#menu-toggle-btn:hover {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+}
+.telemetry-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.tele-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.22rem 0.55rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--on-surface);
+  white-space: nowrap;
+}
+.tele-chip.is-hp { border-color: color-mix(in srgb, var(--primary) 45%, transparent); color: var(--primary); }
+.tele-chip.is-xp { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+.tele-chip.is-streak { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+.tele-chip.is-timer { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+.tele-chip.is-timer.is-urgent { border-color: var(--error); color: var(--error); box-shadow: 0 0 10px color-mix(in srgb, var(--error) 45%, transparent); }
+
+/* BAND 2: TOP QUESTION STAGE */
+#question-stage {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: var(--space-xs) var(--space-md) 0;
+  flex-shrink: 0;
+}
+.meta-badge-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.35rem;
+  max-height: 48px;
+  opacity: 1;
+  overflow: hidden;
+  transition: opacity var(--dur-long) var(--ease-out), max-height var(--dur-long) var(--ease-out), margin-bottom var(--dur-long) var(--ease-out);
+}
+.meta-badge-bar.is-faded {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+}
+.meta-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0.16rem 0.5rem;
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid var(--outline);
+  background: var(--glass-bg);
+  color: var(--on-surface);
+}
+.meta-badge.is-lo { border-color: var(--primary); color: var(--primary); }
+.meta-badge.is-angle { border-color: var(--secondary); color: var(--secondary); }
+.meta-badge.is-phase { border-color: var(--tertiary); color: var(--tertiary); }
+.meta-badge.is-corridor { border-color: var(--data-4); color: var(--data-4); }
+
+.question-stem-box {
+  width: 100%;
+  background: var(--glass-bg-heavy);
+  border: var(--neon-border);
+  box-shadow: var(--neon-inset);
+  border-radius: var(--rounded-lg);
+  padding: var(--stem-pad);
+  text-align: center;
+}
+#q-stem-text {
+  margin: 0 auto;
+  max-width: 82ch;
+  text-align: center;
+  font-size: var(--stem-font);
+  font-weight: 500;
+  color: var(--on-surface);
+  line-height: 1.42;
+}
+
+/* BAND 3: CENTER INTERACTIVE 3D VIEWPORT + 3 CENTERED ANSWER CARDS */
+#lane-viewport-band {
+  position: relative;
+  z-index: 10;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-sm) var(--space-md);
+}
+.lanes-grid {
+  width: 100%;
+  max-width: 1060px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(0.6rem, 1.4vw, 1.25rem);
+  align-items: stretch;
+}
+.lane-dom-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: var(--card-min-h);
+  padding: 0.7rem 0.75rem;
+  background: var(--glass-bg);
+  border-radius: var(--rounded-lg);
+  cursor: pointer;
+  user-select: none;
+  backdrop-filter: blur(8px);
+  transition: transform var(--dur-micro) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+}
+.lane-dom-card.lane-0 {
+  border: 2px solid color-mix(in srgb, var(--primary) 75%, transparent);
+  box-shadow: inset 0 0 18px var(--lane-pink-tint), var(--glow-primary);
+}
+.lane-dom-card.lane-1 {
+  border: 2px solid color-mix(in srgb, var(--secondary) 75%, transparent);
+  box-shadow: inset 0 0 18px var(--lane-cyan-tint), var(--glow-secondary);
+}
+.lane-dom-card.lane-2 {
+  border: 2px solid color-mix(in srgb, var(--tertiary) 75%, transparent);
+  box-shadow: inset 0 0 18px var(--lane-yellow-tint), var(--glow-tertiary);
+}
+.lane-dom-card:hover, .lane-dom-card.is-targeted {
+  transform: translateY(-3px) scale(1.015);
+}
+.lane-dom-card.lane-0:hover, .lane-dom-card.lane-0.is-targeted {
+  background: color-mix(in srgb, var(--primary) 16%, var(--surface-container));
+  border-color: var(--primary);
+}
+.lane-dom-card.lane-1:hover, .lane-dom-card.lane-1.is-targeted {
+  background: color-mix(in srgb, var(--secondary) 16%, var(--surface-container));
+  border-color: var(--secondary);
+}
+.lane-dom-card.lane-2:hover, .lane-dom-card.lane-2.is-targeted {
+  background: color-mix(in srgb, var(--tertiary) 16%, var(--surface-container));
+  border-color: var(--tertiary);
+}
+.lane-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  margin-bottom: 0.45rem;
+  width: 100%;
+}
+.lane-key-label {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.12rem 0.45rem;
+  border-radius: var(--rounded);
+  border: 1px solid currentColor;
+}
+.lane-0 .lane-key-label { color: var(--primary); }
+.lane-1 .lane-key-label { color: var(--secondary); }
+.lane-2 .lane-key-label { color: var(--tertiary); }
+.lane-choice-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  flex: 1 1 auto;
+}
+.lane-card-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: var(--card-font);
+  font-weight: 600;
+  color: var(--on-surface);
+  line-height: 1.35;
+}
+.lane-dom-card span { text-align: center; }
+
+/* BAND 4: BOTTOM HINTS BAR */
+#hints-bar {
+  position: relative;
+  z-index: 10;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: calc(100% - 2rem);
+  max-width: 1060px;
+  margin: 0 auto var(--space-sm);
+  padding: 0.45rem 0.85rem;
+  background: var(--glass-bg-heavy);
+  border: 1px solid color-mix(in srgb, var(--tertiary) 55%, transparent);
+  box-shadow: var(--glow-tertiary);
+  border-radius: var(--rounded-lg);
+  flex-shrink: 0;
+}
+#xr-app.hints-visible #hints-bar { display: flex; }
+#q-clue-text {
+  margin: 0;
+  text-align: center;
+  font-size: 0.84rem;
+  color: var(--tertiary);
+  font-weight: 500;
+}
+
+/* INLINE TOAST */
+.inline-toast {
+  position: fixed;
+  top: 52px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
+  z-index: 60;
+  padding: 0.35rem 0.85rem;
+  background: var(--surface-container-high);
+  border: 1px solid var(--secondary);
+  box-shadow: var(--glow-secondary);
+  color: var(--secondary);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out);
+}
+.inline-toast.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* MENU DRAWER */
+#menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(5, 6, 12, 0.72);
+  display: none;
+}
+#menu-backdrop.is-open { display: block; }
+#top-menu-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(420px, 92vw);
+  z-index: 50;
+  background: var(--surface-container-low);
+  border-right: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  transform: translateX(-105%);
+  transition: transform var(--dur-short) var(--ease-out);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#top-menu-drawer.is-open { transform: translateX(0); }
+.drawer-header {
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--outline-variant);
+  background: var(--surface-container);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+.drawer-kicker {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--secondary);
+  text-shadow: var(--glow-text);
+  margin: 0 0 0.25rem;
+}
+.drawer-title {
+  font-family: var(--font-headline);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--on-surface);
+  margin: 0;
+  line-height: 1.25;
+}
+.drawer-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+.drawer-section {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.drawer-sec-title {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--primary);
+  margin: 0;
+}
+.btn-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+.btn-neon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.35rem;
+  min-height: 38px;
+  padding: 0.4rem 0.65rem;
+  background: var(--surface-container-low);
+  color: var(--primary);
+  border: var(--neon-border-lit);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+}
+.btn-neon:hover { border-color: var(--primary); box-shadow: var(--glow-primary); }
+.btn-neon.is-cyan { color: var(--secondary); border-color: color-mix(in srgb, var(--secondary) 50%, transparent); }
+.btn-neon.is-cyan:hover { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.btn-neon.is-yellow { color: var(--tertiary); border-color: color-mix(in srgb, var(--tertiary) 50%, transparent); }
+.btn-neon.is-yellow:hover { border-color: var(--tertiary); box-shadow: var(--glow-tertiary); }
+.btn-neon.is-active {
+  background: color-mix(in srgb, var(--secondary) 18%, var(--surface-container));
+  border-color: var(--secondary);
+  color: var(--secondary);
+}
+.field-label {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  color: var(--on-surface-variant);
+  margin-bottom: 0.2rem;
+}
+.neon-select, .neon-input {
+  width: 100%;
+  min-height: 38px;
+  padding: 0.38rem 0.6rem;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-size: 0.8rem;
+}
+.neon-select:focus, .neon-input:focus {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+  outline: none;
+}
+.phase-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.phase-pill {
+  flex: 1 1 auto;
+  min-height: 34px;
+  padding: 0.25rem 0.45rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  text-align: center;
+}
+.phase-pill.is-active {
+  border-color: var(--secondary);
+  color: var(--secondary);
+  background: color-mix(in srgb, var(--secondary) 15%, var(--surface-container));
+}
+.skill-tree-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+.skill-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0.45rem 0.3rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  cursor: pointer;
+  min-height: 54px;
+  transition: border-color var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out);
+}
+.skill-node:hover { border-color: var(--secondary); }
+.skill-node.is-selected { border-color: var(--primary); box-shadow: var(--glow-primary); }
+.skill-node.is-mastered { border-color: var(--secondary); background: color-mix(in srgb, var(--secondary) 10%, var(--surface-container-low)); }
+.skill-node-title { font-size: 0.68rem; font-weight: 600; color: var(--on-surface); line-height: 1.2; }
+.skill-node-meta { font-family: var(--font-label); font-size: 0.6rem; color: var(--on-surface-variant); margin-top: 0.15rem; }
+.hotkey-guide {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  color: var(--on-surface-variant);
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: 0.45rem 0.6rem;
+  line-height: 1.5;
+}
+
+/* MODALS: OUTCOME DOSSIER & LOOT CODEX */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: rgba(5, 6, 14, 0.82);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-sm);
+}
+.modal-backdrop.is-open { display: flex; }
+.modal-shell {
+  width: min(920px, 94vw);
+  height: min(88dvh, 840px);
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: 0.65rem 1rem;
+  background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline-variant);
+  flex-shrink: 0;
+}
+.popup-verdict {
+  margin: 0;
+  flex: 1 1 auto;
+  text-align: center;
+  font-family: var(--font-headline);
+  font-size: clamp(0.95rem, 0.85rem + 0.5vw, 1.25rem);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+.popup-verdict.is-correct { color: var(--secondary); text-shadow: var(--glow-text); }
+.popup-verdict.is-wrong { color: var(--primary); text-shadow: var(--glow-text); }
+.delta-pill {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.22rem 0.55rem;
+  border-radius: var(--rounded);
+  border: 1px solid var(--outline);
+  background: var(--surface-container-low);
+  white-space: nowrap;
+}
+.delta-pill.is-xp { color: var(--secondary); border-color: var(--secondary); }
+.delta-pill.is-hp { color: var(--tertiary); border-color: var(--tertiary); }
+.popup-scroll-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.popup-question-pin {
+  background: var(--surface-container-low);
+  border: 1px solid color-mix(in srgb, var(--secondary) 40%, transparent);
+  border-radius: var(--rounded);
+  padding: 0.65rem 0.85rem;
+  text-align: center;
+}
+.popup-lo-ref {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--secondary);
+  margin: 0 0 0.3rem;
+  text-align: center;
+}
+.popup-question-pin-text {
+  margin: 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--on-surface);
+  line-height: 1.45;
+}
+.dossier-block {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  padding: 0.7rem 0.85rem;
+  text-align: center;
+}
+.dossier-block.is-highlight {
+  border-color: color-mix(in srgb, var(--primary) 45%, transparent);
+  box-shadow: var(--neon-inset);
+}
+.dossier-title {
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--tertiary);
+  margin: 0 0 0.45rem;
+  text-align: center;
+}
+.choice-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+.choice-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0.6rem;
+  border-radius: var(--rounded);
+  border: 1px solid var(--outline);
+  background: var(--surface-container);
+}
+.choice-box.is-right { border-color: var(--secondary); }
+.choice-box.is-wrong { border-color: var(--primary); }
+.choice-box-tag {
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--on-surface-variant);
+  margin-bottom: 0.25rem;
+}
+.choice-box p { margin: 0; font-weight: 600; font-size: 0.88rem; text-align: center; }
+.dossier-bullets {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  text-align: center;
+}
+.dossier-line {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--on-surface);
+  line-height: 1.45;
+  text-align: center;
+}
+.angle-dossier-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.angle-mini-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0.6rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  gap: 0.35rem;
+}
+.angle-mini-card strong {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  color: var(--secondary);
+  text-transform: uppercase;
+}
+.popup-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  background: var(--surface-container-high);
+  border-top: 1px solid var(--outline-variant);
+  flex-shrink: 0;
+}
+
+/* CODEX MODAL */
+.codex-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+}
+.codex-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.codex-table-wrap {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 0.7rem 1rem;
+}
+.codex-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+.codex-table th, .codex-table td {
+  border: 1px solid var(--outline-variant);
+  padding: 0.5rem 0.55rem;
+  vertical-align: top;
+  text-align: left;
+}
+.codex-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-container-high);
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--secondary);
+  z-index: 2;
+}
+.codex-table tr:nth-child(even) td { background: var(--surface-container-low); }
+.codex-entity-name { font-weight: 700; color: var(--primary); margin-bottom: 0.2rem; }
+.codex-badge-meta { font-family: var(--font-label); font-size: 0.65rem; color: var(--tertiary); }
+
+/* 3 VERBATIM PHONE / TABLET RESPONSIVE BREAKPOINTS */
+@media (max-width: 600px) {
+  .tele-chip.is-xp { display: none; }
+  .lanes-grid { grid-template-columns: 1fr; gap: 0.5rem; }
+  .lane-card-head, .lane-key-label { display: none; }
+  .lane-dom-card { min-height: 76px; padding: 0.55rem 0.7rem; }
+  #xr-app.hints-visible .lane-dom-card { min-height: 62px; padding: 0.42rem 0.6rem; }
+  #xr-app.hints-visible #q-stem-text { font-size: 0.8rem; line-height: 1.32; }
+  .modal-shell { width: 96vw; height: 92dvh; }
+  .choice-compare-grid, .angle-dossier-grid { grid-template-columns: 1fr; }
+}
+@media (max-height: 500px) and (pointer: coarse) {
+  #top-mini-bar { min-height: 36px; padding: 0.2rem 0.6rem; }
+  .question-stem-box { padding: 0.35rem 0.65rem; }
+  #q-stem-text { font-size: 0.78rem; line-height: 1.28; }
+  .lanes-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.45rem; }
+  .lane-dom-card { min-height: 78px; padding: 0.4rem 0.5rem; }
+  .lane-card-text { font-size: 0.76rem; }
+}
+@media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+  html { font-size: 200%; }
+  .lanes-grid { grid-template-columns: 1fr; gap: 0.5rem; }
+  .lane-card-head, .lane-key-label { display: none; }
+  .lane-dom-card { min-height: 72px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+<div id="xr-app" class="hints-hidden">
+  <canvas id="xr-canvas" aria-hidden="true"></canvas>
+
+  <!-- BAND 1: ULTRA-SLIM TOP BAR (MENU BUTTON + READ-ONLY TELEMETRY CHIPS ONLY) -->
+  <header id="top-mini-bar">
+    <button type="button" id="menu-toggle-btn" onclick="toggleMenuDrawer()" aria-expanded="false" aria-controls="top-menu-drawer">☰ MENU</button>
+    <div class="telemetry-row">
+      <span class="tele-chip is-hp" id="tele-hp">❤ 100 HP</span>
+      <span class="tele-chip is-xp" id="tele-xp">✦ 0 XP</span>
+      <span class="tele-chip is-streak" id="tele-streak">⚡ 0</span>
+      <span class="tele-chip" id="tele-gate">GATE 1/45</span>
+      <span class="tele-chip is-timer" id="tele-timer">⏱ 50s</span>
+    </div>
+  </header>
+
+  <div class="inline-toast" id="inline-toast" role="status" aria-live="polite"></div>
+
+  <!-- BAND 2: QUESTION STAGE WITH 3-SECOND AUTO-HIDING METADATA -->
+  <section id="question-stage" aria-label="Diagnostic Vignette">
+    <div class="meta-badge-bar" id="meta-badge-bar">
+      <span class="meta-badge is-lo" id="lo-badge">LO 1</span>
+      <span class="meta-badge is-angle" id="angle-badge">PRESENTATION -&gt; DIAGNOSIS</span>
+      <span class="meta-badge is-phase" id="phase-badge">PHASE 1: PATHOGENESIS</span>
+      <span class="meta-badge is-corridor" id="corridor-badge">CORRIDOR</span>
+    </div>
+    <div class="question-stem-box">
+      <p class="question-stem amboss-scan-target" id="q-stem-text">Initializing Endocrine &amp; Reproductive Viral Corridor…</p>
+    </div>
+  </section>
+
+  <!-- BAND 3: CENTER 3 ANSWER CARDS (1:1 PORTAL FUSION TARGETS) -->
+  <main id="lane-viewport-band">
+    <div class="lanes-grid" id="lanes-grid">
+      <button type="button" class="lane-dom-card lane-0" id="lane-card-0" onclick="submitLaneChoice(0)" onmouseenter="setHoveredLane(0)" onmouseleave="setHoveredLane(-1)">
+        <div class="lane-card-head"><span class="lane-key-label">[1 / A / ←]</span></div>
+        <div class="lane-choice-body"><span class="lane-card-text amboss-scan-target" id="lane-0-text">Loading…</span></div>
+      </button>
+      <button type="button" class="lane-dom-card lane-1" id="lane-card-1" onclick="submitLaneChoice(1)" onmouseenter="setHoveredLane(1)" onmouseleave="setHoveredLane(-1)">
+        <div class="lane-card-head"><span class="lane-key-label">[2 / W / ↑]</span></div>
+        <div class="lane-choice-body"><span class="lane-card-text amboss-scan-target" id="lane-1-text">Loading…</span></div>
+      </button>
+      <button type="button" class="lane-dom-card lane-2" id="lane-card-2" onclick="submitLaneChoice(2)" onmouseenter="setHoveredLane(2)" onmouseleave="setHoveredLane(-1)">
+        <div class="lane-card-head"><span class="lane-key-label">[3 / D / →]</span></div>
+        <div class="lane-choice-body"><span class="lane-card-text amboss-scan-target" id="lane-2-text">Loading…</span></div>
+      </button>
+    </div>
+  </main>
+
+  <!-- BAND 4: BOTTOM HINTS BAR (HIDDEN BY DEFAULT, TOGGLED VIA [H]) -->
+  <footer id="hints-bar">
+    <p class="amboss-scan-target" id="q-clue-text">Tactical clue ready.</p>
+  </footer>
+</div>
+
+<!-- SLIDE-OUT MENU DRAWER (HOUSES TITLE + ALL CONTROLS) -->
+<div id="menu-backdrop" onclick="toggleMenuDrawer()"></div>
+<aside id="top-menu-drawer" aria-label="Mission Controls">
+  <div class="drawer-header">
+    <div>
+      <p class="drawer-kicker">COMLEX-USA CP 4 &amp; 10 + DOMAIN 1 OMT • 45 GATES</p>
+      <h1 class="drawer-title">06. Endocrine &amp; Reproductive System Viruses (v3.8)</h1>
+    </div>
+    <button type="button" class="btn-neon is-cyan" onclick="toggleMenuDrawer()">✕</button>
+  </div>
+  <div class="drawer-scroll">
+    <div class="drawer-section">
+      <h2 class="drawer-sec-title">Tactical Cockpit Actions</h2>
+      <div class="btn-grid-2">
+        <button type="button" class="btn-neon is-yellow" id="menu-hints-btn" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+        <button type="button" class="btn-neon is-cyan" onclick="openCodexFromMenu()">📖 Loot Codex [C]</button>
+        <button type="button" class="btn-neon is-cyan" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+        <button type="button" class="btn-neon is-yellow" id="menu-timer-toggle-btn" onclick="toggleTimerEnabled()">⏱ 50s Timer: ON [T]</button>
+      </div>
+      <button type="button" class="btn-neon" onclick="startTimedRun()">⚡ Start 50s Timed Run</button>
+    </div>
+
+    <div class="drawer-section">
+      <h2 class="drawer-sec-title">Deck Filters &amp; Phase Mix (30% / 35% / 35%)</h2>
+      <div>
+        <label class="field-label" for="sector-filter-select">Sector / Entity Filter</label>
+        <select id="sector-filter-select" class="neon-select" onchange="onSectorSelectChange(this.value)">
+          <option value="all">All 15 Entities (45 Gates)</option>
+          <option value="missed">🎯 Missed Gates Only</option>
+          <option value="sector_1">Sector I • Genital Ulcerative &amp; Mucocutaneous</option>
+          <option value="sector_2">Sector II • Oncogenic Genital Viruses</option>
+          <option value="sector_3">Sector III • Congenital TORCH Pathogens</option>
+          <option value="sector_4">Sector IV • Gestational &amp; Perinatal</option>
+          <option value="sector_5">Sector V • Endocrine Viruses &amp; Pelvic OMT</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label" for="angle-filter-select">Diagnostic Angle Filter</label>
+        <select id="angle-filter-select" class="neon-select" onchange="onAngleSelectChange(this.value)">
+          <option value="all">All 3 Diagnostic Angles</option>
+          <option value="Presentation -> Diagnosis">Presentation -&gt; Diagnosis</option>
+          <option value="Mechanism -> Pathophysiology">Mechanism -&gt; Pathophysiology</option>
+          <option value="Hallmarks -> Management">Hallmarks -&gt; Management</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label" for="timeout-mode-select">Time's Up Mode</label>
+        <select id="timeout-mode-select" class="neon-select" onchange="onTimeoutModeChange(this.value)">
+          <option value="review">Time's Up = Wrong → Review Dossier</option>
+          <option value="hold">Hold at 0s (Manual Submit)</option>
+        </select>
+      </div>
+      <div class="phase-pill-row">
+        <button type="button" class="phase-pill is-active" data-phase="all" onclick="setPhaseFilter('all')">All (100%)</button>
+        <button type="button" class="phase-pill" data-phase="Phase 1: Pathogenesis" onclick="setPhaseFilter('Phase 1: Pathogenesis')">P1 (30%)</button>
+        <button type="button" class="phase-pill" data-phase="Phase 2: Histology / Structure" onclick="setPhaseFilter('Phase 2: Histology / Structure')">P2 (35%)</button>
+        <button type="button" class="phase-pill" data-phase="Phase 3: Clinical & Management" onclick="setPhaseFilter('Phase 3: Clinical & Management')">P3 (35%)</button>
+      </div>
+      <div class="btn-grid-2">
+        <button type="button" class="btn-neon is-cyan" onclick="restartDeckOrdered()">↻ Restart Ordered</button>
+        <button type="button" class="btn-neon is-cyan" onclick="shuffleActiveDeck()">🔀 Shuffle Deck</button>
+      </div>
+      <button type="button" class="btn-neon" id="reset-mastery-btn" onclick="handleResetMastery(this)">⚠ Reset Mastery (Tap Twice)</button>
+    </div>
+
+    <div class="drawer-section">
+      <h2 class="drawer-sec-title">Audio &amp; Zombies Synth Engine</h2>
+      <div class="btn-grid-2">
+        <button type="button" class="btn-neon is-active" id="master-sound-btn" onclick="toggleMasterSound()">🔊 Sound: ON</button>
+        <button type="button" class="btn-neon is-active" id="sfx-toggle-btn" onclick="toggleSfx()">🎹 SFX: ON</button>
+      </div>
+      <button type="button" class="btn-neon is-cyan" id="bgm-toggle-btn" onclick="toggleProceduralBgm()">🎵 Zombies Procedural BGM: OFF</button>
+      <div>
+        <label class="field-label" for="bgm-volume-slider">BGM Volume (<span id="bgm-vol-label">35%</span>)</label>
+        <input type="range" id="bgm-volume-slider" min="0" max="100" value="35" oninput="setBgmVolume(this.value)" style="width:100%;">
+      </div>
+      <div>
+        <label class="field-label" for="custom-audio-input">Custom MP3 / WAV Track Loader</label>
+        <input type="file" id="custom-audio-input" accept="audio/mpeg,audio/wav,audio/*" class="neon-input" onchange="loadCustomBgmFile(this)">
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <h2 class="drawer-sec-title">15-Entity Viral Skill Tree (Tap to Focus)</h2>
+      <div class="skill-tree-grid" id="skill-tree-grid"></div>
+    </div>
+
+    <div class="hotkey-guide">
+      KEYS: [1/2/3] or [A/W/D] or [←/↑/→] Steer &amp; Lock • [H] Hints • [M] Menu • [C] Codex • [S] Skip • [T] Timer • [Space/Enter] Continue
+    </div>
+  </div>
+</aside>
+
+<!-- 7-PART OUTCOME DOSSIER MODAL -->
+<div class="modal-backdrop" id="outcome-backdrop" role="dialog" aria-modal="true" aria-labelledby="outcome-verdict">
+  <div class="modal-shell" id="outcome-popup-modal">
+    <div class="popup-header">
+      <span class="delta-pill is-xp" id="outcome-xp-delta">+25 XP</span>
+      <h2 class="popup-verdict is-correct" id="outcome-verdict">✔ CORRECT — Diagnosis</h2>
+      <span class="delta-pill is-hp" id="outcome-hp-delta">0 HP</span>
+    </div>
+    <div class="popup-scroll-body" id="outcome-scroll-body">
+      <div class="popup-question-pin">
+        <p class="popup-lo-ref" id="outcome-lo-ref">LO 1 • Angle • Phase</p>
+        <p class="popup-question-pin-text amboss-scan-target" id="outcome-question-text"></p>
+      </div>
+
+      <div class="dossier-block is-highlight">
+        <h3 class="dossier-title">1. Your Choice vs. Correct Answer</h3>
+        <div class="choice-compare-grid">
+          <div class="choice-box" id="your-choice-box">
+            <span class="choice-box-tag">Your Selected Lane</span>
+            <p class="amboss-scan-target" id="your-choice-text"></p>
+          </div>
+          <div class="choice-box is-right" id="correct-choice-box">
+            <span class="choice-box-tag">Correct Answer</span>
+            <p class="amboss-scan-target" id="correct-choice-text"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="dossier-block">
+        <h3 class="dossier-title">2. Concise Explanation &amp; Distractor Exclusion</h3>
+        <div class="dossier-bullets amboss-scan-target" id="dossier-explanation"></div>
+      </div>
+
+      <div class="dossier-block">
+        <h3 class="dossier-title">3. Second-Order Vignette Clue</h3>
+        <div class="dossier-bullets amboss-scan-target" id="dossier-board-clue"></div>
+      </div>
+
+      <div class="dossier-block">
+        <h3 class="dossier-title">4. Core Mechanism &amp; Pathogenesis Pearls (Phase 1)</h3>
+        <div class="dossier-bullets amboss-scan-target" id="dossier-pathogenesis"></div>
+      </div>
+
+      <div class="dossier-block">
+        <h3 class="dossier-title">5. High-Yield Morphology &amp; Structural Hallmarks (Phase 2)</h3>
+        <div class="dossier-bullets amboss-scan-target" id="dossier-morphology"></div>
+      </div>
+
+      <div class="dossier-block">
+        <h3 class="dossier-title">6. Guild Master's Secret &amp; Clinical Management (Phase 3)</h3>
+        <div class="dossier-bullets amboss-scan-target" id="dossier-epi-tx"></div>
+      </div>
+
+      <div class="dossier-block is-highlight">
+        <h3 class="dossier-title">7. Complete 3-Phase Topic Dossier</h3>
+        <div class="angle-dossier-grid">
+          <div class="angle-mini-card">
+            <strong>Phase 1: Pathogenesis</strong>
+            <div class="dossier-bullets amboss-scan-target" id="dossier-angle-1"></div>
+          </div>
+          <div class="angle-mini-card">
+            <strong>Phase 2: Histology / Structure</strong>
+            <div class="dossier-bullets amboss-scan-target" id="dossier-angle-2"></div>
+          </div>
+          <div class="angle-mini-card">
+            <strong>Phase 3: Clinical / Tx</strong>
+            <div class="dossier-bullets amboss-scan-target" id="dossier-angle-3"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="popup-footer">
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(-180)">▲ Up</button>
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(180)">▼ Down</button>
+      <button type="button" class="btn-neon" id="continue-runner-btn" onclick="continueToNextGate()">▶ Continue Runner [Space / Enter]</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6-COLUMN LOOT CODEX MODAL -->
+<div class="modal-backdrop" id="codex-backdrop" role="dialog" aria-modal="true" aria-labelledby="codex-modal-title">
+  <div class="modal-shell">
+    <div class="popup-header">
+      <span class="delta-pill is-xp">15 ENTITIES</span>
+      <h2 class="popup-verdict is-correct" id="codex-modal-title">6-Column Viral Loot Codex</h2>
+      <button type="button" class="btn-neon is-cyan" onclick="closeCodex()">✕ Close [Esc]</button>
+    </div>
+    <div class="codex-controls">
+      <div>
+        <label class="field-label" for="codex-search-input">Search Viruses, Hallmarks, Drugs, or OMT Levels</label>
+        <input type="search" id="codex-search-input" class="neon-input" placeholder="Filter by keyword (e.g., E6, koilocyte, PDA, T10, acyclovir)…" oninput="renderCodexTable()">
+      </div>
+      <div class="codex-filter-row">
+        <button type="button" class="phase-pill is-active" data-codex-sector="all" onclick="setCodexSector('all')">All Sectors</button>
+        <button type="button" class="phase-pill" data-codex-sector="sector_1" onclick="setCodexSector('sector_1')">I. Ulcer/Cutaneous</button>
+        <button type="button" class="phase-pill" data-codex-sector="sector_2" onclick="setCodexSector('sector_2')">II. Oncogenic</button>
+        <button type="button" class="phase-pill" data-codex-sector="sector_3" onclick="setCodexSector('sector_3')">III. TORCH</button>
+        <button type="button" class="phase-pill" data-codex-sector="sector_4" onclick="setCodexSector('sector_4')">IV. Perinatal</button>
+        <button type="button" class="phase-pill" data-codex-sector="sector_5" onclick="setCodexSector('sector_5')">V. Endocrine/OMT</button>
+      </div>
+    </div>
+    <div class="codex-table-wrap">
+      <table class="codex-table">
+        <thead>
+          <tr>
+            <th>Entity &amp; Sector</th>
+            <th>Etiology / Trigger</th>
+            <th>Phase 1: Pathogenesis</th>
+            <th>Phase 2: Hallmarks</th>
+            <th>Phase 3: Clinical</th>
+            <th>Management &amp; Guild Secret</th>
+          </tr>
+        </thead>
+        <tbody id="codex-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<api-shim></api-shim>
+<script>
+const GAME_CONFIG = {
+  title: `06. Endocrine & Reproductive System Viruses`,
+  timerSeconds: 50,
+  metaFadeMs: 3000,
+  streakHealEvery: 4,
+  streakHealAmount: 25
+};
+
+const LO_VISUAL_THEMES = {
+  1: { tag: `SECTOR I • SACRAL GANGLIA`, particleColor: `#ff2d78`, gridRgb: `110, 45, 165`, railColor: `#34a88f` },
+  2: { tag: `SECTOR I • KOILOCYTE ZONE`, particleColor: `#00ffcc`, gridRgb: `75, 65, 185`, railColor: `#34a88f` },
+  3: { tag: `SECTOR I • POXVIRUS DOME`, particleColor: `#ffe04a`, gridRgb: `95, 55, 160`, railColor: `#34a88f` },
+  4: { tag: `SECTOR II • E6 / E7 ONCO-CORE`, particleColor: `#ff2d78`, gridRgb: `135, 35, 145`, railColor: `#34a88f` },
+  5: { tag: `SECTOR II • SPINDLE VASCULATURE`, particleColor: `#b388ff`, gridRgb: `90, 45, 175`, railColor: `#34a88f` },
+  6: { tag: `SECTOR II • CD21 LYMPHOID VAULT`, particleColor: `#00ffcc`, gridRgb: `65, 70, 170`, railColor: `#34a88f` },
+  7: { tag: `SECTOR III • PERIVENTRICULAR RING`, particleColor: `#00ffcc`, gridRgb: `55, 85, 180`, railColor: `#34a88f` },
+  8: { tag: `SECTOR III • TOGAVIRUS TRIAD`, particleColor: `#ffe04a`, gridRgb: `105, 60, 170`, railColor: `#34a88f` },
+  9: { tag: `SECTOR III • DERMATOMAL SCAR`, particleColor: `#ff2d78`, gridRgb: `120, 45, 155`, railColor: `#34a88f` },
+  10: { tag: `SECTOR IV • P-ANTIGEN ERYTHRON`, particleColor: `#ff2d78`, gridRgb: `130, 40, 140`, railColor: `#34a88f` },
+  11: { tag: `SECTOR IV • NEURAL PROGENITOR`, particleColor: `#00ffcc`, gridRgb: `60, 90, 175`, railColor: `#34a88f` },
+  12: { tag: `SECTOR IV • PERINATAL SHIELD`, particleColor: `#ffe04a`, gridRgb: `95, 75, 165`, railColor: `#34a88f` },
+  13: { tag: `SECTOR V • ORCHITIS TUNICA`, particleColor: `#b388ff`, gridRgb: `100, 50, 175`, railColor: `#34a88f` },
+  14: { tag: `SECTOR V • THYROID FOLLICLE`, particleColor: `#00ffcc`, gridRgb: `70, 85, 185`, railColor: `#34a88f` },
+  15: { tag: `SECTOR V • SACRAL TORSION AXIS`, particleColor: `#ffe04a`, gridRgb: `110, 65, 170`, railColor: `#34a88f` }
+};
+
+const CODEX_DATA = [
+  {
+    lo: 1, sector: `sector_1`, tag: `Sector I • Genital Ulcer`,
+    entity: `HSV-1 & HSV-2 Genitalis`, badgeMeta: `CP 10 • Enveloped dsDNA`,
+    etiology: `Herpes simplex virus (HSV-2 > HSV-1 for genitalis; HSV-1 rising via oral-genital transmission); sexual or perinatal contact.`,
+    pathogenesis: `Linear dsDNA herpesvirus replicates in host nucleus; establishes lifelong latency in sacral dorsal root ganglia (S2–S4) for HSV-2 (trigeminal for HSV-1).`,
+    hallmarks: `Tzanck smear shows multinucleated giant cells; histology reveals Cowdry type A intranuclear inclusions; PCR of vesicle fluid is gold standard.`,
+    clinical: `Multiple painful shallow vesicles on an erythematous base ("dew-drop on rose petal") with tender inguinal lymphadenopathy and viral prodrome; aseptic meningitis in HSV-2.`,
+    management: `Acyclovir, valacyclovir, or famciclovir (viral thymidine kinase activates prodrug); cesarean delivery if active genital lesions at labor. Secret: Distinguish painful vesicles (HSV) from painless chancre (syphilis) and single painful exudative ulcer (chancroid).`
+  },
+  {
+    lo: 2, sector: `sector_1`, tag: `Sector I • Anogenital Warts`,
+    entity: `Low-Risk HPV (Types 6 & 11)`, badgeMeta: `CP 10 • Naked Icosahedral dsDNA`,
+    etiology: `Human papillomavirus types 6 and 11; direct skin-to-skin sexual contact or vertical passage through infected birth canal.`,
+    pathogenesis: `Infects basal keratinocytes via microabrasions; viral genome remains episomal (non-integrating) with minimal E6/E7 oncogenicity, driving benign epidermal hyperplasia.`,
+    hallmarks: `Koilocytosis (perinuclear halo with raisin-like crinkled hyperchromatic nuclei) at the cervical transformation zone or verrucous papillary fronds on biopsy.`,
+    clinical: `Condylomata acuminata (soft, flesh-colored, cauliflower-like anogenital warts) and juvenile-onset recurrent respiratory papillomatosis (hoarseness, stridor in infants).`,
+    management: `Topical imiquimod, podophyllotoxin, trichloroacetic acid, or cryotherapy; prevented by 9-valent HPV vaccine (covers 6 and 11). Secret: Episomal DNA explains benign hyperplasia without malignant progression.`
+  },
+  {
+    lo: 3, sector: `sector_1`, tag: `Sector I • Poxvirus Dome`,
+    entity: `Molluscum Contagiosum`, badgeMeta: `CP 10 • Cytoplasmic dsDNA`,
+    etiology: `Molluscum contagiosum virus (Poxviridae); sexually transmitted in adults (lower abdomen, pubic region, thighs) or skin-to-skin in children.`,
+    pathogenesis: `Largest DNA virus; carries its own DNA-dependent RNA polymerase to replicate exclusively in host cytoplasm ("Pox is out of the box").`,
+    hallmarks: `Henderson-Paterson bodies (large eosinophilic intracytoplasmic viral inclusion bodies) within hypertrophied epidermal cells.`,
+    clinical: `Firm, pearly, flesh-colored dome-shaped papules with central umbilication; widespread persistent lesions suggest advanced HIV/AIDS (CD4 < 100).`,
+    management: `Self-limited in immunocompetent adults (6–18 months); curettage, cryotherapy, or topical cantharidin if persistent; ART in HIV. Secret: Central umbilication + cytoplasmic eosinophilic inclusions = Poxvirus.`
+  },
+  {
+    lo: 4, sector: `sector_2`, tag: `Sector II • Oncogenic HPV`,
+    entity: `High-Risk HPV (16, 18, 31, 33)`, badgeMeta: `CP 10 • Cervical Oncogenesis`,
+    etiology: `HPV types 16 (MCC squamous cell carcinoma) and 18 (adenocarcinoma); early coitarche, multiple sexual partners, smoking, immunosuppression.`,
+    pathogenesis: `Viral DNA integrates into host genome; E6 protein ubiquitinates and degrades p53 tumor suppressor, while E7 binds and inactivates Rb, releasing E2F to drive S-phase entry.`,
+    hallmarks: `Pap smear shows koilocytes and high nuclear-to-cytoplasmic ratio; CIN I/II/III graded by basal-to-surface dysplastic thickness at the squamocolumnar transformation zone.`,
+    clinical: `Asymptomatic early CIN; invasive cervical cancer presents with postcoital vaginal bleeding, watery malodorous discharge, or lateral spread causing ureteral hydronephrosis.`,
+    management: `Pap +/- HPV DNA co-testing starting at age 21; colposcopy/LEEP for high-grade CIN; prophylactic HPV vaccination (prior to exposure). Secret: E6 = p53 ("6" looks like p); E7 = Rb.`
+  },
+  {
+    lo: 5, sector: `sector_2`, tag: `Sector II • Vascular Tumor`,
+    entity: `HHV-8 (Kaposi Sarcoma)`, badgeMeta: `CP 10 • Endothelial Proliferation`,
+    etiology: `Human herpesvirus 8 (KSHV); sexual transmission; manifests on external genitalia, skin, oral mucosa, and viscera in HIV/AIDS (CD4 < 500) or transplant patients.`,
+    pathogenesis: `Herpesvirus encodes viral cyclin and VEGF-mimetic angiogenic cytokines that drive dysregulated lymphatic endothelial proliferation and neoangiogenesis.`,
+    hallmarks: `Biopsy shows spindle-shaped endothelial cells forming slit-like vascular spaces with extravasated RBCs and hemosiderin deposition.`,
+    clinical: `Violaceous, dark red-purple macules, plaques, or nodules on genitalia, palate, or extremities; distinguish from Bartonella bacillary angiomatosis (neutrophilic infiltrate).`,
+    management: `Initiate or optimize antiretroviral therapy (ART) for immune reconstitution; local excision or liposomal doxorubicin for disseminated disease. Secret: Violaceous genital nodule + spindle cells = HHV-8 (no neutrophilic acute inflammation).`
+  },
+  {
+    lo: 6, sector: `sector_2`, tag: `Sector II • Lymphoid EBV`,
+    entity: `EBV (HHV-4) GYN & Lymphoid`, badgeMeta: `CP 10 • B-Cell Immortalization`,
+    etiology: `Epstein-Barr virus (HHV-4); transmitted via saliva/intimate contact; linked to genital/pelvic lymphomas, DLBCL in HIV, and post-transplant lymphoproliferative disorder.`,
+    pathogenesis: `Envelope gp350 binds B-cell CD21 ("21 to drink in a Bar"); latent membrane protein-1 (LMP-1) mimics constitutively active CD40, activating NF-kB and Bcl-2 to immortalize B cells.`,
+    hallmarks: `Monospot heterophile antibody agglutination; atypical CD8+ cytotoxic T cells (Downey cells) on smear; "starry sky" sheets of monomorphic B cells in Burkitt lymphoma.`,
+    clinical: `Acute mono (pharyngitis, posterior cervical nodes, splenomegaly); chronic or immunocompromised states drive primary CNS/pelvic DLBCL or acute EBV vulvar ulcers (Lipschutz).`,
+    management: `Supportive care for mono (avoid contact sports 3–4 weeks for splenic rupture; avoid amoxicillin rash); reduce immunosuppression or rituximab for PTLD. Secret: Amoxicillin given for EBV pharyngitis triggers maculopapular rash.`
+  },
+  {
+    lo: 7, sector: `sector_3`, tag: `Sector III • Congenital CMV`,
+    entity: `Cytomegalovirus (CMV / HHV-5)`, badgeMeta: `CP 4 & 10 • MCC Congenital Viral`,
+    etiology: `Most common congenital viral infection; transplacental transmission (highest fetal risk with primary maternal infection), perinatal secretions, or breast milk.`,
+    pathogenesis: `Large enveloped dsDNA herpesvirus infects endothelial and neural cells, causing focal placental/fetal ischemia, microglial nodules, and subependymal necrosis.`,
+    hallmarks: `Intranuclear "owl's eye" basophilic inclusions with clear halo; cranial imaging shows periventricular calcifications; urine/saliva CMV PCR within 3 weeks of birth.`,
+    clinical: `Petechial "blueberry muffin" rash (extramedullary hematopoiesis), hepatosplenomegaly, jaundice, microcephaly, chorioretinitis, and sensorineural hearing loss.`,
+    management: `Oral valganciclovir or IV ganciclovir for symptomatic congenital CMV (inhibits viral DNA polymerase via UL97 kinase); foscarnet if UL97-mutant. Secret: Periventricular calcifications = CMV (vs diffuse parenchymal = Toxoplasma).`
+  },
+  {
+    lo: 8, sector: `sector_3`, tag: `Sector III • Congenital Rubella`,
+    entity: `Congenital Rubella Syndrome`, badgeMeta: `CP 4 • +ssRNA Togavirus`,
+    etiology: `Rubella virus (enveloped +ssRNA Togavirus); maternal respiratory droplet exposure in unvaccinated pregnant woman during first trimester (< 16 weeks).`,
+    pathogenesis: `Crosses placenta and inhibits fetal cell mitosis while inducing apoptosis and vascular endothelial injury during organogenesis of heart, eye, and inner ear.`,
+    hallmarks: `Classic triad: sensorineural deafness, bilateral leukocoria (cataracts), and congenital heart defects (patent ductus arteriosus, pulmonary artery hypoplasia).`,
+    clinical: `Blueberry muffin extramedullary hematopoiesis rash, microphthalmia, hepatosplenomegaly, and continuous "machine-like" murmur at left infraclavicular area.`,
+    management: `Live-attenuated MMR vaccine prior to pregnancy (strictly contraindicated during pregnancy); screen maternal rubella IgG prenatally. Secret: Machine-like PDA murmur + white pupillary reflex + deafness = Rubella.`
+  },
+  {
+    lo: 9, sector: `sector_3`, tag: `Sector III • Congenital VZV`,
+    entity: `Congenital & Neonatal Varicella`, badgeMeta: `CP 4 & 10 • Dermatomal Herpesvirus`,
+    etiology: `Varicella-zoster virus (HHV-3); maternal primary chickenpox in 1st/2nd trimester (congenital syndrome) or 5 days before to 2 days after delivery (severe neonatal VZV).`,
+    pathogenesis: `Crosses placenta to infect fetal sensory nerves and developing limb buds; maternal primary infection just before delivery lacks protective transplacental IgG transfer.`,
+    hallmarks: `Zigzag cicatricial cutaneous scarring in a dermatomal distribution, ipsilateral limb hypoplasia, cortical atrophy, and chorioretinitis; Tzanck/PCR shows multinucleated giant cells.`,
+    clinical: `In utero limb hypoplasia + dermatomal scars; peripartum neonatal VZV causes fulminant disseminated vesicular pneumonia and hepatitis.`,
+    management: `Varicella-zoster immune globulin (VZIG / VariZIG) + IV acyclovir for exposed susceptible pregnant patients or neonates born in the -5/+2 day window. Secret: Dermatomal zigzag scars + limb hypoplasia = Congenital VZV.`
+  },
+  {
+    lo: 10, sector: `sector_4`, tag: `Sector IV • Fetal Hydrops`,
+    entity: `Parvovirus B19 (Hydrops Fetalis)`, badgeMeta: `CP 4 • Naked ssDNA`,
+    etiology: `Parvovirus B19; smallest DNA virus (naked icosahedral ssDNA); maternal respiratory droplet exposure (daycare/school teachers), crosses placenta in 2nd trimester.`,
+    pathogenesis: `Binds P antigen (globoside) on fetal erythroid progenitor cells in bone marrow/liver, inducing pure red cell aplasia, severe anemia, and high-output cardiac failure.`,
+    hallmarks: `Giant pronormoblasts with intranuclear eosinophilic inclusions ("lantern cells"); prenatal ultrasound shows fetal ascites, skin edema, pericardial effusion, and elevated MCA Doppler velocity.`,
+    clinical: `Maternal mild arthritis or slapped-cheek erythema infectiosum followed by decreased fetal movement, polyhydramnios, and non-immune hydrops fetalis.`,
+    management: `Serial fetal MCA peak systolic velocity Doppler surveillance and intrauterine red blood cell transfusion for severe fetal anemia. Secret: P antigen tropism -> high-output CHF -> hydrops fetalis.`
+  },
+  {
+    lo: 11, sector: `sector_4`, tag: `Sector IV • Microcephaly`,
+    entity: `Congenital Zika Syndrome`, badgeMeta: `CP 4 • Flavivirus +ssRNA`,
+    etiology: `Zika virus (enveloped +ssRNA Flavivirus); transmitted by Aedes aegypti mosquito bite or sexual/vertical contact in tropical/subtropical regions.`,
+    pathogenesis: `Crosses placenta and preferentially infects fetal cortical neural progenitor cells, triggering apoptosis, cell-cycle arrest, and severe cortical thinning.`,
+    hallmarks: `Brain imaging shows severe microcephaly, subcortical/basal ganglia calcifications, ventriculomegaly, and overlapping cranial sutures with redundant scalp skin.`,
+    clinical: `Mild maternal maculopapular pruritic rash, conjunctivitis, and arthralgias (or asymptomatic); neonate has severe microcephaly, hypertonia, and macular scarring.`,
+    management: `Supportive care and early neurodevelopmental therapy; prevention via mosquito avoidance and barrier contraception after travel to endemic zones. Secret: Mosquito + mild conjunctivitis/rash -> fetal neural progenitor apoptosis.`
+  },
+  {
+    lo: 12, sector: `sector_4`, tag: `Sector IV • Perinatal HBV/HCV`,
+    entity: `Perinatal Hepatitis B & C`, badgeMeta: `CP 4 & 7 • Vertical Transmission`,
+    etiology: `Hepatitis B (partially dsDNA Hepadnavirus; high vertical risk if maternal HBeAg+ / high viral load) and Hepatitis C (+ssRNA Flavivirus; ~5% vertical risk).`,
+    pathogenesis: `HBV enters hepatocytes and completes partial dsDNA using reverse transcriptase; neonatal immune tolerance causes 90% chronic carrier progression if infected at birth.`,
+    hallmarks: `Maternal HBsAg and HBeAg screening; neonatal HBV DNA/HBsAg follow-up; liver biopsy shows ground-glass hepatocytes (HBV) or lymphoid aggregates/steatosis (HCV).`,
+    clinical: `Most infected neonates are asymptomatic at birth but develop chronic hepatitis, cirrhosis, and hepatocellular carcinoma later in life.`,
+    management: `Give newborn BOTH passive Hepatitis B Immune Globulin (HBIG) AND active recombinant HBV vaccine at separate anatomic sites within 12 hours of birth (tenofovir in 3rd trimester if high maternal HBV DNA). Secret: Passive + active immunoprophylaxis < 12h prevents chronicity.`
+  },
+  {
+    lo: 13, sector: `sector_5`, tag: `Sector V • Viral Orchitis`,
+    entity: `Mumps Virus (Epididymo-Orchitis)`, badgeMeta: `CP 4 & 10 • -ssRNA Paramyxovirus`,
+    etiology: `Mumps virus (enveloped -ssRNA Paramyxovirus with HN and Fusion proteins); respiratory droplet spread in unvaccinated postpubertal males.`,
+    pathogenesis: `Viremia seeds parotid glands, meninges, pancreas, and testes; interstitial edema within the unyielding tunica albuginea causes ischemic pressure necrosis of seminiferous tubules.`,
+    hallmarks: `Testicular biopsy (rarely needed) shows interstitial mononuclear infiltrate, edema, and seminiferous tubule hyalinization/atrophy; elevated serum amylase from parotitis.`,
+    clinical: `Fever, bilateral painful parotid swelling (earache, displaced pinna), followed 4–8 days later by acute unilateral (70%) painful testicular swelling; postpubertal infertility risk.`,
+    management: `Supportive care (scrotal elevation, ice packs, NSAIDs); prevented by live-attenuated MMR vaccine (wait until CD4 > 200 in HIV; avoid in pregnancy). Secret: Unyielding tunica albuginea -> ischemic seminiferous tubule atrophy (POM = Parotitis, Orchitis, Meningitis).`
+  },
+  {
+    lo: 14, sector: `sector_5`, tag: `Sector V • Viral Thyroiditis`,
+    entity: `Coxsackie B & Subacute Thyroiditis`, badgeMeta: `CP 3 • +ssRNA Picornavirus`,
+    etiology: `De Quervain (subacute granulomatous) thyroiditis; typically follows viral URI (Coxsackie B, mumps, or adenovirus) in young to middle-aged females.`,
+    pathogenesis: `Post-viral immune-mediated destruction of thyroid follicles releases preformed T3/T4 into circulation (transient hyperthyroidism), followed by depletion (hypothyroidism) and recovery.`,
+    hallmarks: `Markedly elevated ESR/CRP, low radioactive iodine uptake (RAIU) scan during thyrotoxic phase, and multinucleated giant cells surrounding damaged colloid follicles on histology.`,
+    clinical: `Painful, exquisitely tender, firm enlarged thyroid gland radiating to the jaw/ear after a recent viral prodrome; transient palpitations and heat intolerance.`,
+    management: `Self-limited; NSAIDs or aspirin first-line for pain (corticosteroids if severe) + beta-blocker (propranolol) for adrenergic symptoms; avoid antithyroid drugs (PTU/methimazole). Secret: Painful tender thyroid + high ESR + LOW RAIU = Subacute granulomatous thyroiditis.`
+  },
+  {
+    lo: 15, sector: `sector_5`, tag: `Sector V • Pelvic OMT`,
+    entity: `Pelvic Viscerosomatics & Sacrum`, badgeMeta: `Domain 1 OMT • Sympathetic / Parasympathetic`,
+    etiology: `Visceral nociception from gonads, uterus, cervix, prostate, or thyroid triggers spinal facilitation at corresponding thoracic/lumbar/sacral segments.`,
+    pathogenesis: `Sympathetic fibers: Gonads/ovaries/testes & upper uterus = T10–T11; lower uterus/cervix/prostate = T12–L2; Parasympathetics: Pelvic organs = S2–S4 (pelvic splanchnics); Thyroid = T1–T4.`,
+    hallmarks: `Chapman's reflexes: Ovaries/testes = pubic tubercle (ant) & PSIS/T9-T10 (post); Uterus = pubic symphysis/ASIS junction; Broad ligament = lateral thigh/IT band; Thyroid = 2nd ICS parasternal.`,
+    clinical: `Pelvic congestion, dysmenorrhea, or post-infectious orchitis presenting with sacral torsions (L on L vs L on R), unilateral sacral shears, and boggy T10–L2 paraspinal tissue texture changes.`,
+    management: `Treat sympathetic T10–L2 paraspinal hypertonicity, OA/AA and S2–S4 parasympathetics (sacral rocking/BLT), and pelvic diaphragm release to restore lymphatic drainage. Secret: Gonads/kidneys share T10–T11; uterus/cervix/prostate map to T12–L2 + S2–S4.`
+  }
+];
+
+const ALL_QUESTIONS = [
+  // LO 1: HSV-1 & HSV-2
+  {
+    id: `ERV01-Q1`, lo: 1, sector: `sector_1`, loTitle: `LO 1: HSV-1 & HSV-2 Genitalis`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `HSV-2 Genital Herpes`,
+    stem: `A 24-year-old woman presents with 2 days of dysuria, low-grade fever, and clusters of exquisitely painful vesicles on an erythematous base along the labia majora, accompanied by tender bilateral inguinal lymphadenopathy. Which pathogen is most likely responsible?`,
+    clue: `Multiple painful grouped vesicles on an erythematous base with tender inguinal nodes point to herpes simplex.`,
+    choices: [`Herpes simplex virus-2`, `Treponema pallidum`, `Haemophilus ducreyi`],
+    correctIndex: 0,
+    explanation: `Correct: HSV-2 classically causes multiple painful grouped vesicles and shallow ulcers on an erythematous base with tender inguinal adenopathy and constitutional prodrome. Distractor exclusion: Treponema pallidum causes a single painless indurated chancre; Haemophilus ducreyi causes a single deep painful ulcer with purulent exudate and suppurative buboes rather than grouped vesicles.`,
+    secondOrderClue: `Grouped painful vesicles + tender nodes -> HSV-2 (sacral DRG latency).`,
+    phase1Pearl: `HSV establishes lifelong latency inside sacral dorsal root ganglia (S2–S4) via retrograde axonal transport.`,
+    phase2Hallmark: `Tzanck smear demonstrates multinucleated giant cells; Cowdry type A intranuclear inclusions are seen histologically.`,
+    phase3Secret: `Guild Master's Secret: Perform cesarean delivery if active genital lesions or prodrome are present at labor onset.`,
+    dossierBullets: {
+      p1: [`Enveloped linear dsDNA replicating in host nucleus`, `Latency in sacral dorsal root ganglia (S2–S4)`],
+      p2: [`Multinucleated giant cells on Tzanck smear`, `Cowdry A eosinophilic intranuclear inclusions`],
+      p3: [`Oral acyclovir/valacyclovir reduces shedding`, `Cesarean delivery if active lesions at term`]
+    }
+  },
+  {
+    id: `ERV01-Q2`, lo: 1, sector: `sector_1`, loTitle: `LO 1: HSV-1 & HSV-2 Genitalis`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Sacral Dorsal Root Ganglia`,
+    stem: `A 29-year-old man with recurrent painful vesicular penile lesions experiences tingling paresthesias in the perineum 24 hours before each flare. Where does the causative virus remain latent between symptomatic episodes?`,
+    clue: `Genital herpes travels along S2–S4 sensory nerves to its sensory ganglion reservoir.`,
+    choices: [`Sacral dorsal root ganglia`, `Trigeminal sensory ganglion`, `B-lymphocytes via CD21`],
+    correctIndex: 0,
+    explanation: `Correct: Genital HSV-2 migrates retrogradely along pelvic sensory axons to establish lifelong latent infection in the sacral dorsal root ganglia (S2–S4). Distractor exclusion: The trigeminal ganglion is the classic latency site for oral HSV-1 and ophthalmic VZV; EBV establishes latency inside B-lymphocytes after binding CD21.`,
+    secondOrderClue: `Genital HSV-2 prodrome -> reactivation from S2–S4 sacral dorsal root ganglia.`,
+    phase1Pearl: `Prodromal burning/tingling reflects viral reactivation traveling anterogradely down sensory nerves to the mucosa.`,
+    phase2Hallmark: `PCR of vesicular fluid is the most sensitive diagnostic test; Tzanck smear does not distinguish HSV-1, HSV-2, or VZV.`,
+    phase3Secret: `Guild Master's Secret: HSV-2 is also a major cause of recurrent benign aseptic (viral) meningitis in sexually active adults.`,
+    dossierBullets: {
+      p1: [`Retrograde axonal transport to S2–S4 ganglia`, `Reactivation triggered by stress or UV/illness`],
+      p2: [`Vesicular fluid PCR confirms serotype`, `Intranuclear Cowdry A inclusions on biopsy`],
+      p3: [`Prodromal dosing of valacyclovir aborts flares`, `Daily suppressive therapy reduces transmission`]
+    }
+  },
+  {
+    id: `ERV01-Q3`, lo: 1, sector: `sector_1`, loTitle: `LO 1: HSV-1 & HSV-2 Genitalis`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Multinucleated Giant Cells`,
+    stem: `A 26-year-old pregnant woman at 38 weeks' gestation develops painful vulvar blisters. Scraping the base of an unroofed vesicle for rapid cytologic smear reveals syncytial cells with molded nuclei. What viral mechanism is directly targeted by first-line therapy?`,
+    clue: `Acyclovir is a guanosine analog that requires a specific viral enzyme for monophosphorylation.`,
+    choices: [`Viral thymidine kinase phosphorylation`, `Viral protease polyprotein cleavage`, `Host CCR5 chemokine co-receptor`],
+    correctIndex: 0,
+    explanation: `Correct: Multinucleated giant cells on Tzanck smear confirm herpesvirus; acyclovir/valacyclovir require viral thymidine kinase for initial monophosphorylation before inhibiting viral DNA polymerase. Distractor exclusion: Viral protease cleavage is targeted by HIV/HCV protease inhibitors; CCR5 entry inhibition is the mechanism of maraviroc for HIV.`,
+    secondOrderClue: `Multinucleated giant cells -> HSV -> Acyclovir activated by viral thymidine kinase.`,
+    phase1Pearl: `Resistance to acyclovir arises via mutations in viral thymidine kinase (UL23); treat resistant cases with foscarnet.`,
+    phase2Hallmark: `Tzanck prep shows multinucleated giant cells with nuclear molding and ground-glass chromatin.`,
+    phase3Secret: `Guild Master's Secret: Start suppressive acyclovir at 36 weeks' gestation in mothers with recurrent genital HSV.`,
+    dossierBullets: {
+      p1: [`Viral thymidine kinase phosphorylates acyclovir`, `Triphosphate form causes DNA chain termination`],
+      p2: [`Syncytial multinucleated giant cells on Tzanck`, `Ground-glass nuclei with Cowdry A bodies`],
+      p3: [`Foscarnet bypasses thymidine kinase if resistant`, `Suppressive therapy at 36w prevents C-section`]
+    }
+  },
+
+  // LO 2: Low-Risk HPV (6 & 11)
+  {
+    id: `ERV02-Q1`, lo: 2, sector: `sector_1`, loTitle: `LO 2: Low-Risk HPV (6 & 11)`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `HPV Types 6 and 11`,
+    stem: `A 3-year-old boy is evaluated for progressive hoarseness and inspiratory stridor. Laryngoscopy demonstrates friable, cauliflower-like papillomas on the true vocal cords. His mother had untreated genital warts during vaginal delivery. Which viral genotypes caused this condition?`,
+    clue: `Both condylomata acuminata and recurrent respiratory papillomatosis share the same low-risk HPV types.`,
+    choices: [`HPV types 6 and 11`, `HPV types 16 and 18`, `HHV-6 and HHV-7`],
+    correctIndex: 0,
+    explanation: `Correct: Low-risk HPV types 6 and 11 cause anogenital condylomata acuminata and neonatal/juvenile laryngeal papillomatosis via vertical transmission during birth. Distractor exclusion: HPV 16 and 18 are high-risk oncogenic genotypes causing CIN and cervical carcinoma; HHV-6 and 7 cause roseola infantum.`,
+    secondOrderClue: `Maternal genital warts + pediatric vocal cord papilloma -> vertical HPV 6/11.`,
+    phase1Pearl: `Low-risk HPV DNA remains extrachromosomal (episomal) inside basal keratinocytes rather than integrating into host chromosomes.`,
+    phase2Hallmark: `Papillary fronds lined by stratified squamous epithelium with koilocytes (perinuclear halos and wrinkled nuclei).`,
+    phase3Secret: `Guild Master's Secret: Prevented by 9-valent HPV vaccine, which covers both low-risk (6, 11) and high-risk (16, 18, 31, 33, 45, 52, 58) types.`,
+    dossierBullets: {
+      p1: [`Naked icosahedral dsDNA; episomal persistence`, `Minimal E6/E7 affinity prevents malignancy`],
+      p2: [`Verrucous papillary hyperplasia on biopsy`, `Koilocytes with perinuclear clearing`],
+      p3: [`Condylomata acuminata & laryngeal papillomas`, `Imiquimod, podophyllotoxin, or cryotherapy`]
+    }
+  },
+  {
+    id: `ERV02-Q2`, lo: 2, sector: `sector_1`, loTitle: `LO 2: Low-Risk HPV (6 & 11)`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Episomal Viral DNA Persistence`,
+    stem: `A 22-year-old man has multiple soft, verrucous, flesh-colored perianal papules. Biopsy shows acanthosis, papillomatosis, and koilocytosis without basal atypia or invasion. Why do these lesions rarely progress to invasive squamous cell carcinoma?`,
+    clue: `Compare the physical state of low-risk HPV DNA in the host nucleus against high-risk HPV.`,
+    choices: [`Viral genome remains episomal`, `Virus replicates in host cytoplasm`, `Virus destroys CD4+ helper T cells`],
+    correctIndex: 0,
+    explanation: `Correct: In low-risk HPV (6 and 11), the viral dsDNA remains as a circular episome and encodes E6/E7 variants with low affinity for p53 and Rb, preventing malignant transformation. Distractor exclusion: Poxviruses (molluscum) replicate in the cytoplasm; HIV and HHV-6 infect and deplete CD4+ T cells.`,
+    secondOrderClue: `Condyloma acuminatum = episomal HPV 6/11 (benign) vs integrated HPV 16/18 (malignant).`,
+    phase1Pearl: `HPV enters basal epithelial cells through microabrasions and ties viral DNA replication to keratinocyte differentiation.`,
+    phase2Hallmark: `Histology shows papillomatosis, parakeratosis, and koilocytosis in superficial squamous layers.`,
+    phase3Secret: `Guild Master's Secret: Condylomata acuminata (HPV 6/11) are cauliflower-like; condylomata lata (secondary syphilis) are flat, moist, and teeming with spirochetes.`,
+    dossierBullets: {
+      p1: [`Episomal circular dsDNA avoids host disruption`, `Infects stratum basale via epithelial microtrauma`],
+      p2: [`Raisin-like hyperchromatic koilocyte nuclei`, `Benign acanthosis without invasive atypia`],
+      p3: [`Distinguish from flat condylomata lata (syphilis)`, `Treat with cryotherapy or topical imiquimod`]
+    }
+  },
+  {
+    id: `ERV02-Q3`, lo: 2, sector: `sector_1`, loTitle: `LO 2: Low-Risk HPV (6 & 11)`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Koilocytes With Perinuclear Halo`,
+    stem: `Biopsy of a painless, exophytic, cauliflower-like vulvar mass from a 25-year-old woman shows thickened prickle-cell layers and superficial squamous cells with eccentric, crinkled dark nuclei surrounded by a clear cytoplasmic halo. What is the histologic term for these pathognomonic cells?`,
+    clue: `These vacuolated squamous cells are the hallmark cytopathic effect of human papillomavirus.`,
+    choices: [`Koilocytes`, `Reed-Sternberg cells`, `Donovan bodies`],
+    correctIndex: 0,
+    explanation: `Correct: Koilocytes are HPV-infected squamous epithelial cells characterized by perinuclear cytoplasmic vacuolization (halo) and dark, crinkled ("raisinoid") nuclei. Distractor exclusion: Reed-Sternberg cells are binucleated giant B cells in Hodgkin lymphoma; Donovan bodies are bipolar-staining intracytoplasmic Klebsiella granulomatis rods.`,
+    secondOrderClue: `Cauliflower genital wart + raisinoid nucleus + perinuclear halo = Koilocytes (HPV).`,
+    phase1Pearl: `HPV E4 protein disrupts the cytokeratin network, producing the perinuclear cytoplasmic clearing seen in koilocytes.`,
+    phase2Hallmark: `Koilocytes + papillomatosis + hyperkeratosis define condylomata acuminata.`,
+    phase3Secret: `Guild Master's Secret: Imiquimod stimulates local TLR-7 receptors to boost interferon-alpha and cell-mediated clearance of warts.`,
+    dossierBullets: {
+      p1: [`Viral E4 collapses keratin filaments`, `Produces classic perinuclear halo appearance`],
+      p2: [`Koilocytes with raisinoid hyperchromatic nuclei`, `Exophytic papillary architecture`],
+      p3: [`Imiquimod activates TLR-7 immune clearance`, `Podophyllotoxin is contraindicated in pregnancy`]
+    }
+  },
+
+  // LO 3: Molluscum Contagiosum
+  {
+    id: `ERV03-Q1`, lo: 3, sector: `sector_1`, loTitle: `LO 3: Molluscum Contagiosum`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Molluscum Contagiosum Poxvirus`,
+    stem: `A 27-year-old man with poorly controlled HIV (CD4 count 48/mm³) develops dozens of firm, pearly, dome-shaped papules with central umbilication across his pubic area and lower abdomen. Which viral family is responsible?`,
+    clue: `Pearly umbilicated papules that flourish in advanced HIV belong to the largest DNA virus family.`,
+    choices: [`Poxviridae`, `Picornaviridae`, `Flaviviridae`],
+    correctIndex: 0,
+    explanation: `Correct: Molluscum contagiosum is caused by a Poxvirus (dsDNA) producing pearly, dome-shaped papules with central umbilication; extensive lesions occur in severe immunodeficiency. Distractor exclusion: Picornaviridae are small naked +ssRNA viruses (HAV, Coxsackie); Flaviviridae include HCV and Zika virus.`,
+    secondOrderClue: `Pearly dome-shaped papule + central umbilication -> Molluscum (Poxvirus).`,
+    phase1Pearl: `Poxviruses encode their own DNA-dependent RNA polymerase to replicate entirely inside host cytoplasm.`,
+    phase2Hallmark: `Central umbilication filled with waxy keratinous debris containing large eosinophilic cytoplasmic inclusions.`,
+    phase3Secret: `Guild Master's Secret: In adults, pubic molluscum is sexually transmitted; giant or widespread lesions warrant HIV testing.`,
+    dossierBullets: {
+      p1: [`Largest dsDNA virus; brick/dumbbell core`, `Replicates in cytoplasm with viral RNA pol`],
+      p2: [`Pearly papules with central umbilication`, `Eosinophilic Henderson-Paterson bodies`],
+      p3: [`Sexually transmitted in pubic distribution`, `Self-limited in healthy hosts; ART in HIV`]
+    }
+  },
+  {
+    id: `ERV03-Q2`, lo: 3, sector: `sector_1`, loTitle: `LO 3: Molluscum Contagiosum`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Cytoplasmic Replication via Viral Pol`,
+    stem: `A 21-year-old woman has three discrete umbilicated vulvar papules. Unlike herpesviruses and papillomaviruses, the etiologic virus replicates exclusively outside the host cell nucleus. What viral enzyme enables this unusual DNA virus behavior?`,
+    clue: `"Pox is out of the box" because it brings its own transcription machinery into the cytoplasm.`,
+    choices: [`Virus-encoded DNA-dependent RNA polymerase`, `Virus-encoded RNA-dependent DNA polymerase`, `Host nuclear RNA polymerase II`],
+    correctIndex: 0,
+    explanation: `Correct: Poxviruses (including molluscum contagiosum) carry their own DNA-dependent RNA polymerase inside the virion, allowing transcription and replication entirely within the cytoplasm. Distractor exclusion: Reverse transcriptase (RNA-dependent DNA polymerase) is used by retroviruses (HIV) and HBV; host nuclear RNA Pol II is used by nuclear DNA viruses like HSV and HPV.`,
+    secondOrderClue: `DNA virus replicating in cytoplasm -> Poxvirus (own DNA-dependent RNA polymerase).`,
+    phase1Pearl: `All DNA viruses replicate in the nucleus EXCEPT Poxviruses ("Pox is out of the box").`,
+    phase2Hallmark: `Eosinophilic cytoplasmic viral factories displace the keratinocyte nucleus to the periphery.`,
+    phase3Secret: `Guild Master's Secret: Curettage or cryotherapy removes localized adult genital lesions and prevents autoinoculation.`,
+    dossierBullets: {
+      p1: [`Carries own DNA-dependent RNA polymerase`, `Synthesizes its own lipid envelope in cytoplasm`],
+      p2: [`Cytoplasmic eosinophilic inclusion factories`, `Peripheral compression of host nucleus`],
+      p3: [`Avoid shaving pubic area to stop autoinoculation`, `Cryotherapy or curettage for adult STI lesions`]
+    }
+  },
+  {
+    id: `ERV03-Q3`, lo: 3, sector: `sector_1`, loTitle: `LO 3: Molluscum Contagiosum`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Henderson-Paterson Inclusion Bodies`,
+    stem: `Excisional curettage of a 4-mm umbilicated papule on the inner thigh of a 23-year-old sexually active man demonstrates cup-shaped epidermal invagination containing keratinocytes packed with large, homogenous, eosinophilic cytoplasmic inclusions. What are these diagnostic structures called?`,
+    clue: `These classic cytoplasmic poxvirus inclusions are named after two investigators.`,
+    choices: [`Henderson-Paterson bodies`, `Owl's eye intranuclear inclusions`, `Cowdry type A inclusions`],
+    correctIndex: 0,
+    explanation: `Correct: Molluscum bodies (Henderson-Paterson bodies) are large eosinophilic intracytoplasmic inclusions pathognomonic for molluscum contagiosum. Distractor exclusion: Owl's eye intranuclear inclusions signify CMV (HHV-5); Cowdry type A intranuclear inclusions are classic for HSV and VZV.`,
+    secondOrderClue: `Umbilicated papule + cytoplasmic eosinophilic inclusion -> Henderson-Paterson bodies.`,
+    phase1Pearl: `Virions mature within cytoplasmic inclusions and are extruded through the central umbilicated pore.`,
+    phase2Hallmark: `Cup-shaped lobular epidermal hyperplasia with basophilic-to-eosinophilic molluscum bodies.`,
+    phase3Secret: `Guild Master's Secret: In HIV patients with disseminated molluscum, immune reconstitution with ART is the definitive treatment.`,
+    dossierBullets: {
+      p1: [`Keratinocytes fill with maturing poxvirions`, `Extruded via central crateriform umbilication`],
+      p2: [`Henderson-Paterson cytoplasmic inclusions`, `Cup-shaped acanthotic epidermal lobules`],
+      p3: [`Screen for coexisting STIs in adult cases`, `ART resolves refractory HIV lesions`]
+    }
+  },
+
+  // LO 4: High-Risk HPV (16, 18, 31, 33)
+  {
+    id: `ERV04-Q1`, lo: 4, sector: `sector_2`, loTitle: `LO 4: High-Risk HPV (16, 18, 31, 33)`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Cervical Squamous Cell Carcinoma`,
+    stem: `A 44-year-old woman who has never had a Pap smear presents with 4 months of postcoital vaginal bleeding and flank pain. Pelvic exam reveals a friable exophytic cervical mass, and renal ultrasound shows bilateral hydronephrosis. What viral mechanism initiated this malignancy?`,
+    clue: `Postcoital bleeding + ureteral obstruction in an unscreened patient points to HPV 16/18 cervical cancer.`,
+    choices: [`E6/E7 inactivation of p53 and Rb`, `LMP-1 activation of B-cell NF-kB`, `Tat transactivation of HIV LTR`],
+    correctIndex: 0,
+    explanation: `Correct: Invasive cervical carcinoma (most commonly squamous cell carcinoma from HPV 16) arises after viral integration drives E6 degradation of p53 and E7 inactivation of Rb; lateral parametrial spread compresses the ureters causing hydronephrosis. Distractor exclusion: LMP-1 drives EBV B-cell proliferation; Tat drives HIV transcription.`,
+    secondOrderClue: `Postcoital bleeding + hydronephrosis -> Cervical cancer (HPV 16/18 E6/E7).`,
+    phase1Pearl: `HPV 16 accounts for the majority of cervical squamous cell carcinomas; HPV 18 is enriched in cervical adenocarcinomas.`,
+    phase2Hallmark: `Biopsy at the transformation zone shows full-thickness basaloid atypia, mitotic figures, and stromal invasion.`,
+    phase3Secret: `Guild Master's Secret: The #1 cause of death in advanced cervical cancer is renal failure from bilateral ureteral obstruction.`,
+    dossierBullets: {
+      p1: [`Viral DNA integration disrupts E2 repressor`, `E6 degrades p53; E7 binds/inhibits Rb`],
+      p2: [`Transformation zone CIN III -> invasive SCC`, `Elevated N:C ratio and abnormal mitoses`],
+      p3: [`Postcoital bleeding and malodorous discharge`, `Lateral spread compresses ureters -> renal failure`]
+    }
+  },
+  {
+    id: `ERV04-Q2`, lo: 4, sector: `sector_2`, loTitle: `LO 4: High-Risk HPV (16, 18, 31, 33)`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `E6 Degrades p53; E7 Inhibits Rb`,
+    stem: `A 32-year-old woman has a cervical biopsy demonstrating severe dysplasia (CIN III) involving the full epithelial thickness. Molecular analysis shows integration of HPV-16 into host DNA. How does the viral E7 oncoprotein specifically accelerate host cell proliferation?`,
+    clue: `Match E7 with its target tumor suppressor: "E6 -> p53; E7 -> ?"`,
+    choices: [`Binds Rb and releases transcription factor E2F`, `Ubiquitinates p53 for proteasomal destruction`, `Inhibits telomerase to induce apoptosis`],
+    correctIndex: 0,
+    explanation: `Correct: HPV E7 binds hypophosphorylated Rb protein, displacing and liberating E2F transcription factor to drive G1-to-S cell-cycle progression. Distractor exclusion: E6 (not E7) complexes with E6-AP to ubiquitinate p53 for proteasomal degradation; HPV actually activates (not inhibits) telomerase to immortalize epithelial cells.`,
+    secondOrderClue: `HPV E7 -> binds Rb -> frees E2F -> uncontrolled G1/S progression.`,
+    phase1Pearl: `Integration commonly breaks the viral E2 gene, removing transcriptional repression of the E6 and E7 oncogenes.`,
+    phase2Hallmark: `CIN I (lower 1/3 dysplasia), CIN II (lower 2/3), CIN III / CIS (full thickness without basement membrane breach).`,
+    phase3Secret: `Guild Master's Secret: Smoking is a major cofactor that concentrates carcinogens in cervical mucus and impairs local Langerhans cells.`,
+    dossierBullets: {
+      p1: [`E7 binds Rb -> frees E2F -> S-phase entry`, `E6 recruits E6-AP ubiquitin ligase to p53`],
+      p2: [`CIN graded by thirds of epithelial dysplasia`, `p16 immunostaining strongly positive in HSIL`],
+      p3: [`Smoking impairs cervical Langerhans immunity`, `LEEP or conization excises high-grade CIN`]
+    }
+  },
+  {
+    id: `ERV04-Q3`, lo: 4, sector: `sector_2`, loTitle: `LO 4: High-Risk HPV (16, 18, 31, 33)`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Squamocolumnar Transformation Zone`,
+    stem: `A 35-year-old woman undergoes colposcopy after an abnormal Pap smear shows HSIL. Acetowhite changes and punctate vessels are biopsied. Which anatomic region of the cervix is most vulnerable to high-risk HPV persistence and neoplastic transformation?`,
+    clue: `High-risk HPV targets the metaplastic junction between endocervix and ectocervix.`,
+    choices: [`Squamocolumnar transformation zone`, `Vaginal fornix stratified epithelium`, `Endometrial stratum basale`],
+    correctIndex: 0,
+    explanation: `Correct: The squamocolumnar transformation zone undergoes active squamous metaplasia, providing proliferating basal reserve cells susceptible to high-risk HPV infection and CIN. Distractor exclusion: The vaginal fornix is mature nonkeratinized squamous epithelium; the endometrial stratum basale is hormone-responsive glandular stroma unaffected by HPV.`,
+    secondOrderClue: `Pap smear brush targets the squamocolumnar transformation zone (endocervical + ectocervical cells).`,
+    phase1Pearl: `Puberty and pregnancy evert endocervical columnar epithelium, exposing it to acidic vaginal pH and squamous metaplasia.`,
+    phase2Hallmark: `Adequate Pap smear requires sampling both endocervical glandular cells and ectocervical squamous cells at the transformation zone.`,
+    phase3Secret: `Guild Master's Secret: Begin Pap screening at age 21 regardless of sexual debut; vaccinate ideally at ages 11–12 prior to exposure.`,
+    dossierBullets: {
+      p1: [`Metaplastic reserve cells at transformation zone`, `Acidic pH drives columnar-to-squamous shift`],
+      p2: [`Acetowhite epithelium and mosaicism on colposcopy`, `HSIL shows high N:C ratio across full thickness`],
+      p3: [`Pap begins at age 21; co-testing at 30–65`, `Vaccine is prophylactic, not therapeutic for CIN`]
+    }
+  },
+
+  // LO 5: HHV-8 (Kaposi Sarcoma)
+  {
+    id: `ERV05-Q1`, lo: 5, sector: `sector_2`, loTitle: `LO 5: HHV-8 (Kaposi Sarcoma)`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `HHV-8 Kaposi Sarcoma`,
+    stem: `A 34-year-old man with untreated HIV (CD4 count 180/mm³) develops multiple painless, violaceous, non-blanching plaques on the glans penis, scrotum, and hard palate. Biopsy confirms a vascular neoplasm. What is the causative virus?`,
+    clue: `Dark purple vascular nodules in HIV patients on skin, genitalia, or palate point to a herpesvirus.`,
+    choices: [`Human herpesvirus-8`, `Human papillomavirus-16`, `Human T-lymphotropic virus-1`],
+    correctIndex: 0,
+    explanation: `Correct: HHV-8 (Kaposi sarcoma-associated herpesvirus) causes violaceous vascular plaques and nodules on the skin, genitalia, oral cavity, GI tract, and lungs in HIV/AIDS and transplant recipients. Distractor exclusion: HPV-16 causes squamous cell carcinoma; HTLV-1 causes adult T-cell leukemia/lymphoma.`,
+    secondOrderClue: `HIV + violaceous genital/palatal plaques -> HHV-8 Kaposi sarcoma.`,
+    phase1Pearl: `HHV-8 encodes viral IL-6, viral cyclin D, and VEGF-inducing factors that drive spindle-cell endothelial proliferation.`,
+    phase2Hallmark: `Spindle-shaped endothelial cells lining slit-like vascular spaces with extravasated erythrocytes and hemosiderin.`,
+    phase3Secret: `Guild Master's Secret: Differentiate from Bartonella henselae bacillary angiomatosis (which shows neutrophilic infiltrate and responds to doxycycline/macrolides).`,
+    dossierBullets: {
+      p1: [`dsDNA herpesvirus; sexual & saliva spread`, `Encodes viral cyclin and VEGF-driven cytokines`],
+      p2: [`Spindle cells forming slit-like vascular channels`, `Extravasated RBCs and lymphocytic infiltrate`],
+      p3: [`Violaceous plaques on genitalia, palate, GI`, `Antiretroviral therapy (ART) induces regression`]
+    }
+  },
+  {
+    id: `ERV05-Q2`, lo: 5, sector: `sector_2`, loTitle: `LO 5: HHV-8 (Kaposi Sarcoma)`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Endothelial Spindle Cell Proliferation`,
+    stem: `A 41-year-old kidney transplant recipient on tacrolimus develops a purple nodular plaque on the penile shaft. Immunohistochemistry is positive for LANA-1 (latency-associated nuclear antigen). Which cellular lineage undergoes neoplastic proliferation in this lesion?`,
+    clue: `Kaposi sarcoma is a vascular tumor arising from cells that line vessels and lymphatics.`,
+    choices: [`Lymphatic endothelial cells`, `Basal epidermal keratinocytes`, `Germinal center B-lymphocytes`],
+    correctIndex: 0,
+    explanation: `Correct: HHV-8 infects lymphatic and vascular endothelial cells, transforming them into proliferating spindle cells driven by dysregulated VEGF and viral oncogenes. Distractor exclusion: Basal keratinocytes are transformed by HPV; germinal center B cells are transformed by EBV.`,
+    secondOrderClue: `HHV-8 LANA-1+ -> lymphatic endothelial spindle cell neoplasm.`,
+    phase1Pearl: `Viral G-protein-coupled receptor (vGPCR) upregulates VEGF, promoting angiogenesis and vascular permeability.`,
+    phase2Hallmark: `LANA-1 nuclear staining confirms HHV-8 within CD31+/CD34+ endothelial spindle cells.`,
+    phase3Secret: `Guild Master's Secret: In solid-organ transplant recipients, reducing immunosuppression (switching to sirolimus/mTOR inhibitor) often regresses Kaposi sarcoma.`,
+    dossierBullets: {
+      p1: [`vGPCR upregulates VEGF angiogenic signaling`, `Infects lymphatic/vascular endothelial cells`],
+      p2: [`LANA-1 positive nuclei on immunohistochemistry`, `CD31+ / CD34+ endothelial spindle cells`],
+      p3: [`Also affects GI tract (bleeding) and lungs`, `ART or lower immunosuppression is primary step`]
+    }
+  },
+  {
+    id: `ERV05-Q3`, lo: 5, sector: `sector_2`, loTitle: `LO 5: HHV-8 (Kaposi Sarcoma)`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Spindle Cells With Slit-Like Spaces`,
+    stem: `A 36-year-old man with HIV has a violaceous scrotal nodule biopsied to rule out bacillary angiomatosis. Histology shows intersecting fascicles of spindle cells forming jagged vascular slits filled with erythrocytes and scant neutrophils. What is the first-line systemic management?`,
+    clue: `Restoring CD4+ T-cell immunity is the cornerstone of AIDS-related Kaposi sarcoma treatment.`,
+    choices: [`Initiate antiretroviral therapy (ART)`, `High-dose oral doxycycline`, `Oral acyclovir monotherapy`],
+    correctIndex: 0,
+    explanation: `Correct: Slit-like vascular spaces with spindle cells (and absence of neutrophils) confirm HHV-8 Kaposi sarcoma; initiating ART restores cell-mediated immunity and induces tumor regression. Distractor exclusion: Doxycycline treats Bartonella bacillary angiomatosis (neutrophilic histology); acyclovir is ineffective against latent HHV-8 tumors.`,
+    secondOrderClue: `Spindle cells + slit-like RBC spaces (no neutrophils) -> HHV-8 -> Start ART.`,
+    phase1Pearl: `Loss of CD4+ T-cell surveillance permits lytic and latent HHV-8 cytokine loops to drive polyclonal-to-monoclonal vascular tumors.`,
+    phase2Hallmark: `Slit-like vascular spaces + hemosiderin-laden macrophages distinguish Kaposi sarcoma from neutrophilic bacillary angiomatosis.`,
+    phase3Secret: `Guild Master's Secret: Add liposomal doxorubicin for rapidly progressive visceral (pulmonary or GI) Kaposi sarcoma.`,
+    dossierBullets: {
+      p1: [`CD4+ depletion permits VEGF-driven tumor growth`, `Immune reconstitution halts viral cytokine loop`],
+      p2: [`Jagged slit-like spaces with extravasated RBCs`, `Lack of acute neutrophilic inflammation`],
+      p3: [`ART is mandatory first-line systemic therapy`, `Liposomal doxorubicin for visceral disease`]
+    }
+  },
+
+  // LO 6: EBV (HHV-4) in GYN & Lymphoid Malignancies
+  {
+    id: `ERV06-Q1`, lo: 6, sector: `sector_2`, loTitle: `LO 6: EBV (HHV-4) GYN & Lymphoid`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Epstein-Barr Virus (HHV-4)`,
+    stem: `A 19-year-old college student presents with fever, exudative pharyngitis, posterior cervical lymphadenopathy, and splenomegaly, alongside two painful necrotic vulvar ulcers (Lipschutz ulcers) that test negative for HSV and syphilis. Monospot test is positive. Which receptor did this virus bind to enter host cells?`,
+    clue: `"Must be 21 to drink in a Bar" — identify the B-cell surface receptor targeted by EBV.`,
+    choices: [`CD21 on B-lymphocytes`, `P antigen on erythroid precursors`, `CD4 and CCR5 on T-helper cells`],
+    correctIndex: 0,
+    explanation: `Correct: EBV (HHV-4) binds CD21 (CR2) on B-lymphocytes and can cause mononucleosis as well as acute non-sexually acquired reactive vulvar ulcers (Lipschutz ulcers) and pelvic lymphomas. Distractor exclusion: P antigen is bound by Parvovirus B19; CD4 and CCR5 are bound by HIV.`,
+    secondOrderClue: `Positive Monospot + posterior cervical nodes + splenomegaly -> EBV -> binds B-cell CD21.`,
+    phase1Pearl: `EBV envelope glycoprotein gp350 binds B-cell CD21, establishing latent episomal infection and B-cell immortalization.`,
+    phase2Hallmark: `Peripheral smear shows large atypical CD8+ cytotoxic T cells (Downey cells) reacting against infected B cells.`,
+    phase3Secret: `Guild Master's Secret: Giving amoxicillin/ampicillin for presumed strep pharyngitis in EBV triggers a classic diffuse maculopapular rash.`,
+    dossierBullets: {
+      p1: [`gp350 binds CD21 (complement receptor 2)`, `Reactive CD8+ T cells fight infected B cells`],
+      p2: [`Positive Monospot (sheep/horse RBC agglutination)`, `Atypical lymphocytes = reactive CD8+ T cells`],
+      p3: [`Avoid contact sports 3–4 weeks (splenic rupture)`, `Amoxicillin causes drug-independent rash`]
+    }
+  },
+  {
+    id: `ERV06-Q2`, lo: 6, sector: `sector_2`, loTitle: `LO 6: EBV (HHV-4) GYN & Lymphoid`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `LMP-1 Mimics Active CD40`,
+    stem: `A 38-year-old woman with HIV (CD4 count 75/mm³) develops an aggressive EBV-positive diffuse large B-cell lymphoma involving the pelvic lymph nodes and uterus. Which viral latency protein constitutively mimics CD40 signaling to activate NF-kB and prevent B-cell apoptosis?`,
+    clue: `This EBV latent membrane protein acts like a permanently switched-on B-cell costimulatory receptor.`,
+    choices: [`Latent membrane protein-1 (LMP-1)`, `Early viral protein E6`, `Capsid protein p24`],
+    correctIndex: 0,
+    explanation: `Correct: EBV LMP-1 mimics constitutively active CD40 on B cells, activating NF-kB and upregulating Bcl-2 to block apoptosis and immortalize infected B cells. Distractor exclusion: E6 is an HPV oncoprotein degrading p53; p24 is the conical capsid protein of HIV.`,
+    secondOrderClue: `EBV B-cell immortalization -> LMP-1 mimics CD40 -> NF-kB + Bcl-2 activation.`,
+    phase1Pearl: `EBV drives B-cell proliferation in immunocompromised hosts (HIV DLBCL, primary CNS lymphoma, post-transplant lymphoproliferative disorder).`,
+    phase2Hallmark: `High-grade B-cell lymphoma with CD20+ sheets, EBER in situ hybridization positivity, and Ki-67 proliferation index.`,
+    phase3Secret: `Guild Master's Secret: In HIV patients with CD4 < 100, solitary ring-enhancing brain lesion suggests EBV primary CNS lymphoma (vs multiple lesions = Toxoplasma).`,
+    dossierBullets: {
+      p1: [`LMP-1 mimics CD40 -> activates NF-kB & Bcl-2`, `Immortalizes B cells; promotes c-myc translocation`],
+      p2: [`EBER in situ hybridization detects latent EBV`, `Burkitt shows t(8;14) "starry sky" macrophages`],
+      p3: [`AIDS-defining DLBCL and CNS lymphoma`, `Rituximab + ART or reduce transplant immunosuppression`]
+    }
+  },
+  {
+    id: `ERV06-Q3`, lo: 6, sector: `sector_2`, loTitle: `LO 6: EBV (HHV-4) GYN & Lymphoid`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Reactive Cytotoxic CD8+ T Cells`,
+    stem: `A 20-year-old woman with fever, sore throat, and hepatosplenomegaly has a peripheral blood smear showing abundant large lymphocytes with indented, pale-blue cytoplasm molding around adjacent erythrocytes. What cell population do these atypical cells represent?`,
+    clue: `The atypical cells on a mononucleosis smear are NOT the infected B cells themselves.`,
+    choices: [`Reactive cytotoxic CD8+ T cells`, `EBV-infected malignant B cells`, `Multinucleated Langerhans cells`],
+    correctIndex: 0,
+    explanation: `Correct: Atypical lymphocytes (Downey cells) on peripheral smear in infectious mononucleosis are reactive cytotoxic CD8+ T-lymphocytes proliferating to destroy EBV-infected B cells. Distractor exclusion: Infected B cells express CD21 and reside in lymphoid tissue rather than accounting for the peripheral atypical T-cell surge; Langerhans cells are dendritic antigen-presenting cells.`,
+    secondOrderClue: `Monospot+ smear -> atypical Downey cells = reactive CD8+ cytotoxic T cells.`,
+    phase1Pearl: `IgM heterophile antibodies produced by polyclonal B-cell activation agglutinate sheep or horse RBCs in the Monospot test.`,
+    phase2Hallmark: `Atypical CD8+ T cells with abundant basophilic cytoplasm scalloping around red blood cells.`,
+    phase3Secret: `Guild Master's Secret: In HIV-infected patients with CD4 < 500, EBV also causes oral hairy leukoplakia (unscrapable white lateral tongue plaques).`,
+    dossierBullets: {
+      p1: [`Polyclonal B-cell activation yields IgM heterophiles`, `CD8+ T cells target EBV-expressing B cells`],
+      p2: [`Downey cells mold around surrounding RBCs`, `Monospot may be false-negative in week 1`] ,
+      p3: [`Oral hairy leukoplakia = EBV (unscrapable)`, `Splenic rupture risk peaks in weeks 2–3`]
+    }
+  },
+
+  // LO 7: Cytomegalovirus (CMV / HHV-5)
+  {
+    id: `ERV07-Q1`, lo: 7, sector: `sector_3`, loTitle: `LO 7: Cytomegalovirus (CMV / HHV-5)`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Congenital Cytomegalovirus (CMV)`,
+    stem: `A term male neonate born to a 26-year-old daycare worker has microcephaly, hepatosplenomegaly, jaundice, and generalized petechiae ("blueberry muffin" rash). Non-contrast head CT reveals symmetric calcifications lining the lateral ventricles, and ABR testing shows bilateral sensorineural hearing loss. What is the diagnosis?`,
+    clue: `Periventricular calcifications + blueberry muffin rash + sensorineural hearing loss = MCC congenital viral infection.`,
+    choices: [`Congenital cytomegalovirus infection`, `Congenital toxoplasmosis`, `Congenital Zika syndrome`],
+    correctIndex: 0,
+    explanation: `Correct: CMV (HHV-5) is the most common congenital viral infection and classically presents with periventricular calcifications, blueberry muffin rash, hepatosplenomegaly, and sensorineural hearing loss. Distractor exclusion: Toxoplasmosis causes diffuse parenchymal intracranial calcifications and hydrocephalus; Zika causes severe microcephaly with subcortical calcifications without hepatosplenomegaly.`,
+    secondOrderClue: `Periventricular calcifications + SNHL + blueberry muffin rash -> Congenital CMV.`,
+    phase1Pearl: `Primary maternal CMV infection during pregnancy carries the highest risk of transplacental transmission and severe fetal neurotropism.`,
+    phase2Hallmark: `Head CT shows periventricular calcifications; urine/saliva CMV PCR within first 21 days confirms congenital acquisition.`,
+    phase3Secret: `Guild Master's Secret: Sensorineural hearing loss is the most common long-term sequela of congenital CMV and can be progressive.`,
+    dossierBullets: {
+      p1: [`Enveloped dsDNA herpesvirus; endothelial tropism`, `Transplacental transmission causes focal necrosis`],
+      p2: [`Periventricular calcifications on head CT`, `Intranuclear "owl's eye" inclusions`],
+      p3: [`MCC congenital viral infection & viral SNHL`, `Valganciclovir/ganciclovir preserves hearing`]
+    }
+  },
+  {
+    id: `ERV07-Q2`, lo: 7, sector: `sector_3`, loTitle: `LO 7: Cytomegalovirus (CMV / HHV-5)`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `UL97 Kinase & Ganciclovir`,
+    stem: `A 32-year-old pregnant woman with HIV (CD4 count 42/mm³) develops CMV retinitis ("pizza-pie" hemorrhages and cotton-wool exudates) threatening maternal vision and fetal infection. Which viral enzyme must phosphorylate IV ganciclovir before it inhibits CMV DNA polymerase?`,
+    clue: `Unlike HSV, CMV lacks thymidine kinase and uses a specific viral protein kinase instead.`,
+    choices: [`Viral UL97 protein kinase`, `Viral thymidine kinase`, `Viral neuraminidase`],
+    correctIndex: 0,
+    explanation: `Correct: Ganciclovir requires monophosphorylation by CMV-encoded UL97 phosphotransferase (protein kinase) before host kinases convert it to the active triphosphate that inhibits viral DNA polymerase. Distractor exclusion: HSV and VZV use viral thymidine kinase to activate acyclovir; influenza uses neuraminidase for progeny virion release.`,
+    secondOrderClue: `CMV retinitis -> Ganciclovir activated by viral UL97 kinase (not thymidine kinase).`,
+    phase1Pearl: `UL97 mutations confer ganciclovir resistance; foscarnet directly inhibits viral DNA polymerase without needing phosphorylation.`,
+    phase2Hallmark: `Fundoscopy shows retinal hemorrhages and cotton-wool exudates ("pizza-pie" retina) with owl's eye inclusions on biopsy.`,
+    phase3Secret: `Guild Master's Secret: Ganciclovir causes dose-limiting neutropenia/myelosuppression; foscarnet causes nephrotoxicity and hypocalcemia.`,
+    dossierBullets: {
+      p1: [`UL97 kinase activates ganciclovir`, `Inhibits CMV DNA polymerase (UL54)`],
+      p2: [`Owl's eye basophilic intranuclear inclusions`, `Fundoscopy: hemorrhages + cotton-wool spots`],
+      p3: [`Ganciclovir -> neutropenia; Foscarnet -> renal toxicity`, `Monospot-negative mono in immunocompetent hosts`]
+    }
+  },
+  {
+    id: `ERV07-Q3`, lo: 7, sector: `sector_3`, loTitle: `LO 7: Cytomegalovirus (CMV / HHV-5)`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Owl's Eye Intranuclear Inclusions`,
+    stem: `Placental pathology following delivery of a growth-restricted infant with thrombocytopenia and petechiae reveals enlarged cytomegalic endothelial cells containing a massive dark purple intranuclear inclusion surrounded by a clear halo. What is the gold-standard neonatal test and treatment?`,
+    clue: `Confirm congenital (vs postnatal) CMV before 3 weeks of age and treat symptomatic CNS disease with an antiviral.`,
+    choices: [`Urine/saliva PCR < 3 weeks; valganciclovir`, `Maternal IgG avidity; IV penicillin G`, `Tzanck smear; oral acyclovir`],
+    correctIndex: 0,
+    explanation: `Correct: Owl's eye intranuclear inclusions signify CMV; urine or saliva PCR obtained within 21 days of birth confirms congenital infection, and 6 months of oral valganciclovir (or IV ganciclovir) improves hearing and neurodevelopmental outcomes. Distractor exclusion: Penicillin G treats congenital syphilis; acyclovir has poor activity against CMV.`,
+    secondOrderClue: `Owl's eye inclusions -> Urine/saliva PCR < 21 days -> Valganciclovir.`,
+    phase1Pearl: `Testing after 3 weeks cannot distinguish congenital CMV from benign postnatal acquisition via breast milk.`,
+    phase2Hallmark: `Cytomegalic cells with large basophilic "owl's eye" intranuclear inclusions and smaller cytoplasmic inclusions.`,
+    phase3Secret: `Guild Master's Secret: CMV also causes Monospot-negative mononucleosis in immunocompetent adults and CREEP (Colitis, Retinitis, Esophagitis, Encephalitis, Pneumonitis) in HIV.`,
+    dossierBullets: {
+      p1: [`Latent in mononuclear cells; reactivates in AIDS`, `Postnatal breast-milk spread spares term infants`],
+      p2: [`Owl's eye intranuclear inclusions in placenta`, `PCR of urine/saliva < 21 days confirms congenital`],
+      p3: [`Valganciclovir 6 mo for symptomatic neonates`, `Monitor ANC for ganciclovir-induced neutropenia`]
+    }
+  },
+
+  // LO 8: Congenital Rubella Syndrome
+  {
+    id: `ERV08-Q1`, lo: 8, sector: `sector_3`, loTitle: `LO 8: Congenital Rubella Syndrome`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Congenital Rubella Syndrome`,
+    stem: `A newborn delivered to an unvaccinated recent immigrant who had a mild fever, arthralgias, and posterior auricular lymphadenopathy at 9 weeks' gestation fails the newborn hearing screen, has bilateral absent red reflexes, and exhibits a continuous machine-like murmur best heard at the left infraclavicular area. What is the diagnosis?`,
+    clue: `Deafness + cataracts + patent ductus arteriosus after a first-trimester maternal rash with posterior auricular nodes.`,
+    choices: [`Congenital rubella syndrome`, `Congenital varicella syndrome`, `Congenital parvovirus B19`],
+    correctIndex: 0,
+    explanation: `Correct: Congenital rubella syndrome presents with the classic triad of sensorineural deafness, cataracts (absent red reflex / leukocoria), and congenital heart defects (patent ductus arteriosus or pulmonary artery stenosis). Distractor exclusion: Congenital varicella causes dermatomal scarring and limb hypoplasia; Parvovirus B19 causes severe fetal anemia and hydrops fetalis.`,
+    secondOrderClue: `Cataracts + PDA + sensorineural deafness -> Congenital rubella (Togavirus).`,
+    phase1Pearl: `Rubella is an enveloped +ssRNA Togavirus that crosses the placenta during first-trimester organogenesis and arrests fetal cell division.`,
+    phase2Hallmark: `Blueberry muffin rash, bilateral leukocoria, and continuous machinery murmur of patent ductus arteriosus.`,
+    phase3Secret: `Guild Master's Secret: Maternal rubella classically causes a cephalocaudal maculopapular rash with postauricular/suboccipital lymphadenopathy and polyarthritis.`,
+    dossierBullets: {
+      p1: [`Enveloped +ssRNA Togavirus; cytoplasmic replication`, `Inhibits fetal mitosis during 1st trimester`],
+      p2: [`Triad: PDA, cataracts, sensorineural deafness`, `Blueberry muffin rash from dermal erythropoiesis`],
+      p3: [`Maternal postauricular nodes + descending rash`, `Contagious infant sheds virus in urine/secretions`]
+    }
+  },
+  {
+    id: `ERV08-Q2`, lo: 8, sector: `sector_3`, loTitle: `LO 8: Congenital Rubella Syndrome`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Mitotic Arrest & Vascular Injury`,
+    stem: `A 24-year-old woman contracts rubella at 7 weeks' gestation. At birth, her infant is small for gestational age with microphthalmia and pulmonary artery hypoplasia. How does rubella virus disrupt fetal organ development during early gestation?`,
+    clue: `Early-gestation viral replication inside fetal cells slows proliferation and damages forming vessels.`,
+    choices: [`Inhibits fetal cell mitosis and induces endothelial apoptosis`, `Lyses erythroid progenitors via P-antigen binding`, `Selectively destroys cortical neural stem cells only`],
+    correctIndex: 0,
+    explanation: `Correct: Rubella infects fetal endothelium and organ primordia during the first trimester, inhibiting cellular mitosis and causing vascular insufficiency/apoptosis across the heart, lens, and cochlea. Distractor exclusion: P-antigen erythroid lysis is the mechanism of Parvovirus B19; selective cortical neural progenitor apoptosis characterizes Zika virus.`,
+    secondOrderClue: `First-trimester rubella -> mitotic arrest + endothelial injury -> PDA, cataracts, deafness.`,
+    phase1Pearl: `Risk of congenital rubella syndrome exceeds 80% when maternal infection occurs in the first 12 weeks, dropping sharply after week 20.`,
+    phase2Hallmark: `Heart defects (PDA, peripheral pulmonary artery stenosis), cataracts, salt-and-pepper retinopathy, and radiolucent bone striae.`,
+    phase3Secret: `Guild Master's Secret: Routine first-trimester prenatal labs check Rubella IgG immunity; non-immune mothers are vaccinated immediately postpartum.`,
+    dossierBullets: {
+      p1: [`Highest teratogenicity < 12 weeks' gestation`, `Non-cytolytic mitotic arrest + angiopathy`],
+      p2: [`PDA and pulmonary artery hypoplasia`, `Salt-and-pepper retinopathy and cataracts`],
+      p3: [`Screen Rubella IgG at 1st prenatal visit`, `Vaccinate non-immune women postpartum`]
+    }
+  },
+  {
+    id: `ERV08-Q3`, lo: 8, sector: `sector_3`, loTitle: `LO 8: Congenital Rubella Syndrome`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Defer Live MMR Until Postpartum`,
+    stem: `A 27-year-old woman at 10 weeks' gestation has routine prenatal labs showing a negative Rubella IgG titer. She works at an elementary school and asks for vaccination today. What is the most appropriate management?`,
+    clue: `MMR is a live-attenuated vaccine; recall its strict contraindication.`,
+    choices: [`Defer MMR vaccination until after delivery`, `Administer live-attenuated MMR vaccine now`, `Administer oral ribavirin prophylaxis`],
+    correctIndex: 0,
+    explanation: `Correct: MMR is a live-attenuated vaccine that is strictly contraindicated during pregnancy due to theoretical fetal infection risk; counsel avoidance of sick contacts and vaccinate immediately postpartum. Distractor exclusion: Giving live MMR during pregnancy violates safety rules; ribavirin is teratogenic and contraindicated in pregnancy.`,
+    secondOrderClue: `Negative Rubella IgG in pregnancy -> Defer live MMR until postpartum (avoid pregnancy 4 weeks post-dose).`,
+    phase1Pearl: `Live-attenuated viral vaccines (MMR, varicella) are contraindicated in pregnancy and in HIV patients with CD4 < 200.`,
+    phase2Hallmark: `Serologic immunity is confirmed by Rubella IgG; acute maternal infection is diagnosed by IgM seroconversion.`,
+    phase3Secret: `Guild Master's Secret: Breastfeeding is NOT a contraindication to postpartum MMR vaccination.`,
+    dossierBullets: {
+      p1: [`Live-attenuated Togavirus (MMR) crosses placenta`, `Safe in HIV only if CD4 count > 200/mm³`],
+      p2: [`Negative IgG = susceptible; IgM = acute infection`, `Infants shed virus for months (isolation needed)`],
+      p3: [`Vaccinate postpartum; safe while breastfeeding`, `Advise avoiding pregnancy for 4 weeks post-MMR`]
+    }
+  },
+
+  // LO 9: Congenital Varicella & Neonatal VZV
+  {
+    id: `ERV09-Q1`, lo: 9, sector: `sector_3`, loTitle: `LO 9: Congenital & Neonatal Varicella`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Congenital Varicella Syndrome`,
+    stem: `A newborn whose mother had a pruritic vesicular rash with lesions in different stages of healing at 15 weeks' gestation is born with hypoplasia of the left lower extremity, chorioretinitis, and depressed zigzag cutaneous scars confined to the L3–L5 dermatomes. Which virus caused these anomalies?`,
+    clue: `Dermatomal zigzag skin scarring + limb hypoplasia + eye defects after maternal chickenpox.`,
+    choices: [`Varicella-zoster virus (HHV-3)`, `Herpes simplex virus-2`, `Parvovirus B19`],
+    correctIndex: 0,
+    explanation: `Correct: Congenital varicella syndrome (following maternal primary VZV in weeks 8–20) classically produces cicatricial skin scarring in a dermatomal pattern, ipsilateral limb hypoplasia, and chorioretinitis/blindness. Distractor exclusion: HSV-2 causes neonatal skin/eye/mouth or CNS disease without dermatomal limb hypoplasia; Parvovirus B19 causes hydrops fetalis without scars.`,
+    secondOrderClue: `Dermatomal cicatricial scars + limb hypoplasia + blindness -> Congenital VZV.`,
+    phase1Pearl: `VZV infects developing fetal dorsal root ganglia and peripheral nerves in utero, causing denervation-mediated limb hypoplasia and dermatomal scars.`,
+    phase2Hallmark: `Maternal infection shows asynchronous "dew-drop on rose petal" vesicles; neonate shows zigzag dermatomal scarring.`,
+    phase3Secret: `Guild Master's Secret: Maternal shingles (zoster reactivation) does NOT cause congenital varicella syndrome because maternal IgG is already present.`,
+    dossierBullets: {
+      p1: [`HHV-3 dsDNA; neurotropism to sensory ganglia`, `In utero denervation stunts fetal limb growth`],
+      p2: [`Zigzag dermatomal cicatricial cutaneous scars`, `Limb hypoplasia, microphthalmia, chorioretinitis`],
+      p3: [`Occurs with primary chickenpox (8–20 wks)`, `Maternal shingles carries negligible fetal risk`]
+    }
+  },
+  {
+    id: `ERV09-Q2`, lo: 9, sector: `sector_3`, loTitle: `LO 9: Congenital & Neonatal Varicella`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Absent Transplacental Maternal IgG`,
+    stem: `A woman develops primary varicella (chickenpox) 2 days before delivering a full-term neonate. Why is this infant at exceptionally high risk for life-threatening disseminated visceral VZV pneumonia and hepatitis compared with an infant whose mother developed chickenpox 2 weeks before delivery?`,
+    clue: `Think about the timing of maternal IgG synthesis and transplacental antibody transfer.`,
+    choices: [`Lack of protective transplacental maternal IgG`, `Enhanced IgE-mediated mast cell degranulation`, `Failure of neonatal thymic T-cell selection`],
+    correctIndex: 0,
+    explanation: `Correct: When maternal varicella rash appears from 5 days before to 2 days after delivery, the mother has not yet generated and transferred protective anti-VZV IgG across the placenta, leaving the viremic neonate defenseless. Distractor exclusion: IgE mast cell activation causes type I hypersensitivity, not disseminated VZV; thymic selection is intact in term neonates.`,
+    secondOrderClue: `Maternal VZV -5 to +2 days around birth -> high neonatal viremia + zero maternal IgG.`,
+    phase1Pearl: `Transplacental IgG transfer requires sufficient maternal antibody synthesis (> 5–7 days post-rash onset) via FcRn receptors.`,
+    phase2Hallmark: `Neonatal disseminated VZV shows hemorrhagic vesicles, necrotizing pneumonitis, and multinucleated giant cells.`,
+    phase3Secret: `Guild Master's Secret: Immediately administer VZIG (VariZIG) to any neonate whose mother develops varicella within 5 days before to 2 days after birth.`,
+    dossierBullets: {
+      p1: [`Maternal IgG requires > 5 days to cross placenta`, `-5 to +2 day window exposes unshielded neonate`],
+      p2: [`Disseminated visceral vesicles & pneumonitis`, `Tzanck/PCR shows multinucleated giant cells`],
+      p3: [`Give VZIG immediately + IV acyclovir if ill`, `Isolate mother/infant until lesions crust over`]
+    }
+  },
+  {
+    id: `ERV09-Q3`, lo: 9, sector: `sector_3`, loTitle: `LO 9: Congenital & Neonatal Varicella`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Administer VZIG Prophylaxis Now`,
+    stem: `A 28-year-old woman at 22 weeks' gestation with no history of chickenpox or varicella vaccination is exposed for several hours to her nephew who develops a classic vesicular VZV rash the next day. Maternal VZV IgG returns negative. What is the most appropriate immediate intervention?`,
+    clue: `Passive immunization is indicated for susceptible pregnant women exposed to varicella.`,
+    choices: [`Administer varicella-zoster immune globulin`, `Administer live-attenuated varicella vaccine`, `Reassure and repeat IgG in 4 weeks`],
+    correctIndex: 0,
+    explanation: `Correct: Susceptible (IgG-negative) pregnant patients exposed to varicella should receive passive prophylaxis with VZIG (VariZIG) within 10 days (ideally < 96 hours) to prevent severe maternal VZV pneumonia and fetal risk. Distractor exclusion: Live varicella vaccine is contraindicated in pregnancy; delaying without prophylaxis risks maternal pneumonitis.`,
+    secondOrderClue: `Pregnant + VZV-negative + exposure -> VZIG passive immunoprophylaxis.`,
+    phase1Pearl: `Pregnant women have higher risk of severe VZV pneumonia; passive IgG neutralizes viremia before dissemination.`,
+    phase2Hallmark: `Asynchronous lesions (macules, papules, vesicles, crusts simultaneously) distinguish varicella from synchronous smallpox.`,
+    phase3Secret: `Guild Master's Secret: Treat established maternal VZV pneumonia or disseminated neonatal disease promptly with IV acyclovir.`,
+    dossierBullets: {
+      p1: [`Passive IgG neutralizes cell-free VZV virions`, `Live VZV vaccine is contraindicated in pregnancy`],
+      p2: [`Asynchronous "dew-drops on rose petal" rash`, `Airborne + contact precautions until crusted`],
+      p3: [`VZIG within 10 days for exposed IgG- pregnant`, `IV acyclovir for maternal VZV pneumonitis`]
+    }
+  },
+
+  // LO 10: Parvovirus B19 (Hydrops Fetalis)
+  {
+    id: `ERV10-Q1`, lo: 10, sector: `sector_4`, loTitle: `LO 10: Parvovirus B19 (Hydrops Fetalis)`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Parvovirus B19 Hydrops Fetalis`,
+    stem: `A 30-year-old kindergarten teacher at 21 weeks' gestation notices decreased fetal movement 3 weeks after a brief febrile illness with symmetric wrist arthralgias. Obstetric ultrasound reveals fetal ascites, skin edema, pericardial effusion, and polyhydramnios. Which virus caused this fetal complication?`,
+    clue: `Daycare/school teacher + wrist arthralgias + non-immune fetal ascites and edema.`,
+    choices: [`Parvovirus B19`, `Cytomegalovirus`, `Rubella virus`],
+    correctIndex: 0,
+    explanation: `Correct: Parvovirus B19 causes erythema infectiosum in children and acute symmetric arthralgias in adults; mid-trimester maternal infection causes pure red cell aplasia, severe fetal anemia, high-output heart failure, and non-immune hydrops fetalis. Distractor exclusion: CMV causes periventricular calcifications and microcephaly; rubella causes 1st-trimester cataracts and PDA.`,
+    secondOrderClue: `Teacher + symmetric arthralgias + fetal ascites/edema -> Parvovirus B19 hydrops fetalis.`,
+    phase1Pearl: `Parvovirus B19 is the only single-stranded DNA (ssDNA) human virus and is naked icosahedral.`,
+    phase2Hallmark: `Bone marrow or fetal liver shows giant pronormoblasts with glassy eosinophilic intranuclear inclusions.`,
+    phase3Secret: `Guild Master's Secret: 2nd-trimester infection is highest risk for hydrops fetalis because fetal erythropoiesis shifts rapidly in the liver with a short RBC lifespan.`,
+    dossierBullets: {
+      p1: [`Smallest DNA virus; naked icosahedral ssDNA`, `Crosses placenta -> infects erythroid precursors`],
+      p2: [`Fetal ascites, skin edema, pericardial effusion`, `Giant pronormoblasts in erythroid tissue`],
+      p3: [`Adults get symmetric small-joint arthralgias`, `Children get slapped-cheek erythema infectiosum`]
+    }
+  },
+  {
+    id: `ERV10-Q2`, lo: 10, sector: `sector_4`, loTitle: `LO 10: Parvovirus B19 (Hydrops Fetalis)`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Binds P Antigen on Erythroid Cells`,
+    stem: `A 29-year-old pregnant woman is diagnosed with acute Parvovirus B19 infection by IgM serology. Why does this virus selectively arrest fetal erythropoiesis, leading to high-output cardiac failure and hydrops fetalis?`,
+    clue: `Identify the specific cellular receptor on RBC progenitors targeted by Parvovirus B19.`,
+    choices: [`Binds P antigen (globoside) on erythroid progenitors`, `Binds CD21 on fetal splenic B-lymphocytes`, `Binds acetylcholine receptors at myotubes`],
+    correctIndex: 0,
+    explanation: `Correct: Parvovirus B19 binds the blood group P antigen (globoside) expressed on erythroid progenitor cells (CFU-E / pronormoblasts), inducing apoptosis and pure red cell aplasia. Distractor exclusion: CD21 is the EBV receptor on B cells; nicotinic acetylcholine receptors are bound by rabies virus.`,
+    secondOrderClue: `Parvovirus B19 -> P antigen (globoside) -> erythroid lysis -> high-output CHF -> hydrops.`,
+    phase1Pearl: `Individuals genetically lacking the P antigen are naturally resistant to Parvovirus B19 infection.`,
+    phase2Hallmark: `Severe fetal reticulocytopenia and anemia with compensatory elevated middle cerebral artery (MCA) Doppler velocity.`,
+    phase3Secret: `Guild Master's Secret: Also causes transient aplastic crisis in sickle cell disease and chronic pure red cell aplasia in HIV patients.`,
+    dossierBullets: {
+      p1: [`Targets P antigen (globoside) on CFU-E/BFU-E`, `Induces apoptosis -> severe fetal anemia`],
+      p2: [`Profound reticulocytopenia; giant pronormoblasts`, `Hyperdynamic circulation -> high-output CHF`],
+      p3: [`Aplastic crisis in sickle cell / spherocytosis`, `Treat chronic HIV aplasia with IVIG`]
+    }
+  },
+  {
+    id: `ERV10-Q3`, lo: 10, sector: `sector_4`, loTitle: `LO 10: Parvovirus B19 (Hydrops Fetalis)`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `MCA Doppler & Fetal Transfusion`,
+    stem: `A 27-year-old woman at 20 weeks' gestation has confirmed acute Parvovirus B19 infection after exposure to her child with slapped-cheek rash. What is the gold-standard noninvasive test to monitor for fetal anemia, and the definitive intervention if severe anemia develops?`,
+    clue: `Anemic fetuses circulate blood faster through the brain; severe anemia is corrected directly in utero.`,
+    choices: [`MCA Doppler PSV; intrauterine RBC transfusion`, `Amniocentesis lecithin ratio; IV ribavirin`, `Maternal D-dimer; immediate cesarean delivery`],
+    correctIndex: 0,
+    explanation: `Correct: Serial middle cerebral artery (MCA) peak systolic velocity (PSV) Doppler noninvasively detects fetal anemia (> 1.5 MoM), prompting cordocentesis and intrauterine packed RBC transfusion. Distractor exclusion: L:S ratio assesses fetal lung maturity and ribavirin is teratogenic; immediate delivery at 20 weeks is nonviable.`,
+    secondOrderClue: `Parvovirus exposure in pregnancy -> serial MCA Doppler PSV -> intrauterine RBC transfusion.`,
+    phase1Pearl: `Fetal anemia lowers blood viscosity and raises cardiac output, increasing peak blood flow velocity in the MCA.`,
+    phase2Hallmark: `MCA PSV > 1.5 multiples of the median (MoM) predicts moderate-to-severe fetal anemia.`,
+    phase3Secret: `Guild Master's Secret: Most fetuses recover completely after 1–2 intrauterine transfusions once maternal IgG clears the virus.`,
+    dossierBullets: {
+      p1: [`Decreased hematocrit lowers viscosity -> fast flow`, `Fetal anemia is transient if bridged by transfusion`],
+      p2: [`MCA PSV > 1.5 MoM flags severe fetal anemia`, `Ultrasound tracks ascites and skin edema`],
+      p3: [`Serial weekly MCA Dopplers for 8–12 weeks`, `Intrauterine RBC transfusion via cordocentesis`]
+    }
+  },
+
+  // LO 11: Congenital Zika Syndrome
+  {
+    id: `ERV11-Q1`, lo: 11, sector: `sector_4`, loTitle: `LO 11: Congenital Zika Syndrome`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Congenital Zika Syndrome`,
+    stem: `A newborn delivered in Florida to a mother who traveled to Brazil during her first trimester has a head circumference below the 1st percentile, redundant folded scalp skin, overlapping cranial sutures, hypertonia, and macular scarring. Which vector-borne virus caused this presentation?`,
+    clue: `Severe microcephaly + redundant scalp folds + travel to tropical Americas.`,
+    choices: [`Zika virus`, `Cytomegalovirus`, `Hepatitis B virus`],
+    correctIndex: 0,
+    explanation: `Correct: Zika virus (Flavivirus) transmitted by Aedes mosquitoes (or sexual contact) causes congenital Zika syndrome featuring severe microcephaly, redundant scalp skin (fetal brain disruption sequence), hypertonia, and chorioretinal macular scarring. Distractor exclusion: CMV causes periventricular calcifications and hepatosplenomegaly/petechiae rather than severe skull collapse; HBV does not cause microcephaly.`,
+    secondOrderClue: `Aedes travel + severe microcephaly + redundant scalp folds -> Congenital Zika virus.`,
+    phase1Pearl: `Zika is an enveloped +ssRNA Flavivirus capable of both Aedes mosquito vector transmission and sexual/vertical transmission.`,
+    phase2Hallmark: `Brain imaging shows severe microcephaly, subcortical/cortical-subcortical junction calcifications, and ventriculomegaly.`,
+    phase3Secret: `Guild Master's Secret: Also associated with Guillain-Barré syndrome in infected adults.`,
+    dossierBullets: {
+      p1: [`Enveloped +ssRNA Flavivirus; Aedes mosquito`, `Transmitted sexually and transplacentally`],
+      p2: [`Subcortical calcifications & ventriculomegaly`, `Overlapping sutures and redundant scalp folds`],
+      p3: [`Maternal illness mild: pruritic rash, conjunctivitis`, `Adult complication: Guillain-Barré syndrome`]
+    }
+  },
+  {
+    id: `ERV11-Q2`, lo: 11, sector: `sector_4`, loTitle: `LO 11: Congenital Zika Syndrome`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Neural Progenitor Cell Apoptosis`,
+    stem: `A 25-year-old woman contracts Zika virus at 11 weeks' gestation after mosquito bites in a tropical outbreak. Fetal MRI at 24 weeks shows profound cortical thinning and gyral simplification. Which cellular mechanism accounts for this severe cerebral hypoplasia?`,
+    clue: `Zika targets the dividing precursor cells that build the fetal cerebral cortex.`,
+    choices: [`Apoptosis of cortical neural progenitor cells`, `Immune-complex glomerulonephritis in choroid plexus`, `Demyelination of mature oligodendrocytes by JC virus`],
+    correctIndex: 0,
+    explanation: `Correct: Zika virus shows strong tropism for fetal cortical neural progenitor cells (via AXL/receptor entry), inducing mitotic arrest and caspase-mediated apoptosis that arrests cerebral cortex growth. Distractor exclusion: Immune complexes do not cause cortical collapse; JC virus reactivates in immunocompromised adults to cause PML.`,
+    secondOrderClue: `Zika virus -> neural progenitor cell apoptosis -> cortical thinning -> microcephaly.`,
+    phase1Pearl: `Loss of neural stem/progenitor cells halts neurogenesis, leading to skull collapse and redundant scalp rugae.`,
+    phase2Hallmark: `Lissencephaly/pachygyria, thin cortical mantle, and calcifications at the gray-white matter junction.`,
+    phase3Secret: `Guild Master's Secret: Diagnosis is confirmed by RT-PCR (early) or IgM/PRNT serology.`,
+    dossierBullets: {
+      p1: [`Selective tropism for neural progenitor cells`, `Triggers cell-cycle arrest and apoptosis`],
+      p2: [`Gray-white junction calcifications on CT/MRI`, `Cortical thinning and corpus callosum hypoplasia`],
+      p3: [`Diagnose via RT-PCR or serologic testing`, `Supportive care; no specific antiviral exists`]
+    }
+  },
+  {
+    id: `ERV11-Q3`, lo: 11, sector: `sector_4`, loTitle: `LO 11: Congenital Zika Syndrome`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Barrier Contraception & Vector Avoidance`,
+    stem: `A 31-year-old man returns from a Zika-endemic region after experiencing 4 days of conjunctivitis, low-grade fever, and a pruritic maculopapular rash. He and his wife are trying to conceive. Because Zika persists longest in semen, what counseling is required?`,
+    clue: `Prevent sexual transmission to a partner who is pregnant or planning pregnancy.`,
+    choices: [`Use condoms or abstain from conception attempts`, `Start daily oral valacyclovir for 3 months`, `Obtain live-attenuated Zika vaccine prior to intercourse`],
+    correctIndex: 0,
+    explanation: `Correct: Zika virus persists in semen far longer than in blood and can be sexually transmitted; couples should use barrier contraception (condoms) or defer conception (3 months for men per travel guidance) and avoid mosquito bites. Distractor exclusion: Valacyclovir is only active against herpesviruses; there is no licensed live Zika vaccine.`,
+    secondOrderClue: `Male traveler + conjunctivitis/itchy rash -> sexual persistence -> condoms/defer pregnancy.`,
+    phase1Pearl: `Unlike most arboviruses, Zika replicates in the male reproductive tract and sheds in semen for weeks to months.`,
+    phase2Hallmark: `RT-PCR of serum/urine detects acute RNA; PRNT (plaque reduction neutralization) distinguishes Zika from Dengue cross-reactivity.`,
+    phase3Secret: `Guild Master's Secret: Pregnant women should avoid non-essential travel to active Zika zones; partners returning from travel must use condoms throughout pregnancy.`,
+    dossierBullets: {
+      p1: [`Prolonged viral shedding in seminal fluid`, `Serologic cross-reactivity with Dengue flavivirus`],
+      p2: [`RT-PCR detects viral RNA in acute serum/urine`, `Microcephaly & arthrogryposis on fetal US`],
+      p3: [`Condoms throughout pregnancy if partner exposed`, `DEET repellent and permethrin clothing prevent bites`]
+    }
+  },
+
+  // LO 12: Perinatal Hepatitis B & C
+  {
+    id: `ERV12-Q1`, lo: 12, sector: `sector_4`, loTitle: `LO 12: Perinatal Hepatitis B & C`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `HBIG Plus HBV Vaccine < 12 Hours`,
+    stem: `A 28-year-old woman in active labor has prenatal labs positive for HBsAg and HBeAg. She delivers a vigorous male infant vaginally. What is the single most effective immediate neonatal management to prevent chronic HBV infection?`,
+    clue: `Combine passive immediate antibodies with active immunization in separate limbs right after birth.`,
+    choices: [`Administer both HBIG and HBV vaccine < 12 hours`, `Schedule cesarean delivery and withhold breastfeeding`, `Administer maternal tenofovir and delay vaccine 2 months`],
+    correctIndex: 0,
+    explanation: `Correct: Infants born to HBsAg-positive mothers must receive BOTH passive Hepatitis B Immune Globulin (HBIG) AND the first dose of active recombinant HBV vaccine at separate anatomic sites within 12 hours of birth. Distractor exclusion: Cesarean delivery is not required for HBV, and breastfeeding is safe once prophylaxis is given; delaying vaccination dramatically increases chronicity risk.`,
+    secondOrderClue: `Maternal HBsAg+ -> Neonatal HBIG + HBV vaccine in different thighs within 12 hours.`,
+    phase1Pearl: `Without prophylaxis, ~90% of perinatally infected neonates develop chronic HBV due to immature neonatal T-cell clearance.`,
+    phase2Hallmark: `Recombinant HBV vaccine uses yeast-derived HBsAg; chronic HBV biopsy shows "ground-glass" eosinophilic hepatocytes.`,
+    phase3Secret: `Guild Master's Secret: Breastfeeding is NOT contraindicated for HBsAg-positive mothers once the infant receives HBIG + HBV vaccine at birth.`,
+    dossierBullets: {
+      p1: [`Neonatal immune tolerance causes 90% chronicity`, `HBIG neutralizes virus while vaccine builds IgG`],
+      p2: [`Recombinant HBsAg subunit vaccine`, `Ground-glass hepatocytes in chronic infection`],
+      p3: [`Give HBIG + HBV vaccine < 12h at separate sites`, `Breastfeeding is safe after birth prophylaxis`]
+    }
+  },
+  {
+    id: `ERV12-Q2`, lo: 12, sector: `sector_4`, loTitle: `LO 12: Perinatal Hepatitis B & C`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `HBeAg Marks High Infectivity`,
+    stem: `Two pregnant patients test positive for HBsAg. Patient A is also HBeAg-positive with HBV DNA > 200,000 IU/mL, whereas Patient B is anti-HBe positive with undetectable HBV DNA. Why does Patient A carry a substantially higher risk of vertical transmission?`,
+    clue: `Recall what the "e" antigen signifies about viral replication and polymerase activity.`,
+    choices: [`HBeAg indicates active viral replication and high viremia`, `HBeAg directly lyses placental syncytiotrophoblasts`, `HBeAg blocks maternal transplacental IgG transport`],
+    correctIndex: 0,
+    explanation: `Correct: Hepatitis B e antigen (HBeAg) is secreted during active core/precore viral replication and directly correlates with high viral DNA levels and high transmissibility across birth secretions. Distractor exclusion: HBV is non-cytopathic (liver injury is CD8+ T-cell mediated) and does not lyse trophoblasts or block FcRn IgG transport.`,
+    secondOrderClue: `HBeAg+ = active replication & high infectivity -> add maternal tenofovir at 28–32 weeks.`,
+    phase1Pearl: `HBV is a partially dsDNA hepadnavirus whose DNA polymerase has reverse transcriptase activity via an RNA intermediate.`,
+    phase2Hallmark: `HBsAg > 6 months defines chronic HBV; anti-HBs alone indicates immunity from vaccination; anti-HBc IgM fills the "window period".`,
+    phase3Secret: `Guild Master's Secret: Give maternal tenofovir starting at 28–32 weeks' gestation if maternal HBV DNA > 200,000 IU/mL to further cut vertical spread.`,
+    dossierBullets: {
+      p1: [`Partially dsDNA replicates via RNA intermediate`, `HBeAg correlates with high viral load/infectivity`],
+      p2: [`Anti-HBc IgM = acute window period marker`, `Anti-HBs alone = prior recombinant vaccination`],
+      p3: [`3rd-trimester tenofovir if HBV DNA > 200,000`, `Check infant HBsAg & anti-HBs at 9–12 months`]
+    }
+  },
+  {
+    id: `ERV12-Q3`, lo: 12, sector: `sector_4`, loTitle: `LO 12: Perinatal Hepatitis B & C`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Direct-Acting Antivirals Postpartum`,
+    stem: `A 31-year-old pregnant woman with a history of IV drug use tests positive for anti-HCV antibody and detectable HCV RNA. Liver biopsy prior to pregnancy showed portal lymphoid aggregates and macrovesicular steatosis. Which statement accurately guides her perinatal and postpartum care?`,
+    clue: `Compare vertical HCV management (no vaccine/HBIG exists) against HBV and note when direct-acting antivirals are given.`,
+    choices: [`No HCV vaccine exists; treat mother postpartum with sofosbuvir`, `Administer HCIG and recombinant HCV vaccine < 12h`, `Give ribavirin + interferon-alpha immediately in pregnancy`],
+    correctIndex: 0,
+    explanation: `Correct: Unlike HBV, there is no HCV immune globulin or vaccine because HCV envelope E2 hypervariable region mutates rapidly; mothers are cured postpartum using direct-acting antivirals (e.g., sofosbuvir NS5B polymerase inhibitor). Distractor exclusion: No HCIG/HCV vaccine exists; ribavirin is strictly teratogenic and contraindicated in pregnancy.`,
+    secondOrderClue: `HCV in pregnancy -> no vaccine (E2 antigenic variation) -> avoid ribavirin -> postpartum DAA (sofosbuvir).`,
+    phase1Pearl: `HCV lacks 3'-to-5' exonuclease proofreading in its RNA polymerase, creating hypervariable E2 antigenic drift that defeats vaccines.`,
+    phase2Hallmark: `HCV histology features lymphoid aggregates in portal tracts and focal macrovesicular steatosis; 60–80% progress to chronicity.`,
+    phase3Secret: `Guild Master's Secret: Avoid internal fetal scalp monitors and prolonged rupture of membranes in HCV+ mothers; test infant HCV RNA at 2–6 months or anti-HCV at 18 months.`,
+    dossierBullets: {
+      p1: [`+ssRNA Flavivirus; lacks proofreading polymerase`, `E2 envelope variability blocks vaccine development`],
+      p2: [`Portal lymphoid aggregates & steatosis on biopsy`, `Associated with mixed cryoglobulinemia (IgM)`],
+      p3: [`Ribavirin is teratogenic (contraindicated)`, `Cure postpartum with sofosbuvir-based DAAs`]
+    }
+  },
+
+  // LO 13: Mumps Virus (Epididymo-Orchitis)
+  {
+    id: `ERV13-Q1`, lo: 13, sector: `sector_5`, loTitle: `LO 13: Mumps Virus (Epididymo-Orchitis)`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Mumps Epididymo-Orchitis`,
+    stem: `An unvaccinated 21-year-old college man presents with 5 days of fever, bilateral earache, and swollen cheeks displacing his earlobes laterally, followed today by acute severe swelling and tenderness of his right testis. Which viral family is responsible?`,
+    clue: `Parotitis + orchitis (+ meningitis/pancreatitis) = POM from a single-stranded negative-sense paramyxovirus.`,
+    choices: [`Paramyxoviridae`, `Orthomyxoviridae`, `Hepadnaviridae`],
+    correctIndex: 0,
+    explanation: `Correct: Mumps is an enveloped -ssRNA Paramyxovirus (with HN and Fusion proteins) that causes Parotitis, Orchitis, and Meningitis (POM); orchitis occurs in 20–30% of postpubertal males. Distractor exclusion: Orthomyxoviridae refers to segmented influenza viruses; Hepadnaviridae is Hepatitis B.`,
+    secondOrderClue: `Unvaccinated postpubertal male + parotitis + unilateral orchitis -> Mumps (Paramyxovirus).`,
+    phase1Pearl: `Mumps possesses hemagglutinin-neuraminidase (HN) and fusion (F) surface proteins, allowing cell-to-cell syncytia formation and viremic dissemination.`,
+    phase2Hallmark: `Elevated serum amylase (salivary isozyme) even without pancreatitis; testicular edema and mononuclear infiltrate.`,
+    phase3Secret: `Guild Master's Secret: Mumps orchitis is unilateral in ~70% of cases, so complete sterility is uncommon unless bilateral atrophy occurs.`,
+    dossierBullets: {
+      p1: [`Enveloped -ssRNA Paramyxovirus (HN+, F+)`, `Replicates in cytoplasm with viral RNA pol`],
+      p2: [`Elevated serum amylase from parotid damage`, `Interstitial testicular edema & atrophy`],
+      p3: [`POM triad: Parotitis, Orchitis, Meningitis`, `Supportive: ice, scrotal elevation, NSAIDs`]
+    }
+  },
+  {
+    id: `ERV13-Q2`, lo: 13, sector: `sector_5`, loTitle: `LO 13: Mumps Virus (Epididymo-Orchitis)`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Unyielding Tunica Albuginea Ischemia`,
+    stem: `A 24-year-old man recovering from mumps parotitis develops excruciating unilateral testicular pain and swelling. Months later, the affected testis is small and firm with reduced spermatogenesis. What anatomic mechanism drives testicular atrophy in mumps orchitis?`,
+    clue: `Compare testicular swelling inside a tight fibrous capsule to compartment syndrome.`,
+    choices: [`Edema trapped inside inelastic tunica albuginea`, `Direct destruction of Leydig cells by E6/E7`, `Granulomatous caseation of vas deferens`],
+    correctIndex: 0,
+    explanation: `Correct: Viral-induced interstitial edema and lymphocytic infiltration swell the testicular parenchyma against the rigid, unyielding tunica albuginea, raising intratesticular pressure and causing ischemic necrosis of seminiferous tubules. Distractor exclusion: E6/E7 belong to HPV; caseating granulomas of the vas deferens/epididymis occur in genitourinary tuberculosis.`,
+    secondOrderClue: `Mumps orchitis -> edema within rigid tunica albuginea -> pressure ischemia -> seminiferous tubule atrophy.`,
+    phase1Pearl: `Seminiferous tubules (Sertoli and germ cells) are far more sensitive to ischemic pressure than Leydig cells, preserving testosterone while impairing fertility.`,
+    phase2Hallmark: `Late histology shows hyalinized, fibrotic ghost seminiferous tubules with preserved interstitial Leydig cell clusters.`,
+    phase3Secret: `Guild Master's Secret: Because orchitis occurs predominantly in postpubertal males, childhood MMR vaccination is vital before puberty.`,
+    dossierBullets: {
+      p1: [`Rigid tunica albuginea creates compartment pressure`, `Ischemic necrosis targets seminiferous tubules`],
+      p2: [`Tubular hyalinization with spared Leydig cells`, `Decreased inhibin B / elevated FSH if bilateral`],
+      p3: [`Testosterone usually preserved despite subfertility`, `Prevented by two-dose live MMR vaccine`]
+    }
+  },
+  {
+    id: `ERV13-Q3`, lo: 13, sector: `sector_5`, loTitle: `LO 13: Mumps Virus (Epididymo-Orchitis)`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Supportive Care & Droplet Isolation`,
+    stem: `A 19-year-old male college student with acute mumps parotitis and unilateral orchitis has normal urinalysis (no pyuria or bacteriuria) and intact cremasteric reflex with Doppler ultrasound showing hyperemic testicular blood flow. What is the most appropriate management?`,
+    clue: `Rule out torsion (hyperemia present) and bacterial epididymitis (normal UA) -> treat viral inflammation.`,
+    choices: [`Scrotal support, ice packs, and NSAIDs`, `Empiric ceftriaxone plus doxycycline`, `Emergent surgical detorsion and orchiopexy`],
+    correctIndex: 0,
+    explanation: `Correct: Viral mumps orchitis with hyperemic Doppler flow and sterile urinalysis requires conservative supportive management (scrotal elevation, cold compresses, NSAIDs) plus droplet precautions. Distractor exclusion: Ceftriaxone + doxycycline treats bacterial STI epididymitis (Chlamydia/Gonorrhea); surgical detorsion is indicated when Doppler shows absent/decreased blood flow.`,
+    secondOrderClue: `Hyperemic Doppler + sterile UA + parotitis -> Mumps orchitis -> supportive NSAIDs/ice.`,
+    phase1Pearl: `Mumps also causes viral aseptic meningitis and pancreatitis (epigastric pain radiating to the back with elevated lipase).`,
+    phase2Hallmark: `Doppler ultrasound confirms increased testicular perfusion (distinguishing orchitis from testicular torsion).`,
+    phase3Secret: `Guild Master's Secret: Always check Doppler flow first in acute scrotal pain so a surgical testicular torsion is never missed.`,
+    dossierBullets: {
+      p1: [`Absence of pyuria rules out bacterial STI`, `Viremia peaks shortly before parotid/testis pain`],
+      p2: [`Color Doppler shows hyperemia (vs torsion)`, `Salivary amylase elevated even without pancreatitis`],
+      p3: [`Scrotal elevation, ice, NSAIDs, droplet isolation`, `MMR vaccine contraindicated if pregnant or CD4 < 200`]
+    }
+  },
+
+  // LO 14: Coxsackie B & Subacute Granulomatous Thyroiditis
+  {
+    id: `ERV14-Q1`, lo: 14, sector: `sector_5`, loTitle: `LO 14: Coxsackie B & Subacute Thyroiditis`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Subacute Granulomatous Thyroiditis`,
+    stem: `A 36-year-old woman presents with 4 days of palpitations, heat intolerance, and severe anterior neck pain radiating to her jaw 3 weeks after a Coxsackie B viral upper respiratory infection. Exam reveals an exquisitely tender, firm thyroid gland. Labs show suppressed TSH, elevated free T4, ESR 88 mm/hr, and 2% radioactive iodine uptake at 24 hours. What is the diagnosis?`,
+    clue: `Post-viral exquisitely tender thyroid + high ESR + LOW RAIU.`,
+    choices: [`Subacute granulomatous (de Quervain) thyroiditis`, `Graves disease`, `Riedel fibrous thyroiditis`],
+    correctIndex: 0,
+    explanation: `Correct: De Quervain (subacute granulomatous) thyroiditis follows a viral URI (often Coxsackie B or mumps) and presents with a painful, tender goiter, markedly elevated ESR, transient thyrotoxicosis, and low RAIU. Distractor exclusion: Graves disease causes a painless diffuse goiter with HIGH RAIU; Riedel thyroiditis presents with a painless rock-hard fixed thyroid.`,
+    secondOrderClue: `Post-viral jaw-radiating neck pain + high ESR + LOW RAIU -> De Quervain thyroiditis.`,
+    phase1Pearl: `Viral-triggered immune destruction of thyroid follicles leaks preformed stored colloid T3/T4 into blood without new hormone synthesis.`,
+    phase2Hallmark: `Multinucleated giant cells surrounding disrupted thyroid follicles (granulomatous inflammation) + elevated ESR + low RAIU.`,
+    phase3Secret: `Guild Master's Secret: Low RAIU differentiates destructive thyroiditis (releasing preformed hormone) from Graves disease (synthesizing new hormone).`,
+    dossierBullets: {
+      p1: [`Post-viral (Coxsackie B) follicular destruction`, `Preformed T3/T4 leaks -> transient thyrotoxicosis`],
+      p2: [`Markedly high ESR & low 24h RAIU scan`, `Multinucleated giant cells around colloid`],
+      p3: [`Exquisitely tender goiter radiating to jaw/ear`, `Triphasic course: hyper -> hypo -> euthyroid`]
+    }
+  },
+  {
+    id: `ERV14-Q2`, lo: 14, sector: `sector_5`, loTitle: `LO 14: Coxsackie B & Subacute Thyroiditis`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Preformed Thyroid Hormone Leakage`,
+    stem: `A 33-year-old woman develops transient thyrotoxicosis 2 weeks after an enteroviral illness (Coxsackie B), followed 6 weeks later by mild transient hypothyroidism before normalizing. Why is her 24-hour radioactive iodine uptake suppressed during the initial hyperthyroid phase?`,
+    clue: `Are thyroid follicular cells actively synthesizing new thyroid hormone, or merely leaking stored hormone?`,
+    choices: [`Suppressed TSH and damaged follicles halt iodine trapping`, `Thyroid peroxidase is permanently blocked by IgG4`, `Ectopic ovarian struma ovarii suppresses the neck gland`],
+    correctIndex: 0,
+    explanation: `Correct: Inflammatory follicle lysis spills preformed T3/T4 into the bloodstream; the resulting negative feedback suppresses pituitary TSH, while damaged follicular cells cannot trap radioactive iodine, causing low RAIU. Distractor exclusion: IgG4 fibrosis occurs in Riedel thyroiditis; struma ovarii is an ovarian teratoma with pelvic uptake rather than a tender neck gland.`,
+    secondOrderClue: `Follicle lysis -> preformed T4 leak -> TSH suppression + damaged NIS -> LOW RAIU.`,
+    phase1Pearl: `Once stored colloid is depleted, transient hypothyroidism ensues until regenerating follicles restore euthyroidism.`,
+    phase2Hallmark: `Elevated thyroglobulin, suppressed TSH, elevated ESR/CRP, and absent/minimal tracer uptake on I-123 thyroid scan.`,
+    phase3Secret: `Guild Master's Secret: Coxsackie B (+ssRNA naked Picornavirus) also classically triggers type 1 diabetes mellitus via pancreatic beta-cell mimicry and viral myocarditis.`,
+    dossierBullets: {
+      p1: [`Colloid rupture dumps stored T3/T4 + thyroglobulin`, `Low TSH + injured Na+/I- symporter = low RAIU`],
+      p2: [`Granulomatous giant-cell reaction on FNA`, `ESR typically > 50 mm/hr`],
+      p3: [`Coxsackie B also linked to T1DM & myocarditis`, `Self-limited; ~90% return to euthyroid state`]
+    }
+  },
+  {
+    id: `ERV14-Q3`, lo: 14, sector: `sector_5`, loTitle: `LO 14: Coxsackie B & Subacute Thyroiditis`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `NSAIDs and Propranolol Only`,
+    stem: `A 40-year-old man with painful subacute granulomatous thyroiditis has palpitations (HR 112/min), tremor, TSH < 0.01 mIU/L, ESR 76 mm/hr, and low RAIU. What is the most appropriate first-line pharmacotherapy?`,
+    clue: `Because no new thyroid hormone is being synthesized, thionamides (PTU/methimazole) are ineffective.`,
+    choices: [`NSAIDs for pain plus propranolol for symptoms`, `Methimazole plus radioactive iodine ablation`, `Propylthiouracil plus total thyroidectomy`],
+    correctIndex: 0,
+    explanation: `Correct: Because subacute thyroiditis is a self-limited destructive release of preformed hormone, first-line treatment is NSAIDs/aspirin (or prednisone if refractory pain) plus a beta-blocker (propranolol) for adrenergic symptoms. Distractor exclusion: Thionamides (methimazole, PTU) and RAI ablation only block or destroy active hormone synthesis and are useless here.`,
+    secondOrderClue: `De Quervain thyroiditis -> NEVER give methimazole/PTU -> NSAIDs/steroids + propranolol.`,
+    phase1Pearl: `Propranolol blocks peripheral beta-adrenergic receptors and inhibits peripheral 5'-deiodinase conversion of T4 to T3.`,
+    phase2Hallmark: `Tender thyroid + granulomas with multinucleated giant cells + high ESR.`,
+    phase3Secret: `Guild Master's Secret: On COMLEX OMT, thyroid viscerosomatics map to T1–T4 (cervicothoracic) with anterior Chapman point at the 2nd intercostal space near the sternum.`,
+    dossierBullets: {
+      p1: [`Zero de novo synthesis renders thionamides useless`, `Propranolol blocks beta receptors & T4->T3`],
+      p2: [`Painful thyroid with giant cells & high ESR`, `Low RAIU separates from Graves disease`],
+      p3: [`First-line: NSAIDs/aspirin; prednisone if severe`, `OMT: Thyroid sympathetics T1–T4; 2nd ICS Chapman`]
+    }
+  },
+
+  // LO 15: Pelvic Viscerosomatics, Chapman's Reflexes & Sacral Mechanics
+  {
+    id: `ERV15-Q1`, lo: 15, sector: `sector_5`, loTitle: `LO 15: Pelvic Viscerosomatics & Sacrum`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `T10–T11 Sympathetics & Pubic Tubercle`,
+    stem: `A 22-year-old man with acute mumps epididymo-orchitis presents for supportive osteopathic evaluation. Where should the clinician expect to find facilitated paraspinal viscerosomatic tissue texture changes and the corresponding anterior Chapman reflex point?`,
+    clue: `Gonads (ovaries and testes) share embryologic origin and sympathetic innervation with the kidneys.`,
+    choices: [`T10–T11 paraspinals; anterior pubic tubercle`, `T1–T4 paraspinals; 2nd intercostal space`, `T12–L2 paraspinals; lateral femoral thigh`],
+    correctIndex: 0,
+    explanation: `Correct: Gonads (testes and ovaries) receive sympathetic innervation from T10–T11, and their anterior Chapman's reflex point is located on the superior aspect of the pubic tubercle (posterior point between T9–T10 transverse processes or PSIS). Distractor exclusion: T1–T4 and 2nd ICS correspond to the thyroid/heart/upper lung; lateral thigh corresponds to broad ligament/colon.`,
+    secondOrderClue: `Gonads (testis/ovary) -> T10–T11 sympathetics -> anterior Chapman at pubic tubercle.`,
+    phase1Pearl: `Gonads descend from the posterior abdominal wall near the kidneys, carrying their T10–T11 sympathetic preganglionic supply.`,
+    phase2Hallmark: `Bilateral boggy paraspinal hypertonicity at T10–T11 and shotty myofascial nodules over the pubic tubercle.`,
+    phase3Secret: `Guild Master's Secret: Remember T10–T11 = Kidneys, Gonads, Upper Ureters; T12–L2 = Lower Ureters, Bladder, Uterus/Cervix, Prostate.`,
+    dossierBullets: {
+      p1: [`Gonads descend carrying T10–T11 sympathetics`, `Parasympathetic pelvic supply is S2–S4`],
+      p2: [`Anterior Chapman: pubic tubercle (gonads)`, `Posterior Chapman: T9–T10 / PSIS area`],
+      p3: [`Treat T10–T11 + thoracolumbar lymphatic pump`, `Broad ligament Chapman: lateral thigh (IT band)`]
+    }
+  },
+  {
+    id: `ERV15-Q2`, lo: 15, sector: `sector_5`, loTitle: `LO 15: Pelvic Viscerosomatics & Sacrum`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `T12–L2 Sympathetic & S2–S4 Pelvic`,
+    stem: `A 29-year-old woman with recurrent HSV-2 cervicitis and pelvic inflammatory pain has restricted motion at the thoracolumbar and sacral segments. Which autonomic spinal levels innervate the uterus, cervix, and upper vagina?`,
+    clue: `Split pelvic viscera into sympathetic (thoracolumbar) and parasympathetic (pelvic splanchnic) segments.`,
+    choices: [`Sympathetics T12–L2; Parasympathetics S2–S4`, `Sympathetics T5–T9; Parasympathetics CN X`, `Sympathetics T1–T4; Parasympathetics S2–S4`],
+    correctIndex: 0,
+    explanation: `Correct: The uterus, cervix, and prostate receive sympathetic fibers from T12–L2 (hypogastric plexus) and parasympathetic fibers from S2–S4 (pelvic splanchnic nerves). Distractor exclusion: T5–T9 + vagus (CN X) innervate foregut structures; T1–T4 innervate head, neck, heart, and thyroid.`,
+    secondOrderClue: `Uterus/cervix/prostate -> Sympathetic T12–L2 + Parasympathetic S2–S4.`,
+    phase1Pearl: `Note the dual innervation of the female genital tract: ovaries/fallopian tubes = T10–T11; uterus/cervix = T12–L2; all pelvic parasympathetics = S2–S4.`,
+    phase2Hallmark: `Uterine Chapman points lie at the junction of the pubic ramus and ASIS (or lateral thigh for broad ligament); prostate Chapman lies along the lateral thigh/IT band.`,
+    phase3Secret: `Guild Master's Secret: During labor stage 1 (uterine contractions/cervical dilation), block T10–L1; during stage 2 (perineal stretch), block pudendal S2–S4.`,
+    dossierBullets: {
+      p1: [`T12–L2 sympathetics control uterine tone/vessels`, `S2–S4 pelvic splanchnics supply parasympathetics`],
+      p2: [`Uterus/prostate boggy paraspinal T12–L2 changes`, `S2–S4 sacral somatic dysfunction via pelvic plexus`],
+      p3: [`Stage 1 labor pain: T10–L1; Stage 2: S2–S4`, `Use sacral rocking / BLT to balance S2–S4 tone`]
+    }
+  },
+  {
+    id: `ERV15-Q3`, lo: 15, sector: `sector_5`, loTitle: `LO 15: Pelvic Viscerosomatics & Sacrum`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Left-on-Left Forward Sacral Torsion`,
+    stem: `A postpartum woman with persistent pelvic pain is found on osteopathic exam to have a deep left sacral sulcus, a posterior/inferior right ILA, a positive seated flexion test on the right, and backward-bending (sphinx test) that improves sacral symmetry. What is the sacral diagnosis?`,
+    clue: `Seated flexion identifies the oblique axis side; sphinx improvement indicates a forward (anterior) torsion.`,
+    choices: [`Left-on-left forward sacral torsion`, `Left-on-right backward sacral torsion`, `Right unilateral sacral extension`],
+    correctIndex: 0,
+    explanation: `Correct: Positive seated flexion on the right places the oblique axis on the opposite (left) side; deep left sulcus + posterior/inferior right ILA + improvement with extension (sphinx test) define a physiological forward Left-on-Left (L on L) sacral torsion. Distractor exclusion: Backward torsions worsen on sphinx test and have a shallow sulcus on the axis side; unilateral sacral extension worsens in sphinx with ipsilateral deep sulcus and posterior ILA.`,
+    secondOrderClue: `Right seated flexion+ -> Left axis -> Sphinx improves + Deep L sulcus -> L on L forward torsion.`,
+    phase1Pearl: `Forward sacral torsions (L on L, R on R) rotate anteriorly around the oblique axis, making L5 rotate opposite and sidebend toward the axis.`,
+    phase2Hallmark: `L on L torsion: Right seated flexion+, L5 N R_L S_R, deep left sulcus, posterior/inferior right ILA, improves in sphinx.`,
+    phase3Secret: `Guild Master's Secret: Always perform Seated Flexion Test FIRST to locate the axis (axis is opposite the positive side), then check Sphinx to separate forward vs backward torsion.`,
+    dossierBullets: {
+      p1: [`Oblique axis is opposite positive seated flexion`, `L5 rotates toward the side of the deep sulcus`],
+      p2: [`Deep L sulcus + P/I R ILA + Sphinx improves = L/L`, `Backward torsions (L/R, R/L) worsen in sphinx`],
+      p3: [`Treat L on L with Sims-position muscle energy`, `Patient lies on left side; push ankles toward floor`]
+    }
+  }
+];
+
+let appState = {
+  hp: 100,
+  xp: 0,
+  streak: 0,
+  hintsVisible: false,
+  timerEnabled: true,
+  timeoutMode: `review`,
+  masterSound: true,
+  sfxEnabled: true,
+  bgmEnabled: false,
+  bgmVolume: 35,
+  sectorFilter: `all`,
+  angleFilter: `all`,
+  phaseFilter: `all`,
+  focusedLo: 0,
+  masteredIds: [],
+  missedIds: []
+};
+
+let activeDeck = ALL_QUESTIONS.slice();
+let deckIndex = 0;
+let currentLaneMap = [0, 1, 2];
+let hoveredLane = -1;
+let isAwaitingOutcome = false;
+let timerIntervalId = null;
+let timeLeft = GAME_CONFIG.timerSeconds;
+let metaFadeTimeoutId = null;
+let codexSectorFilter = `all`;
+let isMenuOpen = false;
+
+// Audio State
+let audioCtx = null;
+let bgmOscLoop = null;
+let customAudioEl = null;
+
+// 3D Canvas State
+let canvasEl = null;
+let ctx2d = null;
+let animFrameId = null;
+let dustParticles = [];
+let portalProgress = 0;
+let craftBank = 0;
+let targetBank = 0;
+
+function ensureAudioCtx() {
+  if (!audioCtx) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (Ctx) audioCtx = new Ctx();
+  }
+  if (audioCtx && audioCtx.state === `suspended`) {
+    audioCtx.resume().catch(() => {});
+  }
+  return audioCtx;
+}
+
+function playSfx(type) {
+  if (!appState.masterSound || !appState.sfxEnabled) return;
+  const ctx = ensureAudioCtx();
+  if (!ctx) return;
+  try {
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    if (type === `correct`) {
+      osc.type = `triangle`;
+      osc.frequency.setValueAtTime(523.25, now);
+      osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.14);
+      gain.gain.setValueAtTime(0.14, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      osc.start(now);
+      osc.stop(now + 0.26);
+    } else if (type === `wrong`) {
+      osc.type = `sawtooth`;
+      osc.frequency.setValueAtTime(190, now);
+      osc.frequency.exponentialRampToValueAtTime(95, now + 0.22);
+      gain.gain.setValueAtTime(0.14, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.26);
+      osc.start(now);
+      osc.stop(now + 0.27);
+    } else {
+      osc.type = `sine`;
+      osc.frequency.setValueAtTime(420, now);
+      gain.gain.setValueAtTime(0.06, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc.start(now);
+      osc.stop(now + 0.09);
+    }
+  } catch (e) {}
+}
+
+function startProceduralBgm() {
+  stopProceduralBgm();
+  if (!appState.masterSound || !appState.bgmEnabled) return;
+  if (customAudioEl) {
+    customAudioEl.volume = appState.bgmVolume / 100;
+    customAudioEl.play().catch(() => {});
+    return;
+  }
+  const ctx = ensureAudioCtx();
+  if (!ctx) return;
+  const notes = [146.83, 174.61, 220.0, 207.65, 196.0, 174.61, 164.81, 130.81];
+  let step = 0;
+  bgmOscLoop = setInterval(() => {
+    if (!appState.masterSound || !appState.bgmEnabled || !audioCtx) return;
+    try {
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = `triangle`;
+      osc.frequency.setValueAtTime(notes[step % notes.length], now);
+      const vol = Math.max(0.01, (appState.bgmVolume / 100) * 0.12);
+      gain.gain.setValueAtTime(vol, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.34);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.35);
+      step++;
+    } catch (e) {}
+  }, 360);
+}
+
+function stopProceduralBgm() {
+  if (bgmOscLoop) {
+    clearInterval(bgmOscLoop);
+    bgmOscLoop = null;
+  }
+  if (customAudioEl) {
+    customAudioEl.pause();
+  }
+}
+
+function showToast(msg) {
+  const el = document.getElementById(`inline-toast`);
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add(`is-visible`);
+  setTimeout(() => { el.classList.remove(`is-visible`); }, 2200);
+}
+
+async function persistAppState() {
+  try {
+    if (window.notebookAppApi && typeof window.notebookAppApi.setAppState === `function`) {
+      await window.notebookAppApi.setAppState(appState);
+    }
+  } catch (e) {}
+}
+
+async function restoreAppState() {
+  try {
+    if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === `function`) {
+      const saved = await window.notebookAppApi.getAppState();
+      if (saved && typeof saved === `object`) {
+        appState = { ...appState, ...saved };
+      }
+    }
+  } catch (e) {}
+}
+
+function buildDeck(shuffle = false) {
+  let pool = ALL_QUESTIONS.slice();
+  if (appState.sectorFilter === `missed`) {
+    const missedSet = new Set(appState.missedIds);
+    const missedPool = pool.filter((q) => missedSet.has(q.id));
+    pool = missedPool.length ? missedPool : pool;
+  } else if (appState.sectorFilter !== `all`) {
+    pool = pool.filter((q) => q.sector === appState.sectorFilter);
+  }
+  if (appState.focusedLo > 0) {
+    const loPool = pool.filter((q) => q.lo === appState.focusedLo);
+    if (loPool.length) pool = loPool;
+  }
+  if (appState.angleFilter !== `all`) {
+    pool = pool.filter((q) => q.angle === appState.angleFilter);
+  }
+  if (appState.phaseFilter !== `all`) {
+    pool = pool.filter((q) => q.phaseFocus === appState.phaseFilter);
+  }
+  if (!pool.length) {
+    pool = ALL_QUESTIONS.slice();
+    showToast(`Filter empty — restored full 45-gate deck`);
+  }
+  if (shuffle) {
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+  }
+  activeDeck = pool;
+  deckIndex = 0;
+}
+
+function syncHintsUI() {
+  const app = document.getElementById(`xr-app`);
+  const menuBtn = document.getElementById(`menu-hints-btn`);
+  if (app) {
+    app.classList.toggle(`hints-visible`, appState.hintsVisible);
+    app.classList.toggle(`hints-hidden`, !appState.hintsVisible);
+  }
+  if (menuBtn) {
+    menuBtn.textContent = appState.hintsVisible ? `💡 Hints: ON [H]` : `💡 Hints: OFF [H]`;
+    menuBtn.classList.toggle(`is-active`, appState.hintsVisible);
+  }
+}
+
+function syncAudioUI() {
+  const mBtn = document.getElementById(`master-sound-btn`);
+  const sBtn = document.getElementById(`sfx-toggle-btn`);
+  const bBtn = document.getElementById(`bgm-toggle-btn`);
+  const vSlider = document.getElementById(`bgm-volume-slider`);
+  const vLbl = document.getElementById(`bgm-vol-label`);
+  if (mBtn) {
+    mBtn.textContent = appState.masterSound ? `🔊 Sound: ON` : `🔇 Sound: OFF`;
+    mBtn.classList.toggle(`is-active`, appState.masterSound);
+  }
+  if (sBtn) {
+    sBtn.textContent = appState.sfxEnabled ? `🎹 SFX: ON` : `🎹 SFX: OFF`;
+    sBtn.classList.toggle(`is-active`, appState.sfxEnabled);
+  }
+  if (bBtn) {
+    bBtn.textContent = appState.bgmEnabled ? `🎵 Zombies Procedural BGM: ON` : `🎵 Zombies Procedural BGM: OFF`;
+    bBtn.classList.toggle(`is-active`, appState.bgmEnabled);
+  }
+  if (vSlider) vSlider.value = String(appState.bgmVolume);
+  if (vLbl) vLbl.textContent = `${appState.bgmVolume}%`;
+}
+
+function syncTimerControlsUI() {
+  const btn = document.getElementById(`menu-timer-toggle-btn`);
+  const sel = document.getElementById(`timeout-mode-select`);
+  if (btn) {
+    btn.textContent = appState.timerEnabled ? `⏱ 50s Timer: ON [T]` : `⏱ 50s Timer: OFF [T]`;
+    btn.classList.toggle(`is-active`, appState.timerEnabled);
+  }
+  if (sel) sel.value = appState.timeoutMode;
+  updateTimerChipUI();
+}
+
+function syncFilterControlsUI() {
+  const sSel = document.getElementById(`sector-filter-select`);
+  const aSel = document.getElementById(`angle-filter-select`);
+  if (sSel) sSel.value = appState.sectorFilter;
+  if (aSel) aSel.value = appState.angleFilter;
+  document.querySelectorAll(`[data-phase]`).forEach((pill) => {
+    pill.classList.toggle(`is-active`, pill.getAttribute(`data-phase`) === appState.phaseFilter);
+  });
+}
+
+function updateTelemetryUI() {
+  const hpEl = document.getElementById(`tele-hp`);
+  const xpEl = document.getElementById(`tele-xp`);
+  const stEl = document.getElementById(`tele-streak`);
+  const gtEl = document.getElementById(`tele-gate`);
+  if (hpEl) hpEl.textContent = `❤ ${appState.hp} HP`;
+  if (xpEl) xpEl.textContent = `✦ ${appState.xp} XP`;
+  if (stEl) stEl.textContent = `⚡ ${appState.streak}`;
+  if (gtEl) gtEl.textContent = `GATE ${deckIndex + 1}/${activeDeck.length || 1}`;
+}
+
+function updateTimerChipUI() {
+  const tEl = document.getElementById(`tele-timer`);
+  if (!tEl) return;
+  if (!appState.timerEnabled) {
+    tEl.textContent = `⏱ OFF`;
+    tEl.classList.remove(`is-urgent`);
+  } else {
+    tEl.textContent = `⏱ ${timeLeft}s`;
+    tEl.classList.toggle(`is-urgent`, timeLeft <= 10);
+  }
+}
+
+function startQuestionTimer() {
+  stopQuestionTimer();
+  timeLeft = GAME_CONFIG.timerSeconds;
+  updateTimerChipUI();
+  if (!appState.timerEnabled) return;
+  timerIntervalId = setInterval(() => {
+    if (isAwaitingOutcome || !appState.timerEnabled) return;
+    if (timeLeft > 0) {
+      timeLeft--;
+      updateTimerChipUI();
+    }
+    if (timeLeft <= 0) {
+      stopQuestionTimer();
+      if (appState.timeoutMode === `review`) {
+        resolveGateOutcome(-1, true);
+      }
+    }
+  }, 1000);
+}
+
+function stopQuestionTimer() {
+  if (timerIntervalId) {
+    clearInterval(timerIntervalId);
+    timerIntervalId = null;
+  }
+}
+
+function loadCurrentGate() {
+  if (!activeDeck.length) buildDeck(false);
+  if (deckIndex >= activeDeck.length) deckIndex = 0;
+  const q = activeDeck[deckIndex];
+  isAwaitingOutcome = false;
+  portalProgress = 0;
+
+  // Shuffle 3 lane positions
+  currentLaneMap = [0, 1, 2];
+  for (let i = currentLaneMap.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [currentLaneMap[i], currentLaneMap[j]] = [currentLaneMap[j], currentLaneMap[i]];
+  }
+
+  const theme = LO_VISUAL_THEMES[q.lo] || LO_VISUAL_THEMES[1];
+  const loBadge = document.getElementById(`lo-badge`);
+  const angleBadge = document.getElementById(`angle-badge`);
+  const phaseBadge = document.getElementById(`phase-badge`);
+  const corridorBadge = document.getElementById(`corridor-badge`);
+  const metaBar = document.getElementById(`meta-badge-bar`);
+  const stemEl = document.getElementById(`q-stem-text`);
+  const clueEl = document.getElementById(`q-clue-text`);
+
+  if (loBadge) loBadge.textContent = q.loTitle;
+  if (angleBadge) angleBadge.textContent = q.angle.toUpperCase();
+  if (phaseBadge) phaseBadge.textContent = q.phaseFocus.toUpperCase();
+  if (corridorBadge) corridorBadge.textContent = theme.tag;
+  if (stemEl) stemEl.textContent = q.stem;
+  if (clueEl) clueEl.textContent = `CLUE: ${q.clue}`;
+
+  for (let lane = 0; lane < 3; lane++) {
+    const txtEl = document.getElementById(`lane-${lane}-text`);
+    const cardEl = document.getElementById(`lane-card-${lane}`);
+    if (txtEl) txtEl.textContent = q.choices[currentLaneMap[lane]];
+    if (cardEl) cardEl.classList.remove(`is-targeted`);
+  }
+
+  if (metaBar) {
+    metaBar.classList.remove(`is-faded`);
+    if (metaFadeTimeoutId) clearTimeout(metaFadeTimeoutId);
+    metaFadeTimeoutId = setTimeout(() => {
+      metaBar.classList.add(`is-faded`);
+    }, GAME_CONFIG.metaFadeMs);
+  }
+
+  updateTelemetryUI();
+  renderSkillTreeGrid();
+  startQuestionTimer();
+}
+
+function submitLaneChoice(laneIdx) {
+  if (isAwaitingOutcome) return;
+  resolveGateOutcome(laneIdx, false);
+}
+
+function resolveGateOutcome(chosenLane, isTimesUp) {
+  const q = activeDeck[deckIndex] || ALL_QUESTIONS[0];
+  if (!q) return;
+  isAwaitingOutcome = true;
+  stopQuestionTimer();
+  const chosenChoiceIdx = chosenLane >= 0 ? currentLaneMap[chosenLane] : -1;
+  const isCorrect = !isTimesUp && chosenChoiceIdx === q.correctIndex;
+
+  let xpDelta = 0;
+  let hpDelta = 0;
+  if (isCorrect) {
+    appState.streak++;
+    xpDelta = 25 + Math.min(appState.streak * 5, 25);
+    appState.xp += xpDelta;
+    if (!appState.masteredIds.includes(q.id)) appState.masteredIds.push(q.id);
+    appState.missedIds = appState.missedIds.filter((id) => id !== q.id);
+    if (appState.streak > 0 && appState.streak % GAME_CONFIG.streakHealEvery === 0) {
+      const prevHp = appState.hp;
+      appState.hp = Math.min(100, appState.hp + GAME_CONFIG.streakHealAmount);
+      hpDelta = appState.hp - prevHp;
+      showToast(`✚ STREAK BONUS +${GAME_CONFIG.streakHealAmount} HP`);
+    }
+    playSfx(`correct`);
+  } else {
+    appState.streak = 0;
+    hpDelta = -15;
+    appState.hp = Math.max(0, appState.hp + hpDelta);
+    if (!appState.missedIds.includes(q.id)) appState.missedIds.push(q.id);
+    if (appState.hp === 0) {
+      appState.hp = 100;
+      showToast(`CORE REBOOTED TO 100 HP`);
+    }
+    playSfx(`wrong`);
+  }
+
+  const hpDeltaLabel = hpDelta > 0 ? `+${hpDelta} HP` : `${hpDelta} HP`;
+  updateTelemetryUI();
+  populateOutcomeModal(q, chosenChoiceIdx, isCorrect, xpDelta, hpDeltaLabel, isTimesUp);
+  renderSkillTreeGrid();
+  persistAppState();
+}
+
+function renderDossierBullets(el, lines) {
+  if (!el) return;
+  const items = (Array.isArray(lines) ? lines : [lines])
+    .flatMap((line) => String(line || ``).split(/\n|<br\s*\/?>/i))
+    .map((line) => line.replace(/^\s*[•\-\*]\s*/, ``).trim())
+    .filter(Boolean);
+  el.innerHTML = items.map((line) => `<p class="dossier-line">• ${line}</p>`).join(``);
+}
+
+function populateOutcomeModal(q, chosenChoiceIdx, isCorrect, xpDelta, hpDeltaLabel, isTimesUp) {
+  const backdrop = document.getElementById(`outcome-backdrop`);
+  const verdictEl = document.getElementById(`outcome-verdict`);
+  const xpEl = document.getElementById(`outcome-xp-delta`);
+  const hpEl = document.getElementById(`outcome-hp-delta`);
+  const loRefEl = document.getElementById(`outcome-lo-ref`);
+  const qTextEl = document.getElementById(`outcome-question-text`);
+  const yourBox = document.getElementById(`your-choice-box`);
+  const yourTxt = document.getElementById(`your-choice-text`);
+  const corrTxt = document.getElementById(`correct-choice-text`);
+  const scrollBody = document.getElementById(`outcome-scroll-body`);
+
+  if (verdictEl) {
+    verdictEl.classList.remove(`is-correct`, `is-wrong`);
+    if (isTimesUp) {
+      verdictEl.textContent = `⏱ TIME'S UP — ${q.shortAnswer}`;
+      verdictEl.classList.add(`is-wrong`);
+    } else if (isCorrect) {
+      verdictEl.textContent = `✔ CORRECT — ${q.shortAnswer}`;
+      verdictEl.classList.add(`is-correct`);
+    } else {
+      verdictEl.textContent = `✖ INCORRECT — ${q.shortAnswer}`;
+      verdictEl.classList.add(`is-wrong`);
+    }
+  }
+  if (xpEl) xpEl.textContent = `+${xpDelta} XP`;
+  if (hpEl) hpEl.textContent = hpDeltaLabel;
+  if (loRefEl) loRefEl.textContent = `${q.loTitle} • ${q.angle} • ${q.phaseFocus}`;
+  if (qTextEl) qTextEl.textContent = q.stem;
+
+  if (yourBox && yourTxt) {
+    yourBox.classList.remove(`is-right`, `is-wrong`);
+    yourBox.classList.add(isCorrect ? `is-right` : `is-wrong`);
+    yourTxt.textContent = isTimesUp ? `Timed Out (No Lane Selected)` : (q.choices[chosenChoiceIdx] || `—`);
+  }
+  if (corrTxt) corrTxt.textContent = q.choices[q.correctIndex];
+
+  renderDossierBullets(document.getElementById(`dossier-explanation`), q.explanation.split(`Distractor exclusion:`)[0] + `\nDistractor exclusion:` + (q.explanation.split(`Distractor exclusion:`)[1] || ``));
+  renderDossierBullets(document.getElementById(`dossier-board-clue`), [q.secondOrderClue, `Clue: ${q.clue}`]);
+  renderDossierBullets(document.getElementById(`dossier-pathogenesis`), q.phase1Pearl);
+  renderDossierBullets(document.getElementById(`dossier-morphology`), q.phase2Hallmark);
+  renderDossierBullets(document.getElementById(`dossier-epi-tx`), q.phase3Secret);
+  renderDossierBullets(document.getElementById(`dossier-angle-1`), q.dossierBullets.p1);
+  renderDossierBullets(document.getElementById(`dossier-angle-2`), q.dossierBullets.p2);
+  renderDossierBullets(document.getElementById(`dossier-angle-3`), q.dossierBullets.p3);
+
+  if (scrollBody) scrollBody.scrollTop = 0;
+  if (backdrop) backdrop.classList.add(`is-open`);
+}
+
+function scrollOutcomeBody(deltaY) {
+  const body = document.getElementById(`outcome-scroll-body`);
+  if (!body) return;
+  if (typeof body.scrollBy === `function`) {
+    body.scrollBy({ top: deltaY, behavior: `smooth` });
+  } else {
+    body.scrollTop += deltaY;
+  }
+}
+
+function continueToNextGate() {
+  const backdrop = document.getElementById(`outcome-backdrop`);
+  if (backdrop) backdrop.classList.remove(`is-open`);
+  deckIndex = activeDeck.length ? (deckIndex + 1) % activeDeck.length : 0;
+  loadCurrentGate();
+}
+
+function toggleMenuDrawer() {
+  isMenuOpen = !isMenuOpen;
+  const drawer = document.getElementById(`top-menu-drawer`);
+  const backdrop = document.getElementById(`menu-backdrop`);
+  const btn = document.getElementById(`menu-toggle-btn`);
+  if (drawer) drawer.classList.toggle(`is-open`, isMenuOpen);
+  if (backdrop) backdrop.classList.toggle(`is-open`, isMenuOpen);
+  if (btn) btn.setAttribute(`aria-expanded`, String(isMenuOpen));
+  playSfx(`steer`);
+}
+
+function toggleHintsBar() {
+  appState.hintsVisible = !appState.hintsVisible;
+  syncHintsUI();
+  playSfx(`steer`);
+  persistAppState();
+}
+
+function openCodex() {
+  renderCodexTable();
+  const cb = document.getElementById(`codex-backdrop`);
+  if (cb) cb.classList.add(`is-open`);
+}
+
+function closeCodex() {
+  const cb = document.getElementById(`codex-backdrop`);
+  if (cb) cb.classList.remove(`is-open`);
+}
+
+function openCodexFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  openCodex();
+}
+
+function skipFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  skipCurrentQuestion();
+}
+
+function skipCurrentQuestion() {
+  if (isAwaitingOutcome) return;
+  deckIndex = (deckIndex + 1) % activeDeck.length;
+  playSfx(`steer`);
+  loadCurrentGate();
+}
+
+function toggleTimerEnabled() {
+  appState.timerEnabled = !appState.timerEnabled;
+  syncTimerControlsUI();
+  if (appState.timerEnabled) startQuestionTimer();
+  else stopQuestionTimer();
+  persistAppState();
+}
+
+function startTimedRun() {
+  appState.timerEnabled = true;
+  appState.timeoutMode = `review`;
+  syncTimerControlsUI();
+  if (isMenuOpen) toggleMenuDrawer();
+  buildDeck(true);
+  loadCurrentGate();
+  showToast(`⚡ 50s TIMED RUN ENGAGED`);
+  persistAppState();
+}
+
+function onSectorSelectChange(val) {
+  appState.sectorFilter = val;
+  appState.focusedLo = 0;
+  buildDeck(false);
+  loadCurrentGate();
+  persistAppState();
+}
+
+function onAngleSelectChange(val) {
+  appState.angleFilter = val;
+  buildDeck(false);
+  loadCurrentGate();
+  persistAppState();
+}
+
+function onTimeoutModeChange(val) {
+  appState.timeoutMode = val;
+  persistAppState();
+}
+
+function setPhaseFilter(phaseVal) {
+  appState.phaseFilter = phaseVal;
+  syncFilterControlsUI();
+  buildDeck(false);
+  loadCurrentGate();
+  persistAppState();
+}
+
+function restartDeckOrdered() {
+  appState.focusedLo = 0;
+  buildDeck(false);
+  loadCurrentGate();
+  if (isMenuOpen) toggleMenuDrawer();
+  showToast(`DECK RESTARTED IN ORDER`);
+}
+
+function shuffleActiveDeck() {
+  buildDeck(true);
+  loadCurrentGate();
+  if (isMenuOpen) toggleMenuDrawer();
+  showToast(`DECK SHUFFLED`);
+}
+
+function handleResetMastery(btn) {
+  if (!btn) return;
+  if (btn.dataset.armed !== `true`) {
+    btn.dataset.armed = `true`;
+    btn.textContent = `⚠ Confirm Reset? Tap Again`;
+    setTimeout(() => {
+      if (btn.dataset.armed === `true`) {
+        btn.dataset.armed = `false`;
+        btn.textContent = `⚠ Reset Mastery (Tap Twice)`;
+      }
+    }, 3500);
+    return;
+  }
+  btn.dataset.armed = `false`;
+  btn.textContent = `⚠ Reset Mastery (Tap Twice)`;
+  appState.hp = 100;
+  appState.xp = 0;
+  appState.streak = 0;
+  appState.masteredIds = [];
+  appState.missedIds = [];
+  updateTelemetryUI();
+  renderSkillTreeGrid();
+  persistAppState();
+  showToast(`MASTERY TELEMETRY RESET`);
+}
+
+function toggleMasterSound() {
+  appState.masterSound = !appState.masterSound;
+  if (!appState.masterSound) stopProceduralBgm();
+  else if (appState.bgmEnabled) startProceduralBgm();
+  syncAudioUI();
+  persistAppState();
+}
+
+function toggleSfx() {
+  appState.sfxEnabled = !appState.sfxEnabled;
+  syncAudioUI();
+  persistAppState();
+}
+
+function toggleProceduralBgm() {
+  appState.bgmEnabled = !appState.bgmEnabled;
+  if (appState.bgmEnabled) startProceduralBgm();
+  else stopProceduralBgm();
+  syncAudioUI();
+  persistAppState();
+}
+
+function setBgmVolume(val) {
+  appState.bgmVolume = Number(val);
+  if (customAudioEl) customAudioEl.volume = appState.bgmVolume / 100;
+  const lbl = document.getElementById(`bgm-vol-label`);
+  if (lbl) lbl.textContent = `${appState.bgmVolume}%`;
+  persistAppState();
+}
+
+function loadCustomBgmFile(input) {
+  const file = input && input.files && input.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  if (customAudioEl) customAudioEl.pause();
+  customAudioEl = new Audio(url);
+  customAudioEl.loop = true;
+  customAudioEl.volume = appState.bgmVolume / 100;
+  appState.bgmEnabled = true;
+  syncAudioUI();
+  startProceduralBgm();
+  showToast(`LOADED: ${file.name}`);
+}
+
+function renderSkillTreeGrid() {
+  const grid = document.getElementById(`skill-tree-grid`);
+  if (!grid) return;
+  const masteredSet = new Set(appState.masteredIds);
+  grid.innerHTML = CODEX_DATA.map((item) => {
+    const qs = ALL_QUESTIONS.filter((q) => q.lo === item.lo);
+    const done = qs.filter((q) => masteredSet.has(q.id)).length;
+    const isSel = appState.focusedLo === item.lo;
+    const isMast = done === qs.length && qs.length > 0;
+    return `<button type="button" class="skill-node ${isSel ? `is-selected` : ``} ${isMast ? `is-mastered` : ``}" onclick="focusEntityLo(${item.lo})"><span class="skill-node-title">${item.lo}. ${item.entity.split(`(`)[0].trim()}</span><span class="skill-node-meta">${done}/${qs.length} GATES</span></button>`;
+  }).join(``);
+}
+
+function focusEntityLo(loNum) {
+  appState.focusedLo = appState.focusedLo === loNum ? 0 : loNum;
+  appState.sectorFilter = `all`;
+  syncFilterControlsUI();
+  buildDeck(false);
+  loadCurrentGate();
+  if (isMenuOpen) toggleMenuDrawer();
+}
+
+function setCodexSector(sectorVal) {
+  codexSectorFilter = sectorVal;
+  document.querySelectorAll(`[data-codex-sector]`).forEach((b) => {
+    b.classList.toggle(`is-active`, b.getAttribute(`data-codex-sector`) === sectorVal);
+  });
+  renderCodexTable();
+}
+
+function renderCodexTable() {
+  const tbody = document.getElementById(`codex-tbody`);
+  const input = document.getElementById(`codex-search-input`);
+  if (!tbody) return;
+  const q = input ? input.value.trim().toLowerCase() : ``;
+  const rows = CODEX_DATA.filter((row) => {
+    if (codexSectorFilter !== `all` && row.sector !== codexSectorFilter) return false;
+    if (!q) return true;
+    const blob = `${row.entity} ${row.tag} ${row.etiology} ${row.pathogenesis} ${row.hallmarks} ${row.clinical} ${row.management}`.toLowerCase();
+    return blob.includes(q);
+  });
+  tbody.innerHTML = rows.map((r) => `
+    <tr>
+      <td class="amboss-scan-target"><div class="codex-entity-name">${r.lo}. ${r.entity}</div><div class="codex-badge-meta">${r.badgeMeta}</div></td>
+      <td class="amboss-scan-target">${r.etiology}</td>
+      <td class="amboss-scan-target">${r.pathogenesis}</td>
+      <td class="amboss-scan-target">${r.hallmarks}</td>
+      <td class="amboss-scan-target">${r.clinical}</td>
+      <td class="amboss-scan-target">${r.management}</td>
+    </tr>
+  `).join(``);
+}
+
+function setHoveredLane(idx) {
+  hoveredLane = idx;
+  if (idx === 0) targetBank = -0.35;
+  else if (idx === 2) targetBank = 0.35;
+  else targetBank = 0;
+  for (let i = 0; i < 3; i++) {
+    const c = document.getElementById(`lane-card-${i}`);
+    if (c) c.classList.toggle(`is-targeted`, i === idx);
+  }
+}
+
+/* 3D SYNTHWAVE VIEWPORT ENGINE: 150 SQUARE PIXEL-DUST PARTICLES + 3 TEAL RAILS + DIAMOND CRAFT + 1:1 PORTAL FUSION */
+function initSynthwaveCanvas() {
+  canvasEl = document.getElementById(`xr-canvas`);
+  if (!canvasEl) return;
+  ctx2d = canvasEl.getContext(`2d`);
+  dustParticles = Array.from({ length: 150 }, () => ({
+    x: (Math.random() - 0.5) * 2.2,
+    y: Math.random() * 1.1 - 0.25,
+    z: Math.random() * 1.0,
+    size: 2 + Math.random() * 2.5
+  }));
+  const resize = () => {
+    if (!canvasEl) return;
+    canvasEl.width = window.innerWidth;
+    canvasEl.height = window.innerHeight;
+  };
+  resize();
+  window.addEventListener(`resize`, resize);
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  const loop = () => {
+    drawSynthwaveFrame();
+    animFrameId = requestAnimationFrame(loop);
+  };
+  animFrameId = requestAnimationFrame(loop);
+}
+
+function drawSynthwaveFrame() {
+  if (!canvasEl || !ctx2d) return;
+  const w = canvasEl.width;
+  const h = canvasEl.height;
+  const q = activeDeck[deckIndex] || ALL_QUESTIONS[0];
+  const theme = LO_VISUAL_THEMES[q.lo] || LO_VISUAL_THEMES[1];
+
+  ctx2d.fillStyle = `#070812`;
+  ctx2d.fillRect(0, 0, w, h);
+
+  const horizonY = h * 0.42;
+  const centerX = w * 0.5;
+  const t = performance.now() * 0.001;
+
+  // Wireframe perspective floor
+  ctx2d.strokeStyle = `rgba(${theme.gridRgb}, 0.45)`;
+  ctx2d.lineWidth = 1;
+  for (let i = -12; i <= 12; i++) {
+    ctx2d.beginPath();
+    ctx2d.moveTo(centerX + i * (w * 0.025), horizonY);
+    ctx2d.lineTo(centerX + i * (w * 0.16), h);
+    ctx2d.stroke();
+  }
+  for (let r = 0; r < 14; r++) {
+    const prog = ((r / 14) + (t * 0.35) % (1 / 14));
+    const y = horizonY + Math.pow(prog, 2.1) * (h - horizonY);
+    ctx2d.beginPath();
+    ctx2d.moveTo(0, y);
+    ctx2d.lineTo(w, y);
+    ctx2d.stroke();
+  }
+
+  // 3 Teal perspective rails
+  const railOffsets = [-0.28, 0, 0.28];
+  ctx2d.strokeStyle = theme.railColor;
+  ctx2d.lineWidth = 2;
+  railOffsets.forEach((off) => {
+    ctx2d.beginPath();
+    ctx2d.moveTo(centerX + off * (w * 0.08), horizonY);
+    ctx2d.lineTo(centerX + off * (w * 0.85), h);
+    ctx2d.stroke();
+  });
+
+  // 150 crisp 3D square pixel-dust particles
+  ctx2d.fillStyle = theme.particleColor;
+  for (let i = 0; i < dustParticles.length; i++) {
+    const p = dustParticles[i];
+    p.z -= 0.0055;
+    if (p.z <= 0.02) {
+      p.z = 1.0;
+      p.x = (Math.random() - 0.5) * 2.2;
+      p.y = Math.random() * 1.1 - 0.25;
+    }
+    const scale = 1 / p.z;
+    const sx = centerX + p.x * w * 0.28 * scale;
+    const sy = horizonY + p.y * h * 0.26 * scale;
+    const sz = Math.max(1.5, Math.min(5, p.size * scale * 0.45));
+    if (sx >= 0 && sx <= w && sy >= 0 && sy <= h) {
+      ctx2d.fillRect(sx, sy, sz, sz);
+    }
+  }
+
+  // 1:1 Portal-to-card alignment frames
+  if (!isAwaitingOutcome) {
+    portalProgress = Math.min(1, portalProgress + 0.02);
+  }
+  const portalColors = [`#ff2d78`, `#00ffcc`, `#ffe04a`];
+  for (let i = 0; i < 3; i++) {
+    const cardEl = document.getElementById(`lane-card-${i}`);
+    if (!cardEl) continue;
+    const rect = cardEl.getBoundingClientRect();
+    const pad = (1 - portalProgress) * 22 + 3;
+    ctx2d.save();
+    ctx2d.strokeStyle = portalColors[i];
+    ctx2d.lineWidth = i === hoveredLane ? 3 : 1.5;
+    ctx2d.globalAlpha = 0.42 + portalProgress * 0.45;
+    ctx2d.strokeRect(rect.left - pad, rect.top - pad, rect.width + pad * 2, rect.height + pad * 2);
+    ctx2d.restore();
+  }
+
+  // Solid geometric teal diamond craft
+  craftBank += (targetBank - craftBank) * 0.14;
+  const craftX = centerX + craftBank * (w * 0.22);
+  const craftY = h - 38;
+  ctx2d.save();
+  ctx2d.translate(craftX, craftY);
+  ctx2d.rotate(craftBank * 0.45);
+  ctx2d.fillStyle = `#00ffcc`;
+  ctx2d.strokeStyle = `#34a88f`;
+  ctx2d.lineWidth = 2;
+  ctx2d.beginPath();
+  ctx2d.moveTo(0, -18);
+  ctx2d.lineTo(18, 4);
+  ctx2d.lineTo(0, 14);
+  ctx2d.lineTo(-18, 4);
+  ctx2d.closePath();
+  ctx2d.fill();
+  ctx2d.stroke();
+  ctx2d.restore();
+}
+
+function bindKeyboardShortcuts() {
+  document.addEventListener(`keydown`, (ev) => {
+    const activeTag = document.activeElement ? document.activeElement.tagName : ``;
+    if (activeTag === `INPUT` || activeTag === `SELECT`) {
+      if (ev.key === `Escape`) closeCodex();
+      return;
+    }
+    const key = ev.key.toLowerCase();
+    const outcomeOpen = document.getElementById(`outcome-backdrop`)?.classList.contains(`is-open`);
+    const codexOpen = document.getElementById(`codex-backdrop`)?.classList.contains(`is-open`);
+
+    if (ev.key === `Escape`) {
+      if (codexOpen) closeCodex();
+      else if (isMenuOpen) toggleMenuDrawer();
+      return;
+    }
+    if (outcomeOpen) {
+      if (key === ` ` || key === `enter`) {
+        ev.preventDefault();
+        continueToNextGate();
+      }
+      return;
+    }
+    if (codexOpen) return;
+
+    if (key === `1` || key === `a` || ev.key === `ArrowLeft`) submitLaneChoice(0);
+    else if (key === `2` || key === `w` || ev.key === `ArrowUp`) submitLaneChoice(1);
+    else if (key === `3` || key === `d` || ev.key === `ArrowRight`) submitLaneChoice(2);
+    else if (key === `h`) toggleHintsBar();
+    else if (key === `m`) toggleMenuDrawer();
+    else if (key === `c`) openCodex();
+    else if (key === `s`) skipCurrentQuestion();
+    else if (key === `t`) toggleTimerEnabled();
+  });
+}
+
+async function initApp() {
+  await restoreAppState();
+  syncHintsUI();
+  syncAudioUI();
+  syncTimerControlsUI();
+  syncFilterControlsUI();
+  buildDeck(false);
+  loadCurrentGate();
+  initSynthwaveCanvas();
+  bindKeyboardShortcuts();
+  if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === `function`) {
+    window.notebookAppApi.notifyAppReady();
+  }
+}
+
+window.addEventListener(`DOMContentLoaded`, initApp);
+</script>
+</body>
+</html>

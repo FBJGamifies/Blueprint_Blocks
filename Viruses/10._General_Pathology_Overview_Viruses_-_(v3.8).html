@@ -1,0 +1,2949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="artifact-type" content="tool">
+  <meta name="design-style" content="neon_noir">
+  <title>General Pathology Overview: Viruses — XR Raid</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+
+      /* 1. Neon Noir Style Tokens */
+      --background: #0a0a12;
+      --surface-container-low: #111118;
+      --surface-container: #141422;
+      --surface-container-high: #1e1e30;
+
+      --on-surface: #e8e0f0;
+      --on-surface-variant: #a098b0;
+
+      --outline: #5a5068;
+      --outline-variant: #302840;
+
+      --primary: #ff2d78;
+      --on-primary: #1a0010;
+      --primary-container: #b3004e;
+      --on-primary-container: #ffe0ec;
+      --secondary: #00ffcc;
+      --tertiary: #ffe04a;
+      --error: #ff4444;
+      --on-error: #1a0000;
+
+      --data-1: #ff2d78;
+      --data-2: #00ffcc;
+      --data-3: #ffe04a;
+      --data-4: #b388ff;
+      --data-context: #6e6680;
+
+      --font-headline: 'Sora', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --font-label: 'Space Mono', monospace;
+
+      --rounded: 0.125rem;
+      --rounded-lg: 0.25rem;
+      --rounded-full: 0.75rem;
+
+      --glow-text: 0 0 8px currentColor;
+      --glow-primary: 0 0 16px color-mix(in srgb, var(--primary) 40%, transparent);
+      --glow-secondary: 0 0 16px color-mix(in srgb, var(--secondary) 35%, transparent);
+      --glow-tertiary: 0 0 16px color-mix(in srgb, var(--tertiary) 35%, transparent);
+      --neon-border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+      --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 50%, transparent);
+      --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+      --cyan-border: 1px solid color-mix(in srgb, var(--secondary) 38%, transparent);
+      --cyan-inset: inset 0 0 12px color-mix(in srgb, var(--secondary) 10%, transparent);
+      --yellow-border: 1px solid color-mix(in srgb, var(--tertiary) 38%, transparent);
+      --yellow-inset: inset 0 0 12px color-mix(in srgb, var(--tertiary) 10%, transparent);
+      --glass-backdrop: color-mix(in srgb, var(--surface-container) 82%, transparent);
+      --glass-backdrop-heavy: color-mix(in srgb, var(--background) 92%, transparent);
+
+      /* 2. Shared Tokens */
+      --positive: #00ffcc;
+      --warning: #ffe04a;
+      --focus: #ff2d78;
+
+      --display-size: clamp(1.35rem, 1.1rem + 1vw, 1.85rem);
+      --headline-size: clamp(1.05rem, 0.95rem + 0.5vw, 1.35rem);
+      --subhead-size: clamp(0.95rem, 0.9rem + 0.2vw, 1.1rem);
+      --body-size: clamp(0.88rem, 0.84rem + 0.16vw, 0.98rem);
+      --label-size: 0.75rem;
+
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+      --dur-long: 420ms;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      overflow-x: clip;
+      background-color: var(--background);
+      color: var(--on-surface);
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      line-height: 1.5;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    button, input, select {
+      font-family: inherit;
+      color: inherit;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    /* Fullscreen 3D Canvas (Band 3 Backdrop) */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      display: block;
+      pointer-events: none;
+    }
+
+    /* 4-Band Cockpit Shell */
+    #xr-app {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: var(--space-sm) var(--space-md);
+      gap: var(--space-sm);
+      overflow: hidden;
+    }
+
+    /* Band 1: Ultra-Slim Top Bar */
+    #top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      padding: var(--space-xs) var(--space-sm);
+      background: var(--glass-backdrop);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded-lg);
+      backdrop-filter: blur(8px);
+      min-height: 44px;
+      flex-shrink: 0;
+    }
+
+    #btn-menu {
+      background: var(--surface-container-high);
+      color: var(--secondary);
+      border: var(--cyan-border);
+      border-radius: var(--rounded);
+      padding: 0.4rem 0.75rem;
+      min-height: 36px;
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+      white-space: nowrap;
+    }
+    #btn-menu:hover {
+      border-color: var(--secondary);
+      box-shadow: var(--glow-secondary);
+      text-shadow: var(--glow-text);
+    }
+
+    #telemetry-strip {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .tele-chip {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      padding: 0.25rem 0.5rem;
+      border-radius: var(--rounded);
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      color: var(--on-surface);
+      white-space: nowrap;
+    }
+    .tele-chip.is-hp { border-color: color-mix(in srgb, var(--primary) 45%, transparent); color: var(--primary); }
+    .tele-chip.is-xp { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+    .tele-chip.is-streak { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+    .tele-chip.is-timer { border-color: color-mix(in srgb, var(--data-4) 45%, transparent); color: var(--data-4); }
+    .tele-chip.is-timer.is-urgent { border-color: var(--error); color: var(--error); text-shadow: var(--glow-text); }
+
+    /* Band 2: Top Question Stage + 3s Auto-Fading Metadata */
+    #question-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: var(--glass-backdrop);
+      border: var(--neon-border);
+      box-shadow: var(--neon-inset);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-sm) var(--space-md);
+      backdrop-filter: blur(10px);
+      max-width: 980px;
+      width: 100%;
+      margin: 0 auto;
+      flex-shrink: 0;
+      transition: padding var(--dur-short) var(--ease-out);
+    }
+
+    #q-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+      margin-bottom: var(--space-xs);
+      max-height: 80px;
+      opacity: 1;
+      overflow: hidden;
+      transition: opacity var(--dur-long) var(--ease-out), max-height var(--dur-long) var(--ease-out), margin var(--dur-long) var(--ease-out);
+    }
+    #q-meta-row.is-faded {
+      opacity: 0;
+      max-height: 0;
+      margin-bottom: 0;
+      pointer-events: none;
+    }
+
+    .meta-badge {
+      font-family: var(--font-label);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.18rem 0.48rem;
+      border-radius: var(--rounded);
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      color: var(--on-surface-variant);
+    }
+    .meta-badge.is-sector { border-color: color-mix(in srgb, var(--secondary) 40%, transparent); color: var(--secondary); }
+    .meta-badge.is-phase { border-color: color-mix(in srgb, var(--tertiary) 40%, transparent); color: var(--tertiary); }
+    .meta-badge.is-corridor { border-color: color-mix(in srgb, var(--primary) 40%, transparent); color: var(--primary); }
+
+    #q-stem-text {
+      margin: 0;
+      font-family: var(--font-body);
+      font-size: clamp(0.92rem, 0.85rem + 0.35vw, 1.12rem);
+      font-weight: 500;
+      line-height: 1.48;
+      color: var(--on-surface);
+      text-align: center;
+      max-width: 78ch;
+      user-select: text;
+    }
+
+    /* Band 3: Portal Fusion Answer Cards Grid */
+    #arena-stage {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+
+    #lanes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-md);
+      width: 100%;
+      align-items: stretch;
+    }
+
+    .lane-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: var(--glass-backdrop);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md);
+      min-height: 150px;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: transform var(--dur-micro) var(--ease-out),
+                  box-shadow var(--dur-short) var(--ease-out),
+                  border-color var(--dur-short) var(--ease-out),
+                  background-color var(--dur-short) var(--ease-out);
+    }
+
+    .lane-card[data-lane="0"] {
+      border: var(--neon-border-lit);
+      box-shadow: var(--neon-inset);
+    }
+    .lane-card[data-lane="1"] {
+      border: var(--cyan-border);
+      box-shadow: var(--cyan-inset);
+    }
+    .lane-card[data-lane="2"] {
+      border: var(--yellow-border);
+      box-shadow: var(--yellow-inset);
+    }
+
+    .lane-card.is-targeted,
+    .lane-card:hover {
+      transform: translateY(-4px);
+      background: color-mix(in srgb, var(--surface-container-high) 88%, transparent);
+    }
+    .lane-card[data-lane="0"].is-targeted,
+    .lane-card[data-lane="0"]:hover {
+      border-color: var(--primary);
+      box-shadow: var(--glow-primary), var(--neon-inset);
+    }
+    .lane-card[data-lane="1"].is-targeted,
+    .lane-card[data-lane="1"]:hover {
+      border-color: var(--secondary);
+      box-shadow: var(--glow-secondary), var(--cyan-inset);
+    }
+    .lane-card[data-lane="2"].is-targeted,
+    .lane-card[data-lane="2"]:hover {
+      border-color: var(--tertiary);
+      box-shadow: var(--glow-tertiary), var(--yellow-inset);
+    }
+
+    .lane-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+      margin-bottom: var(--space-sm);
+      font-family: var(--font-label);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .lane-card[data-lane="0"] .lane-key-label { color: var(--primary); text-shadow: var(--glow-text); }
+    .lane-card[data-lane="1"] .lane-key-label { color: var(--secondary); text-shadow: var(--glow-text); }
+    .lane-card[data-lane="2"] .lane-key-label { color: var(--tertiary); text-shadow: var(--glow-text); }
+
+    .lane-xp-tag {
+      color: var(--on-surface-variant);
+      font-size: 0.68rem;
+    }
+
+    .lane-answer-text {
+      margin: 0;
+      font-family: var(--font-body);
+      font-size: clamp(0.84rem, 0.8rem + 0.22vw, 0.96rem);
+      font-weight: 500;
+      line-height: 1.42;
+      color: var(--on-surface);
+      text-align: center;
+      user-select: text;
+    }
+
+    /* Band 4: Dynamic Bottom Hints Bar */
+    #hints-bar {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: var(--glass-backdrop);
+      border: var(--yellow-border);
+      box-shadow: var(--yellow-inset);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-sm) var(--space-md);
+      max-width: 980px;
+      width: 100%;
+      margin: 0 auto;
+      flex-shrink: 0;
+      backdrop-filter: blur(8px);
+    }
+    #xr-app.hints-visible #hints-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+    #xr-app.hints-visible #question-stage {
+      padding: 0.45rem var(--space-md);
+    }
+    #xr-app.hints-visible .lane-card {
+      min-height: 118px;
+      padding: var(--space-sm) var(--space-md);
+    }
+
+    .hint-kicker {
+      font-family: var(--font-label);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--tertiary);
+      text-shadow: var(--glow-text);
+    }
+    #q-clue-text {
+      margin: 0;
+      font-size: clamp(0.8rem, 0.76rem + 0.18vw, 0.9rem);
+      color: var(--on-surface);
+      text-align: center;
+      user-select: text;
+    }
+
+    /* Drawer & Modals */
+    .overlay-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      background: color-mix(in srgb, var(--background) 80%, transparent);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-md);
+    }
+    .overlay-backdrop.is-open {
+      display: flex;
+    }
+
+    #top-menu-drawer {
+      justify-content: flex-start;
+      align-items: stretch;
+      padding: 0;
+    }
+
+    .drawer-panel {
+      width: min(440px, 94vw);
+      height: 100dvh;
+      background: var(--surface-container);
+      border-right: var(--neon-border-lit);
+      box-shadow: var(--neon-inset);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .drawer-head {
+      padding: var(--space-md);
+      border-bottom: 1px solid var(--outline-variant);
+      background: var(--surface-container-low);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+    .drawer-kicker {
+      font-family: var(--font-label);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--secondary);
+      text-shadow: var(--glow-text);
+      margin-bottom: 0.2rem;
+    }
+    .drawer-title {
+      margin: 0;
+      font-family: var(--font-headline);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--on-surface);
+      line-height: 1.2;
+    }
+
+    .drawer-body {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .menu-section {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      padding-bottom: var(--space-sm);
+      border-bottom: 1px solid var(--outline-variant);
+    }
+    .menu-section-label {
+      font-family: var(--font-label);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--on-surface-variant);
+    }
+
+    .menu-btn-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-xs);
+    }
+
+    .btn-neon {
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      border: 1px solid var(--outline);
+      border-radius: var(--rounded);
+      padding: 0.45rem 0.65rem;
+      min-height: 40px;
+      font-family: var(--font-label);
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: border-color var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out);
+      text-align: center;
+    }
+    .btn-neon:hover {
+      border-color: var(--secondary);
+      color: var(--secondary);
+      box-shadow: var(--glow-secondary);
+    }
+    .btn-neon.is-active {
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: var(--glow-primary);
+    }
+    .btn-neon.is-danger {
+      border-color: color-mix(in srgb, var(--error) 60%, transparent);
+      color: var(--error);
+    }
+
+    .menu-select, .menu-file-input {
+      width: 100%;
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      border: 1px solid var(--outline);
+      border-radius: var(--rounded);
+      padding: 0.45rem 0.6rem;
+      min-height: 40px;
+      font-size: 0.84rem;
+    }
+
+    .volume-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    .volume-row label {
+      font-family: var(--font-label);
+      font-size: 0.72rem;
+      color: var(--on-surface-variant);
+      min-width: 72px;
+    }
+    .volume-row input[type="range"] {
+      flex: 1;
+      accent-color: var(--secondary);
+    }
+
+    .phase-pills {
+      display: flex;
+      gap: var(--space-xs);
+      flex-wrap: wrap;
+    }
+    .phase-pill {
+      flex: 1 1 auto;
+      min-height: 36px;
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      color: var(--on-surface-variant);
+      font-family: var(--font-label);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .phase-pill.is-active {
+      border-color: var(--tertiary);
+      color: var(--tertiary);
+      box-shadow: var(--glow-tertiary);
+    }
+
+    .skill-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-xs);
+    }
+    .skill-node {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      padding: 0.45rem 0.6rem;
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      cursor: pointer;
+      text-align: left;
+      transition: border-color var(--dur-micro) var(--ease-out);
+    }
+    .skill-node:hover { border-color: var(--secondary); }
+    .skill-node.is-current { border-color: var(--primary); box-shadow: var(--neon-inset); }
+    .skill-node-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--on-surface);
+      line-height: 1.3;
+    }
+    .skill-node-meta {
+      font-family: var(--font-label);
+      font-size: 0.66rem;
+      color: var(--on-surface-variant);
+    }
+
+    .hotkey-guide {
+      font-family: var(--font-label);
+      font-size: 0.7rem;
+      color: var(--on-surface-variant);
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      padding: 0.45rem 0.65rem;
+      line-height: 1.5;
+    }
+
+    .inline-toast {
+      font-family: var(--font-label);
+      font-size: 0.72rem;
+      color: var(--tertiary);
+      min-height: 1.1em;
+    }
+
+    /* Outcome Dossier Modal (Centered Text Lock + Scroll Buttons) */
+    .modal-card {
+      width: min(860px, 94vw);
+      max-height: 90dvh;
+      background: var(--surface-container);
+      border: var(--neon-border-lit);
+      box-shadow: var(--neon-inset), var(--glow-primary);
+      border-radius: var(--rounded-lg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .modal-card.is-correct {
+      border-color: var(--secondary);
+      box-shadow: var(--cyan-inset), var(--glow-secondary);
+    }
+    .modal-card.is-wrong {
+      border-color: var(--primary);
+      box-shadow: var(--neon-inset), var(--glow-primary);
+    }
+
+    .modal-head {
+      padding: var(--space-md);
+      background: var(--surface-container-low);
+      border-bottom: 1px solid var(--outline-variant);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    .outcome-kicker {
+      font-family: var(--font-label);
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      text-shadow: var(--glow-text);
+    }
+    .modal-card.is-correct .outcome-kicker { color: var(--secondary); }
+    .modal-card.is-wrong .outcome-kicker { color: var(--primary); }
+
+    .outcome-title {
+      margin: 0;
+      font-family: var(--font-headline);
+      font-size: var(--headline-size);
+      font-weight: 700;
+      color: var(--on-surface);
+      text-align: center;
+    }
+    .outcome-sub {
+      margin: 0;
+      font-family: var(--font-label);
+      font-size: 0.74rem;
+      color: var(--tertiary);
+      text-align: center;
+    }
+
+    .modal-body {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: var(--space-md) var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-sm);
+      text-align: center;
+      scroll-behavior: smooth;
+    }
+
+    .dossier-section {
+      width: 100%;
+      max-width: 72ch;
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      padding: var(--space-sm) var(--space-md);
+      text-align: center;
+    }
+    .dossier-sec-title {
+      font-family: var(--font-label);
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--secondary);
+      margin: 0 0 0.3rem 0;
+      text-align: center;
+    }
+    .dossier-sec-text {
+      margin: 0;
+      font-size: 0.9rem;
+      line-height: 1.55;
+      color: var(--on-surface);
+      text-align: center;
+      user-select: text;
+    }
+
+    .modal-footer {
+      padding: var(--space-sm) var(--space-md);
+      background: var(--surface-container-low);
+      border-top: 1px solid var(--outline-variant);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+    }
+
+    /* Loot Codex Modal */
+    .codex-card {
+      width: min(1040px, 95vw);
+      max-height: 90dvh;
+      background: var(--surface-container);
+      border: var(--cyan-border);
+      box-shadow: var(--cyan-inset), var(--glow-secondary);
+      border-radius: var(--rounded-lg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .codex-table-wrap {
+      flex: 1 1 auto;
+      overflow: auto;
+      padding: var(--space-sm) var(--space-md);
+    }
+    table.codex-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    table.codex-table th {
+      position: sticky;
+      top: 0;
+      background: var(--surface-container-high);
+      color: var(--secondary);
+      font-family: var(--font-label);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.5rem;
+      border-bottom: 1px solid var(--outline);
+      text-align: left;
+    }
+    table.codex-table td {
+      padding: 0.5rem;
+      border-bottom: 1px solid var(--outline-variant);
+      color: var(--on-surface);
+      vertical-align: top;
+      user-select: text;
+    }
+    table.codex-table tr:nth-child(even) td {
+      background: var(--surface-container-low);
+    }
+
+    /* Mobile Page Breakpoint */
+    @media (max-width: 640px) {
+      #xr-app { padding: var(--space-xs); gap: var(--space-xs); }
+    }
+
+    /* Exact v3.8 Phone Media Queries */
+    @media (max-width: 600px) {
+      #lanes-grid {
+        grid-template-columns: 1fr;
+        gap: 0.45rem;
+      }
+      .lane-card {
+        min-height: 68px;
+        padding: 0.55rem 0.75rem;
+      }
+      .lane-card-head,
+      .lane-key-label,
+      .lane-xp-tag {
+        display: none;
+      }
+      #xr-app.hints-visible .lane-card {
+        min-height: 54px;
+        padding: 0.42rem 0.65rem;
+      }
+      .modal-card,
+      .codex-card {
+        width: 96vw;
+        max-height: 92dvh;
+      }
+    }
+
+    @media (max-height: 500px) and (pointer: coarse) {
+      #xr-app {
+        padding: 0.3rem 0.5rem;
+        gap: 0.3rem;
+      }
+      #top-bar { min-height: 36px; padding: 0.15rem 0.4rem; }
+      #question-stage { padding: 0.35rem 0.65rem; }
+      #q-stem-text { font-size: 0.84rem; line-height: 1.32; }
+      #lanes-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.4rem;
+      }
+      .lane-card {
+        min-height: 76px;
+        padding: 0.4rem;
+      }
+      .lane-answer-text { font-size: 0.76rem; line-height: 1.28; }
+    }
+
+    @media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+      html { font-size: 200%; }
+      #lanes-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <main id="xr-app" class="hints-hidden">
+    <!-- Band 1: Ultra-Slim Top Bar -->
+    <header id="top-bar">
+      <button id="btn-menu" type="button" onclick="toggleMenuDrawer()" aria-label="Open Mission Menu">☰ MENU</button>
+      <div id="telemetry-strip" aria-live="polite">
+        <span id="chip-hp" class="tele-chip is-hp">HP 100/100</span>
+        <span id="chip-xp" class="tele-chip is-xp">XP 0</span>
+        <span id="chip-streak" class="tele-chip is-streak">⚡ 0</span>
+        <span id="chip-gate" class="tele-chip">Gate 1/45</span>
+        <span id="chip-timer" class="tele-chip is-timer">⏱ OFF</span>
+      </div>
+    </header>
+
+    <!-- Band 2: Top Question + 3s Auto-Fading Metadata -->
+    <section id="question-stage" aria-label="Clinical Question Vignette">
+      <div id="q-meta-row">
+        <span id="meta-sector" class="meta-badge is-sector">Sector I</span>
+        <span id="meta-entity" class="meta-badge">Entity 1</span>
+        <span id="meta-phase" class="meta-badge is-phase">Mechanism</span>
+        <span id="meta-corridor" class="meta-badge is-corridor">CAPSID VAULT</span>
+      </div>
+      <p id="q-stem-text" class="amboss-scan-target">Initializing Virologic Corridor…</p>
+    </section>
+
+    <!-- Band 3: 3 Centered Portal-Fused Answer Cards -->
+    <section id="arena-stage" aria-label="Portal Answer Lanes">
+      <div id="lanes-grid">
+        <div id="lane-0-card" class="lane-card" data-lane="0" role="button" tabindex="0"
+             onmouseenter="hoverLane(0)" onmousemove="hoverLane(0)" onclick="chooseLane(0)" onkeydown="laneKeydown(event,0)">
+          <div class="lane-card-head">
+            <span class="lane-key-label">[1] PINK PORTAL</span>
+            <span class="lane-xp-tag">+100 XP</span>
+          </div>
+          <p id="lane-0-text" class="lane-answer-text amboss-scan-target">Loading…</p>
+        </div>
+
+        <div id="lane-1-card" class="lane-card is-targeted" data-lane="1" role="button" tabindex="0"
+             onmouseenter="hoverLane(1)" onmousemove="hoverLane(1)" onclick="chooseLane(1)" onkeydown="laneKeydown(event,1)">
+          <div class="lane-card-head">
+            <span class="lane-key-label">[2] CYAN PORTAL</span>
+            <span class="lane-xp-tag">+100 XP</span>
+          </div>
+          <p id="lane-1-text" class="lane-answer-text amboss-scan-target">Loading…</p>
+        </div>
+
+        <div id="lane-2-card" class="lane-card" data-lane="2" role="button" tabindex="0"
+             onmouseenter="hoverLane(2)" onmousemove="hoverLane(2)" onclick="chooseLane(2)" onkeydown="laneKeydown(event,2)">
+          <div class="lane-card-head">
+            <span class="lane-key-label">[3] GOLD PORTAL</span>
+            <span class="lane-xp-tag">+100 XP</span>
+          </div>
+          <p id="lane-2-text" class="lane-answer-text amboss-scan-target">Loading…</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Band 4: Dynamic Bottom Hints Bar [H] -->
+    <section id="hints-bar" aria-label="High-Yield Hint">
+      <span class="hint-kicker">TACTICAL VIROLOGY HINT [H]</span>
+      <p id="q-clue-text" class="amboss-scan-target">—</p>
+    </section>
+  </main>
+
+  <!-- Menu Drawer (#top-menu-drawer) -->
+  <div id="top-menu-drawer" class="overlay-backdrop" onclick="handleBackdropClose(event, 'top-menu-drawer')">
+    <aside class="drawer-panel" role="dialog" aria-modal="true" aria-label="Command Drawer">
+      <div class="drawer-head">
+        <div>
+          <div class="drawer-kicker">GENERAL PATHOLOGY // COMLEX-USA &amp; USMLE</div>
+          <h1 class="drawer-title">Viruses &amp; Pathogenesis XR Raid</h1>
+        </div>
+        <button type="button" class="btn-neon" onclick="toggleMenuDrawer()" aria-label="Close Menu">✕</button>
+      </div>
+
+      <div class="drawer-body">
+        <div class="menu-section">
+          <div class="menu-section-label">Mission Controls</div>
+          <div class="menu-btn-grid">
+            <button id="menu-hints-btn" type="button" class="btn-neon" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+            <button type="button" class="btn-neon" onclick="openCodexFromMenu()">📘 Loot Codex [C]</button>
+            <button type="button" class="btn-neon" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+            <button id="menu-timer-btn" type="button" class="btn-neon" onclick="toggleTimedMode()">⏱ 50s Timer: OFF [T]</button>
+            <button type="button" class="btn-neon" onclick="startTimedRun()">⚡ Start 50s Run</button>
+            <button type="button" class="btn-neon" onclick="restartOrdered()">↺ Restart Ordered</button>
+            <button type="button" class="btn-neon" onclick="shuffleDeck()">🔀 Shuffle Deck</button>
+            <button id="btn-reset-mastery" type="button" class="btn-neon is-danger" data-armed="false" onclick="resetMastery(this)">🗑 Reset Mastery</button>
+          </div>
+          <div id="menu-toast" class="inline-toast" aria-live="polite"></div>
+        </div>
+
+        <div class="menu-section">
+          <div class="menu-section-label">Synthwave Audio Engine</div>
+          <div class="menu-btn-grid">
+            <button id="btn-master-sound" type="button" class="btn-neon is-active" onclick="toggleMasterSound()">🔊 Sound: ON [M]</button>
+            <button id="btn-sfx" type="button" class="btn-neon is-active" onclick="toggleSfx()">🎹 SFX: ON</button>
+            <button id="btn-bgm" type="button" class="btn-neon" onclick="toggleBgm()">🎵 Zombies BGM: OFF</button>
+            <button type="button" class="btn-neon" onclick="stopCustomTrack()">⏹ Stop Custom</button>
+          </div>
+          <div class="volume-row">
+            <label for="bgm-vol-slider">BGM Vol</label>
+            <input id="bgm-vol-slider" type="range" min="0" max="100" value="35" oninput="setBgmVolume(this.value)">
+          </div>
+          <div>
+            <label for="custom-audio-input" class="menu-section-label">Load Custom MP3 / WAV</label>
+            <input id="custom-audio-input" type="file" accept="audio/*" class="menu-file-input" onchange="loadCustomAudio(event)">
+          </div>
+        </div>
+
+        <div class="menu-section">
+          <label for="sector-filter" class="menu-section-label">Sector / Deck Filter</label>
+          <select id="sector-filter" class="menu-select" onchange="changeSectorFilter(this.value)">
+            <option value="ALL">All 5 Sectors (45 Gates)</option>
+            <option value="1">Sector I: Viral Architecture &amp; Envelopes</option>
+            <option value="2">Sector II: Replicative Cycles &amp; Hijacking</option>
+            <option value="3">Sector III: Pathogenesis &amp; Cytopathic Effects</option>
+            <option value="4">Sector IV: Viral Oncogenesis &amp; Suppressors</option>
+            <option value="5">Sector V: Antivirals, Resistance &amp; OMT</option>
+            <option value="MISSED">🎯 Missed Gates Only</option>
+          </select>
+
+          <label for="entity-filter" class="menu-section-label">Entity Focus (15 Core Entities)</label>
+          <select id="entity-filter" class="menu-select" onchange="changeEntityFilter(this.value)">
+            <option value="ALL">All 15 Entities</option>
+          </select>
+
+          <div class="menu-section-label">Phase Mix Filter</div>
+          <div class="phase-pills">
+            <button type="button" class="phase-pill is-active" data-phase="ALL" onclick="setPhaseFilter('ALL', this)">All</button>
+            <button type="button" class="phase-pill" data-phase="Architecture" onclick="setPhaseFilter('Architecture', this)">Arch</button>
+            <button type="button" class="phase-pill" data-phase="Mechanism" onclick="setPhaseFilter('Mechanism', this)">Mech</button>
+            <button type="button" class="phase-pill" data-phase="Clinical" onclick="setPhaseFilter('Clinical', this)">Clinical</button>
+          </div>
+        </div>
+
+        <div class="menu-section">
+          <div class="menu-section-label">15-Entity Viral Skill Tree</div>
+          <div id="skill-tree-grid" class="skill-grid"></div>
+        </div>
+
+        <div class="hotkey-guide">
+          CONTROLS: Hover card or [A/D] [←/→] to bank • [1/2/3] or [Enter/Space] to lock portal • [H] Hints • [C] Codex • [S] Skip • [T] 50s Timer • [M] Mute
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Outcome Dossier Modal -->
+  <div id="outcome-modal" class="overlay-backdrop" onclick="handleBackdropClose(event, 'outcome-modal')">
+    <div id="outcome-card" class="modal-card is-correct" role="dialog" aria-modal="true" aria-labelledby="outcome-title">
+      <div class="modal-head">
+        <div id="outcome-kicker" class="outcome-kicker">PORTAL LOCKED // TARGET ACQUIRED</div>
+        <h2 id="outcome-title" class="outcome-title">Diagnostic Analysis</h2>
+        <p id="outcome-sub" class="outcome-sub">+100 XP • Streak 1</p>
+      </div>
+      <div id="outcome-dossier-body" class="modal-body"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn-neon" onclick="scrollDossier(-240)">▲ Scroll Up</button>
+        <button type="button" class="btn-neon" onclick="scrollDossier(240)">▼ Scroll Down</button>
+        <button id="btn-next-gate" type="button" class="btn-neon is-active" onclick="advanceNextGate()">Next Gate ➔</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loot Codex Modal -->
+  <div id="codex-modal" class="overlay-backdrop" onclick="handleBackdropClose(event, 'codex-modal')">
+    <div class="codex-card" role="dialog" aria-modal="true" aria-label="Viral Pathogenesis Loot Codex">
+      <div class="drawer-head">
+        <div>
+          <div class="drawer-kicker">MASTER VIRAL CODEX // 15 HIGH-YIELD ENTITIES</div>
+          <h2 class="drawer-title">General Pathology Overview: Viruses Ledger</h2>
+        </div>
+        <button type="button" class="btn-neon" onclick="closeCodex()">✕ Close</button>
+      </div>
+      <div class="codex-table-wrap">
+        <table class="codex-table">
+          <thead>
+            <tr>
+              <th>Entity</th>
+              <th>Sector</th>
+              <th>Mastery</th>
+              <th>Structural / Histopathologic Hallmark</th>
+              <th>Molecular Mechanism / Oncogene</th>
+              <th>Board Pearl &amp; OMT/Rx</th>
+            </tr>
+          </thead>
+          <tbody id="codex-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <api-shim></api-shim>
+  <script>
+    'use strict';
+
+    // Visual themes for the 15 Viral Entities (Keys 1-15)
+    const LO_VISUAL_THEMES = {
+      1:  { tag: `CAPSID VAULT`,       dust: `#ff2d78`, gridRgb: `255, 45, 120` },
+      2:  { tag: `HELIX CORRIDOR`,     dust: `#00ffcc`, gridRgb: `0, 255, 204` },
+      3:  { tag: `BOAR SEGMENT BAY`,   dust: `#ffe04a`, gridRgb: `255, 224, 74` },
+      4:  { tag: `FUSION DOCK`,        dust: `#ff66a3`, gridRgb: `255, 102, 163` },
+      5:  { tag: `POLYMERASE NEXUS`,   dust: `#33ffdd`, gridRgb: `51, 255, 221` },
+      6:  { tag: `PROVIRUS ARCHIVE`,   dust: `#b388ff`, gridRgb: `179, 136, 255` },
+      7:  { tag: `SYNCYTIAL BRIDGE`,   dust: `#ff2d78`, gridRgb: `255, 45, 120` },
+      8:  { tag: `INCLUSION MATRIX`,   dust: `#00ffcc`, gridRgb: `0, 255, 204` },
+      9:  { tag: `LATENCY REACTOR`,    dust: `#ffe04a`, gridRgb: `255, 224, 74` },
+      10: { tag: `E6/E7 SUPPRESSOR`,   dust: `#ff4488`, gridRgb: `255, 68, 136` },
+      11: { tag: `HEPATIC ONCO-CORE`,  dust: `#00e6b8`, gridRgb: `0, 230, 184` },
+      12: { tag: `KAPOSI / TAX GRID`,  dust: `#c49bff`, gridRgb: `196, 155, 255` },
+      13: { tag: `KINASE BLOCKADE`,    dust: `#ff2d78`, gridRgb: `255, 45, 120` },
+      14: { tag: `PROTEASE SHIELD`,    dust: `#00ffcc`, gridRgb: `0, 255, 204` },
+      15: { tag: `LYMPHATIC PUMP BAY`, dust: `#ffe04a`, gridRgb: `255, 224, 74` }
+    };
+
+    const ENTITIES = [
+      { id: 1, sector: 1, name: `Naked vs. Enveloped Capsids`, hallmark: `Ether/detergent sensitivity vs. GI/acid stability`, mech: `Lipid bilayer derived from host plasma membrane, ER, or nuclear envelope (Herpes)`, pearl: `Naked = PAPP smear + CPR + HepA/E; fecal-oral survival.` },
+      { id: 2, sector: 1, name: `Icosahedral vs. Helical Symmetry`, hallmark: `20-triangle geometric shell vs. coiled ribonucleoprotein`, mech: `Capsomere self-assembly; all helical human viruses are RNA (except Pox complex)`, pearl: `All DNA viruses are icosahedral and nuclear-replicating EXCEPT Poxvirus.` },
+      { id: 3, sector: 1, name: `BOAR Segmented Genomes & Reassortment`, hallmark: `Multi-segment RNA exchange causing antigenic shift`, mech: `Bunya-, Orthomyxo-, Arena-, Reoviruses exchange whole RNA segments during coinfection`, pearl: `Influenza antigenic shift = pandemics (reassortment); drift = point mutation.` },
+      { id: 4, sector: 2, name: `Viral Attachment & Fusion Peptides`, hallmark: `Tropism dictated by receptor-ligand lock + membrane fusion`, mech: `HIV gp120 binds CD4 + CCR5/CXCR4; gp41 mediates fusion; HA binds sialic acid`, pearl: `Maraviroc blocks CCR5; enfuvirtide blocks gp41; M2 uncoats Influenza A.` },
+      { id: 5, sector: 2, name: `Viral RdRp & Genome Polarity`, hallmark: `+ssRNA acts directly as mRNA; -ssRNA requires packaged RdRp`, mech: `Negative-sense & dsRNA viruses carry virion RNA-dependent RNA polymerase`, pearl: `"Always Bring Polymerase Or Fail Replication" — naked -ssRNA is non-infectious.` },
+      { id: 6, sector: 2, name: `Reverse Transcriptase & Nuclear/Cytoplasmic Sites`, hallmark: `Retroviral dsDNA integration; HBV partial-dsDNA RT repair`, mech: `Pol gene encodes RT, integrase, protease; Retro & Flu replicate in nucleus`, pearl: `Pox replicates in cytoplasm (carries own DNA-dep RNA pol); Flu & Retro in nucleus.` },
+      { id: 7, sector: 3, name: `Syncytia & Multinucleated Giant Cells`, hallmark: `Cell-cell fusion via viral fusion (F) proteins`, mech: `RSV, Measles (Warthin-Finkeldey), HSV/VZV (Tzanck), HIV form multinucleated syncytia`, pearl: `Tzanck smear shows multinucleated giant keratinocytes in HSV-1, HSV-2, and VZV.` },
+      { id: 8, sector: 3, name: `Viral Inclusion Bodies`, hallmark: `Cowdry A, Negri, Owl's Eye, Guarnieri, Councilman bodies`, mech: `Eosinophilic/basophilic factories of viral proteins or apoptotic hepatocytes`, pearl: `Negri = Rabies (Purkinje/hippocampus); Owl's eye = CMV; Guarnieri = Pox.` },
+      { id: 9, sector: 3, name: `Host Shutoff, Apoptosis & Persistence`, hallmark: `eIF4G cleavage, MHC-I downregulation, latency vs. chronicity`, mech: `HSV/VZV latent in ganglia; CMV in monocytes; EBV in CD21+ B cells; JC in oligodendrocytes`, pearl: `Chronic HBV/HCV vs. latent Herpesviruses; measles SSPE = defective persistent virus.` },
+      { id: 10, sector: 4, name: `HPV E6 (p53) & E7 (pRb) Oncogenesis`, hallmark: `Koilocytes with perinuclear halo & raisinoid nuclei`, mech: `High-risk HPV 16/18/31/33 E6 degrades p53; E7 inhibits pRb -> unrestrained G1->S`, pearl: `Transformation zone squamous carcinoma; Gardasil covers 6, 11, 16, 18.` },
+      { id: 11, sector: 4, name: `EBV & HBV/HCV Carcinogenesis`, hallmark: `CD21 B-cell transformation; ground-glass hepatocytes`, mech: `EBV LMP-1 mimics CD40 (NF-kB); HBV HBx impairs p53; HCV core/NS5A + cirrhosis`, pearl: `EBV -> Burkitt t(8;14) c-myc, nasopharyngeal CA, CNS lymphoma in AIDS.` },
+      { id: 12, sector: 4, name: `HHV-8 (Kaposi) & HTLV-1 (ATLL)`, hallmark: `Spindle-cell violaceous vascular plaques; flower-cell T-cells`, mech: `HHV-8 vGPCR drives VEGF angiogenesis; HTLV-1 Tax activates IL-2/NF-kB`, pearl: `ATLL presents with hypercalcemia & lytic bone lesions; KS shrinks with ART.` },
+      { id: 13, sector: 5, name: `Nucleoside/Nucleotide Analogs & Resistance`, hallmark: `Chain termination via missing 3'-OH group`, mech: `Acyclovir needs viral TK; Ganciclovir needs UL97; Cidofovir/Foscarnet bypass kinases`, pearl: `TK-deficient HSV/VZV or UL97-mutant CMV treated with Foscarnet or Cidofovir.` },
+      { id: 14, sector: 5, name: `NNRTIs, Protease & Neuraminidase Inhibitors`, hallmark: `Allosteric RT block, immature virion arrest, virion clumping`, mech: `Protease inhibitors block Gag-Pol cleavage; Oseltamivir blocks sialic acid cleavage`, pearl: `Pol mutations confer class resistance; Ritonavir potently inhibits CYP450.` },
+      { id: 15, sector: 5, name: `Reticuloendothelial Autonomics & Lymphatic OMT`, hallmark: `T1-L2 viscerosomatics, vagal OA-AA axis, thoracic inlet`, mech: `Inlet myofascial release + pedal/thoracic pump augment lymph flow & NK/T trafficking`, pearl: `Treat thoracic inlet BEFORE distal lymphatic pumps; avoid pump in acute sepsis/DVT.` }
+    ];
+
+    // 45 High-Yield Board Gates (3 per Entity: Architecture, Mechanism, Clinical)
+    const QUESTIONS = [
+      // SECTOR I — ENTITY 1
+      {
+        id: 1, sector: 1, entityId: 1, phase: `Architecture`,
+        stem: `A daycare gastroenteritis outbreak yields a non-enveloped virus resistant to alcohol hand sanitizer, gastric acid (pH 2.0), and bile salts. Which structural property best explains this environmental resilience?`,
+        options: [
+          `Exposure of a rigid protein capsid without a host-derived lipid bilayer`,
+          `Presence of neuraminidase spikes shielding an outer phospholipid coat`,
+          `Acquisition of a cholesterol-rich envelope from the host nuclear membrane`
+        ],
+        correct: 0,
+        clue: `Lipid envelopes dissolve in detergents, bile, and alcohol; bare protein capsids survive the GI tract.`,
+        dossier: [
+          `Core Concept & Architecture: Naked (non-enveloped) capsids lack a phospholipid bilayer and rely on tightly packed protein capsomeres for stability against heat, acid, bile, and alcohol.`,
+          `Molecular Mechanism & Host Hijacking: Naked viruses exit host cells primarily by cell lysis rather than budding, leaving a proteinaceous exterior unaffected by organic solvents or lipases.`,
+          `Cytopathic & Histopathologic Hallmarks: Rapid lytic cell death releases abundant progeny virions without forming plasma-membrane syncytia or budding surface spikes.`,
+          `Clinical Vignette & Board Correlations: Fecal-oral transmission (HAV, HEV, Norovirus, Rotavirus, Poliovirus, Coxsackievirus) requires surviving stomach acid and duodenal bile.`,
+          `High-Yield Differential & Distractor Traps: Enveloped viruses (like Herpesviruses from the nuclear membrane or Influenza) are sensitive to ether, soap, and stomach acid.`,
+          `Antiviral Pharmacology & Resistance: Alcohol-based sanitizers fail against Norovirus and C. difficile; soap-and-water mechanical washing is mandatory during outbreaks.`,
+          `OMT & Autonomic / Lymphatic Integration: Acute viral gastroenteritis triggers T5–T9 (celiac) and T10–T11 (superior mesenteric) sympathetic viscerosomatic facilitation.`
+        ]
+      },
+      {
+        id: 2, sector: 1, entityId: 1, phase: `Mechanism`,
+        stem: `Electron microscopy of a biopsy shows a dsDNA virus budding directly through the inner nuclear lamina rather than the plasma membrane. Which viral family displays this unique envelope acquisition site?`,
+        options: [
+          `Herpesviridae`,
+          `Orthomyxoviridae`,
+          `Poxviridae`
+        ],
+        correct: 0,
+        clue: `Most enveloped viruses bud from the plasma membrane; one nuclear-replicating DNA family buds from the nuclear membrane.`,
+        dossier: [
+          `Core Concept & Architecture: Enveloped DNA viruses include Herpesviruses, Hepadnaviruses (HBV), and Poxviruses ("HePaHerpes"), but only Herpesviruses bud from the nuclear membrane.`,
+          `Molecular Mechanism & Host Hijacking: Herpesvirus capsids assemble in the nucleus, acquire an initial envelope from the inner nuclear membrane, and transit via the Golgi for glycoprotein maturation.`,
+          `Cytopathic & Histopathologic Hallmarks: Intranuclear eosinophilic Cowdry type A inclusions (HSV/VZV) or basophilic Owl's eye inclusions (CMV) mark nuclear replication.`,
+          `Clinical Vignette & Board Correlations: HSV-1/2, VZV, EBV, CMV, HHV-6/7, and HHV-8 all share an enveloped, linear dsDNA icosahedral core.`,
+          `High-Yield Differential & Distractor Traps: Orthomyxoviruses bud from the plasma membrane; Poxviruses synthesize their own envelope membranes inside the cytoplasm.`,
+          `Antiviral Pharmacology & Resistance: Acyclovir and ganciclovir target Herpesvirus DNA polymerase after phosphorylation by viral thymidine kinase or UL97 kinase.`,
+          `OMT & Autonomic / Lymphatic Integration: Herpes zoster reactivation creates acute paraspinal viscerosomatic hypertonicity at the involved dorsal root ganglion dermatomal level.`
+        ]
+      },
+      {
+        id: 3, sector: 1, entityId: 1, phase: `Clinical`,
+        stem: `A cruise ship outbreak causes explosive watery diarrhea resistant to ethanol gel dispensers. Which pairing correctly identifies another naked, acid-stable virus capable of fecal-oral spread?`,
+        options: [
+          `Hepatitis A virus (Picornaviridae)`,
+          `Hepatitis C virus (Flaviviridae)`,
+          `Respiratory syncytial virus (Pneumoviridae)`
+        ],
+        correct: 0,
+        clue: `Mnemonic for naked DNA/RNA: Give PAPP smears and CPR to a naked HEp-A/E patient.`,
+        dossier: [
+          `Core Concept & Architecture: Naked RNA families ("CPR + Hepe") are Calici- (Norovirus), Picorna- (HAV, Polio, Coxsackie, Rhino), Reo- (Rotavirus), and Hepevirus (HEV).`,
+          `Molecular Mechanism & Host Hijacking: Picornaviruses translate a single polyprotein cleaved by viral proteases in the cytoplasm; note Rhinovirus is acid-labile despite lacking an envelope.`,
+          `Cytopathic & Histopathologic Hallmarks: HAV produces hepatocyte ballooning, Councilman apoptotic bodies, and portal mononuclear infiltrates without chronic carrier state.`,
+          `Clinical Vignette & Board Correlations: Acute self-limited jaundice after raw shellfish ingestion or daycare exposure points to naked +ssRNA Picornavirus HAV.`,
+          `High-Yield Differential & Distractor Traps: HCV is an enveloped flavivirus transmitted parenterally; RSV is enveloped and transmitted via respiratory droplets.`,
+          `Antiviral Pharmacology & Resistance: Killed HAV vaccine and pooled immune globulin provide pre- and post-exposure prophylaxis; soap/bleach disinfection stops transmission.`,
+          `OMT & Autonomic / Lymphatic Integration: Hepatic congestion in acute viral hepatitis produces right-sided T5–T9 paraspinal tissue texture changes and right hemidiaphragm restriction.`
+        ]
+      },
+
+      // SECTOR I — ENTITY 2
+      {
+        id: 4, sector: 1, entityId: 2, phase: `Architecture`,
+        stem: `A virology lab isolates a human pathogen whose genome is packaged inside a helical ribonucleoprotein capsid. Which general structural rule applies to nearly all helical viruses infecting humans?`,
+        options: [
+          `They possess RNA genomes and are enveloped`,
+          `They possess circular dsDNA genomes and lack envelopes`,
+          `They replicate exclusively inside host nucleoli without envelopes`
+        ],
+        correct: 0,
+        clue: `All helical human viruses are RNA viruses with lipid envelopes (Orthomyxo, Paramyxo, Rhabdo, Filo, Arena, Corona).`,
+        dossier: [
+          `Core Concept & Architecture: Viral capsids adopt icosahedral (20-sided geometric), helical (coiled cylinder around RNA), or complex (brick-shaped Poxvirus) symmetry.`,
+          `Molecular Mechanism & Host Hijacking: Helical nucleocapsids assemble continuously along the elongating RNA strand and acquire an outer host lipid envelope bearing viral glycoproteins.`,
+          `Cytopathic & Histopathologic Hallmarks: Bullet-shaped helical Rabies virions form cytoplasmic Negri bodies; Coronavirus exhibits a crown-like helical spike array.`,
+          `Clinical Vignette & Board Correlations: Influenza, Measles, Rabies, Ebola, and SARS-CoV-2 all utilize helical symmetry wrapped inside a detergent-sensitive envelope.`,
+          `High-Yield Differential & Distractor Traps: Every DNA virus (except complex Poxviruses) is icosahedral; circular dsDNA viruses (Papilloma, Polyoma, Hepadna) are icosahedral.`,
+          `Antiviral Pharmacology & Resistance: Disruption of the outer envelope by soap, bleach, or ethanol rapidly inactivates helical respiratory viruses.`,
+          `OMT & Autonomic / Lymphatic Integration: Helical respiratory pathogens trigger T1–T4 upper thoracic sympathetics and rib raising to improve mucociliary clearance.`
+        ]
+      },
+      {
+        id: 5, sector: 1, entityId: 2, phase: `Mechanism`,
+        stem: `A DNA virus forms brick-shaped virions with a dumbbell-shaped core and replicates strictly in the cytoplasm without entering the host nucleus. How does it transcribe its early mRNA?`,
+        options: [
+          `It packages its own viral DNA-dependent RNA polymerase inside the virion`,
+          `It uses host RNA polymerase II exported through nuclear pores`,
+          `It converts its dsDNA into +ssRNA via host reverse transcriptase`
+        ],
+        correct: 0,
+        clue: `"Pox is out of the box (nucleus)" — because host DNA/RNA polymerases live in the nucleus.`,
+        dossier: [
+          `Core Concept & Architecture: Poxviridae (Variola, Cowpox, Molluscum contagiosum) are the largest DNA viruses, showing complex brick-like symmetry rather than pure icosahedral.`,
+          `Molecular Mechanism & Host Hijacking: Because host RNA polymerase resides in the nucleus, cytoplasmic Poxviruses must carry their own DNA-dependent RNA polymerase to transcribe viral genes.`,
+          `Cytopathic & Histopathologic Hallmarks: Eosinophilic intracytoplasmic Guarnieri bodies (smallpox) or Henderson-Paterson molluscum bodies in keratinocytes are diagnostic.`,
+          `Clinical Vignette & Board Correlations: Flesh-colored, dome-shaped papules with central umbilication in children or immunocompromised adults point to Molluscum contagiosum.`,
+          `High-Yield Differential & Distractor Traps: All other DNA viruses replicate in the nucleus to access host polymerases; Pox also synthesizes its own lipid envelope de novo.`,
+          `Antiviral Pharmacology & Resistance: Cidofovir and tecovirimat inhibit poxvirus replication/envelope wrapping; live vaccinia eradicated variola.`,
+          `OMT & Autonomic / Lymphatic Integration: Cutaneous lymphatic drainage of regional viral lesions follows superficial fascial planes toward axillary or inguinal nodal basins.`
+        ]
+      },
+      {
+        id: 6, sector: 1, entityId: 2, phase: `Clinical`,
+        stem: `A sickle cell child develops an abrupt drop in reticulocytes (aplastic crisis) after a "slapped-cheek" febrile illness. Which genome topology characterizes the smallest human DNA virus responsible?`,
+        options: [
+          `Linear single-stranded DNA (ssDNA), naked icosahedral`,
+          `Circular double-stranded DNA (dsDNA), enveloped`,
+          `Segmented double-stranded RNA (dsRNA), naked icosahedral`
+        ],
+        correct: 0,
+        clue: `"Part of a virus" — Parvovirus B19 is the only ssDNA human virus (parvus = small).`,
+        dossier: [
+          `Core Concept & Architecture: Parvovirus B19 is a tiny, naked icosahedral virus and the sole medically important ssDNA virus (all other DNA viruses are dsDNA).`,
+          `Molecular Mechanism & Host Hijacking: B19 binds the P antigen (globoside) on erythroid progenitors in bone marrow, using host S-phase DNA polymerase to replicate its ssDNA.`,
+          `Cytopathic & Histopathologic Hallmarks: Giant pronormoblasts ("lantern cells") with intranuclear viral inclusions and erythroid aplasia on bone marrow aspirate.`,
+          `Clinical Vignette & Board Correlations: Causes erythema infectiosum (fifth disease), aplastic crisis in sickle cell/hereditary spherocytosis, hydrops fetalis, and adult symmetric arthralgias.`,
+          `High-Yield Differential & Distractor Traps: Papilloma/Polyoma/Hepadna are circular dsDNA; Reovirus is segmented dsRNA.`,
+          `Antiviral Pharmacology & Resistance: Supportive transfusion during transient aplastic crisis; IVIG can clear persistent B19 viremia in immunocompromised hosts.`,
+          `OMT & Autonomic / Lymphatic Integration: Bone marrow and splenic reticuloendothelial congestion responds cautiously to gentle rib raising and diaphragm doming (avoiding splenic trauma).`
+        ]
+      },
+
+      // SECTOR I — ENTITY 3
+      {
+        id: 7, sector: 1, entityId: 3, phase: `Architecture`,
+        stem: `During a genetics practical, a student groups human viruses with segmented RNA genomes capable of swapping intact RNA pieces during cellular coinfection. Which four families belong in this group?`,
+        options: [
+          `Bunyaviruses, Orthomyxoviruses, Arenaviruses, Reoviruses (BOAR)`,
+          `Picornaviruses, Flaviviruses, Togaviruses, Coronaviruses`,
+          `Herpesviruses, Adenoviruses, Poxviruses, Hepadnaviruses`
+        ],
+        correct: 0,
+        clue: `Mnemonic BOAR lists all four segmented RNA viral families.`,
+        dossier: [
+          `Core Concept & Architecture: Segmented RNA viruses carry multiple discrete RNA molecules inside one virion: Bunya (3), Orthomyxo (8), Arena (2), and Reo (10–12).`,
+          `Molecular Mechanism & Host Hijacking: Coinfection of one cell by two distinct strains enables packaging of mixed segments into progeny virions (reassortment).`,
+          `Cytopathic & Histopathologic Hallmarks: Rotavirus (Reoviridae) causes villous blunting and osmotic/secretory watery diarrhea; Arenavirus shows sandy ribosomes on EM.`,
+          `Clinical Vignette & Board Correlations: The 2009 H1N1 pandemic emerged via triple reassortment of human, swine, and avian Influenza A segments.`,
+          `High-Yield Differential & Distractor Traps: Flaviviruses (HCV), Coronaviruses, and Picornaviruses have single non-segmented +ssRNA genomes.`,
+          `Antiviral Pharmacology & Resistance: Live-attenuated oral Rotavirus vaccines carry risk of intussusception; Influenza vaccines update HA/NA annually.`,
+          `OMT & Autonomic / Lymphatic Integration: Thoracic pump and rib raising improve pulmonary ventilation-perfusion matching during viral respiratory pandemics.`
+        ]
+      },
+      {
+        id: 8, sector: 1, entityId: 3, phase: `Mechanism`,
+        stem: `Following coinfection of a porcine respiratory epithelial cell by avian H5N1 and human H3N2 influenza strains, progeny virions acquire an avian hemagglutinin segment alongside human polymerase genes. What genetic mechanism occurred?`,
+        options: [
+          `Genetic reassortment causing antigenic shift`,
+          `Point mutation in the HA gene causing antigenic drift`,
+          `Phenotypic mixing without heritable nucleic acid change`
+        ],
+        correct: 0,
+        clue: `Shift = Sudden segment swap (reassortment -> pandemic); Drift = gradual point mutations (-> epidemic).`,
+        dossier: [
+          `Core Concept & Architecture: Viral genetic exchange occurs via recombination (homologous crossing-over) or reassortment (whole segment exchange in segmented viruses).`,
+          `Molecular Mechanism & Host Hijacking: Antigenic shift reflects reassortment of the 8-segment Influenza A genome, abruptly generating a novel HA or NA surface antigen.`,
+          `Cytopathic & Histopathologic Hallmarks: Necrotizing tracheobronchitis with loss of ciliated epithelium predisposes to secondary S. aureus or S. pneumoniae pneumonia.`,
+          `Clinical Vignette & Board Correlations: Antigenic shift triggers worldwide pandemics (Influenza A only, due to animal reservoirs); antigenic drift causes seasonal epidemics (A & B).`,
+          `High-Yield Differential & Distractor Traps: Phenotypic mixing alters only the coat of progeny 1 (pseudovirion); subsequent progeny revert to the coat encoded by their own genome.`,
+          `Antiviral Pharmacology & Resistance: Oseltamivir/zanamivir inhibit neuraminidase; baloxavir inhibits the viral cap-snatching endonuclease.`,
+          `OMT & Autonomic / Lymphatic Integration: Upper thoracic T1–T4 myofascial release and suboccipital release support autonomic balance and bronchial drainage.`
+        ]
+      },
+      {
+        id: 9, sector: 1, entityId: 3, phase: `Clinical`,
+        stem: `A patient with chronic Hepatitis B deteriorates rapidly after parenteral superinfection with a defective circular RNA agent that requires HBsAg to assemble infectious virions. Which viral interaction explains this dependency?`,
+        options: [
+          `Complementation (defective virus borrows functional surface protein from helper virus)`,
+          `Homologous recombination between HBV DNA and HDV RNA`,
+          `Antigenic drift of the precore HBV promoter`
+        ],
+        correct: 0,
+        clue: `HDV is "Defective" — HBV supplies the functional HBsAg envelope protein it lacks.`,
+        dossier: [
+          `Core Concept & Architecture: Complementation occurs when one virus supplies a functional protein that rescues a defective mutant or satellite virus without altering genomes.`,
+          `Molecular Mechanism & Host Hijacking: Hepatitis D virus (Deltavirus) carries a tiny circular -ssRNA genome encoding delta antigen, but depends entirely on HBV HBsAg for hepatocyte entry and exit.`,
+          `Cytopathic & Histopathologic Hallmarks: Accelerated hepatocyte necrosis, bridging fibrosis, and rapid progression to cirrhosis or hepatocellular carcinoma.`,
+          `Clinical Vignette & Board Correlations: HDV superinfection (acquired after established HBV) carries a far worse prognosis and higher fulminant hepatitis risk than simultaneous coinfection.`,
+          `High-Yield Differential & Distractor Traps: Phenotypic mixing is transient between two autonomous viruses; complementation is obligate for HDV replication.`,
+          `Antiviral Pharmacology & Resistance: HBV vaccination prevents HDV infection; tenofovir/entecavir suppress HBV helper replication.`,
+          `OMT & Autonomic / Lymphatic Integration: Portal hypertension and hepatic capsular stretch alter T5–T9 sympathetics and restricted right diaphragmatic excursion.`
+        ]
+      },
+
+      // SECTOR II — ENTITY 4
+      {
+        id: 10, sector: 2, entityId: 4, phase: `Architecture`,
+        stem: `HIV-1 strains isolated during early asymptomatic infection preferentially enter tissue macrophages and CD4+ T cells using a specific chemokine coreceptor. Which glycoprotein-receptor interaction mediates initial viral attachment?`,
+        options: [
+          `Viral gp120 binds host CD4 and CCR5`,
+          `Viral gp41 binds host CXCR4 directly without CD4`,
+          `Viral p24 capsid protein binds host CD21`
+        ],
+        correct: 0,
+        clue: `gp120 = attachment to CD4 + CCR5 (early) or CXCR4 (late); gp41 = fusion; p24 = capsid.`,
+        dossier: [
+          `Core Concept & Architecture: HIV-1 env encodes gp160, cleaved into outer attachment glycoprotein gp120 and transmembrane fusion protein gp41.`,
+          `Molecular Mechanism & Host Hijacking: gp120 docks onto CD4, triggering a conformational shift that engages CCR5 (macrophage-tropic, early) or CXCR4 (T-cell-tropic, late) before gp41 harpoons the cell membrane.`,
+          `Cytopathic & Histopathologic Hallmarks: Progressive CD4+ T-cell depletion, follicular hyperplasia early followed by lymph node involution late.`,
+          `Clinical Vignette & Board Correlations: Individuals homozygous for the CCR5-delta32 deletion are naturally resistant to R5-tropic HIV infection.`,
+          `High-Yield Differential & Distractor Traps: EBV binds CD21 on B cells ("21 to drink in a Bar"); Rhinovirus binds ICAM-1; Rabies binds nicotinic ACh receptors.`,
+          `Antiviral Pharmacology & Resistance: Maraviroc blocks CCR5 (requires tropism assay first); enfuvirtide binds gp41 to block membrane fusion.`,
+          `OMT & Autonomic / Lymphatic Integration: Gentle thoracic inlet release and splenic/mesenteric drainage support immune surveillance without overtaxing fragile nodes.`
+        ]
+      },
+      {
+        id: 11, sector: 2, entityId: 4, phase: `Mechanism`,
+        stem: `After Influenza A binds sialic acid residues on respiratory epithelium and enters an endosome, acidification triggers viral uncoating and release of ribonucleoproteins. Which viral ion channel mediates this acid-triggered uncoating?`,
+        options: [
+          `M2 proton channel protein`,
+          `Neuraminidase (NA) surface tetramer`,
+          `Hemagglutinin (HA) sialic-acid binding cleft`
+        ],
+        correct: 0,
+        clue: `HA enters, M2 uncoats via H+ influx, NA cleaves sialic acid for exit.`,
+        dossier: [
+          `Core Concept & Architecture: Influenza A virions display three key envelope proteins: Hemagglutinin (entry/fusion), Neuraminidase (exit), and the M2 proton channel (uncoating).`,
+          `Molecular Mechanism & Host Hijacking: Endosomal H+ ions pass through the M2 channel into the virion interior, dissociating the M1 matrix from the 8 -ssRNA segments so they can enter the nucleus.`,
+          `Cytopathic & Histopathologic Hallmarks: Desquamation of respiratory ciliated columnar cells, submucosal edema, and mononuclear infiltration.`,
+          `Clinical Vignette & Board Correlations: Influenza triggers high fever, myalgias, and risk of fatal post-viral S. aureus pneumonia or Reye syndrome if children receive aspirin.`,
+          `High-Yield Differential & Distractor Traps: Neuraminidase acts at the end of the cycle to release budding virions from host sialic acid; HA mediates attachment and low-pH fusion.`,
+          `Antiviral Pharmacology & Resistance: Amantadine/rimantadine block M2 (no longer recommended due to widespread resistance); oseltamivir blocks NA.`,
+          `OMT & Autonomic / Lymphatic Integration: Rib raising and pedal lymphatic pump reduce lower-lobe stasis and improve chest wall compliance in viral bronchitis.`
+        ]
+      },
+      {
+        id: 12, sector: 2, entityId: 4, phase: `Clinical`,
+        stem: `An HIV-positive patient failing an integrase-based regimen receives a subcutaneous peptide drug that prevents the six-helix bundle conformational collapse required for envelope-plasma membrane merging. Which viral target does this drug inhibit?`,
+        options: [
+          `HIV-1 gp41 transmembrane fusion protein (Enfuvirtide)`,
+          `Host CCR5 chemokine coreceptor (Maraviroc)`,
+          `HIV-1 protease active site (Darunavir)`
+        ],
+        correct: 0,
+        clue: `"41 grappling hooks" — gp41 drives membrane fusion and is blocked by enfuvirtide.`,
+        dossier: [
+          `Core Concept & Architecture: Enveloped viruses merge with host membranes either at the cell surface at neutral pH (HIV gp41, Paramyxovirus F protein) or inside acidic endosomes (Influenza HA2).`,
+          `Molecular Mechanism & Host Hijacking: Once gp120 binds CD4/coreceptor, gp41 inserts its hydrophobic fusion peptide into the host lipid bilayer and folds into a hairpin to pull membranes together.`,
+          `Cytopathic & Histopathologic Hallmarks: Syncytia formation between infected gp120/gp41-expressing cells and adjacent uninfected CD4+ lymphocytes.`,
+          `Clinical Vignette & Board Correlations: Enfuvirtide is reserved as salvage therapy in multidrug-resistant HIV; painful injection-site nodules are its classic adverse effect.`,
+          `High-Yield Differential & Distractor Traps: Maraviroc blocks CCR5 attachment (oral, ineffective for CXCR4-tropic strains); protease inhibitors act late during virion maturation.`,
+          `Antiviral Pharmacology & Resistance: Mutations in the gp41 HR1 heptad repeat domain confer enfuvirtide resistance.`,
+          `OMT & Autonomic / Lymphatic Integration: Injection-site somatic myofascial tension is managed gently without aggressive local friction.`
+        ]
+      },
+
+      // SECTOR II — ENTITY 5
+      {
+        id: 13, sector: 2, entityId: 5, phase: `Architecture`,
+        stem: `Purified genomic nucleic acid extracted from Poliovirus is transfected directly into human fibroblasts and successfully produces infectious virions without any viral proteins present. Why is naked Poliovirus RNA infectious?`,
+        options: [
+          `Its +ssRNA genome functions immediately as mRNA for host ribosomes`,
+          `It carries host RNA polymerase II covalently bound to its 5' cap`,
+          `It integrates directly into host chromosomes using cellular integrase`
+        ],
+        correct: 0,
+        clue: `Positive-sense ssRNA = ready-to-read mRNA!`,
+        dossier: [
+          `Core Concept & Architecture: Positive-sense ssRNA viruses (Retro, Toga, Flavi, Corona, Hepe, Calici, Picorna) have genomes in the same 5'->3' polarity as host mRNA.`,
+          `Molecular Mechanism & Host Hijacking: Host cytoplasmic ribosomes immediately translate +ssRNA into viral proteins—including the viral RNA-dependent RNA polymerase (RdRp) needed to copy the genome.`,
+          `Cytopathic & Histopathologic Hallmarks: Picornaviruses cleave host eIF4G via viral 2A protease, shutting off capped host translation while internal ribosome entry sites (IRES) drive viral translation.`,
+          `Clinical Vignette & Board Correlations: Poliovirus destroys anterior horn motor neurons (asymmetric flaccid paralysis, absent DTRs, intact sensation).`,
+          `High-Yield Differential & Distractor Traps: Naked nucleic acids of -ssRNA and dsRNA viruses are non-infectious because host cells lack RdRp to transcribe them into mRNA.`,
+          `Antiviral Pharmacology & Resistance: Salk (IPV, killed, IgG) prevents CNS invasion; Sabin (OPV, live attenuated, mucosal IgA) blocks GI shedding.`,
+          `OMT & Autonomic / Lymphatic Integration: Polio-induced lower motor neuron denervation yields flaccid segmental hypotonia contrasting with hypertonic viscerosomatic reflexes.`
+        ]
+      },
+      {
+        id: 14, sector: 2, entityId: 5, phase: `Mechanism`,
+        stem: `A patient is bitten by a bat and infected with Rabies virus (-ssRNA). Why must every intact Rabies virion package RNA-dependent RNA polymerase inside its bullet-shaped capsid?`,
+        options: [
+          `Host cells lack an enzyme capable of transcribing -ssRNA into translatable +mRNA`,
+          `Rabies must reverse-transcribe its RNA into proviral DNA in the nucleus`,
+          `Viral RdRp cleaves host DNA to supply deoxyribonucleotides in the cytosol`
+        ],
+        correct: 0,
+        clue: `"Always Bring Polymerase Or Fail Replication" — human cells cannot read -ssRNA.`,
+        dossier: [
+          `Core Concept & Architecture: Negative-sense ssRNA viruses (Arena, Bunya, Paramyxo, Orthomyxo, Filo, Rhabdo) and dsRNA Reoviruses must package RdRp within the virion.`,
+          `Molecular Mechanism & Host Hijacking: Upon cytoplasmic entry, virion-associated RdRp transcribes the -ssRNA template into positive-sense mRNAs, which host ribosomes translate into structural proteins.`,
+          `Cytopathic & Histopathologic Hallmarks: Rabies travels retrograde via dynein motors along peripheral axons to CNS, creating eosinophilic cytoplasmic Negri bodies in hippocampal/Purkinje neurons.`,
+          `Clinical Vignette & Board Correlations: Bat/raccoon bite followed by hydrophobia, aerophobia, agitation, and autonomic instability signals lethal Rabies encephalitis.`,
+          `High-Yield Differential & Distractor Traps: Retro- and Hepadnaviruses package reverse transcriptase (RNA-dependent DNA pol), not RdRp.`,
+          `Antiviral Pharmacology & Resistance: Post-exposure prophylaxis combines passive Rabies immune globulin (wound infiltration) + killed Rabies vaccine.`,
+          `OMT & Autonomic / Lymphatic Integration: Cranial nerve/brainstem autonomic storm in rabies is contraindicated for aggressive cervical OMT; focus on supportive care.`
+        ]
+      },
+      {
+        id: 15, sector: 2, entityId: 5, phase: `Clinical`,
+        stem: `Hepatitis C virus (+ssRNA flavivirus) rapidly develops resistance to monotherapy and escapes host neutralizing antibodies within weeks. Which enzymatic deficiency of HCV RdRp drives this extreme antigenic variability?`,
+        options: [
+          `Absence of 3'->5' exonuclease proofreading activity`,
+          `Overactive mismatch repair inside hepatocyte nuclei`,
+          `Dependence on host DNA polymerase delta`
+        ],
+        correct: 0,
+        clue: `HCV NS5B RdRp lacks 3'->5' exonuclease proofreading, generating quasispecies.`,
+        dossier: [
+          `Core Concept & Architecture: Viral RNA-dependent RNA polymerases lack the 3'->5' exonuclease proofreading domains found in high-fidelity cellular DNA polymerases.`,
+          `Molecular Mechanism & Host Hijacking: High error rates (~10^-4 per base) create a cloud of hypervariable envelope (E2) mutants ("quasispecies") that outpace host neutralizing antibodies.`,
+          `Cytopathic & Histopathologic Hallmarks: Liver biopsy shows portal lymphoid aggregates, focal macrovesicular steatosis, and chronic interface hepatitis.`,
+          `Clinical Vignette & Board Correlations: Majority (~75–85%) of acute HCV infections progress to chronic hepatitis, cirrhosis, and hepatocellular carcinoma; associated with mixed cryoglobulinemia.`,
+          `High-Yield Differential & Distractor Traps: HBV uses reverse transcriptase (also error-prone) via an RNA intermediate; HAV does not establish chronicity.`,
+          `Antiviral Pharmacology & Resistance: Direct-acting antivirals combine NS5B polymerase inhibitors (sofosbuvir) with NS5A inhibitors (ledipasvir/velpatasvir) to cure >95% of cases.`,
+          `OMT & Autonomic / Lymphatic Integration: Chronic hepatopathy produces persistent right-sided T5–T9 paraspinal myofascial boggy changes and celiac ganglion facilitation.`
+        ]
+      },
+
+      // SECTOR II — ENTITY 6
+      {
+        id: 16, sector: 2, entityId: 6, phase: `Architecture`,
+        stem: `All RNA viruses replicate in the host cytoplasm EXCEPT two families that require nuclear machinery. Which pair correctly identifies the two nuclear-replicating RNA viral families?`,
+        options: [
+          `Retroviruses and Orthomyxoviruses`,
+          `Picornaviruses and Coronaviruses`,
+          `Rhabdoviruses and Paramyxoviruses`
+        ],
+        correct: 0,
+        clue: `"Retro flu is outta cyt (sight)" — both replicate inside the nucleus!`,
+        dossier: [
+          `Core Concept & Architecture: Cytoplasmic replication is the rule for RNA viruses; only Retroviruses (HIV, HTLV) and Orthomyxoviruses (Influenza) enter the nucleus.`,
+          `Molecular Mechanism & Host Hijacking: HIV integrates proviral dsDNA into host chromosomes for RNA pol II transcription; Influenza steals 5' methylated caps ("cap-snatching") from host pre-mRNA in the nucleus.`,
+          `Cytopathic & Histopathologic Hallmarks: Nuclear viral ribonucleoprotein assembly precedes cytoplasmic budding from lipid-raft plasma membrane domains.`,
+          `Clinical Vignette & Board Correlations: Cap-snatching dependency explains why baloxavir (CEN endonuclease inhibitor) selectively halts Influenza replication.`,
+          `High-Yield Differential & Distractor Traps: Poxvirus is the opposite exception: the only DNA virus replicating exclusively in the cytoplasm.`,
+          `Antiviral Pharmacology & Resistance: Integrase strand-transfer inhibitors (raltegravir, bictegravir, dolutegravir) block HIV proviral insertion inside the nucleus.`,
+          `OMT & Autonomic / Lymphatic Integration: Upper respiratory viral load increases cervical and mediastinal lymphatic workload requiring thoracic inlet release.`
+        ]
+      },
+      {
+        id: 17, sector: 2, entityId: 6, phase: `Mechanism`,
+        stem: `A retroviral Pol gene product synthesizes a linear dsDNA copy from diploid +ssRNA, degrades the RNA template via RNase H, and inserts the provirus into host chromatin. Which two Pol enzymes execute synthesis and insertion?`,
+        options: [
+          `Reverse transcriptase and integrase`,
+          `Helicase and DNA ligase I`,
+          `RNA-dependent RNA polymerase and neuraminidase`
+        ],
+        correct: 0,
+        clue: `RIP "Pol" — Reverse transcriptase, Integrase, Protease.`,
+        dossier: [
+          `Core Concept & Architecture: Retroviruses possess diploid +ssRNA and three core structural genes: gag (p24 capsid, p17 matrix), env (gp120/gp41), and pol (RT, integrase, protease).`,
+          `Molecular Mechanism & Host Hijacking: RT uses a host tRNA primer to synthesize DNA-RNA hybrid, cleaves RNA via RNase H, synthesizes second DNA strand, and integrase splices proviral dsDNA into active host euchromatin.`,
+          `Cytopathic & Histopathologic Hallmarks: Proviral latency in resting memory CD4+ T cells creates a lifelong reservoir invisible to standard ART.`,
+          `Clinical Vignette & Board Correlations: Pol gene mutations can drive cross-resistance; integrase inhibitors rarely cause creatine kinase elevation and rhabdomyolysis.`,
+          `High-Yield Differential & Distractor Traps: Hepatitis B is NOT a retrovirus (it is a DNA hepadnavirus), yet it also uses reverse transcriptase to convert pregenomic RNA into partial dsDNA.`,
+          `Antiviral Pharmacology & Resistance: Standard ART pairs two NRTIs (tenofovir + emtricitabine) with an integrase inhibitor (dolutegravir/bictegravir).`,
+          `OMT & Autonomic / Lymphatic Integration: Chronic retroviral immune activation benefits from gentle lymphatic drainage and autonomic stress reduction.`
+        ]
+      },
+      {
+        id: 18, sector: 2, entityId: 6, phase: `Clinical`,
+        stem: `A patient with chronic Hepatitis B receives tenofovir, a nucleotide analog originally designed for HIV. Why is a reverse transcriptase inhibitor effective against a DNA hepadnavirus?`,
+        options: [
+          `HBV replicates its partially dsDNA genome through an RNA intermediate via viral reverse transcriptase`,
+          `HBV permanently integrates into host DNA using HIV-like integrase`,
+          `HBV converts host mRNA into viral protein using a host-encoded reverse transcriptase`
+        ],
+        correct: 0,
+        clue: `HBV = partially dsDNA -> host RNA pol II makes pgRNA -> viral RT makes new partially dsDNA.`,
+        dossier: [
+          `Core Concept & Architecture: Hepadnaviridae (HBV) is a circular, partially dsDNA enveloped virus that relies on an RNA intermediate for genome replication.`,
+          `Molecular Mechanism & Host Hijacking: Host RNA pol II transcribes covalently closed circular DNA (cccDNA) into pregenomic RNA; HBV polymerase/RT then reverse-transcribes pgRNA back into partial dsDNA inside the capsid.`,
+          `Cytopathic & Histopathologic Hallmarks: Ground-glass hepatocytes (granular eosinophilic cytoplasm packed with excess HBsAg) and cytotoxic CD8+ T-cell-mediated hepatocyte apoptosis.`,
+          `Clinical Vignette & Board Correlations: Vertical/perinatal HBV transmission carries a ~90% risk of chronic carrier state because neonatal T-cell immunity is immature.`,
+          `High-Yield Differential & Distractor Traps: Unlike retroviruses, HBV integration is non-obligatory (though random integration contributes to HCC); HBV lacks an integrase enzyme.`,
+          `Antiviral Pharmacology & Resistance: Tenofovir, entecavir, and lamivudine inhibit HBV reverse transcriptase; lamivudine treats HIV/HBV coinfection.`,
+          `OMT & Autonomic / Lymphatic Integration: Chronic right upper quadrant viscerosomatic reflexes localize to T5–T9 right and right phrenic C3–C5 irritation.`
+        ]
+      },
+
+      // SECTOR III — ENTITY 7
+      {
+        id: 19, sector: 3, entityId: 7, phase: `Architecture`,
+        stem: `Histologic examination of a lymph node from a child with prodromal cough, coryza, conjunctivitis, and buccal Koplik spots reveals huge multinucleated lymphoid cells. What are these pathognomonic giant cells called?`,
+        options: [
+          `Warthin-Finkeldey giant cells`,
+          `Reed-Sternberg owl-eye cells`,
+          `Langhans horseshoe giant cells`
+        ],
+        correct: 0,
+        clue: `Measles (Paramyxovirus) fuses lymphocytes in paracortical hyperplasia -> Warthin-Finkeldey cells.`,
+        dossier: [
+          `Core Concept & Architecture: Syncytia are multinucleated giant cells formed when viral fusion proteins expressed on an infected cell's plasma membrane fuse it with neighboring uninfected cells.`,
+          `Molecular Mechanism & Host Hijacking: Measles (Paramyxovirus) expresses surface F (fusion) protein, fusing T and B lymphocytes inside lymph node paracortex and respiratory giant-cell pneumonia.`,
+          `Cytopathic & Histopathologic Hallmarks: Warthin-Finkeldey giant cells (cluster of grape-like nuclei in lymphoid tissue) alongside Koplik spots on buccal mucosa.`,
+          `Clinical Vignette & Board Correlations: Measles causes descending maculopapular rash, vitamin A-responsive morbidity, pneumonia (leading cause of death), and late SSPE.`,
+          `High-Yield Differential & Distractor Traps: Reed-Sternberg cells (CD15+/CD30+) mark Hodgkin lymphoma; Langhans giant cells mark TB granulomas.`,
+          `Antiviral Pharmacology & Resistance: Live-attenuated MMR vaccine prevents infection; high-dose vitamin A reduces measles mortality in children.`,
+          `OMT & Autonomic / Lymphatic Integration: Cervical lymphadenitis responds to gentle anterior cervical drainage after acute high fever subsides.`
+        ]
+      },
+      {
+        id: 20, sector: 3, entityId: 7, phase: `Mechanism`,
+        stem: `An infant with wheezing and tachypnea has bronchiolitis caused by Respiratory Syncytial Virus (RSV). How does syncytium formation directly benefit RSV spread within respiratory epithelium?`,
+        options: [
+          `It allows direct cell-to-cell viral genome spread while evading extracellular neutralizing antibodies`,
+          `It lyses cilia instantly to trigger aerosolized coughing`,
+          `It converts epithelial cells into antibody-secreting plasma cells`
+        ],
+        correct: 0,
+        clue: `Fusing neighboring membranes lets virions move cytoplasm-to-cytoplasm without facing antibodies.`,
+        dossier: [
+          `Core Concept & Architecture: Syncytial cytopathic effect converts discrete monolayer cells into large multinucleated cytoplasmic masses via viral surface fusogens.`,
+          `Molecular Mechanism & Host Hijacking: RSV uses its G protein for attachment and F (fusion) protein at neutral pH to merge adjacent airway epithelial membranes, bypassing humoral antibodies.`,
+          `Cytopathic & Histopathologic Hallmarks: Necrosis of bronchiolar epithelium, mucus plugging, air trapping, and peribronchiolar lymphocytic infiltrates.`,
+          `Clinical Vignette & Board Correlations: Leading cause of bronchiolitis and pneumonia in infants <1 year old; premature infants with chronic lung disease are at highest risk.`,
+          `High-Yield Differential & Distractor Traps: Parainfluenza causes croup ("steeple sign" barking cough), whereas RSV causes lower-airway wheezing bronchiolitis.`,
+          `Antiviral Pharmacology & Resistance: Nirsevimab or palivizumab (monoclonal anti-F protein antibodies) provide passive immunoprophylaxis for high-risk infants.`,
+          `OMT & Autonomic / Lymphatic Integration: Infant thoracic outlet release and gentle rib raising aid diaphragmatic excursion and bronchiolar mucus clearance.`
+        ]
+      },
+      {
+        id: 21, sector: 3, entityId: 7, phase: `Clinical`,
+        stem: `A nurse with an occupational finger lesion and a sexually active young adult with grouped painful genital vesicles on an erythematous base both undergo base-of-vesicle scraping. What finding on Tzanck smear confirms a Herpesvirus?`,
+        options: [
+          `Multinucleated giant keratinocytes (Tzank cells)`,
+          `Koilocytes with perinuclear halos`,
+          `Budding yeast with pseudohyphae`
+        ],
+        correct: 0,
+        clue: `HSV-1, HSV-2, and VZV all produce multinucleated giant cells on Tzanck smear.`,
+        dossier: [
+          `Core Concept & Architecture: Alpha-herpesviruses (HSV-1, HSV-2, VZV) induce rapid ballooning degeneration and membrane fusion of infected squamous epithelial cells.`,
+          `Molecular Mechanism & Host Hijacking: Viral glycoprotein complexes (gB, gD, gH/gL) mediate both virion entry and cell-to-cell fusion, yielding polykaryons.`,
+          `Cytopathic & Histopathologic Hallmarks: Tzanck smear reveals multinucleated giant keratinocytes with ground-glass chromatin molding and eosinophilic Cowdry A inclusions.`,
+          `Clinical Vignette & Board Correlations: Herpetic whitlow (painful vesicular finger lesion in dentists/nurses) and grouped painful vesicles distinguish HSV from painless chancre.`,
+          `High-Yield Differential & Distractor Traps: Tzanck smear cannot distinguish HSV-1 vs. HSV-2 vs. VZV; PCR is the gold-standard diagnostic test.`,
+          `Antiviral Pharmacology & Resistance: Acyclovir, valacyclovir, or famciclovir shorten lesion duration and viral shedding (do not eradicate latent ganglia reservoirs).`,
+          `OMT & Autonomic / Lymphatic Integration: HSV-1 remains latent in trigeminal ganglia (CN V); HSV-2 in sacral ganglia (S2–S4 parasympathetics).`
+        ]
+      },
+
+      // SECTOR III — ENTITY 8
+      {
+        id: 22, sector: 3, entityId: 8, phase: `Architecture`,
+        stem: `A lung transplant recipient develops hypoxemia and diffuse interstitial infiltrates. Transbronchial biopsy reveals markedly enlarged pneumocytes containing large basophilic intranuclear inclusions surrounded by a clear halo. Which virus is present?`,
+        options: [
+          `Cytomegalovirus (CMV / HHV-5)`,
+          `Epstein-Barr virus (EBV / HHV-4)`,
+          `Adenovirus`
+        ],
+        correct: 0,
+        clue: `"Owl's eye" intranuclear inclusions in giant cells = Cytomegalovirus.`,
+        dossier: [
+          `Core Concept & Architecture: Viral inclusion bodies are discrete intracellular aggregates of viral proteins, capsids, or altered host chromatin visible by light microscopy.`,
+          `Molecular Mechanism & Host Hijacking: CMV replicates in host nuclei, inducing cytomegaly and dense viral DNA/protein factories ("owl's eye" basophilic intranuclear bodies).`,
+          `Cytopathic & Histopathologic Hallmarks: Enlarged endothelial/epithelial cells with both intranuclear ("owl's eye") and smaller basophilic intracytoplasmic inclusions.`,
+          `Clinical Vignette & Board Correlations: Causes congenital sensorineural hearing loss/periventricular calcifications, transplant pneumonitis, and AIDS retinitis/colitis when CD4 <50.`,
+          `High-Yield Differential & Distractor Traps: EBV infects CD21+ B cells and produces atypical Downey II cytotoxic CD8+ T cells on blood smear rather than owl's eye pneumocytes.`,
+          `Antiviral Pharmacology & Resistance: Ganciclovir (or valganciclovir) is first-line; foscarnet or cidofovir treats UL97-mutant resistant CMV.`,
+          `OMT & Autonomic / Lymphatic Integration: Post-transplant pulmonary edema responds to gentle lymphatic drainage and thoracic cage mobilization.`
+        ]
+      },
+      {
+        id: 23, sector: 3, entityId: 8, phase: `Mechanism`,
+        stem: `Why do Rabies Negri bodies and Poxvirus Guarnieri bodies localize exclusively in the host cytoplasm, whereas Herpesvirus Cowdry A and CMV Owl's eye inclusions form inside the nucleus?`,
+        options: [
+          `Inclusion localization mirrors the viral genome replication and capsid assembly compartment`,
+          `All RNA viruses form nuclear inclusions while DNA viruses form cytoplasmic inclusions`,
+          `Cytoplasmic inclusions represent dead lysosomes unrelated to viral factories`
+        ],
+        correct: 0,
+        clue: `Site of replication dictates site of inclusion: Pox & Rabies = cytoplasm; Herpes & Adeno = nucleus.`,
+        dossier: [
+          `Core Concept & Architecture: Histologic viral inclusions mark active viral replication factories or degenerated host organelles at the site of viral assembly.`,
+          `Molecular Mechanism & Host Hijacking: Herpesviruses and Adenoviruses replicate DNA inside the nucleus; Rabies (-ssRNA) and Poxviruses (cytoplasmic dsDNA) assemble virions in the cytosol.`,
+          `Cytopathic & Histopathologic Hallmarks: Negri bodies (eosinophilic, cytoplasmic, Purkinje/hippocampus); Guarnieri bodies (eosinophilic, cytoplasmic, keratinocytes); Cowdry A (intranuclear).`,
+          `Clinical Vignette & Board Correlations: Councilman bodies in Yellow Fever or acute viral hepatitis represent acidophilic apoptotic hepatocytes rather than viral capsid factories.`,
+          `High-Yield Differential & Distractor Traps: Do not assume all DNA viruses form nuclear inclusions—Poxvirus Guarnieri and molluscum bodies are cytoplasmic.`,
+          `Antiviral Pharmacology & Resistance: Diagnostic biopsy recognition of specific inclusions rapidly guides empiric acyclovir, ganciclovir, or rabies PEP.`,
+          `OMT & Autonomic / Lymphatic Integration: Assessing paraspinal tissue texture changes helps differentiate visceral viral inflammation from primary somatic injury.`
+        ]
+      },
+      {
+        id: 24, sector: 3, entityId: 8, phase: `Clinical`,
+        stem: `An AIDS patient with CD4 count of 35/mm3 presents with painful odynophagia, linear esophageal ulcers on endoscopy, and floaters with hemorrhagic "pizza-pie" retinitis. Biopsy of the ulcer base confirms the pathogen. What is the histologic hallmark?`,
+        options: [
+          `Intranuclear and intracytoplasmic inclusions ("owl's eye") in endothelial cells`,
+          `Pseudohyphae invading stratified squamous epithelium`,
+          `Punched-out craters with Cowdry A multinucleated giant cells`
+        ],
+        correct: 0,
+        clue: `Linear esophageal ulcers + cotton-wool/hemorrhagic retinitis at CD4 <50 = CMV ("CREEP").`,
+        dossier: [
+          `Core Concept & Architecture: CMV reactivation in severe T-cell immunodeficiency (CD4 <50/mm3) causes disseminated end-organ vasculitis and mucosal necrosis ("CREEP": Colitis, Retinitis, Esophagitis, Encephalitis, Pneumonitis).`,
+          `Molecular Mechanism & Host Hijacking: CMV infects mucosal vascular endothelium, triggering ischemia, linear ulceration, and cytomegalic nuclear transformation.`,
+          `Cytopathic & Histopathologic Hallmarks: Owl's eye intranuclear inclusions inside enlarged endothelial/stromal cells at the ulcer base (not superficial squamous epithelium).`,
+          `Clinical Vignette & Board Correlations: Contrast CMV linear ulcers with HSV small punched-out/volcano ulcers and Candida white scrapable plaques.`,
+          `High-Yield Differential & Distractor Traps: Candida shows pseudohyphae on KOH/biopsy; HSV shows multinucleated giant cells without cytoplasmic inclusions.`,
+          `Antiviral Pharmacology & Resistance: IV ganciclovir or oral valganciclovir; monitor for neutropenia/myelosuppression (unlike foscarnet nephrotoxicity).`,
+          `OMT & Autonomic / Lymphatic Integration: Esophageal visceral afferents refer to T5–T9 sympathetics and vagus (OA/AA) parasympathetics.`
+        ]
+      },
+
+      // SECTOR III — ENTITY 9
+      {
+        id: 25, sector: 3, entityId: 9, phase: `Architecture`,
+        stem: `Ten years after recovering from childhood measles, a teenager develops progressive personality changes, myoclonic jerks, dementia, and autonomic failure (SSPE). How does this persistent CNS infection differ from Herpesvirus latency?`,
+        options: [
+          `SSPE features continuous defective viral replication in neurons, whereas Herpes latency arrests lytic gene expression`,
+          `SSPE integrates measles dsDNA into hippocampal chromatin`,
+          `Herpes latency destroys ganglia continuously while SSPE remains silent`
+        ],
+        correct: 0,
+        clue: `Latent = dormant genome with zero/minimal virions (HSV/VZV); Slow/Persistent = continuous low-level defective virus (SSPE).`,
+        dossier: [
+          `Core Concept & Architecture: Viral infections follow distinct temporal trajectories: acute lytic, latent (episomal dormancy with periodic reactivation), chronic (continuous infectious shedding), or slow/persistent.`,
+          `Molecular Mechanism & Host Hijacking: In SSPE, mutated measles M (matrix) protein prevents normal budding, causing relentless trans-synaptic cell-to-cell spread in brain parenchyma.`,
+          `Cytopathic & Histopathologic Hallmarks: Cowdry-like intranuclear/cytoplasmic viral nucleocapsid inclusions in neurons/oligodendrocytes with perivascular cuffing and gliosis.`,
+          `Clinical Vignette & Board Correlations: Unvaccinated child infected with measles <2 years old later presents with cognitive decline, myoclonus, and periodic EEG complexes.`,
+          `High-Yield Differential & Distractor Traps: JC virus causes PML (non-enhancing demyelination in AIDS CD4 <200) via lytic oligodendrocyte reactivation, not measles M-mutation.`,
+          `Antiviral Pharmacology & Resistance: MMR vaccination completely prevents SSPE; established SSPE is nearly universally fatal.`,
+          `OMT & Autonomic / Lymphatic Integration: Autonomic dysfunction in CNS viral disease manifests with dysregulated sympathetic tone and cranial base tension.`
+        ]
+      },
+      {
+        id: 26, sector: 3, entityId: 9, phase: `Mechanism`,
+        stem: `Cytomegalovirus and Adenovirus persist in hosts despite vigorous CD8+ cytotoxic T-lymphocyte surveillance. Which shared immune-evasion strategy prevents CD8+ T cells from recognizing virus-infected cells?`,
+        options: [
+          `Downregulation of host MHC Class I expression on the plasma membrane`,
+          `Hyperexpression of MHC Class II on red blood cells`,
+          `Secretion of soluble CD4 decoys to block B-cell maturation`
+        ],
+        correct: 0,
+        clue: `CD8+ T cells inspect MHC-I peptides; blocking MHC-I hides intracellular viral peptides.`,
+        dossier: [
+          `Core Concept & Architecture: Persistent viruses evade adaptive immunity by mutating epitopes (HIV/HCV), infecting immunoprivileged ganglia (HSV/VZV), or impairing antigen presentation.`,
+          `Molecular Mechanism & Host Hijacking: CMV (US2/US11 proteins) and Adenovirus (E3-19K) retain or degrade MHC Class I heavy chains in the ER, blinding CD8+ cytotoxic T cells.`,
+          `Cytopathic & Histopathologic Hallmarks: Minimal lymphocytic killing of latently infected cells until NK cells (activated by missing self MHC-I) or viral reactivation intervene.`,
+          `Clinical Vignette & Board Correlations: To counter NK-cell killing of MHC-I-low cells, CMV also expresses an MHC-I homolog (UL18) that engages inhibitory NK receptors.`,
+          `High-Yield Differential & Distractor Traps: Mature RBCs lack nuclei and MHC Class I/II entirely; EBV encodes BCRF1 (viral IL-10) to suppress Th1 cytokines.`,
+          `Antiviral Pharmacology & Resistance: Interferon-alpha upregulates MHC Class I expression and activates RNase L + PKR (eIF-2alpha phosphorylation) to halt viral translation.`,
+          `OMT & Autonomic / Lymphatic Integration: Splenic and thoracic lymphatic pumps enhance NK-cell and T-cell recirculation through secondary lymphoid organs.`
+        ]
+      },
+      {
+        id: 27, sector: 3, entityId: 9, phase: `Clinical`,
+        stem: `An HIV patient with CD4 count of 110/mm3 develops progressive left hemiparesis, ataxia, and visual field deficits. Brain MRI reveals multiple non-enhancing, asymmetric subcortical white-matter lesions without mass effect. What is the mechanism?`,
+        options: [
+          `Reactivation of latent JC polyomavirus causing lytic destruction of oligodendrocytes (PML)`,
+          `Toxoplasma gondii abscess formation with ring-enhancing edema`,
+          `EBV-driven primary CNS lymphoma with solitary periventricular enhancement`
+        ],
+        correct: 0,
+        clue: `Non-enhancing white matter demyelination at CD4 <200 = JC virus ("Junky Cerebrum").`,
+        dossier: [
+          `Core Concept & Architecture: Polyomavirus JC is a naked circular dsDNA virus acquired asymptomatically in childhood that remains latent in kidneys and B cells/brain.`,
+          `Molecular Mechanism & Host Hijacking: Severe cell-mediated immunosuppression (AIDS CD4 <200 or natalizumab therapy) permits JC reactivation and lytic infection of myelin-producing oligodendrocytes.`,
+          `Cytopathic & Histopathologic Hallmarks: Patchy demyelination, enlarged oligodendrocyte nuclei packed with amphophilic viral inclusions, and bizarre giant astrocytes.`,
+          `Clinical Vignette & Board Correlations: Subacute focal neurologic deficits + non-enhancing T2-hyperintense white-matter lesions without mass effect = Progressive Multifocal Leukoencephalopathy.`,
+          `High-Yield Differential & Distractor Traps: Toxoplasma causes multiple ring-enhancing lesions; CNS lymphoma (EBV) causes solitary/few ring-enhancing lesions.`,
+          `Antiviral Pharmacology & Resistance: No direct anti-JC antiviral exists; immune reconstitution via ART (or stopping natalizumab) is the only effective therapy.`,
+          `OMT & Autonomic / Lymphatic Integration: Cranial and upper cervical OA-AA gentle decompression supports CSF/glymphatic venous outflow.`
+        ]
+      },
+
+      // SECTOR IV — ENTITY 10
+      {
+        id: 28, sector: 4, entityId: 10, phase: `Architecture`,
+        stem: `A 32-year-old woman has an abnormal Pap smear showing squamous epithelial cells with irregular, hyperchromatic "raisinoid" nuclei surrounded by sharp perinuclear cytoplasmic halos. What do these diagnostic cells represent?`,
+        options: [
+          `Koilocytes induced by Human Papillomavirus (HPV) at the cervical transformation zone`,
+          `Owl's eye endothelial cells from congenital CMV`,
+          `Syncytial Tzanck cells from HSV-2 cervicitis`
+        ],
+        correct: 0,
+        clue: `Perinuclear halo + wrinkled raisinoid nucleus at the squamocolumnar junction = Koilocyte.`,
+        dossier: [
+          `Core Concept & Architecture: HPV is a naked circular dsDNA icosahedral virus exhibiting strict tropism for basal squamous epithelial cells, especially at the cervical transformation zone.`,
+          `Molecular Mechanism & Host Hijacking: As infected basal cells differentiate upward, HPV E5/E4 proteins disrupt cytokeratin networks, creating perinuclear cytoplasmic clearing (koilocytosis).`,
+          `Cytopathic & Histopathologic Hallmarks: Koilocytes (enlarged, wrinkled hyperchromatic nuclei with perinuclear halo) and basaloid dysplasia (CIN I–III).`,
+          `Clinical Vignette & Board Correlations: Post-coital bleeding and fungating cervical mass in an unscreened patient strongly point to high-risk HPV squamous cell carcinoma.`,
+          `High-Yield Differential & Distractor Traps: Low-risk HPV 6 and 11 cause benign condyloma acuminata and laryngeal papillomatosis; high-risk 16, 18, 31, 33 drive malignancy.`,
+          `Antiviral Pharmacology & Resistance: Nonavalent HPV vaccine (L1 capsid virus-like particles) prevents infection before viral DNA integration occurs.`,
+          `OMT & Autonomic / Lymphatic Integration: Pelvic lymphatic drainage from the cervix courses to internal/external iliac nodes; lower 1/3 vagina drains to superficial inguinal nodes.`
+        ]
+      },
+      {
+        id: 29, sector: 4, entityId: 10, phase: `Mechanism`,
+        stem: `High-risk HPV types 16 and 18 integrate their viral DNA into host chromosomes, causing persistent expression of two early oncoproteins. How do HPV E6 and E7 abolish cell-cycle checkpoints?`,
+        options: [
+          `E6 promotes ubiquitin-mediated degradation of p53; E7 binds and inactivates Rb`,
+          `E6 phosphorylates Bcl-2 directly; E7 activates BRCA1 DNA repair`,
+          `E6 inhibits telomerase; E7 arrests cells permanently in G0`
+        ],
+        correct: 0,
+        clue: `E6 -> p53 (six/p53); E7 -> Rb (seven/Rb) -> unrestrained G1->S progression.`,
+        dossier: [
+          `Core Concept & Architecture: High-risk HPV oncogenesis requires loss of two master tumor suppressors governing the G1/S restriction point and DNA-damage apoptosis.`,
+          `Molecular Mechanism & Host Hijacking: HPV E6 recruits E6AP ubiquitin ligase to degrade p53 (preventing p21 induction and apoptosis); E7 binds hypophosphorylated pRb, releasing E2F transcription factors to force S-phase entry.`,
+          `Cytopathic & Histopathologic Hallmarks: Full-thickness loss of squamous maturation, nuclear pleomorphism, and high Ki-67/p16 immunostaining throughout CIN III.`,
+          `Clinical Vignette & Board Correlations: HPV integration disrupts the viral E2 repressor gene, unleashing constitutive E6/E7 transcription in cervical, anal, and oropharyngeal cancers.`,
+          `High-Yield Differential & Distractor Traps: Low-risk HPV 6/11 remain episomal and bind p53/Rb weakly, causing warts rather than invasive carcinoma.`,
+          `Antiviral Pharmacology & Resistance: Surgical excision (LEEP/conization) removes dysplastic transformation zone tissue; vaccination prevents primary infection.`,
+          `OMT & Autonomic / Lymphatic Integration: Pelvic/sacral somatic dysfunction (S2–S4 parasympathetics and T10–L2 sympathetics) correlates with pelvic floor tension.`
+        ]
+      },
+      {
+        id: 30, sector: 4, entityId: 10, phase: `Clinical`,
+        stem: `A 54-year-old nonsmoker presents with a painless, firm tonsillar mass and ipsilateral cervical lymphadenopathy. Biopsy shows non-keratinizing squamous cell carcinoma strongly positive for p16. Which viral serotype most commonly causes this malignancy?`,
+        options: [
+          `HPV-16`,
+          `HPV-6`,
+          `HHV-8`
+        ],
+        correct: 0,
+        clue: `p16 overexpression is a surrogate marker for E7-mediated Rb inactivation in HPV-16 oropharyngeal SCC.`,
+        dossier: [
+          `Core Concept & Architecture: High-risk HPV-16 is now the leading cause of oropharyngeal (tonsil and base-of-tongue) squamous cell carcinoma in nonsmokers.`,
+          `Molecular Mechanism & Host Hijacking: E7-driven inactivation of pRb removes negative feedback on CDKN2A, producing intense p16 nuclear/cytoplasmic overexpression.`,
+          `Cytopathic & Histopathologic Hallmarks: Basaloid non-keratinizing squamous nests in tonsillar crypts with diffuse p16 IHC positivity.`,
+          `Clinical Vignette & Board Correlations: HPV-positive oropharyngeal SCC carries a significantly better prognosis and chemoradiation sensitivity than tobacco-induced p53-mutant SCC.`,
+          `High-Yield Differential & Distractor Traps: HPV-6/11 cause recurrent respiratory papillomatosis in children; EBV drives nasopharyngeal carcinoma (especially in Southeast Asian adults).`,
+          `Antiviral Pharmacology & Resistance: Gender-neutral HPV vaccination reduces both anogenital and oropharyngeal HPV-16 carriage.`,
+          `OMT & Autonomic / Lymphatic Integration: Submandibular and deep cervical nodal chains drain via the jugular trunks into the thoracic/right lymphatic ducts at the thoracic inlet.`
+        ]
+      },
+
+      // SECTOR IV — ENTITY 11
+      {
+        id: 31, sector: 4, entityId: 11, phase: `Architecture`,
+        stem: `An 8-year-old boy from equatorial Africa presents with a rapidly enlarging jaw mass. Biopsy shows sheets of monotonous medium-sized B lymphocytes interspersed with pale tingible-body macrophages ("starry-sky" pattern). Which viral oncogene profile drives this lymphoma?`,
+        options: [
+          `EBV latent infection (EBNA-1/LMP-1) paired with t(8;14) c-myc translocation`,
+          `HTLV-1 Tax activation of CD4+ T-cell IL-2 receptors`,
+          `HPV E6/E7 degradation of epithelial p53`
+        ],
+        correct: 0,
+        clue: `Endemic jaw Burkitt lymphoma = EBV + t(8;14) IgH-c-myc translocation ("starry sky").`,
+        dossier: [
+          `Core Concept & Architecture: Epstein-Barr virus (HHV-4) infects human B lymphocytes via CD21 (CR2) and establishes lifelong episomal latency.`,
+          `Molecular Mechanism & Host Hijacking: EBV LMP-1 acts as a constitutively active CD40 receptor mimic, triggering NF-kB/JAK-STAT survival signals, while malaria coinfection promotes c-myc t(8;14) translocation.`,
+          `Cytopathic & Histopathologic Hallmarks: Monomorphic lymphoblasts with high mitotic rate, apoptosis, and benign phagocytic macrophages creating a "starry-sky" appearance.`,
+          `Clinical Vignette & Board Correlations: Endemic African Burkitt presents as a jaw lesion; sporadic Burkitt presents as an ileocecal/abdominal mass; both express high Ki-67 (~100%).`,
+          `High-Yield Differential & Distractor Traps: Nasopharyngeal carcinoma and AIDS primary CNS lymphoma are also EBV-driven; Hodgkin Reed-Sternberg cells frequently harbor EBV.`,
+          `Antiviral Pharmacology & Resistance: Burkitt lymphoma requires urgent aggressive chemoimmunotherapy (not acyclovir, which has no activity against latent episomal EBV).`,
+          `OMT & Autonomic / Lymphatic Integration: Avoid deep abdominal lymphatic pumps over massive splenomegaly or bulky mesenteric lymphoma to prevent rupture.`
+        ]
+      },
+      {
+        id: 32, sector: 4, entityId: 11, phase: `Mechanism`,
+        stem: `During chronic Hepatitis B and C infection, hepatocellular carcinoma (HCC) frequently arises in a cirrhotic liver—yet HBV can also induce HCC without cirrhosis. Which mechanism uniquely enables non-cirrhotic HBV carcinogenesis?`,
+        options: [
+          `HBV DNA integration into host chromosomes plus HBx protein inactivation of p53`,
+          `HCV NS5B polymerase inserting RNA directly into host telomeres`,
+          `HDV superinfection activating hepatic c-myc translocation`
+        ],
+        correct: 0,
+        clue: `HBV integrates DNA + expresses HBx protein (inhibits p53); HCV causes HCC via chronic cirrhosis/regeneration.`,
+        dossier: [
+          `Core Concept & Architecture: Both HBV (dsDNA) and HCV (+ssRNA) cause hepatocellular carcinoma via chronic necroinflammation, oxidative DNA damage, and hepatocyte regeneration.`,
+          `Molecular Mechanism & Host Hijacking: Unlike HCV (purely cytoplasmic), HBV DNA can integrate into host chromatin causing insertional mutagenesis, while HBV HBx protein transactivates growth genes and binds/inhibits p53.`,
+          `Cytopathic & Histopathologic Hallmarks: Ground-glass HBsAg-positive hepatocytes (HBV) vs. lymphoid follicles and macrovesicular steatosis (HCV) progressing to malignant polygonal hepatocytes.`,
+          `Clinical Vignette & Board Correlations: Cirrhotic patient with weight loss, RUQ pain, Budd-Chiari/portal vein thrombosis, and elevated serum alpha-fetoprotein (AFP).`,
+          `High-Yield Differential & Distractor Traps: Aflatoxin B1 from Aspergillus synergizes with HBV to induce a signature codon 249 G->T mutation in TP53.`,
+          `Antiviral Pharmacology & Resistance: Universal HBV vaccination is the first cancer-preventing human vaccine; sustained HCV SVR reduces HCC risk.`,
+          `OMT & Autonomic / Lymphatic Integration: Cirrhotic ascites and diaphragmatic splinting elevate thoracolumbar junction tension (T11–L2) and impair thoracic pump return.`
+        ]
+      },
+      {
+        id: 33, sector: 4, entityId: 11, phase: `Clinical`,
+        stem: `A solid-organ transplant recipient on tacrolimus develops EBV-positive post-transplant lymphoproliferative disorder (PTLD). Why does EBNA-2 and LMP-1 expression drive unchecked B-cell proliferation in this setting?`,
+        options: [
+          `Loss of cytotoxic CD8+ T-cell surveillance allows EBV-immortalized B cells to proliferate`,
+          `Tacrolimus directly phosphorylates CD21 receptors on B cells`,
+          `EBV converts B cells into lytic CMV-producing factories`
+        ],
+        correct: 0,
+        clue: `Immunosuppression removes CD8+ T-cell brakes on LMP-1/EBNA-2 B-cell immortalization.`,
+        dossier: [
+          `Core Concept & Architecture: In immunocompetent hosts, reactive CD8+ cytotoxic T cells ("atypical Downey lymphocytes") tightly constrain EBV-infected B cells.`,
+          `Molecular Mechanism & Host Hijacking: EBV EBNA-2 upregulates cyclin D and c-myc while LMP-1 activates NF-kB and Bcl-2, immortalizing B cells whenever T-cell immunity is suppressed.`,
+          `Cytopathic & Histopathologic Hallmarks: Polymorphic or monomorphic CD20+ B-cell proliferation positive for EBER (EBV-encoded RNA) by in situ hybridization.`,
+          `Clinical Vignette & Board Correlations: Transplant patient with fever, lymphadenopathy, and extranodal masses (often gut or CNS); first-line management is reducing immunosuppression + rituximab.`,
+          `High-Yield Differential & Distractor Traps: Oral hairy leukoplakia (unscrapable white lateral tongue plaques in HIV) reflects lytic EBV in squamous epithelium, NOT B-cell lymphoma.`,
+          `Antiviral Pharmacology & Resistance: Rituximab (anti-CD20) depletes proliferating B cells; ganciclovir does not eradicate latent episomal EBV.`,
+          `OMT & Autonomic / Lymphatic Integration: Gentle suboccipital and thoracic inlet myofascial release supports autonomic balance without stressing fragile nodal beds.`
+        ]
+      },
+
+      // SECTOR IV — ENTITY 12
+      {
+        id: 34, sector: 4, entityId: 12, phase: `Architecture`,
+        stem: `An HIV-positive man with CD4 count of 90/mm3 has violaceous, raised plaques on his nasal tip, hard palate, and lower extremities. Skin biopsy shows proliferating spindle-shaped endothelial cells forming slit-like vascular channels with extravasated RBCs. Which virus causes this neoplasm?`,
+        options: [
+          `Human herpesvirus 8 (HHV-8 / Kaposi sarcoma-associated herpesvirus)`,
+          `Bartonella henselae`,
+          `Human T-lymphotropic virus 1 (HTLV-1)`
+        ],
+        correct: 0,
+        clue: `Violaceous mucocutaneous plaques + spindle cells + slit-like RBC spaces = HHV-8 Kaposi sarcoma.`,
+        dossier: [
+          `Core Concept & Architecture: HHV-8 (KSHV) is an enveloped linear dsDNA gammaherpesvirus that transforms lymphatic and vascular endothelial cells.`,
+          `Molecular Mechanism & Host Hijacking: HHV-8 encodes viral G-protein-coupled receptor (vGPCR), viral IL-6, and viral cyclin, driving massive VEGF-mediated angiogenesis and spindle-cell survival.`,
+          `Cytopathic & Histopathologic Hallmarks: Fascicles of spindle cells, slit-like erythrocyte-filled vascular spaces, hemosiderin macrophages, and nuclear LANA-1 positivity.`,
+          `Clinical Vignette & Board Correlations: Classic violaceous plaques on nose, hard palate, extremities, or GI tract in AIDS, transplant patients, or older Mediterranean/Eastern European men.`,
+          `High-Yield Differential & Distractor Traps: Bacillary angiomatosis (Bartonella henselae) mimics Kaposi grossly, but shows neutrophilic lobular capillary proliferation and responds to doxycycline/azithromycin.`,
+          `Antiviral Pharmacology & Resistance: Initiating antiretroviral therapy (ART) restores CD4 immunity and shrinks Kaposi sarcoma lesions; liposomal doxorubicin for visceral disease.`,
+          `OMT & Autonomic / Lymphatic Integration: Lower-extremity KS lymphedema requires gentle compression/elevation rather than aggressive focal manipulation over vascular lesions.`
+        ]
+      },
+      {
+        id: 35, sector: 4, entityId: 12, phase: `Mechanism`,
+        stem: `A patient from southern Japan presents with generalized lymphadenopathy, hepatosplenomegaly, lytic bone lesions, hypercalcemia, and circulating CD4+ T cells with hyperlobated "cloverleaf" (flower) nuclei. Which viral protein drives this transformation?`,
+        options: [
+          `HTLV-1 Tax protein activating NF-kB, IL-2, and IL-2 receptor transcription`,
+          `HHV-8 vGPCR upregulating endothelial VEGF`,
+          `HIV gp120 crosslinking CD4 receptors on B cells`
+        ],
+        correct: 0,
+        clue: `HTLV-1 Tax -> NF-kB + IL-2/IL-2R autocrine loop -> Adult T-cell leukemia/lymphoma (flower cells + hypercalcemia).`,
+        dossier: [
+          `Core Concept & Architecture: HTLV-1 is an enveloped +ssRNA retrovirus (endemic in Japan, Caribbean, West Africa) transmitted via breastfeeding, blood, and sexual contact.`,
+          `Molecular Mechanism & Host Hijacking: Unlike acute transforming animal retroviruses, HTLV-1 lacks a viral oncogene; instead, its Tax protein transactivates host NF-kB, IL-2, and IL-2Ralpha (CD25), creating an autocrine T-cell proliferation loop.`,
+          `Cytopathic & Histopathologic Hallmarks: CD4+CD25+ neoplastic T lymphocytes with characteristic polylobated "flower" or "cloverleaf" nuclei on peripheral smear.`,
+          `Clinical Vignette & Board Correlations: Adult T-cell leukemia/lymphoma (ATLL) classically causes lytic bone lesions, PTHrP-mediated hypercalcemia, and cutaneous plaques.`,
+          `High-Yield Differential & Distractor Traps: Multiple myeloma also causes lytic bone lesions + hypercalcemia, but shows plasma cells and M-spike rather than CD4+ flower cells.`,
+          `Antiviral Pharmacology & Resistance: ATLL carries a poor prognosis; treated with zidovudine + interferon-alpha or multi-agent chemotherapy.`,
+          `OMT & Autonomic / Lymphatic Integration: Severe osteolytic bone lesions and hypercalcemia are strict contraindications to HVLA thrust techniques.`
+        ]
+      },
+      {
+        id: 36, sector: 4, entityId: 12, phase: `Clinical`,
+        stem: `Besides Kaposi sarcoma, HHV-8 infection in severely immunocompromised HIV patients causes a rare body-cavity B-cell malignancy lacking surface immunoglobulin and presenting as malignant pleural or pericardial effusions. What is this entity?`,
+        options: [
+          `Primary effusion lymphoma (PEL)`,
+          `Burkitt leukemia`,
+          `Mycosis fungoides`
+        ],
+        correct: 0,
+        clue: `HHV-8 causes three disorders: Kaposi sarcoma, Primary Effusion Lymphoma, and Multicentric Castleman disease.`,
+        dossier: [
+          `Core Concept & Architecture: HHV-8 encodes viral FLICE-inhibitory protein (vFLIP) and viral Bcl-2, blocking apoptosis in both endothelial cells and B lymphocytes.`,
+          `Molecular Mechanism & Host Hijacking: Constitutive NF-kB activation by vFLIP and paracrine viral IL-6 signaling drive clonal B-cell expansion within serosal cavities.`,
+          `Cytopathic & Histopathologic Hallmarks: Large pleomorphic immunoblastic/plasmablastic B cells in pleural, pericardial, or peritoneal fluid without solid nodal masses; LANA-1+.`,
+          `Clinical Vignette & Board Correlations: AIDS patient with recurrent malignant pleural/pericardial effusions positive for HHV-8 (often coinfected with EBV).`,
+          `High-Yield Differential & Distractor Traps: Mycosis fungoides is a cutaneous CD4+ T-cell lymphoma with Pautrier microabscesses (HTLV-negative).`,
+          `Antiviral Pharmacology & Resistance: Treated with ART immune reconstitution plus systemic lymphoma chemotherapy (EPOCH).`,
+          `OMT & Autonomic / Lymphatic Integration: Malignant pleural/pericardial effusions impair diaphragmatic excursion and venous return; address only after fluid drainage.`
+        ]
+      },
+
+      // SECTOR V — ENTITY 13
+      {
+        id: 37, sector: 5, entityId: 13, phase: `Architecture`,
+        stem: `A patient with temporal lobe HSV-1 encephalitis receives intravenous acyclovir. Why does acyclovir selectively inhibit viral DNA synthesis in infected neurons while sparing uninfected host cells?`,
+        options: [
+          `Monophosphorylation requires HSV-encoded thymidine kinase, and acyclovir-TP causes obligate chain termination (no 3'-OH)`,
+          `Host DNA polymerase cannot bind guanosine analogs under any circumstance`,
+          `Acyclovir blocks nuclear pores only in herpes-infected neurons`
+        ],
+        correct: 0,
+        clue: `Dual selectivity: Viral TK adds the 1st phosphate; triphosphate lacks a 3'-OH group -> chain termination.`,
+        dossier: [
+          `Core Concept & Architecture: Acyclovir, valacyclovir, and famciclovir are guanosine nucleoside analogs lacking a complete deoxyribose 3'-hydroxyl group.`,
+          `Molecular Mechanism & Host Hijacking: Viral thymidine kinase (TK) performs the initial monophosphorylation 200× faster than host kinases; host kinases convert it to acyclovir-TP, which inhibits viral DNA polymerase and terminates elongation.`,
+          `Cytopathic & Histopathologic Hallmarks: Temporal lobe hemorrhagic necrosis with Cowdry A inclusions on untreated brain biopsy.`,
+          `Clinical Vignette & Board Correlations: IV acyclovir is mandatory emergently for HSV encephalitis (altered mental status, temporal lobe MRI hyperintensity, RBCs in CSF) and neonatal HSV.`,
+          `High-Yield Differential & Distractor Traps: Rapid IV acyclovir without hydration can precipitate crystals inside renal tubules (crystalline nephropathy).`,
+          `Antiviral Pharmacology & Resistance: Mutated/absent viral thymidine kinase confers acyclovir resistance; switch to foscarnet or cidofovir.`,
+          `OMT & Autonomic / Lymphatic Integration: Hydration and renal lymphatic support help maintain tubular flow during IV acyclovir therapy.`
+        ]
+      },
+      {
+        id: 38, sector: 5, entityId: 13, phase: `Mechanism`,
+        stem: `An allogeneic stem cell transplant patient develops CMV colitis that fails to respond to ganciclovir due to a UL97 viral kinase mutation. Which intravenous agent bypasses viral kinase activation completely to inhibit viral DNA polymerase?`,
+        options: [
+          `Foscarnet (direct pyrophosphate analog) or Cidofovir (already monophosphorylated)`,
+          `Valacyclovir (oral prodrug of acyclovir)`,
+          `Oseltamivir (neuraminidase inhibitor)`
+        ],
+        correct: 0,
+        clue: `Foscarnet needs NO kinase (binds pyrophosphate site); Cidofovir ALREADY carries one phosphate.`,
+        dossier: [
+          `Core Concept & Architecture: Resistance to acyclovir (HSV/VZV) and ganciclovir (CMV) most commonly arises from loss-of-function mutations in viral activating kinases (TK or UL97).`,
+          `Molecular Mechanism & Host Hijacking: Foscarnet is a pyrophosphate analog that directly inhibits viral DNA polymerase without phosphorylation; Cidofovir is a nucleotide monophosphate phosphorylated solely by host kinases.`,
+          `Cytopathic & Histopathologic Hallmarks: Persistent CMV owl's eye inclusions in colonic crypts despite therapeutic ganciclovir dosing.`,
+          `Clinical Vignette & Board Correlations: Monitor serum creatinine and electrolytes closely: foscarnet chelates Ca2+/Mg2+, causing hypocalcemic tetany, seizures, and nephrotoxicity.`,
+          `High-Yield Differential & Distractor Traps: Valacyclovir simply converts to acyclovir in the liver and still depends on viral TK; ganciclovir causes dose-limiting myelosuppression.`,
+          `Antiviral Pharmacology & Resistance: Probenecid + IV hydration are coadministered with cidofovir to block renal tubular secretion and prevent proximal tubular necrosis.`,
+          `OMT & Autonomic / Lymphatic Integration: T10–L1 renal viscerosomatic facilitation appears with drug-induced nephrotoxicity; monitor flank tissue texture.`
+        ]
+      },
+      {
+        id: 39, sector: 5, entityId: 13, phase: `Clinical`,
+        stem: `An HIV patient taking a nucleoside reverse transcriptase inhibitor (NRTI) regimen develops severe tachypnea, elevated anion-gap metabolic acidosis, and high serum lactate. What intracellular organelle toxicity underlies this NRTI class adverse effect?`,
+        options: [
+          `Inhibition of host mitochondrial DNA polymerase-gamma causing lactic acidosis`,
+          `Blockade of host cytochrome c oxidase by viral protease`,
+          `Direct lysis of red blood cells by ribavirin monophosphate`
+        ],
+        correct: 0,
+        clue: `NRTIs can cross-inhibit mitochondrial DNA polymerase-gamma -> impaired oxidative phosphorylation -> lactic acidosis.`,
+        dossier: [
+          `Core Concept & Architecture: NRTIs (tenofovir, emtricitabine, abacavir, lamivudine, zidovudine) are nucleoside/nucleotide analogs lacking a 3'-OH group that terminate HIV RT DNA synthesis.`,
+          `Molecular Mechanism & Host Hijacking: Because host mitochondrial DNA polymerase-gamma resembles viral RT, older NRTIs (stavudine, didanosine, zidovudine) inhibit mtDNA replication, impairing pyruvate oxidation and generating lactic acid.`,
+          `Cytopathic & Histopathologic Hallmarks: Hepatic microvesicular steatosis, ragged-red skeletal muscle fibers, and bone marrow suppression (zidovudine).`,
+          `Clinical Vignette & Board Correlations: Screen for HLA-B*5701 before prescribing abacavir to prevent fatal hypersensitivity reaction; tenofovir can cause Fanconi syndrome/osteopenia.`,
+          `High-Yield Differential & Distractor Traps: Ribavirin causes dose-dependent hemolytic anemia and teratogenicity (NOT NRTI mitochondrial toxicity).`,
+          `Antiviral Pharmacology & Resistance: M184V mutation confers lamivudine/emtricitabine resistance while paradoxically hypersensitizing HIV to tenofovir/zidovudine.`,
+          `OMT & Autonomic / Lymphatic Integration: Metabolic acidosis drives hyperventilation, fatiguing diaphragm, scalenes, and sternocleidomastoid muscles.`
+        ]
+      },
+
+      // SECTOR V — ENTITY 14
+      {
+        id: 40, sector: 5, entityId: 14, phase: `Architecture`,
+        stem: `Unlike NRTIs, non-nucleoside reverse transcriptase inhibitors (efavirenz, rilpivirine) do not require intracellular phosphorylation and do not terminate DNA chains directly. How do NNRTIs inhibit HIV-1 reverse transcriptase?`,
+        options: [
+          `They bind an allosteric hydrophobic pocket on RT, inducing a conformational change that blocks catalysis`,
+          `They compete directly with dTTP at the active nucleotide-binding site`,
+          `They cleave the gp120/gp41 envelope bridge prior to viral entry`
+        ],
+        correct: 0,
+        clue: `NNRTIs = Non-competitive, Non-phosphorylated allosteric binders of HIV-1 RT.`,
+        dossier: [
+          `Core Concept & Architecture: NNRTIs (efavirenz, nevirapine, rilpivirine, doravirine) are structurally diverse compounds active against HIV-1 (inactive against HIV-2) without cellular kinase activation.`,
+          `Molecular Mechanism & Host Hijacking: Binding to an allosteric pocket adjacent to the RT polymerase active site locks the enzyme palm/thumb domains into an inactive conformation.`,
+          `Cytopathic & Histopathologic Hallmarks: Rapid suppression of plasma HIV RNA viral load when paired with two NRTIs.`,
+          `Clinical Vignette & Board Correlations: Efavirenz famously causes vivid dreams, CNS depression/dizziness, and teratogenic neural tube warnings; nevirapine causes rash/hepatotoxicity.`,
+          `High-Yield Differential & Distractor Traps: A single K103N mutation in RT confers high-level resistance across first-generation NNRTIs.`,
+          `Antiviral Pharmacology & Resistance: NNRTIs induce or inhibit CYP450 enzymes, requiring careful medication reconciliation.`,
+          `OMT & Autonomic / Lymphatic Integration: Central nervous system side effects (insomnia/vivid dreams) warrant screening for upper cervical/cranial base strain.`
+        ]
+      },
+      {
+        id: 41, sector: 5, entityId: 14, phase: `Mechanism`,
+        stem: `An HIV patient on a ritonavir-boosted protease inhibitor develops central obesity, buffalo hump, hypertriglyceridemia, and fasting hyperglycemia. What step of the viral life cycle do protease inhibitors block?`,
+        options: [
+          `Cleavage of Gag-Pol polyprotein precursors into mature structural and enzymatic proteins, leaving virions immature`,
+          `Integration of proviral dsDNA into host euchromatin`,
+          `Reverse transcription of viral RNA inside incoming virions`
+        ],
+        correct: 0,
+        clue: `Protease inhibitors ("-navir") arrest late virion maturation by blocking Gag-Pol polyprotein cleavage.`,
+        dossier: [
+          `Core Concept & Architecture: HIV protease is a homodimeric aspartyl protease encoded by the pol gene that cleaves Gag and Gag-Pol polyproteins during and after viral budding.`,
+          `Molecular Mechanism & Host Hijacking: Protease inhibitors (darunavir, atazanavir, lopinavir, ritonavir) occupy the protease catalytic cleft, preventing capsid maturation and yielding non-infectious immature virions.`,
+          `Cytopathic & Histopathologic Hallmarks: Electron microscopy shows immature doughnut-shaped viral particles lacking the condensed conical p24 core.`,
+          `Clinical Vignette & Board Correlations: Classic metabolic triad: insulin resistance/hyperglycemia, dyslipidemia (high TG/LDL), and lipodystrophy; indinavir causes nephrolithiasis.`,
+          `High-Yield Differential & Distractor Traps: Ritonavir is used at low "boosting" doses specifically to inhibit host CYP3A4 and elevate co-administered protease inhibitor levels.`,
+          `Antiviral Pharmacology & Resistance: Pol gene mutations confer resistance; never use protease inhibitors as monotherapy.`,
+          `OMT & Autonomic / Lymphatic Integration: Metabolic syndrome and visceral adiposity increase thoracolumbar postural strain and diaphragm flattening.`
+        ]
+      },
+      {
+        id: 42, sector: 5, entityId: 14, phase: `Clinical`,
+        stem: `Within 24 hours of sudden fever, myalgias, and dry cough, a patient begins oral oseltamivir. How does this agent shorten Influenza A and B illness duration?`,
+        options: [
+          `Inhibits viral neuraminidase, trapping newly formed virions clumped to host cell-surface sialic acid`,
+          `Blocks M2 proton channels to halt endosomal uncoating`,
+          `Inhibits viral DNA polymerase via chain termination`
+        ],
+        correct: 0,
+        clue: `Neuraminidase cleaves sialic acid for virion release; oseltamivir locks progeny virions to the dying host cell.`,
+        dossier: [
+          `Core Concept & Architecture: Influenza A and B rely on neuraminidase (NA) tetramers to cleave terminal sialic acid residues from host glycoproteins and viral envelopes.`,
+          `Molecular Mechanism & Host Hijacking: Oseltamivir (oral prodrug) and zanamivir (inhaled) mimic the sialic acid transition state, preventing progeny virions from detaching and infecting neighboring airway cells.`,
+          `Cytopathic & Histopathologic Hallmarks: Virions accumulate in aggregated clumps along the apical plasma membrane of infected respiratory epithelial cells.`,
+          `Clinical Vignette & Board Correlations: Most effective when initiated within 48 hours of symptom onset; shortens illness by ~1–2 days and reduces complications in high-risk hosts.`,
+          `High-Yield Differential & Distractor Traps: Zanamivir is inhaled and can trigger bronchospasm in asthma/COPD patients; baloxavir acts earlier on nuclear cap-snatching endonuclease.`,
+          `Antiviral Pharmacology & Resistance: H275Y mutation in the neuraminidase active site confers oseltamivir resistance (zanamivir often retains activity).`,
+          `OMT & Autonomic / Lymphatic Integration: Early rib raising and thoracic inlet release complement antiviral therapy by clearing pooled bronchial secretions.`
+        ]
+      },
+
+      // SECTOR V — ENTITY 15
+      {
+        id: 43, sector: 5, entityId: 15, phase: `Architecture`,
+        stem: `A patient recovering from viral pneumonia exhibits paraspinal tissue hypertonicity at T1–T4, T11–L2, and right T5–T9 alongside upper cervical OA-AA tension. Which autonomic regions innervate the lungs, spleen, and liver respectively?`,
+        options: [
+          `Lungs: T1–T4; Spleen/Adrenals: T9–T11 / T10–L1; Liver: T5–T9 right; Parasympathetics: CN X (OA/AA)`,
+          `Lungs: S2–S4; Spleen: T1–T2; Liver: L4–L5`,
+          `Lungs: C1–C2 sympathetics; Liver: S2–S4 pelvic splanchnics`
+        ],
+        correct: 0,
+        clue: `Thoracic & abdominal sympathetics follow T1–L2 (Lungs T1–4, Foregut/Liver T5–9, Midgut/Spleen T9–11); Vagus CN X exits via OA/AA.`,
+        dossier: [
+          `Core Concept & Architecture: Osteopathic viscerosomatic integration maps reticuloendothelial and visceral inflammation to specific spinal sympathetic levels (T1–L2) and cranial/sacral parasympathetics.`,
+          `Molecular Mechanism & Host Hijacking: Viral cytokine storms and visceral congestion activate visceral afferents, causing dorsal horn facilitation and palpable paraspinal myofascial boggy changes.`,
+          `Cytopathic & Histopathologic Hallmarks: Acute viscerosomatic reflexes feel warm, boggy, and edematous; chronic reflexes become fibrotic, ropy, and cool.`,
+          `Clinical Vignette & Board Correlations: Balancing T1–T4 sympathetic tone (rib raising) improves bronchodilation and mucociliary clearance; OA/AA decompression normalizes vagal anti-inflammatory tone.`,
+          `High-Yield Differential & Distractor Traps: Remember the vagus nerve (CN X) supplies parasympathetic innervation down to the splenic flexure—NOT S2–S4.`,
+          `Antiviral Pharmacology & Resistance: OMT serves as an evidence-supported adjunct to vaccines and antivirals by optimizing perfusion and lymphatic clearance.`,
+          `OMT & Autonomic / Lymphatic Integration: Always treat the OA/AA (CN X), thoracic inlet, and T1–T4 sympathetics gently in sequence to restore homeostasis.`
+        ]
+      },
+      {
+        id: 44, sector: 5, entityId: 15, phase: `Mechanism`,
+        stem: `Prior to performing a thoracic or pedal lymphatic pump in a patient convalescing from acute viral bronchitis, why must the osteopathic physician ALWAYS release the thoracic inlet (Sibson fascia) first?`,
+        options: [
+          `To open the terminal venous-lymphatic drainage into the subclavian/internal jugular junctions and prevent distal backpressure`,
+          `To stimulate vagal bronchoconstriction and retain alveolar fluid`,
+          `To close the thoracic duct valve at the cisterna chyli`
+        ],
+        correct: 0,
+        clue: `Unclog the drain at the thoracic inlet (T1, 1st rib, manubrium) BEFORE pumping fluid upstream!`,
+        dossier: [
+          `Core Concept & Architecture: All systemic lymph returns to the venous system at the bilateral jugulosubclavian angles via the thoracic duct (left) and right lymphatic duct.`,
+          `Molecular Mechanism & Host Hijacking: Myofascial restriction at the thoracic inlet (T1, first ribs, manubrium, clavicles, Sibson fascia) mechanically impedes terminal lymphatic outflow.`,
+          `Cytopathic & Histopathologic Hallmarks: Viral respiratory inflammation induces interstitial edema, boggy supraclavicular fossae, and sluggish lymphatic clearance.`,
+          `Clinical Vignette & Board Correlations: Sequence of lymphatic OMT: (1) Thoracic inlet myofascial release, (2) Diaphragm doming (thoracoabdominal/pelvic), (3) Thoracic/pedal/splenic pump.`,
+          `High-Yield Differential & Distractor Traps: Pumping distal lymph against a restricted thoracic inlet worsens tissue congestion and patient discomfort.`,
+          `Antiviral Pharmacology & Resistance: Enhanced thoracic duct flow increases systemic recirculation of lymphocytes, antibodies, and interstitial cytokines.`,
+          `OMT & Autonomic / Lymphatic Integration: Diaphragm doming restores the thoracoabdominal pressure gradient driving cisterna chyli return.`
+        ]
+      },
+      {
+        id: 45, sector: 5, entityId: 15, phase: `Clinical`,
+        stem: `A hospitalized patient with influenza pneumonia has acute deep vein thrombosis (DVT) of the left calf and high fever with suspected secondary bacterial sepsis. Which OMT approach is strictly CONTRAINDICATED in this patient?`,
+        options: [
+          `Aggressive pedal or thoracic lymphatic pumps (risk of pulmonary embolism and bacteremic dissemination)`,
+          `Gentle suboccipital OA release to ease headache`,
+          `Soft-tissue paraspinal inhibition`
+        ],
+        correct: 0,
+        clue: `Relative/absolute contraindications to lymphatic pumps: acute DVT (embolus), acute sepsis/abscess, bony metastasis, fracture, or fragile splenomegaly.`,
+        dossier: [
+          `Core Concept & Architecture: Lymphatic pump techniques rapidly mobilize interstitial fluid, venous return, and leukocytes into the central circulation.`,
+          `Molecular Mechanism & Host Hijacking: Sudden surges in venous and lymphatic flow can dislodge an acute lower-extremity thrombus or disseminate walled-off bacterial abscesses/sepsis.`,
+          `Cytopathic & Histopathologic Hallmarks: Calf swelling, erythema, and Homan/ultrasound DVT findings alongside systemic SIRS/sepsis.`,
+          `Clinical Vignette & Board Correlations: On COMLEX-USA, pedal/thoracic pumps are contraindicated in DVT, osseous fracture/metastasis, and acute unstabilized sepsis (gentle rib raising or OA release is preferred).`,
+          `High-Yield Differential & Distractor Traps: Splenic pump is additionally contraindicated in acute infectious mononucleosis (EBV) due to splenic rupture risk.`,
+          `Antiviral Pharmacology & Resistance: Combine anticoagulation, targeted antimicrobials, and gentle autonomic-balancing OMT once hemodynamically stable.`,
+          `OMT & Autonomic / Lymphatic Integration: In frail or septic patients, gentle OA release and gentle rib raising improve comfort without mechanical fluid surges.`
+        ]
+      }
+    ];
+
+    // Core Application State
+    const APP_STATE = {
+      hp: 100,
+      maxHp: 100,
+      xp: 0,
+      streak: 0,
+      bestStreak: 0,
+      currentGateIdx: 0,
+      deckIndices: [],
+      missedIds: [],
+      masteredIds: [],
+      sectorFilter: `ALL`,
+      entityFilter: `ALL`,
+      phaseFilter: `ALL`,
+      hintsVisible: false,
+      timedMode: false,
+      soundMaster: true,
+      sfxEnabled: true,
+      bgmEnabled: false,
+      bgmVolume: 0.35
+    };
+
+    let targetLane = 1;
+    let activeCorrectLane = 0;
+    let activeRenderedOptions = [];
+    let shipX = 0;
+    let shipTilt = 0;
+    let metaFadeTimer = null;
+    let questionTimerId = null;
+    let timeRemaining = 50;
+    let isLocked = false;
+    let isMenuOpen = false;
+    let customAudioEl = null;
+    let bgmTimer = null;
+    let audioCtx = null;
+
+    // Initialize Deck
+    function buildDeck() {
+      let indices = [];
+      for (let i = 0; i < QUESTIONS.length; i++) {
+        const q = QUESTIONS[i];
+        if (APP_STATE.sectorFilter === `MISSED`) {
+          if (!APP_STATE.missedIds.includes(q.id)) continue;
+        } else if (APP_STATE.sectorFilter !== `ALL`) {
+          if (String(q.sector) !== String(APP_STATE.sectorFilter)) continue;
+        }
+        if (APP_STATE.entityFilter !== `ALL`) {
+          if (String(q.entityId) !== String(APP_STATE.entityFilter)) continue;
+        }
+        if (APP_STATE.phaseFilter !== `ALL`) {
+          if (q.phase !== APP_STATE.phaseFilter) continue;
+        }
+        indices.push(i);
+      }
+      if (indices.length === 0) {
+        indices = QUESTIONS.map((_, idx) => idx);
+        showMenuToast(`No gates matched filter; showing all 45 gates.`);
+      }
+      APP_STATE.deckIndices = indices;
+      if (APP_STATE.currentGateIdx >= APP_STATE.deckIndices.length) {
+        APP_STATE.currentGateIdx = 0;
+      }
+    }
+
+    function getCurrentQuestion() {
+      if (!APP_STATE.deckIndices.length) buildDeck();
+      const qIndex = APP_STATE.deckIndices[APP_STATE.currentGateIdx] ?? 0;
+      return QUESTIONS[qIndex];
+    }
+
+    // Populate Dropdowns, Skill Tree & Codex
+    function populateEntityDropdownAndTree() {
+      const sel = document.getElementById(`entity-filter`);
+      if (sel) {
+        sel.innerHTML = `<option value="ALL">All 15 Entities</option>` +
+          ENTITIES.map(e => `<option value="${e.id}">E${e.id} (S${e.sector}): ${e.name}</option>`).join(``);
+        sel.value = String(APP_STATE.entityFilter);
+      }
+      renderSkillTree();
+      renderCodex();
+    }
+
+    function renderSkillTree() {
+      const grid = document.getElementById(`skill-tree-grid`);
+      if (!grid) return;
+      const curQ = getCurrentQuestion();
+      grid.innerHTML = ENTITIES.map(e => {
+        const entityQs = QUESTIONS.filter(q => q.entityId === e.id);
+        const doneCount = entityQs.filter(q => APP_STATE.masteredIds.includes(q.id)).length;
+        const isCurrent = curQ && curQ.entityId === e.id;
+        return `
+          <button type="button" class="skill-node ${isCurrent ? `is-current` : ``}" onclick="jumpToEntity(${e.id})">
+            <span class="skill-node-title">E${e.id}. ${e.name}</span>
+            <span class="skill-node-meta">Sector ${e.sector} • Mastered ${doneCount}/${entityQs.length}</span>
+          </button>
+        `;
+      }).join(``);
+    }
+
+    function renderCodex() {
+      const tbody = document.getElementById(`codex-tbody`);
+      if (!tbody) return;
+      tbody.innerHTML = ENTITIES.map(e => {
+        const entityQs = QUESTIONS.filter(q => q.entityId === e.id);
+        const done = entityQs.filter(q => APP_STATE.masteredIds.includes(q.id)).length;
+        return `
+          <tr>
+            <td class="amboss-scan-target"><strong>E${e.id}: ${e.name}</strong></td>
+            <td class="amboss-scan-target">Sector ${e.sector}</td>
+            <td class="amboss-scan-target">${done}/${entityQs.length}</td>
+            <td class="amboss-scan-target">${e.hallmark}</td>
+            <td class="amboss-scan-target">${e.mech}</td>
+            <td class="amboss-scan-target">${e.pearl}</td>
+          </tr>
+        `;
+      }).join(``);
+    }
+
+    // Render Active Question Gate
+    function renderGate() {
+      isLocked = false;
+      const q = getCurrentQuestion();
+      if (!q) return;
+
+      const entity = ENTITIES.find(e => e.id === q.entityId) || ENTITIES[0];
+      const theme = LO_VISUAL_THEMES[q.entityId] || LO_VISUAL_THEMES[1];
+
+      const sectorNames = { 1: `Sector I`, 2: `Sector II`, 3: `Sector III`, 4: `Sector IV`, 5: `Sector V` };
+
+      const mSector = document.getElementById(`meta-sector`);
+      const mEntity = document.getElementById(`meta-entity`);
+      const mPhase = document.getElementById(`meta-phase`);
+      const mCorridor = document.getElementById(`meta-corridor`);
+      const metaRow = document.getElementById(`q-meta-row`);
+
+      if (mSector) mSector.textContent = sectorNames[q.sector] || `Sector`;
+      if (mEntity) mEntity.textContent = `E${q.entityId}: ${entity.name}`;
+      if (mPhase) mPhase.textContent = q.phase;
+      if (mCorridor) mCorridor.textContent = theme.tag;
+
+      if (metaRow) {
+        metaRow.classList.remove(`is-faded`);
+        clearTimeout(metaFadeTimer);
+        metaFadeTimer = setTimeout(() => {
+          metaRow.classList.add(`is-faded`);
+        }, 3000);
+      }
+
+      const stemEl = document.getElementById(`q-stem-text`);
+      if (stemEl) stemEl.textContent = q.stem;
+
+      const clueEl = document.getElementById(`q-clue-text`);
+      if (clueEl) clueEl.textContent = q.clue;
+
+      // Balanced option permutation across the 3 portals (Pink / Cyan / Gold)
+      const permSeed = (q.id * 7 + APP_STATE.currentGateIdx) % 3;
+      const order = permSeed === 0 ? [0, 1, 2] : permSeed === 1 ? [1, 0, 2] : [2, 1, 0];
+      activeRenderedOptions = order.map(idx => q.options[idx]);
+      activeCorrectLane = order.indexOf(q.correct);
+
+      for (let i = 0; i < 3; i++) {
+        const txtEl = document.getElementById(`lane-${i}-text`);
+        if (txtEl) txtEl.textContent = activeRenderedOptions[i];
+      }
+
+      updateTelemetry();
+      syncHintsUI();
+      syncTimerControlsUI();
+      renderSkillTree();
+      startQuestionTimer();
+    }
+
+    function updateTelemetry() {
+      const hpEl = document.getElementById(`chip-hp`);
+      const xpEl = document.getElementById(`chip-xp`);
+      const stEl = document.getElementById(`chip-streak`);
+      const gtEl = document.getElementById(`chip-gate`);
+
+      if (hpEl) hpEl.textContent = `HP ${APP_STATE.hp}/${APP_STATE.maxHp}`;
+      if (xpEl) xpEl.textContent = `XP ${APP_STATE.xp}`;
+      if (stEl) stEl.textContent = `⚡ ${APP_STATE.streak}`;
+      if (gtEl) gtEl.textContent = `Gate ${APP_STATE.currentGateIdx + 1}/${APP_STATE.deckIndices.length}`;
+    }
+
+    // Lane Hover & Banking
+    function hoverLane(laneIdx) {
+      if (isLocked) return;
+      if (targetLane !== laneIdx) {
+        targetLane = laneIdx;
+        playSfx(`steer`);
+      }
+      for (let i = 0; i < 3; i++) {
+        const card = document.getElementById(`lane-${i}-card`);
+        if (card) card.classList.toggle(`is-targeted`, i === laneIdx);
+      }
+    }
+
+    function laneKeydown(e, laneIdx) {
+      if (e.key === `Enter` || e.key === ` `) {
+        e.preventDefault();
+        chooseLane(laneIdx);
+      }
+    }
+
+    // Answer Resolution & Outcome Dossier
+    function chooseLane(laneIdx, isTimeout) {
+      if (isLocked) return;
+      isLocked = true;
+      clearInterval(questionTimerId);
+      hoverLane(laneIdx);
+
+      const q = getCurrentQuestion();
+      const isCorrect = !isTimeout && laneIdx === activeCorrectLane;
+
+      if (isCorrect) {
+        APP_STATE.streak += 1;
+        if (APP_STATE.streak > APP_STATE.bestStreak) APP_STATE.bestStreak = APP_STATE.streak;
+        const bonus = Math.min(100, APP_STATE.streak * 15);
+        APP_STATE.xp += 100 + bonus;
+        if (!APP_STATE.masteredIds.includes(q.id)) APP_STATE.masteredIds.push(q.id);
+        APP_STATE.missedIds = APP_STATE.missedIds.filter(id => id !== q.id);
+        playSfx(`correct`);
+      } else {
+        APP_STATE.streak = 0;
+        APP_STATE.hp = Math.max(0, APP_STATE.hp - 15);
+        if (!APP_STATE.missedIds.includes(q.id)) APP_STATE.missedIds.push(q.id);
+        playSfx(`wrong`);
+        if (APP_STATE.hp === 0) {
+          APP_STATE.hp = 100;
+        }
+      }
+
+      updateTelemetry();
+      renderCodex();
+      renderSkillTree();
+      persistAppState();
+      openOutcomeModal(q, laneIdx, isCorrect, isTimeout);
+    }
+
+    function openOutcomeModal(q, laneIdx, isCorrect, isTimeout) {
+      const modal = document.getElementById(`outcome-modal`);
+      const card = document.getElementById(`outcome-card`);
+      const kicker = document.getElementById(`outcome-kicker`);
+      const title = document.getElementById(`outcome-title`);
+      const sub = document.getElementById(`outcome-sub`);
+      const body = document.getElementById(`outcome-dossier-body`);
+
+      if (!modal || !card || !body) return;
+
+      card.classList.toggle(`is-correct`, isCorrect);
+      card.classList.toggle(`is-wrong`, !isCorrect);
+
+      if (kicker) {
+        kicker.textContent = isTimeout
+          ? `TIMER EXPIRED // BREACH DETECTED`
+          : isCorrect
+            ? `PORTAL LOCKED // TARGET ACQUIRED`
+            : `PORTAL MISMATCH // SHIELD IMPACT`;
+      }
+      if (title) {
+        title.textContent = isCorrect
+          ? `Correct: ${q.options[q.correct]}`
+          : `Answer: ${q.options[q.correct]}`;
+      }
+      if (sub) {
+        sub.textContent = isCorrect
+          ? `+${100 + Math.min(100, APP_STATE.streak * 15)} XP • Streak ${APP_STATE.streak} • HP ${APP_STATE.hp}`
+          : `-15 HP • Streak Reset • Correct Lane [${activeCorrectLane + 1}]`;
+      }
+
+      const sectionHeaders = [
+        `1. Core Concept & Architecture`,
+        `2. Molecular Mechanism & Host Hijacking`,
+        `3. Cytopathic & Histopathologic Hallmarks`,
+        `4. Clinical Vignette & Board Correlations`,
+        `5. High-Yield Differential & Distractor Traps`,
+        `6. Antiviral Pharmacology & Resistance`,
+        `7. OMT & Autonomic / Lymphatic Integration`
+      ];
+
+      body.innerHTML = q.dossier.map((txt, idx) => {
+        const parts = txt.split(`: `);
+        const cleanBody = parts.length > 1 ? parts.slice(1).join(`: `) : txt;
+        return `
+          <div class="dossier-section">
+            <h3 class="dossier-sec-title">${sectionHeaders[idx] || `Clinical Note`}</h3>
+            <p class="dossier-sec-text amboss-scan-target">▸ ${cleanBody}</p>
+          </div>
+        `;
+      }).join(``);
+
+      body.scrollTop = 0;
+      modal.classList.add(`is-open`);
+    }
+
+    function scrollDossier(deltaY) {
+      const body = document.getElementById(`outcome-dossier-body`);
+      if (!body) return;
+      if (typeof body.scrollBy === `function`) {
+        body.scrollBy({ top: deltaY, behavior: `smooth` });
+      } else {
+        body.scrollTop += deltaY;
+      }
+    }
+
+    function advanceNextGate() {
+      const modal = document.getElementById(`outcome-modal`);
+      if (modal) modal.classList.remove(`is-open`);
+      APP_STATE.currentGateIdx = (APP_STATE.currentGateIdx + 1) % APP_STATE.deckIndices.length;
+      persistAppState();
+      renderGate();
+    }
+
+    // Menu Drawer & Controls
+    function toggleMenuDrawer() {
+      isMenuOpen = !isMenuOpen;
+      const drawer = document.getElementById(`top-menu-drawer`);
+      if (drawer) drawer.classList.toggle(`is-open`, isMenuOpen);
+      playSfx(`steer`);
+    }
+
+    function handleBackdropClose(e, id) {
+      if (e.target && e.target.id === id) {
+        if (id === `top-menu-drawer`) toggleMenuDrawer();
+        if (id === `codex-modal`) closeCodex();
+      }
+    }
+
+    function syncHintsUI() {
+      const app = document.getElementById(`xr-app`);
+      const menuBtn = document.getElementById(`menu-hints-btn`);
+      if (app) {
+        app.classList.toggle(`hints-visible`, APP_STATE.hintsVisible);
+        app.classList.toggle(`hints-hidden`, !APP_STATE.hintsVisible);
+      }
+      if (menuBtn) {
+        menuBtn.textContent = APP_STATE.hintsVisible ? `💡 Hints: ON [H]` : `💡 Hints: OFF [H]`;
+        menuBtn.classList.toggle(`is-active`, APP_STATE.hintsVisible);
+      }
+    }
+
+    function toggleHintsBar() {
+      APP_STATE.hintsVisible = !APP_STATE.hintsVisible;
+      syncHintsUI();
+      playSfx(`steer`);
+      persistAppState();
+    }
+
+    function openCodexFromMenu() {
+      if (isMenuOpen) toggleMenuDrawer();
+      openCodex();
+    }
+
+    function openCodex() {
+      renderCodex();
+      const modal = document.getElementById(`codex-modal`);
+      if (modal) modal.classList.add(`is-open`);
+    }
+
+    function closeCodex() {
+      const modal = document.getElementById(`codex-modal`);
+      if (modal) modal.classList.remove(`is-open`);
+    }
+
+    function skipFromMenu() {
+      if (isMenuOpen) toggleMenuDrawer();
+      skipCurrentQuestion();
+    }
+
+    function skipCurrentQuestion() {
+      clearInterval(questionTimerId);
+      APP_STATE.currentGateIdx = (APP_STATE.currentGateIdx + 1) % APP_STATE.deckIndices.length;
+      playSfx(`steer`);
+      persistAppState();
+      renderGate();
+    }
+
+    function syncTimerControlsUI() {
+      const timerBtn = document.getElementById(`menu-timer-btn`);
+      const chip = document.getElementById(`chip-timer`);
+      if (timerBtn) {
+        timerBtn.textContent = APP_STATE.timedMode ? `⏱ 50s Timer: ON [T]` : `⏱ 50s Timer: OFF [T]`;
+        timerBtn.classList.toggle(`is-active`, APP_STATE.timedMode);
+      }
+      if (chip) {
+        if (!APP_STATE.timedMode) {
+          chip.textContent = `⏱ OFF`;
+          chip.classList.remove(`is-urgent`);
+        } else {
+          chip.textContent = `⏱ ${timeRemaining}s`;
+          chip.classList.toggle(`is-urgent`, timeRemaining <= 10);
+        }
+      }
+    }
+
+    function toggleTimedMode() {
+      APP_STATE.timedMode = !APP_STATE.timedMode;
+      syncTimerControlsUI();
+      startQuestionTimer();
+      persistAppState();
+    }
+
+    function startTimedRun() {
+      APP_STATE.timedMode = true;
+      APP_STATE.currentGateIdx = 0;
+      if (isMenuOpen) toggleMenuDrawer();
+      renderGate();
+      persistAppState();
+    }
+
+    function startQuestionTimer() {
+      clearInterval(questionTimerId);
+      timeRemaining = 50;
+      syncTimerControlsUI();
+      if (!APP_STATE.timedMode) return;
+      questionTimerId = setInterval(() => {
+        if (isLocked || isMenuOpen) return;
+        timeRemaining -= 1;
+        syncTimerControlsUI();
+        if (timeRemaining <= 0) {
+          clearInterval(questionTimerId);
+          chooseLane(targetLane, true);
+        }
+      }, 1000);
+    }
+
+    function restartOrdered() {
+      APP_STATE.sectorFilter = `ALL`;
+      APP_STATE.entityFilter = `ALL`;
+      APP_STATE.phaseFilter = `ALL`;
+      const sf = document.getElementById(`sector-filter`);
+      const ef = document.getElementById(`entity-filter`);
+      if (sf) sf.value = `ALL`;
+      if (ef) ef.value = `ALL`;
+      buildDeck();
+      APP_STATE.currentGateIdx = 0;
+      if (isMenuOpen) toggleMenuDrawer();
+      renderGate();
+      persistAppState();
+    }
+
+    function shuffleDeck() {
+      buildDeck();
+      for (let i = APP_STATE.deckIndices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = APP_STATE.deckIndices[i];
+        APP_STATE.deckIndices[i] = APP_STATE.deckIndices[j];
+        APP_STATE.deckIndices[j] = tmp;
+      }
+      APP_STATE.currentGateIdx = 0;
+      showMenuToast(`Deck shuffled (${APP_STATE.deckIndices.length} gates).`);
+      renderGate();
+      persistAppState();
+    }
+
+    function resetMastery(btn) {
+      if (!btn) return;
+      if (btn.dataset.armed !== `true`) {
+        btn.dataset.armed = `true`;
+        btn.textContent = `⚠ Confirm Reset`;
+        showMenuToast(`Tap again to erase XP & Mastery.`);
+        setTimeout(() => {
+          if (btn.dataset.armed === `true`) {
+            btn.dataset.armed = `false`;
+            btn.textContent = `🗑 Reset Mastery`;
+          }
+        }, 4000);
+        return;
+      }
+      btn.dataset.armed = `false`;
+      btn.textContent = `🗑 Reset Mastery`;
+      APP_STATE.xp = 0;
+      APP_STATE.hp = 100;
+      APP_STATE.streak = 0;
+      APP_STATE.masteredIds = [];
+      APP_STATE.missedIds = [];
+      APP_STATE.currentGateIdx = 0;
+      buildDeck();
+      renderGate();
+      renderCodex();
+      showMenuToast(`Mastery reset.`);
+      persistAppState();
+    }
+
+    function changeSectorFilter(val) {
+      APP_STATE.sectorFilter = val;
+      APP_STATE.currentGateIdx = 0;
+      buildDeck();
+      renderGate();
+      persistAppState();
+    }
+
+    function changeEntityFilter(val) {
+      APP_STATE.entityFilter = val;
+      APP_STATE.currentGateIdx = 0;
+      buildDeck();
+      renderGate();
+      persistAppState();
+    }
+
+    function setPhaseFilter(phase, btnEl) {
+      APP_STATE.phaseFilter = phase;
+      document.querySelectorAll(`.phase-pill`).forEach(el => {
+        el.classList.toggle(`is-active`, el.dataset.phase === phase);
+      });
+      APP_STATE.currentGateIdx = 0;
+      buildDeck();
+      renderGate();
+      persistAppState();
+    }
+
+    function jumpToEntity(entityId) {
+      APP_STATE.sectorFilter = `ALL`;
+      APP_STATE.entityFilter = String(entityId);
+      const sf = document.getElementById(`sector-filter`);
+      const ef = document.getElementById(`entity-filter`);
+      if (sf) sf.value = `ALL`;
+      if (ef) ef.value = String(entityId);
+      buildDeck();
+      APP_STATE.currentGateIdx = 0;
+      if (isMenuOpen) toggleMenuDrawer();
+      renderGate();
+      persistAppState();
+    }
+
+    function showMenuToast(msg) {
+      const el = document.getElementById(`menu-toast`);
+      if (el) el.textContent = msg;
+    }
+
+    // Procedural Web Audio SFX & Synthwave BGM
+    function ensureAudioCtx() {
+      if (!audioCtx) {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (Ctx) audioCtx = new Ctx();
+      }
+      if (audioCtx && audioCtx.state === `suspended`) {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playSfx(type) {
+      if (!APP_STATE.soundMaster || !APP_STATE.sfxEnabled) return;
+      const ctx = ensureAudioCtx();
+      if (!ctx) return;
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const now = ctx.currentTime;
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      if (type === `steer`) {
+        osc.type = `triangle`;
+        osc.frequency.setValueAtTime(420, now);
+        osc.frequency.exponentialRampToValueAtTime(580, now + 0.06);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+        osc.start(now);
+        osc.stop(now + 0.07);
+      } else if (type === `correct`) {
+        osc.type = `sine`;
+        osc.frequency.setValueAtTime(523.25, now);
+        osc.frequency.setValueAtTime(659.25, now + 0.08);
+        osc.frequency.setValueAtTime(783.99, now + 0.16);
+        gain.gain.setValueAtTime(0.11, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        osc.start(now);
+        osc.stop(now + 0.35);
+      } else if (type === `wrong`) {
+        osc.type = `sawtooth`;
+        osc.frequency.setValueAtTime(190, now);
+        osc.frequency.linearRampToValueAtTime(110, now + 0.25);
+        gain.gain.setValueAtTime(0.09, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+        osc.start(now);
+        osc.stop(now + 0.28);
+      }
+    }
+
+    function toggleMasterSound() {
+      APP_STATE.soundMaster = !APP_STATE.soundMaster;
+      const btn = document.getElementById(`btn-master-sound`);
+      if (btn) {
+        btn.textContent = APP_STATE.soundMaster ? `🔊 Sound: ON [M]` : `🔇 Sound: OFF [M]`;
+        btn.classList.toggle(`is-active`, APP_STATE.soundMaster);
+      }
+      if (!APP_STATE.soundMaster) {
+        stopBgmLoop();
+        if (customAudioEl) customAudioEl.pause();
+      } else if (APP_STATE.bgmEnabled) {
+        startBgmLoop();
+      }
+      persistAppState();
+    }
+
+    function toggleSfx() {
+      APP_STATE.sfxEnabled = !APP_STATE.sfxEnabled;
+      const btn = document.getElementById(`btn-sfx`);
+      if (btn) {
+        btn.textContent = APP_STATE.sfxEnabled ? `🎹 SFX: ON` : `🎹 SFX: OFF`;
+        btn.classList.toggle(`is-active`, APP_STATE.sfxEnabled);
+      }
+      persistAppState();
+    }
+
+    function toggleBgm() {
+      APP_STATE.bgmEnabled = !APP_STATE.bgmEnabled;
+      const btn = document.getElementById(`btn-bgm`);
+      if (btn) {
+        btn.textContent = APP_STATE.bgmEnabled ? `🎵 Zombies BGM: ON` : `🎵 Zombies BGM: OFF`;
+        btn.classList.toggle(`is-active`, APP_STATE.bgmEnabled);
+      }
+      if (APP_STATE.bgmEnabled && APP_STATE.soundMaster) startBgmLoop();
+      else stopBgmLoop();
+      persistAppState();
+    }
+
+    function startBgmLoop() {
+      stopBgmLoop();
+      const notes = [110, 130.81, 146.83, 164.81, 146.83, 130.81, 110, 98];
+      let step = 0;
+      bgmTimer = setInterval(() => {
+        if (!APP_STATE.soundMaster || !APP_STATE.bgmEnabled) return;
+        const ctx = ensureAudioCtx();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = `sawtooth`;
+        osc.frequency.setValueAtTime(notes[step % notes.length], now);
+        gain.gain.setValueAtTime(APP_STATE.bgmVolume * 0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.25);
+        step += 1;
+      }, 260);
+    }
+
+    function stopBgmLoop() {
+      clearInterval(bgmTimer);
+      bgmTimer = null;
+    }
+
+    function setBgmVolume(val) {
+      APP_STATE.bgmVolume = Math.max(0, Math.min(1, Number(val) / 100));
+      if (customAudioEl) customAudioEl.volume = APP_STATE.bgmVolume;
+    }
+
+    function loadCustomAudio(e) {
+      const file = e.target && e.target.files && e.target.files[0];
+      if (!file) return;
+      stopCustomTrack();
+      const url = URL.createObjectURL(file);
+      customAudioEl = new Audio(url);
+      customAudioEl.loop = true;
+      customAudioEl.volume = APP_STATE.bgmVolume;
+      if (APP_STATE.soundMaster) customAudioEl.play().catch(() => {});
+      showMenuToast(`Loaded: ${file.name}`);
+    }
+
+    function stopCustomTrack() {
+      if (customAudioEl) {
+        customAudioEl.pause();
+        customAudioEl = null;
+      }
+    }
+
+    // Keyboard Controls
+    document.addEventListener(`keydown`, (e) => {
+      const outcomeModal = document.getElementById(`outcome-modal`);
+      const codexModal = document.getElementById(`codex-modal`);
+      const isOutcomeOpen = outcomeModal && outcomeModal.classList.contains(`is-open`);
+      const isCodexOpen = codexModal && codexModal.classList.contains(`is-open`);
+
+      if (e.key === `Escape`) {
+        if (isCodexOpen) closeCodex();
+        else if (isMenuOpen) toggleMenuDrawer();
+        return;
+      }
+
+      if (isOutcomeOpen) {
+        if (e.key === `Enter` || e.key === ` `) {
+          e.preventDefault();
+          advanceNextGate();
+        } else if (e.key === `ArrowDown`) {
+          e.preventDefault();
+          scrollDossier(160);
+        } else if (e.key === `ArrowUp`) {
+          e.preventDefault();
+          scrollDossier(-160);
+        }
+        return;
+      }
+
+      if (isCodexOpen) return;
+
+      const k = e.key.toLowerCase();
+      if (k === `h`) { e.preventDefault(); toggleHintsBar(); }
+      else if (k === `c`) { e.preventDefault(); openCodex(); }
+      else if (k === `s`) { e.preventDefault(); skipCurrentQuestion(); }
+      else if (k === `t`) { e.preventDefault(); toggleTimedMode(); }
+      else if (k === `m`) { e.preventDefault(); toggleMasterSound(); }
+      else if (k === `a` || e.key === `ArrowLeft`) { e.preventDefault(); hoverLane(Math.max(0, targetLane - 1)); }
+      else if (k === `d` || e.key === `ArrowRight`) { e.preventDefault(); hoverLane(Math.min(2, targetLane + 1)); }
+      else if (k === `1`) { e.preventDefault(); chooseLane(0); }
+      else if (k === `2`) { e.preventDefault(); chooseLane(1); }
+      else if (k === `3`) { e.preventDefault(); chooseLane(2); }
+      else if (e.key === `Enter` || e.key === ` `) { e.preventDefault(); chooseLane(targetLane); }
+    });
+
+    // Band 3: 3D Synthwave Canvas Engine (150 Square Particles + Perspective Wireframe + 1:1 Portal Fusion + Diamond Ship)
+    const particles = [];
+    for (let i = 0; i < 150; i++) {
+      particles.push({
+        x: (Math.random() - 0.5) * 2.4,
+        y: (Math.random() - 0.5) * 1.4,
+        z: Math.random(),
+        size: 1.5 + Math.random() * 2.5
+      });
+    }
+
+    let gridScroll = 0;
+    let canvasRafId = null;
+
+    function startCanvasLoop() {
+      const canvas = document.getElementById(`bg-canvas`);
+      if (!canvas) return;
+      const ctx = canvas.getContext(`2d`);
+      if (!ctx) return;
+
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      resizeCanvas();
+      window.addEventListener(`resize`, resizeCanvas);
+
+      const portalColors = [`#ff2d78`, `#00ffcc`, `#ffe04a`];
+
+      function drawFrame() {
+        const w = canvas.width;
+        const h = canvas.height;
+        const horizonY = h * 0.42;
+
+        const q = getCurrentQuestion();
+        const theme = LO_VISUAL_THEMES[q ? q.entityId : 1] || LO_VISUAL_THEMES[1];
+
+        // Deep Midnight-Navy Void
+        ctx.fillStyle = `#0a0a12`;
+        ctx.fillRect(0, 0, w, h);
+
+        // Horizon Glow
+        const grad = ctx.createLinearGradient(0, horizonY - 80, 0, h);
+        grad.addColorStop(0, `rgba(${theme.gridRgb}, 0)`);
+        grad.addColorStop(0.28, `rgba(${theme.gridRgb}, 0.16)`);
+        grad.addColorStop(1, `rgba(10, 10, 18, 0.95)`);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, horizonY - 80, w, h - horizonY + 80);
+
+        // 150 Crisp 3D Square Pixel-Dust Particles (never ovals/blobs)
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          p.z -= 0.0045;
+          if (p.z <= 0.02) {
+            p.z = 1.0;
+            p.x = (Math.random() - 0.5) * 2.4;
+            p.y = (Math.random() - 0.5) * 1.3;
+          }
+          const scale = 1 / p.z;
+          const sx = w * 0.5 + p.x * w * 0.35 * scale;
+          const sy = horizonY + p.y * h * 0.25 * scale;
+          const sq = Math.max(1.5, Math.min(5, p.size * scale * 0.45));
+          ctx.fillStyle = i % 3 === 0 ? theme.dust : `rgba(232, 224, 240, 0.55)`;
+          ctx.fillRect(Math.round(sx), Math.round(sy), sq, sq);
+        }
+
+        // Infinite Full-Width Perspective Wireframe Floor
+        gridScroll = (gridScroll + 0.025) % 1;
+        ctx.strokeStyle = `rgba(${theme.gridRgb}, 0.28)`;
+        ctx.lineWidth = 1;
+
+        for (let i = 1; i <= 14; i++) {
+          const t = (i + gridScroll) / 15;
+          const y = horizonY + Math.pow(t, 2.2) * (h - horizonY);
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(w, y);
+          ctx.stroke();
+        }
+
+        const numCols = 14;
+        for (let c = -numCols; c <= numCols; c++) {
+          const topX = w * 0.5 + c * (w * 0.03);
+          const botX = w * 0.5 + c * (w * 0.14);
+          ctx.beginPath();
+          ctx.moveTo(topX, horizonY);
+          ctx.lineTo(botX, h);
+          ctx.stroke();
+        }
+
+        // 3 Teal Perspective Track Rails & 1:1 Portal Fusion Tracking
+        const laneCards = [
+          document.getElementById(`lane-0-card`),
+          document.getElementById(`lane-1-card`),
+          document.getElementById(`lane-2-card`)
+        ];
+        const laneCenterXs = [w * 0.25, w * 0.5, w * 0.75];
+
+        for (let i = 0; i < 3; i++) {
+          const card = laneCards[i];
+          let rect = null;
+          if (card) {
+            rect = card.getBoundingClientRect();
+            if (rect.width > 0) {
+              laneCenterXs[i] = rect.left + rect.width * 0.5;
+            }
+          }
+
+          // Perspective rail
+          ctx.strokeStyle = i === targetLane ? `rgba(0, 255, 204, 0.85)` : `rgba(0, 255, 204, 0.28)`;
+          ctx.lineWidth = i === targetLane ? 2.5 : 1.2;
+          ctx.beginPath();
+          ctx.moveTo(w * 0.5 + (i - 1) * 42, horizonY);
+          ctx.lineTo(laneCenterXs[i], h);
+          ctx.stroke();
+
+          // 1:1 Fused Portal Frame onto Card Rect
+          if (rect && rect.width > 0) {
+            ctx.save();
+            ctx.strokeStyle = portalColors[i];
+            ctx.lineWidth = i === targetLane ? 2.5 : 1.2;
+            ctx.shadowColor = portalColors[i];
+            ctx.shadowBlur = i === targetLane ? 18 : 6;
+            ctx.strokeRect(rect.left - 2, rect.top - 2, rect.width + 4, rect.height + 4);
+            ctx.restore();
+          }
+        }
+
+        // Solid Geometric Teal Diamond Craft with Smooth Lane Banking
+        const goalX = laneCenterXs[targetLane] ?? w * 0.5;
+        if (shipX === 0) shipX = goalX;
+        const dx = goalX - shipX;
+        shipX += dx * 0.16;
+        const goalTilt = Math.max(-0.35, Math.min(0.35, dx * 0.004));
+        shipTilt += (goalTilt - shipTilt) * 0.2;
+
+        const shipY = h - 34;
+        ctx.save();
+        ctx.translate(shipX, shipY);
+        ctx.rotate(shipTilt);
+        ctx.fillStyle = `#00ffcc`;
+        ctx.strokeStyle = `#e8e0f0`;
+        ctx.lineWidth = 1.6;
+        ctx.shadowColor = `#00ffcc`;
+        ctx.shadowBlur = 14;
+        ctx.beginPath();
+        ctx.moveTo(0, -18);
+        ctx.lineTo(15, 0);
+        ctx.lineTo(0, 12);
+        ctx.lineTo(-15, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+
+        canvasRafId = requestAnimationFrame(drawFrame);
+      }
+
+      if (canvasRafId) cancelAnimationFrame(canvasRafId);
+      canvasRafId = requestAnimationFrame(drawFrame);
+    }
+
+    // Gemini Notebook State Persistence Shim
+    async function persistAppState() {
+      if (!window.notebookAppApi || typeof window.notebookAppApi.setAppState !== `function`) return;
+      try {
+        await window.notebookAppApi.setAppState({
+          hp: APP_STATE.hp,
+          xp: APP_STATE.xp,
+          streak: APP_STATE.streak,
+          bestStreak: APP_STATE.bestStreak,
+          currentGateIdx: APP_STATE.currentGateIdx,
+          missedIds: APP_STATE.missedIds,
+          masteredIds: APP_STATE.masteredIds,
+          sectorFilter: APP_STATE.sectorFilter,
+          entityFilter: APP_STATE.entityFilter,
+          phaseFilter: APP_STATE.phaseFilter,
+          hintsVisible: APP_STATE.hintsVisible,
+          timedMode: APP_STATE.timedMode,
+          soundMaster: APP_STATE.soundMaster,
+          sfxEnabled: APP_STATE.sfxEnabled,
+          bgmEnabled: APP_STATE.bgmEnabled
+        });
+      } catch (_) {}
+    }
+
+    async function initApp() {
+      if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === `function`) {
+        try {
+          const saved = await window.notebookAppApi.getAppState();
+          if (saved && typeof saved === `object`) {
+            Object.assign(APP_STATE, saved);
+          }
+        } catch (_) {}
+      }
+
+      const sf = document.getElementById(`sector-filter`);
+      if (sf) sf.value = String(APP_STATE.sectorFilter);
+
+      populateEntityDropdownAndTree();
+      buildDeck();
+      renderGate();
+      startCanvasLoop();
+
+      if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === `function`) {
+        window.notebookAppApi.notifyAppReady();
+      }
+    }
+
+    document.addEventListener(`DOMContentLoaded`, initApp);
+  </script>
+</body>
+</html>

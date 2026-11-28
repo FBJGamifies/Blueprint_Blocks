@@ -1,0 +1,3352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="artifact-type" content="tool">
+<meta name="design-style" content="neon_noir">
+<title>Immunology, Hematology &amp; Lymphatic Viruses — XR 3-Lane Diagnostic Runner (v3.8)</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+
+  /* Neon Noir Surfaces & Text */
+  --background: #0a0a12;
+  --surface-container-low: #111118;
+  --surface-container: #141422;
+  --surface-container-high: #1e1e30;
+  --on-surface: #e8e0f0;
+  --on-surface-variant: #a098b0;
+  --outline: #5a5068;
+  --outline-variant: #302840;
+
+  /* Neon Accents (Lanes: Pink, Cyan, Yellow) */
+  --primary: #ff2d78;
+  --on-primary: #1a0010;
+  --primary-container: #b3004e;
+  --on-primary-container: #ffe0ec;
+  --secondary: #00ffcc;
+  --tertiary: #ffe04a;
+  --error: #ff4444;
+  --on-error: #1a0000;
+
+  /* Data series */
+  --data-1: #ff2d78;
+  --data-2: #00ffcc;
+  --data-3: #ffe04a;
+  --data-4: #b388ff;
+  --data-context: #6e6680;
+
+  /* Semantic & Focus */
+  --positive: #00ffcc;
+  --warning: #ffe04a;
+  --focus: #ff2d78;
+
+  /* Fonts */
+  --font-headline: 'Sora', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-label: 'Space Mono', monospace;
+
+  /* Type Scale (Focused Tool / Cockpit) */
+  --display-size: clamp(1.4rem, 1.15rem + 0.9vw, 1.95rem);
+  --headline-size: clamp(1.1rem, 0.98rem + 0.45vw, 1.35rem);
+  --subhead-size: clamp(0.95rem, 0.9rem + 0.25vw, 1.12rem);
+  --body-size: clamp(0.9375rem, 0.9rem + 0.12vw, 1rem);
+  --label-size: 0.75rem;
+
+  /* Shape & Effects */
+  --rounded: 0.125rem;
+  --rounded-lg: 0.25rem;
+  --rounded-full: 0.75rem;
+  --glow-text: 0 0 8px currentColor;
+  --glow-primary: 0 0 16px color-mix(in srgb, var(--primary) 40%, transparent);
+  --glow-secondary: 0 0 16px color-mix(in srgb, var(--secondary) 35%, transparent);
+  --glow-tertiary: 0 0 16px color-mix(in srgb, var(--tertiary) 35%, transparent);
+  --neon-border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 50%, transparent);
+  --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+  --glass-bg: color-mix(in srgb, var(--surface-container) 82%, transparent);
+  --backdrop-scrim: color-mix(in srgb, var(--background) 84%, transparent);
+
+  /* Spacing Scale */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+
+  /* Cockpit Dynamic Resizing Variables */
+  --q-pad-y: 0.75rem;
+  --q-font: clamp(0.95rem, 0.9rem + 0.28vw, 1.08rem);
+  --card-min-h: clamp(8.5rem, 23dvh, 13rem);
+  --card-pad: 0.95rem 0.9rem;
+  --card-font: clamp(0.94rem, 0.88rem + 0.2vw, 1.04rem);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overflow-x: clip;
+  background-color: var(--background);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: var(--body-size);
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+}
+
+button, input, select {
+  font-family: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* 4-Band Full-Viewport Cockpit */
+#xr-app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  background-color: var(--background);
+}
+
+#xr-app.hints-visible {
+  --q-pad-y: 0.5rem;
+  --q-font: clamp(0.88rem, 0.84rem + 0.2vw, 0.98rem);
+  --card-min-h: clamp(6.6rem, 17.5dvh, 10rem);
+  --card-pad: 0.65rem 0.75rem;
+  --card-font: clamp(0.88rem, 0.84rem + 0.15vw, 0.96rem);
+}
+
+/* BAND 1: Ultra-Slim Top Mini Bar (MENU + Telemetry ONLY) */
+.top-mini-bar {
+  position: relative;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-md);
+  background: color-mix(in srgb, var(--surface-container-low) 92%, transparent);
+  border-bottom: 1px solid var(--outline-variant);
+  min-height: 2.75rem;
+}
+
+.menu-mini-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.25rem;
+  padding: var(--space-xs) var(--space-md);
+  background: var(--surface-container);
+  color: var(--secondary);
+  border: 1px solid color-mix(in srgb, var(--secondary) 45%, transparent);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+.menu-mini-btn:hover {
+  border-color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+  text-shadow: var(--glow-text);
+}
+
+.mini-telemetry {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-xs);
+}
+
+.tele-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  color: var(--on-surface);
+  white-space: nowrap;
+}
+.tele-chip.is-hp { border-color: color-mix(in srgb, var(--primary) 45%, transparent); color: var(--primary); }
+.tele-chip.is-xp { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+.tele-chip.is-streak { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+.tele-chip.is-timer.is-urgent {
+  border-color: var(--error);
+  color: var(--error);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--error) 40%, transparent);
+}
+
+/* BAND 2: Top Question + 3-Second Auto-Hiding Metadata */
+.question-stage {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-xs) var(--space-md) 0;
+  pointer-events: none;
+}
+
+.question-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-xs);
+  max-height: 4rem;
+  margin-bottom: var(--space-xs);
+  opacity: 1;
+  overflow: hidden;
+  transition: opacity var(--dur-long) var(--ease-out), max-height var(--dur-long) var(--ease-out), margin-bottom var(--dur-long) var(--ease-out);
+}
+.question-meta-row.is-faded {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+}
+
+.meta-badge {
+  padding: 0.16rem 0.5rem;
+  border-radius: var(--rounded);
+  border: 1px solid var(--outline);
+  background: var(--surface-container);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+.meta-badge.is-lo { border-color: color-mix(in srgb, var(--secondary) 50%, transparent); color: var(--secondary); }
+.meta-badge.is-angle { border-color: color-mix(in srgb, var(--primary) 50%, transparent); color: var(--primary); }
+.meta-badge.is-phase { border-color: color-mix(in srgb, var(--tertiary) 50%, transparent); color: var(--tertiary); }
+.meta-badge.is-corridor { border-color: color-mix(in srgb, var(--data-4) 55%, transparent); color: var(--data-4); }
+
+.question-stem-box {
+  width: min(56rem, 100%);
+  padding: var(--q-pad-y) var(--space-md);
+  background: var(--glass-bg);
+  border: var(--neon-border);
+  box-shadow: var(--neon-inset);
+  border-radius: var(--rounded-lg);
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+  transition: padding var(--dur-short) var(--ease-out);
+}
+
+.question-stem {
+  margin: 0;
+  text-align: center;
+  font-size: var(--q-font);
+  font-weight: 500;
+  line-height: 1.48;
+  color: var(--on-surface);
+}
+
+/* BAND 3: Center 3D XR Viewport + 3 Centered Answer Cards */
+.viewport-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#xr-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1;
+}
+
+.lane-overlay-container {
+  position: relative;
+  z-index: 10;
+  width: min(64rem, 96%);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(0.55rem, 1.4vw, 1.15rem);
+  align-items: stretch;
+  padding: var(--space-xs) 0;
+  pointer-events: none;
+}
+
+.lane-dom-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: var(--card-min-h);
+  padding: var(--card-pad);
+  background: color-mix(in srgb, var(--surface-container) 78%, transparent);
+  backdrop-filter: blur(8px);
+  border-radius: var(--rounded-lg);
+  border: 1px solid var(--outline);
+  cursor: pointer;
+  pointer-events: auto;
+  user-select: none;
+  transition: transform var(--dur-short) var(--ease-out),
+              box-shadow var(--dur-short) var(--ease-out),
+              border-color var(--dur-short) var(--ease-out),
+              background-color var(--dur-short) var(--ease-out);
+}
+
+.lane-dom-card.lane-0 {
+  border-color: color-mix(in srgb, var(--primary) 55%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--primary) 14%, transparent);
+}
+.lane-dom-card.lane-1 {
+  border-color: color-mix(in srgb, var(--secondary) 55%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--secondary) 14%, transparent);
+}
+.lane-dom-card.lane-2 {
+  border-color: color-mix(in srgb, var(--tertiary) 55%, transparent);
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--tertiary) 14%, transparent);
+}
+
+.lane-dom-card.lane-0:hover,
+.lane-dom-card.lane-0.is-targeted {
+  transform: translateY(-3px);
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--surface-container-high) 88%, transparent);
+  box-shadow: var(--glow-primary), inset 0 0 18px color-mix(in srgb, var(--primary) 22%, transparent);
+}
+.lane-dom-card.lane-1:hover,
+.lane-dom-card.lane-1.is-targeted {
+  transform: translateY(-3px);
+  border-color: var(--secondary);
+  background: color-mix(in srgb, var(--surface-container-high) 88%, transparent);
+  box-shadow: var(--glow-secondary), inset 0 0 18px color-mix(in srgb, var(--secondary) 22%, transparent);
+}
+.lane-dom-card.lane-2:hover,
+.lane-dom-card.lane-2.is-targeted {
+  transform: translateY(-3px);
+  border-color: var(--tertiary);
+  background: color-mix(in srgb, var(--surface-container-high) 88%, transparent);
+  box-shadow: var(--glow-tertiary), inset 0 0 18px color-mix(in srgb, var(--tertiary) 22%, transparent);
+}
+
+.lane-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-xs);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.lane-0 .lane-card-head { color: var(--primary); }
+.lane-1 .lane-card-head { color: var(--secondary); }
+.lane-2 .lane-card-head { color: var(--tertiary); }
+
+.lane-key-label {
+  padding: 0.1rem 0.38rem;
+  border: 1px solid currentColor;
+  border-radius: var(--rounded);
+}
+
+.lane-card-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  font-size: var(--card-font);
+  font-weight: 600;
+  line-height: 1.38;
+  color: var(--on-surface);
+}
+
+/* BAND 4: Bottom Hints Bar (Hidden by Default, Toggled via [H]) */
+#hints-bar {
+  position: relative;
+  z-index: 20;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-sm) var(--space-md);
+  background: color-mix(in srgb, var(--surface-container-low) 94%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--tertiary) 45%, transparent);
+}
+#xr-app.hints-visible #hints-bar {
+  display: flex;
+}
+
+.hints-label {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tertiary);
+  margin-bottom: 0.2rem;
+}
+
+#q-clue-text {
+  margin: 0;
+  max-width: 58rem;
+  text-align: center;
+  font-size: clamp(0.84rem, 0.8rem + 0.18vw, 0.94rem);
+  color: var(--on-surface);
+}
+
+/* Slide-Down Menu Drawer (#top-menu-drawer) */
+#top-menu-drawer {
+  position: fixed;
+  top: 2.75rem;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  display: none;
+  background: var(--backdrop-scrim);
+  backdrop-filter: blur(10px);
+  overflow-y: auto;
+  padding: var(--space-md);
+}
+#top-menu-drawer.is-open {
+  display: block;
+}
+
+.menu-drawer-inner {
+  width: min(68rem, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: var(--space-md);
+  background: var(--surface-container);
+  border: var(--neon-border);
+  border-radius: var(--rounded-lg);
+  padding: var(--space-lg);
+}
+
+.drawer-header-block {
+  border-bottom: 1px solid var(--outline-variant);
+  padding-bottom: var(--space-sm);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.drawer-kicker {
+  margin: 0 0 0.2rem;
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  text-shadow: var(--glow-text);
+}
+
+.drawer-title {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: var(--display-size);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--on-surface);
+}
+
+.drawer-section-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: var(--space-md);
+}
+
+.drawer-panel {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.drawer-panel-title {
+  margin: 0;
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.ctrl-btn {
+  min-height: 2.75rem;
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--surface-container);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out);
+}
+.ctrl-btn:hover {
+  border-color: var(--secondary);
+  color: var(--secondary);
+  box-shadow: var(--glow-secondary);
+}
+.ctrl-btn.is-active {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary-container) 30%, var(--surface-container));
+  box-shadow: var(--glow-primary);
+}
+.ctrl-btn.is-danger {
+  border-color: color-mix(in srgb, var(--error) 60%, transparent);
+  color: var(--error);
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.field-label {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+
+.drawer-select, .codex-input {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.4rem 1.8rem 0.4rem 0.65rem;
+  background: var(--surface-container);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-size: 0.85rem;
+}
+
+.volume-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+.volume-row input[type="range"] {
+  flex: 1;
+  accent-color: var(--secondary);
+}
+
+.phase-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.phase-pill {
+  min-height: 2.25rem;
+  padding: 0.3rem 0.6rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+}
+.phase-pill.is-active {
+  border-color: var(--tertiary);
+  color: var(--tertiary);
+  box-shadow: var(--glow-tertiary);
+}
+
+.skill-tree-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(185px, 100%), 1fr));
+  gap: var(--space-xs);
+}
+
+.skill-node-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  padding: var(--space-sm);
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+}
+.skill-node-btn:hover {
+  border-color: var(--secondary);
+  background: var(--surface-container-high);
+}
+.skill-node-btn.is-mastered {
+  border-color: color-mix(in srgb, var(--positive) 65%, transparent);
+}
+.skill-node-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--on-surface);
+  line-height: 1.3;
+}
+.skill-node-meta {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  color: var(--on-surface-variant);
+}
+
+.hotkey-guide {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  color: var(--on-surface-variant);
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: var(--space-sm);
+  line-height: 1.5;
+}
+
+.inline-toast {
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  color: var(--tertiary);
+  min-height: 1.1rem;
+}
+
+/* Modals: Outcome Dossier & Loot Codex */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+  background: var(--backdrop-scrim);
+  backdrop-filter: blur(8px);
+}
+.modal-backdrop.is-open {
+  display: flex;
+}
+
+.modal-card {
+  width: min(56rem, 96vw);
+  max-height: 90dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  background: var(--surface-container);
+  border: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--rounded-lg);
+  overflow: hidden;
+}
+
+.modal-card.is-codex {
+  width: min(72rem, 96vw);
+  border-color: color-mix(in srgb, var(--secondary) 55%, transparent);
+  box-shadow: var(--glow-secondary);
+}
+
+.modal-header {
+  padding: var(--space-md) var(--space-lg);
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.outcome-verdict-banner {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-headline);
+  font-size: var(--headline-size);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.outcome-verdict-banner.is-correct { color: var(--positive); text-shadow: var(--glow-text); }
+.outcome-verdict-banner.is-wrong { color: var(--error); text-shadow: var(--glow-text); }
+
+.outcome-submeta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-sm);
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  color: var(--on-surface-variant);
+}
+
+.modal-body {
+  padding: var(--space-md) var(--space-lg);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.dossier-section {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+  padding: var(--space-sm) var(--space-md);
+  text-align: center;
+}
+.dossier-section h3 {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  text-align: center;
+}
+.dossier-line {
+  margin: 0.2rem auto;
+  max-width: 68ch;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--on-surface);
+  text-align: center;
+}
+
+.modal-footer {
+  padding: var(--space-sm) var(--space-lg);
+  background: var(--surface-container-low);
+  border-top: 1px solid var(--outline-variant);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.scroll-btn-group {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.continue-runner-btn {
+  min-height: 2.75rem;
+  padding: var(--space-xs) var(--space-lg);
+  background: var(--surface-container-high);
+  color: var(--positive);
+  border: 1px solid var(--positive);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: var(--glow-secondary);
+}
+.continue-runner-btn:hover {
+  background: color-mix(in srgb, var(--secondary) 16%, var(--surface-container-high));
+}
+
+/* Codex Table */
+.codex-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+.codex-modal-title {
+  font-size: var(--headline-size);
+}
+.codex-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-sm);
+  align-items: end;
+}
+.codex-filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+.codex-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded);
+}
+.codex-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+.codex-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-container-high);
+  color: var(--secondary);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: left;
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid var(--outline);
+}
+.codex-table td {
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid var(--outline-variant);
+  vertical-align: top;
+  line-height: 1.42;
+}
+.codex-table tr:nth-child(even) td {
+  background: var(--surface-container-low);
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 640px) {
+  .codex-toolbar {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* v3.8 Phone Media Query 1: Portrait Phones */
+@media (max-width: 600px) {
+  .top-mini-bar {
+    padding: 0.25rem 0.45rem;
+  }
+  .tele-chip.is-xp {
+    display: none;
+  }
+  .lane-overlay-container {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+    width: 94%;
+  }
+  .lane-dom-card {
+    min-height: clamp(3.8rem, 12.5dvh, 5.2rem);
+    padding: 0.5rem 0.75rem;
+  }
+  #xr-app.hints-visible .lane-dom-card {
+    min-height: clamp(3.1rem, 10dvh, 4.2rem);
+    padding: 0.35rem 0.65rem;
+  }
+  .lane-card-head,
+  .lane-key-label {
+    display: none;
+  }
+  .modal-card,
+  .modal-card.is-codex {
+    width: 96vw;
+    max-height: 92dvh;
+  }
+}
+
+/* v3.8 Phone Media Query 2: Landscape Phones */
+@media (max-height: 500px) and (pointer: coarse) {
+  .question-stem-box {
+    padding: 0.35rem 0.65rem;
+  }
+  .question-stem {
+    font-size: 0.82rem;
+    line-height: 1.3;
+  }
+  .lane-overlay-container {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+  .lane-dom-card {
+    min-height: 4.4rem;
+    padding: 0.4rem 0.5rem;
+  }
+  .lane-card-text {
+    font-size: 0.8rem;
+  }
+}
+
+/* v3.8 Phone Media Query 3: Tall-Phone Desktop-Mode Safety Net */
+@media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+  html {
+    font-size: 200%;
+  }
+  .lane-overlay-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+<div id="xr-app" class="hints-hidden">
+
+  <!-- BAND 1: ULTRA-SLIM TOP MINI BAR (MENU + TELEMETRY ONLY) -->
+  <div class="top-mini-bar">
+    <button type="button" class="menu-mini-btn" id="menu-toggle-btn" onclick="toggleMenuDrawer()" aria-expanded="false" aria-controls="top-menu-drawer">☰ MENU</button>
+    <div class="mini-telemetry" aria-label="Game Status">
+      <span class="tele-chip is-hp" id="hp-chip">HP <span id="hp-text">100</span></span>
+      <span class="tele-chip is-xp">XP <span id="xp-text">0</span></span>
+      <span class="tele-chip is-streak">⚡ <span id="streak-text">0</span></span>
+      <span class="tele-chip">GATE <span id="gate-text">1/45</span></span>
+      <span class="tele-chip is-timer" id="timer-chip">⏱ <span id="timer-text">OFF</span></span>
+    </div>
+  </div>
+
+  <!-- BAND 2: TOP QUESTION + 3-SECOND AUTO-HIDING METADATA -->
+  <div class="question-stage">
+    <div class="question-meta-row" id="q-meta-row">
+      <span class="meta-badge is-lo" id="lo-badge">SECTOR I • LO 1</span>
+      <span class="meta-badge is-angle" id="angle-badge">PRESENTATION → DIAGNOSIS</span>
+      <span class="meta-badge is-phase" id="phase-badge">PHASE 1: PATHOGENESIS</span>
+      <span class="meta-badge is-corridor" id="corridor-badge">RETROVIRAL ENTRY</span>
+    </div>
+    <div class="question-stem-box" id="q-stem-box">
+      <p class="question-stem amboss-scan-target" id="q-stem-text">Initializing diagnostic corridor…</p>
+    </div>
+  </div>
+
+  <!-- BAND 3: CENTER 3D XR VIEWPORT + 3 CENTERED ANSWER CARDS -->
+  <div class="viewport-shell" id="viewport-shell">
+    <canvas id="xr-canvas" aria-label="3D Perspective Diagnostic Corridor"></canvas>
+    <div class="lane-overlay-container" id="lane-overlay-container">
+      <div id="lane-0-card" class="lane-dom-card lane-0" role="button" tabindex="0"
+        onmouseenter="previewLaneTarget(0)" onpointerenter="previewLaneTarget(0)" onfocus="previewLaneTarget(0)"
+        onclick="selectLaneAndResolve(0)"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(0);}">
+        <div class="lane-card-head">
+          <span class="lane-key-label">[1 / A]</span>
+          <span>LANE 1</span>
+        </div>
+        <div class="lane-card-text amboss-scan-target" id="lane-0-text">Loading…</div>
+      </div>
+
+      <div id="lane-1-card" class="lane-dom-card lane-1" role="button" tabindex="0"
+        onmouseenter="previewLaneTarget(1)" onpointerenter="previewLaneTarget(1)" onfocus="previewLaneTarget(1)"
+        onclick="selectLaneAndResolve(1)"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(1);}">
+        <div class="lane-card-head">
+          <span class="lane-key-label">[2 / W]</span>
+          <span>LANE 2</span>
+        </div>
+        <div class="lane-card-text amboss-scan-target" id="lane-1-text">Loading…</div>
+      </div>
+
+      <div id="lane-2-card" class="lane-dom-card lane-2" role="button" tabindex="0"
+        onmouseenter="previewLaneTarget(2)" onpointerenter="previewLaneTarget(2)" onfocus="previewLaneTarget(2)"
+        onclick="selectLaneAndResolve(2)"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(2);}">
+        <div class="lane-card-head">
+          <span class="lane-key-label">[3 / D]</span>
+          <span>LANE 3</span>
+        </div>
+        <div class="lane-card-text amboss-scan-target" id="lane-2-text">Loading…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BAND 4: BOTTOM HINTS BAR (HIDDEN BY DEFAULT, TOGGLED VIA [H]) -->
+  <div id="hints-bar">
+    <div class="hints-label">Tactical Clue [H]</div>
+    <p class="amboss-scan-target" id="q-clue-text">Press [H] for second-order board hint.</p>
+  </div>
+
+</div>
+
+<!-- SLIDE-DOWN MENU DRAWER (HOUSES TITLE & ALL CONTROLS) -->
+<div id="top-menu-drawer" aria-label="Mission Controls">
+  <div class="menu-drawer-inner">
+    <div class="drawer-header-block">
+      <div>
+        <p class="drawer-kicker">COMLEX-USA &amp; USMLE • IMMUNOLOGY, HEMATOLOGY &amp; LYMPHATICS</p>
+        <h1 class="drawer-title">Immunology, Hematology &amp; Lymphatic Viruses — XR Raid</h1>
+      </div>
+      <button type="button" class="ctrl-btn" onclick="toggleMenuDrawer()">✕ Close Menu</button>
+    </div>
+
+    <div class="drawer-section-grid">
+      <div class="drawer-panel">
+        <h2 class="drawer-panel-title">Cockpit &amp; Run Actions</h2>
+        <div class="btn-row">
+          <button type="button" class="ctrl-btn" id="menu-hints-btn" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+          <button type="button" class="ctrl-btn" onclick="openCodexFromMenu()">📖 Loot Codex [C]</button>
+          <button type="button" class="ctrl-btn" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+          <button type="button" class="ctrl-btn" id="menu-timer-btn" onclick="toggleTimerFromMenu()">⏱ 50s Timer: OFF [T]</button>
+          <button type="button" class="ctrl-btn" onclick="startTimedRunFromMenu()">⚡ Start 50s Timed Run</button>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="ctrl-btn" onclick="restartOrderedRun()">↺ Restart Ordered</button>
+          <button type="button" class="ctrl-btn" onclick="shuffleDeckRun()">🔀 Shuffle Deck</button>
+          <button type="button" class="ctrl-btn is-danger" id="reset-mastery-btn" onclick="resetMastery(this)">⚠ Reset Mastery</button>
+        </div>
+        <div class="inline-toast" id="menu-status-toast"></div>
+      </div>
+
+      <div class="drawer-panel">
+        <h2 class="drawer-panel-title">Audio &amp; Zombies Synth Engine</h2>
+        <div class="btn-row">
+          <button type="button" class="ctrl-btn is-active" id="master-sound-btn" onclick="toggleMasterSound()">🔊 Sound: ON</button>
+          <button type="button" class="ctrl-btn is-active" id="sfx-toggle-btn" onclick="toggleSfx()">✨ SFX: ON</button>
+          <button type="button" class="ctrl-btn" id="bgm-toggle-btn" onclick="toggleProceduralBgm()">🎵 Zombies BGM: OFF</button>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="bgm-volume-slider">BGM Volume</label>
+          <div class="volume-row">
+            <input type="range" id="bgm-volume-slider" min="0" max="100" value="35" oninput="setBgmVolume(this.value)">
+            <span id="bgm-volume-val">35%</span>
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="custom-bgm-input">Custom MP3 / WAV Track</label>
+          <input type="file" id="custom-bgm-input" accept="audio/*" onchange="loadCustomBgmFile(this)">
+        </div>
+      </div>
+
+      <div class="drawer-panel">
+        <h2 class="drawer-panel-title">Deck &amp; Skill Tree Filters</h2>
+        <div class="field-group">
+          <label class="field-label" for="sector-filter">Dungeon Sector / Missed Gates</label>
+          <select id="sector-filter" class="drawer-select" onchange="applyDeckFilters()">
+            <option value="all">All 5 Sectors (45 Gates)</option>
+            <option value="missed">🎯 Missed Gates Only</option>
+            <option value="sector_1">Sector I • Retroviruses &amp; CD4+ Tropism</option>
+            <option value="sector_2">Sector II • Herpesviridae &amp; Lymphotropic DNA</option>
+            <option value="sector_3">Sector III • Oncogenic &amp; T-Cell Transforming</option>
+            <option value="sector_4">Sector IV • Erythroid &amp; Hemorrhagic Fevers</option>
+            <option value="sector_5">Sector V • Viral Hepatitis, Spleen &amp; Lymphatic OMT</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="angle-filter">Diagnostic Angle</label>
+          <select id="angle-filter" class="drawer-select" onchange="applyDeckFilters()">
+            <option value="all">All 3 Diagnostic Angles</option>
+            <option value="Presentation -> Diagnosis">Presentation → Diagnosis</option>
+            <option value="Mechanism -> Pathophysiology">Mechanism → Pathophysiology</option>
+            <option value="Hallmarks -> Management">Hallmarks → Management</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="compartment-filter">Tropism / Compartment</label>
+          <select id="compartment-filter" class="drawer-select" onchange="applyDeckFilters()">
+            <option value="all">All Compartments</option>
+            <option value="cd4_lymphoid">CD4+ T-Cell &amp; Lymph Node</option>
+            <option value="bcell_reticulo">B-Cell &amp; Reticuloendothelial</option>
+            <option value="erythroid_vascular">Erythroid Progenitor &amp; Endothelium</option>
+            <option value="hepatic_splenic_omt">Hepatobiliary, Spleen &amp; Lymphatic OMT</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="age-filter">Patient / Host Context</label>
+          <select id="age-filter" class="drawer-select" onchange="applyDeckFilters()">
+            <option value="all">All Host Contexts</option>
+            <option value="immunocompromised_hiv">HIV / Immunocompromised Host</option>
+            <option value="adolescent_adult">Adolescent &amp; Adult</option>
+            <option value="pediatric_hemoglobinopathy">Pediatric / Hemoglobinopathy / Pregnant</option>
+            <option value="endemic_occupational">Endemic / Traveler / Inpatient OMT</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="behavior-filter">Pathogenic Mechanism</label>
+          <select id="behavior-filter" class="drawer-select" onchange="applyDeckFilters()">
+            <option value="all">All Mechanisms</option>
+            <option value="retroviral_integration">Retroviral Integration &amp; Depletion</option>
+            <option value="oncogenic_transformation">Oncogenic / Lymphoproliferative</option>
+            <option value="cytolytic_vascular">Cytolytic / ADE / Capillary Leak</option>
+            <option value="immune_complex_omt">Cryoglobulin / Splenic / OMT Mechanics</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="timesup-mode">Time's Up Mode</label>
+          <select id="timesup-mode" class="drawer-select" onchange="setTimesUpMode(this.value)">
+            <option value="auto_reveal">Auto-Reveal Dossier (-15 HP)</option>
+            <option value="skip_penalty">Auto-Skip Gate (-15 HP)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-panel">
+      <h2 class="drawer-panel-title">3-Phase Raid Mix (30% / 35% / 35%)</h2>
+      <div class="phase-pills-row">
+        <button type="button" class="phase-pill is-active" id="phase-pill-all" onclick="setPhaseFilter('all')">All Phases (45)</button>
+        <button type="button" class="phase-pill" id="phase-pill-p1" onclick="setPhaseFilter('Phase 1: Pathogenesis')">Phase 1: Pathogenesis (30%)</button>
+        <button type="button" class="phase-pill" id="phase-pill-p2" onclick="setPhaseFilter('Phase 2: Histology / Structure')">Phase 2: Histology / Structure (35%)</button>
+        <button type="button" class="phase-pill" id="phase-pill-p3" onclick="setPhaseFilter('Phase 3: Clinical & Management')">Phase 3: Clinical &amp; Management (35%)</button>
+      </div>
+    </div>
+
+    <div class="drawer-panel">
+      <h2 class="drawer-panel-title">15-Entity Viral Skill Tree (Tap Entity to Isolate Gates)</h2>
+      <div class="skill-tree-grid" id="skill-tree-grid"></div>
+    </div>
+
+    <div class="hotkey-guide">
+      CONTROLS: Hover / Mouse Surf or [A]/[D] or [←]/[→] to Bank Craft • Click Card or [1]/[2]/[3] to Lock Portal • [H] Toggle Hints • [C] Loot Codex • [S] Skip Gate • [T] Toggle 50s Timer • [Enter] Continue Dossier
+    </div>
+  </div>
+</div>
+
+<!-- OUTCOME DOSSIER MODAL -->
+<div class="modal-backdrop" id="outcome-modal" role="dialog" aria-modal="true" aria-labelledby="outcome-verdict">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2 class="outcome-verdict-banner is-correct amboss-scan-target" id="outcome-verdict">✔ CORRECT — Diagnosis</h2>
+      <div class="outcome-submeta" id="outcome-submeta">
+        <span id="outcome-entity-tag">LO 1</span>
+        <span id="outcome-xp-delta">+25 XP</span>
+        <span id="outcome-hp-delta">HP +0</span>
+      </div>
+    </div>
+
+    <div class="modal-body" id="outcome-body">
+      <div class="dossier-section">
+        <h3>Section 1 • Vignette &amp; Selection Verification</h3>
+        <div class="amboss-scan-target" id="sec1-choice"></div>
+      </div>
+      <div class="dossier-section">
+        <h3>Section 2 • Diagnostic &amp; Distractor Breakdown</h3>
+        <div class="amboss-scan-target" id="sec2-explanation"></div>
+      </div>
+      <div class="dossier-section">
+        <h3>Section 3 • Second-Order Board Logic Clue</h3>
+        <div class="amboss-scan-target" id="sec3-clue"></div>
+      </div>
+      <div class="dossier-section">
+        <h3>Section 4 • Phase 1: Pathogenesis &amp; Molecular Initiation</h3>
+        <div class="amboss-scan-target" id="sec4-p1"></div>
+      </div>
+      <div class="dossier-section">
+        <h3>Section 5 • Phase 2: Histology, Labs &amp; Structural Hallmarks</h3>
+        <div class="amboss-scan-target" id="sec5-p2"></div>
+      </div>
+      <div class="dossier-section">
+        <h3>Section 6 • Phase 3: Clinical Management &amp; Guild Master's Secret</h3>
+        <div class="amboss-scan-target" id="sec6-p3"></div>
+      </div>
+      <div class="dossier-section">
+        <h3>Section 7 • High-Yield Bullet Synthesis</h3>
+        <div class="amboss-scan-target" id="sec7-bullets"></div>
+      </div>
+    </div>
+
+    <div class="modal-footer" id="outcome-footer">
+      <div class="scroll-btn-group">
+        <button type="button" class="ctrl-btn" onclick="scrollOutcomeBody(-220)">▲ Scroll Up</button>
+        <button type="button" class="ctrl-btn" onclick="scrollOutcomeBody(220)">▼ Scroll Down</button>
+      </div>
+      <button type="button" class="continue-runner-btn" id="continue-runner-btn" onclick="continueRunner()">Continue Runner → [Enter]</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6-COLUMN LOOT CODEX MODAL -->
+<div class="modal-backdrop" id="codex-modal" role="dialog" aria-modal="true" aria-labelledby="codex-modal-title">
+  <div class="modal-card is-codex">
+    <div class="modal-header">
+      <div class="codex-head-row">
+        <h2 class="drawer-title codex-modal-title" id="codex-modal-title">Viral Loot Codex (15 Entities)</h2>
+        <button type="button" class="ctrl-btn" onclick="closeCodex()">✕ Close [C]</button>
+      </div>
+      <div class="codex-toolbar">
+        <div class="field-group">
+          <label class="field-label" for="codex-search-input">Search Virus, Receptor, Histology, or OMT Pearl</label>
+          <input type="text" id="codex-search-input" class="codex-input" placeholder="Filter by gp120, CD21, Flower cell, P antigen, T5-T9..." oninput="renderCodexTable()">
+        </div>
+        <div class="codex-filter-pills" id="codex-sector-pills">
+          <button type="button" class="phase-pill is-active" onclick="setCodexSector('all', this)">All</button>
+          <button type="button" class="phase-pill" onclick="setCodexSector('sector_1', this)">Sector I</button>
+          <button type="button" class="phase-pill" onclick="setCodexSector('sector_2', this)">Sector II</button>
+          <button type="button" class="phase-pill" onclick="setCodexSector('sector_3', this)">Sector III</button>
+          <button type="button" class="phase-pill" onclick="setCodexSector('sector_4', this)">Sector IV</button>
+          <button type="button" class="phase-pill" onclick="setCodexSector('sector_5', this)">Sector V</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-body" id="codex-body">
+      <div class="codex-table-wrap">
+        <table class="codex-table">
+          <thead>
+            <tr>
+              <th>Entity &amp; Sector</th>
+              <th>Etiology &amp; Tropism</th>
+              <th>Phase 1: Pathogenesis</th>
+              <th>Phase 2: Hallmarks</th>
+              <th>Phase 3: Clinical</th>
+              <th>Management &amp; Secret</th>
+            </tr>
+          </thead>
+          <tbody id="codex-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div class="scroll-btn-group">
+        <button type="button" class="ctrl-btn" onclick="scrollCodexBody(-240)">▲ Scroll Up</button>
+        <button type="button" class="ctrl-btn" onclick="scrollCodexBody(240)">▼ Scroll Down</button>
+      </div>
+      <button type="button" class="continue-runner-btn" onclick="closeCodex()">Return to Corridor</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function initNotebookApiShim() {
+  if (window.notebookAppApi) return;
+  const STORAGE_KEY = 'fbj_immuno_heme_lymph_viruses_v3_8';
+  window.notebookAppApi = {
+    async getAppState() {
+      try {
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) {
+        return null;
+      }
+    },
+    async setAppState(state) {
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {}
+    },
+    notifyAppReady() {}
+  };
+})();
+</script>
+<script>
+const GAME_CONFIG = {
+  metaFadeMs: 3000,
+  timedSeconds: 50,
+  baseHp: 100,
+  xpCorrect: 25,
+  hpPenaltyWrong: 15,
+  particleCount: 150
+};
+
+const LO_VISUAL_THEMES = {
+  1: { tag: `RETROVIRAL ENTRY`, dust: `#ff2d78`, gridRgb: `255,45,120` },
+  2: { tag: `SEROCONVERSION NODE`, dust: `#ff5c9a`, gridRgb: `220,40,115` },
+  3: { tag: `CNS LYMPHOMA VAULT`, dust: `#d946ef`, gridRgb: `195,55,230` },
+  4: { tag: `CD21 B-CELL GATE`, dust: `#00ffcc`, gridRgb: `0,240,195` },
+  5: { tag: `STARRY SKY C-MYC`, dust: `#38bdf8`, gridRgb: `45,175,245` },
+  6: { tag: `OWL-EYE LATENCY`, dust: `#2dd4bf`, gridRgb: `35,200,185` },
+  7: { tag: `FLOWER CELL TAX/REX`, dust: `#ffe04a`, gridRgb: `240,210,60` },
+  8: { tag: `KSHV SPINDLE CORRIDOR`, dust: `#fb7185`, gridRgb: `245,95,125` },
+  9: { tag: `V-IL6 ONION-SKIN`, dust: `#f59e0b`, gridRgb: `235,155,20` },
+  10: { tag: `P-ANTIGEN APLASIA`, dust: `#f43f5e`, gridRgb: `240,55,95` },
+  11: { tag: `ADE CAPILLARY LEAK`, dust: `#facc15`, gridRgb: `235,195,25` },
+  12: { tag: `FILOVIRUS SHOCK`, dust: `#ef4444`, gridRgb: `225,65,65` },
+  13: { tag: `CRYO IMMUNE COMPLEX`, dust: `#a78bfa`, gridRgb: `155,130,245` },
+  14: { tag: `SPLENIC PULP T5-T9`, dust: `#34d399`, gridRgb: `45,205,145` },
+  15: { tag: `THORACIC INLET OMT`, dust: `#22d3ee`, gridRgb: `34,211,238` }
+};
+
+const CODEX_DATA = [
+  {
+    lo: 1, sector: `sector_1`, tag: `Sector I`, compartment: `cd4_lymphoid`, ageGroup: `immunocompromised_hiv`, behavior: `retroviral_integration`,
+    entity: `HIV-1/2 Entry & Lifecycle`, badgeMeta: `Sector I • Retrovirus`,
+    etiology: `Diploid +ssRNA retrovirus; sexual, parenteral, vertical (TORCHeS) transmission.`,
+    pathogenesis: `env gp120 binds CD4 + CCR5 (early macrophages) or CXCR4 (late T cells); gp41 mediates fusion; pol encodes RT, integrase, protease; gag encodes p24 capsid.`,
+    hallmarks: `Homozygous CCR5-Δ32 confers immunity; declining CD4+ count (<200 = AIDS); p24 antigenemia early.`,
+    clinical: `Progressive helper T-cell depletion, opportunistic infections, and HIV-associated malignancies.`,
+    management: `3-drug ART (2 NRTIs + INSTI); maraviroc blocks CCR5; HLA-B*5701 screen before abacavir; zidovudine reduces vertical transmission.`
+  },
+  {
+    lo: 2, sector: `sector_1`, tag: `Sector I`, compartment: `cd4_lymphoid`, ageGroup: `immunocompromised_hiv`, behavior: `retroviral_integration`,
+    entity: `Acute HIV Seroconversion & LAD`, badgeMeta: `Sector I • Seroconversion`,
+    etiology: `Acute primary HIV-1 infection (2–4 weeks post-exposure) mimicking mononucleosis.`,
+    pathogenesis: `Explosive viral replication in lymphoid tissues with initial follicular hyperplasia progressing to germinal center involution and CD4+ T-cell loss.`,
+    hallmarks: `Combination HIV-1/2 p24 Ag/Ab immunoassay + HIV-1/2 differentiation assay + HIV RNA NAT during early window period.`,
+    clinical: `Fever, cervical lymphadenopathy, pharyngitis, maculopapular rash, oral ulcers, high viremia.`,
+    management: `Initiate ART immediately at diagnosis regardless of CD4 count; screen partners and avoid missed window diagnosis by ordering NAT.`
+  },
+  {
+    lo: 3, sector: `sector_1`, tag: `Sector I`, compartment: `bcell_reticulo`, ageGroup: `immunocompromised_hiv`, behavior: `oncogenic_transformation`,
+    entity: `HIV Opportunistic CNS Lymphoma`, badgeMeta: `Sector I • AIDS Lymphoma`,
+    etiology: `EBV-driven Diffuse Large B-Cell Lymphoma (DLBCL) when CD4 < 100/mm³.`,
+    pathogenesis: `Loss of CD4+/CD8+ T-cell surveillance permits EBV-immortalized B cells to undergo monoclonal malignant proliferation in CNS.`,
+    hallmarks: `MRI shows solitary periventricular ring-enhancing lesion (vs multiple lesions in Toxoplasma); CSF EBV PCR positive.`,
+    clinical: `Subacute headache, confusion, focal neurologic deficits, seizures in advanced AIDS.`,
+    management: `Start/optimize ART + high-dose methotrexate-based therapy; stereotactic biopsy if Toxoplasma empiric therapy fails.`
+  },
+  {
+    lo: 4, sector: `sector_2`, tag: `Sector II`, compartment: `bcell_reticulo`, ageGroup: `adolescent_adult`, behavior: `oncogenic_transformation`,
+    entity: `EBV (HHV-4) Mononucleosis`, badgeMeta: `Sector II • Herpesviridae`,
+    etiology: `Enveloped linear dsDNA herpesvirus transmitted via saliva ("kissing disease") in teens/young adults.`,
+    pathogenesis: `Envelope glycoprotein binds B-cell CD21 (CR2); latent B-cell infection triggers massive reactive cytotoxic CD8+ T-cell expansion in lymph node paracortex and splenic PALS.`,
+    hallmarks: `Atypical lymphocytes (Downey cells = reactive CD8+ T cells), positive Monospot (heterophile IgM agglutinating sheep/horse RBCs), EBV VCA IgM.`,
+    clinical: `Fever, exudative pharyngitis, posterior cervical LAD, hepatosplenomegaly; amoxicillin causes non-allergic maculopapular rash.`,
+    management: `Supportive hydration/analgesia; strictly avoid contact sports for 3–4+ weeks due to splenic rupture risk.`
+  },
+  {
+    lo: 5, sector: `sector_2`, tag: `Sector II`, compartment: `bcell_reticulo`, ageGroup: `pediatric_hemoglobinopathy`, behavior: `oncogenic_transformation`,
+    entity: `EBV Burkitt Lymphoma t(8;14)`, badgeMeta: `Sector II • B-Cell NHL`,
+    etiology: `Endemic jaw/facial tumor in African children (EBV + malaria co-factor) or sporadic abdominal/ileocecal mass.`,
+    pathogenesis: `t(8;14) translocation juxtaposes c-myc oncogene (chr 8) to Ig heavy chain locus (chr 14), driving relentless B-cell G1→S progression.`,
+    hallmarks: `"Starry-sky" histology (sheets of monomorphic lymphoid cells with tingible-body macrophages), nearly 100% Ki-67 proliferation fraction.`,
+    clinical: `Rapidly enlarging mandibular or abdominal mass with extreme risk of spontaneous/chemotherapy-induced tumor lysis syndrome.`,
+    management: `Aggressive multi-agent chemotherapy plus rasburicase/allopurinol & IV hydration to prevent tumor lysis hyperuricemia/hyperkalemia.`
+  },
+  {
+    lo: 6, sector: `sector_2`, tag: `Sector II`, compartment: `bcell_reticulo`, ageGroup: `immunocompromised_hiv`, behavior: `retroviral_integration`,
+    entity: `CMV (HHV-5) Mononucleosis & Retinitis`, badgeMeta: `Sector II • Herpesviridae`,
+    etiology: `Enveloped dsDNA herpesvirus latent in mononuclear WBCs; transmitted via blood, transplant, saliva, sexual, congenital routes.`,
+    pathogenesis: `Binds integrins/heparan sulfate; causes Monospot-negative mono in immunocompetent hosts and end-organ necrosis when CD4 < 50/mm³.`,
+    hallmarks: `Intranuclear basophilic "owl-eye" inclusions on biopsy; fundoscopy shows retinal hemorrhages and cotton-wool spots; congenital periventricular calcifications + SNHL.`,
+    clinical: `Monospot-negative pharyngitis/fever, AIDS retinitis ("sightomegalovirus"), colitis, esophagitis, transplant pneumonitis.`,
+    management: `First-line IV ganciclovir (requires viral UL97 kinase phosphorylation); use foscarnet for UL97-mutant resistance (watch nephrotoxicity).`
+  },
+  {
+    lo: 7, sector: `sector_3`, tag: `Sector III`, compartment: `cd4_lymphoid`, ageGroup: `endemic_occupational`, behavior: `oncogenic_transformation`,
+    entity: `HTLV-1 Adult T-Cell Leukemia/Lymphoma`, badgeMeta: `Sector III • Oncogenic Retrovirus`,
+    etiology: `Enveloped +ssRNA retrovirus endemic to Japan, Caribbean, and West Africa; transmitted via breast milk, blood, sexual contact.`,
+    pathogenesis: `Tax protein activates NF-κB and upregulates IL-2/IL-2Rα (CD25) plus PTHrP/RANKL osteoclast activation; Rex regulates viral RNA nuclear export.`,
+    hallmarks: `CD4+ T cells with hyperlobated, cloverleaf nuclei ("flower cells") on blood smear, hypercalcemia, lytic bone lesions, elevated LDH.`,
+    clinical: `Generalized LAD, hepatosplenomegaly, skin plaques/nodules, bone pain, constipation/confusion from hypercalcemia.`,
+    management: `Zidovudine + IFN-α or multi-agent chemotherapy + aggressive IV saline/bisphosphonates for hypercalcemia.`
+  },
+  {
+    lo: 8, sector: `sector_3`, tag: `Sector III`, compartment: `erythroid_vascular`, ageGroup: `immunocompromised_hiv`, behavior: `oncogenic_transformation`,
+    entity: `HHV-8 Kaposi Sarcoma & PEL`, badgeMeta: `Sector III • KSHV`,
+    etiology: `Enveloped dsDNA herpesvirus transmitted via saliva/sexual contact; seen in HIV/AIDS, transplant recipients, elderly Mediterranean men.`,
+    pathogenesis: `Viral genes dysregulate VEGF signaling (angiogenesis), v-cyclin, and v-FLIP, driving endothelial spindle-cell proliferation and body-cavity B-cell PEL.`,
+    hallmarks: `Perivascular spindle cells forming slit-like vascular spaces with extravasated RBCs (vs neutrophilic Bartonella bacillary angiomatosis); hard palate/GI violaceous plaques.`,
+    clinical: `Violaceous cutaneous/mucosal nodules or isolated pleural/peritoneal effusions without solid lymphomatous mass (Primary Effusion Lymphoma).`,
+    management: `Start/optimize ART (lesions regress with immune reconstitution); IFN-α or liposomal doxorubicin for disseminated KS.`
+  },
+  {
+    lo: 9, sector: `sector_3`, tag: `Sector III`, compartment: `bcell_reticulo`, ageGroup: `immunocompromised_hiv`, behavior: `oncogenic_transformation`,
+    entity: `HHV-8 Multicentric Castleman Disease`, badgeMeta: `Sector III • KSHV Lymphoprolif`,
+    etiology: `HHV-8-driven systemic lymphoproliferative disorder occurring primarily in HIV+ patients.`,
+    pathogenesis: `HHV-8 encodes viral IL-6 (vIL-6) and stimulates massive host IL-6 release, driving polyclonal plasmablastic B-cell proliferation and systemic inflammation.`,
+    hallmarks: `Lymph node biopsy shows regressed germinal centers with concentric "onion-skin" mantle zone lymphocytes and hyalinized penetrating vessels ("lollipop" sign).`,
+    clinical: `Relapsing-remitting high fever, night sweats, diffuse LAD, hepatosplenomegaly, severe anemia, hypoalbuminemia, elevated CRP/IL-6.`,
+    management: `Rituximab (anti-CD20) +/- antivirals/ART and anti-IL-6 directed therapy; distinguish from lymphoma via excisional node biopsy.`
+  },
+  {
+    lo: 10, sector: `sector_4`, tag: `Sector IV`, compartment: `erythroid_vascular`, ageGroup: `pediatric_hemoglobinopathy`, behavior: `cytolytic_vascular`,
+    entity: `Parvovirus B19 Aplastic Crisis & PRCA`, badgeMeta: `Sector IV • Naked ssDNA`,
+    etiology: `Smallest naked ssDNA virus transmitted via respiratory droplets and transplacental TORCHeS route.`,
+    pathogenesis: `Binds P antigen (globoside) on erythroid progenitors (BFU-E/CFU-E), inducing direct cytolytic arrest of erythropoiesis.`,
+    hallmarks: `Profound reticulocytopenia; marrow aspirate shows giant pronormoblasts with intranuclear inclusions; slapped-cheek rash in kids, arthralgias in adults, hydrops fetalis.`,
+    clinical: `Transient aplastic crisis in sickle cell disease / hereditary spherocytosis; chronic pure red cell aplasia in immunocompromised hosts.`,
+    management: `Supportive packed RBC transfusion during transient crisis; administer IVIG for persistent pure red cell aplasia in immunodeficient patients.`
+  },
+  {
+    lo: 11, sector: `sector_4`, tag: `Sector IV`, compartment: `erythroid_vascular`, ageGroup: `endemic_occupational`, behavior: `cytolytic_vascular`,
+    entity: `Dengue Virus & Antibody-Dependent Enhancement`, badgeMeta: `Sector IV • Flavivirus ADE`,
+    etiology: `Enveloped +ssRNA flavivirus transmitted by Aedes aegypti mosquito in tropical/subtropical regions.`,
+    pathogenesis: `Secondary infection with a heterologous serotype produces sub-neutralizing IgG that binds Fcγ receptors on macrophages (ADE), amplifying viremia and cytokine-driven capillary leak.`,
+    hallmarks: `Thrombocytopenia, neutropenia, rising hematocrit (hemoconcentration from plasma leakage), positive tourniquet test.`,
+    clinical: `High fever, retro-orbital pain, severe myalgias ("break-bone fever"), progressing to hemorrhagic manifestations and Dengue shock syndrome.`,
+    management: `Careful isotonic IV volume resuscitation and platelet/blood support if bleeding; avoid aspirin/NSAIDs due to hemorrhage risk.`
+  },
+  {
+    lo: 12, sector: `sector_4`, tag: `Sector IV`, compartment: `erythroid_vascular`, ageGroup: `endemic_occupational`, behavior: `cytolytic_vascular`,
+    entity: `Ebola & Marburg Filoviruses`, badgeMeta: `Sector IV • Hemorrhagic Filovirus`,
+    etiology: `Enveloped -ssRNA helical filamentous viruses transmitted from bats/primates and human bodily fluids.`,
+    pathogenesis: `Early infection of macrophages and dendritic cells unleashes TNF-α/IL-6/NO storm while viral glycoprotein disrupts endothelial junctions, causing DIC and vascular collapse.`,
+    hallmarks: `Severe thrombocytopenia, prolonged PT/aPTT, elevated D-dimer, marked AST/ALT elevation, and consumptive coagulopathy.`,
+    clinical: `Abrupt fever, severe GI fluid loss, maculopapular rash, mucosal hemorrhage, hypovolemic shock, multi-organ failure.`,
+    management: `Immediate strict isolation/PPE barrier precautions plus aggressive isotonic volume/electrolyte resuscitation and ICU supportive care.`
+  },
+  {
+    lo: 13, sector: `sector_5`, tag: `Sector V`, compartment: `hepatic_splenic_omt`, ageGroup: `adolescent_adult`, behavior: `immune_complex_omt`,
+    entity: `HCV Mixed Cryoglobulinemia & AIHA`, badgeMeta: `Sector V • Flavivirus Immune`,
+    etiology: `Enveloped +ssRNA hepacivirus transmitted via parenteral blood exposure (IVDU, pre-1992 transfusion).`,
+    pathogenesis: `Lack of 3'→5' exonuclease causes envelope hypervariability and chronic B-cell stimulation, generating monoclonal IgM rheumatoid factor against polyclonal IgG (Type II cryoglobulins).`,
+    hallmarks: `Serum cryocrit precipitates at 4°C and dissolves at 37°C; low C4, positive RF, membranoproliferative GN on kidney biopsy; also linked to AIHA and B-cell NHL.`,
+    clinical: `Meltzer triad (palpable purpura, arthralgias, weakness), peripheral neuropathy, hematuria/proteinuria, hepatomegaly.`,
+    management: `Eradicate HCV with direct-acting antivirals (e.g., sofosbuvir-based regimen); add rituximab/plasmapheresis for severe cryoglobulinemic vasculitis.`
+  },
+  {
+    lo: 14, sector: `sector_5`, tag: `Sector V`, compartment: `hepatic_splenic_omt`, ageGroup: `adolescent_adult`, behavior: `immune_complex_omt`,
+    entity: `Splenic Pulp Mechanics & T5-T9 OMT`, badgeMeta: `Sector V • Spleen & Sympathetics`,
+    etiology: `Secondary lymphoid organ filtering blood-borne pathogens and senescent/antibody-opsonized RBCs.`,
+    pathogenesis: `White pulp contains T-cell PALS (expanded in EBV) and B-cell follicles; red pulp cords of Billroth house macrophages clearing defective RBCs; sympathetic supply is T5–T9 via celiac ganglion.`,
+    hallmarks: `Functional hyposplenism/asplenia yields Howell-Jolly bodies (nuclear remnants) and target cells; OMT shows T5–T9 viscerosomatic paraspinal changes and left 7th–8th ICS Chapman point.`,
+    clinical: `Hypersplenism causes sequestration pancytopenia; acute viral splenomegaly risks rupture; asplenia predisposes to encapsulated bacteria (SHiN).`,
+    management: `Target T5–T9 sympathetics (rib raising/soft tissue) and OA–AA/sacrum parasympathetics (vagus); strictly avoid direct splenic compression in acute EBV.`
+  },
+  {
+    lo: 15, sector: `sector_5`, tag: `Sector V`, compartment: `hepatic_splenic_omt`, ageGroup: `endemic_occupational`, behavior: `immune_complex_omt`,
+    entity: `Thoracic Duct OMT & Pump Contraindications`, badgeMeta: `Sector V • Lymphatic OMT`,
+    etiology: `Osteopathic lymphatic drainage protocols augmenting interstitial fluid clearance and immune cell trafficking.`,
+    pathogenesis: `Thoracic duct drains entire body except right upper quadrant/head/neck/arm into the left venous angle (left IJV + subclavian); opening central outlets prevents distal congestion.`,
+    hallmarks: `Mandatory sequence: 1) Thoracic inlet (T1–T4 / Sibson fascia) → 2) Respiratory diaphragm doming → 3) Mesenteric/splenic/pedal pumps.`,
+    clinical: `Post-viral pulmonary edema, sinus/lymphatic stasis, and peripheral congestion.`,
+    management: `Release thoracic inlet FIRST; contraindications to vigorous lymphatic pump include acute fracture, active DVT, coagulopathy/DIC, bacterial sepsis, and fragile acute viral splenomegaly.`
+  }
+];
+
+const ALL_QUESTIONS = [
+  // LO 1: HIV-1/2 Entry & Lifecycle
+  {
+    id: `HV01-Q1`, lo: 1, sector: `sector_1`, compartment: `cd4_lymphoid`, ageGroup: `immunocompromised_hiv`, behavior: `retroviral_integration`,
+    loTitle: `Sector I • HIV-1/2 Entry & Lifecycle`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `CCR5 Coreceptor Tropism`,
+    stem: `A 29-year-old man remains persistently uninfected despite repeated mucosal HIV-1 exposure from an untreated partner. Genetic testing reveals a homozygous 32-base-pair deletion in a host chemokine receptor gene. Loss of which surface molecule prevents initial macrophage-tropic HIV-1 entry?`,
+    clue: `Early M-tropic HIV-1 strains require CD4 plus a specific macrophage chemokine coreceptor.`,
+    choices: [`CCR5 chemokine receptor`, `CXCR4 chemokine receptor`, `CD21 complement receptor`],
+    correctIndex: 0,
+    explanation: `Correct: Early macrophage-tropic HIV-1 binds CD4 and CCR5; homozygous CCR5-Δ32 mutation confers resistance to initial infection. Distractor exclusion: CXCR4 is utilized later by T-cell-tropic strains; CD21 is the B-cell entry receptor for EBV.`,
+    secondOrderClue: `Homozygous CCR5-Δ32 = immunity; Heterozygous = slower progression to AIDS.`,
+    phase1Pearl: `HIV gp120 binds CD4 and CCR5 (early macrophages) or CXCR4 (late T cells), followed by gp41-mediated membrane fusion.`,
+    phase2Hallmark: `gag encodes p24 capsid; env encodes gp120/gp41; pol encodes reverse transcriptase, integrase, and protease.`,
+    phase3Secret: `Guild Master's Secret: Maraviroc directly blocks CCR5; verify R5-tropic virus via tropism assay prior to prescribing.`,
+    dossierBullets: {
+      p1: [`gp120 attaches to CD4 + CCR5 (early) or CXCR4 (late).`, `gp41 mediates viral envelope-host membrane fusion.`],
+      p2: [`Homozygous CCR5-Δ32 blocks M-tropic HIV-1 entry.`, `p24 antigen rises sharply before seroconversion.`],
+      p3: [`Maraviroc is a CCR5 antagonist used in R5-tropic HIV.`, `Screen HLA-B*5701 before starting abacavir.`]
+    }
+  },
+  {
+    id: `HV01-Q2`, lo: 1, sector: `sector_1`, compartment: `cd4_lymphoid`, ageGroup: `immunocompromised_hiv`, behavior: `retroviral_integration`,
+    loTitle: `Sector I • HIV-1/2 Entry & Lifecycle`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `env Gene (gp41 Fusion)`,
+    stem: `During HIV-1 entry into a CD4+ helper T cell, surface glycoprotein attachment induces a conformational shift that exposes a transmembrane viral protein to harpoon the host plasma membrane. Which viral gene encodes both the attachment glycoprotein and this fusion protein?`,
+    clue: `Recall the three core HIV structural/enzymatic genes: gag, pol, and env.`,
+    choices: [`env gene (gp120 and gp41)`, `gag gene (p24 and p17)`, `pol gene (RT and integrase)`],
+    correctIndex: 0,
+    explanation: `Correct: The env gene encodes precursor gp160, cleaved into surface gp120 (CD4/coreceptor binding) and transmembrane gp41 (membrane fusion). Distractor exclusion: gag encodes internal capsid/matrix proteins (p24/p17); pol encodes reverse transcriptase, integrase, and protease.`,
+    secondOrderClue: `env = gp120 (docking) + gp41 (grappling-hook fusion); enfuvirtide inhibits gp41.`,
+    phase1Pearl: `All retroviruses carry diploid +ssRNA and reverse transcriptase inside the virion to synthesize dsDNA for proviral integration.`,
+    phase2Hallmark: `Western blot / differentiation assays detect host antibodies against env (gp120/gp41) and gag (p24) proteins.`,
+    phase3Secret: `Guild Master's Secret: NNRTIs (efavirenz) and enfuvirtide are active ONLY against HIV-1, not HIV-2.`,
+    dossierBullets: {
+      p1: [`env -> gp160 -> gp120 (CD4 binding) + gp41 (fusion).`, `pol -> reverse transcriptase, integrase, protease.`],
+      p2: [`gag -> p24 capsid antigen used in 4th-gen screening.`, `Diploid +ssRNA retrovirus replicates via DNA intermediate.`],
+      p3: [`Enfuvirtide binds gp41 to block fusion.`, `2 NRTIs + INSTI is standard first-line ART.`]
+    }
+  },
+  {
+    id: `HV01-Q3`, lo: 1, sector: `sector_1`, compartment: `cd4_lymphoid`, ageGroup: `immunocompromised_hiv`, behavior: `retroviral_integration`,
+    loTitle: `Sector I • HIV-1/2 Entry & Lifecycle`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `HLA-B*5701 Screening (Abacavir)`,
+    stem: `A 34-year-old woman newly diagnosed with HIV-1 is evaluated for a 3-drug antiretroviral regimen containing two NRTIs plus an integrase strand transfer inhibitor. Before initiating abacavir, which pharmacogenomic test is mandatory to prevent a life-threatening hypersensitivity reaction?`,
+    clue: `One specific NRTI triggers severe fever, rash, and GI/respiratory hypersensitivity in carriers of a classic MHC I allele.`,
+    choices: [`HLA-B*5701 allele testing`, `G6PD enzyme activity assay`, `TPMPT methyltransferase genotyping`],
+    correctIndex: 0,
+    explanation: `Correct: Abacavir is contraindicated in patients positive for HLA-B*5701 due to severe, potentially fatal hypersensitivity reactions. Distractor exclusion: G6PD deficiency causes hemolysis with dapsone/primaquine, not abacavir; TPMT governs azathioprine/6-MP toxicity.`,
+    secondOrderClue: `Abacavir = HLA-B*5701; Zidovudine = pregnancy prophylaxis + megaloblastic anemia/neutropenia.`,
+    phase1Pearl: `NRTIs lack a 3'-OH group, causing premature DNA chain termination after intracellular phosphorylation.`,
+    phase2Hallmark: `Integrase inhibitors (bictegravir, dolutegravir) can cause mild weight gain and elevated creatine kinase.`,
+    phase3Secret: `Guild Master's Secret: Never re-challenge a patient with abacavir hypersensitivity—re-exposure can be fatal.`,
+    dossierBullets: {
+      p1: [`NRTIs competitively inhibit reverse transcriptase and terminate dsDNA.`, `Tenofovir is a nucleotide analog; others are nucleosides.`],
+      p2: [`HLA-B*5701 predicts abacavir hypersensitivity.`, `Zidovudine toxicity includes myelosuppression (G-CSF/EPO responsive).`],
+      p3: [`First-line ART = 2 NRTIs + Integrase Inhibitor.`, `Prophylaxis in pregnancy uses zidovudine + ART.`]
+    }
+  },
+
+  // LO 2: Acute HIV Seroconversion & LAD
+  {
+    id: `HV02-Q1`, lo: 2, sector: `sector_1`, compartment: `cd4_lymphoid`, ageGroup: `immunocompromised_hiv`, behavior: `retroviral_integration`,
+    loTitle: `Sector I • Acute HIV Seroconversion`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `HIV-1 RNA NAT (Acute Viremia)`,
+    stem: `A 24-year-old man develops high fever, sore throat, generalized tender cervical and axillary lymphadenopathy, and a diffuse maculopapular rash 16 days after unprotected sexual intercourse. A rapid Monospot test is negative, and an initial HIV antibody-only screen is nonreactive. What is the best test to confirm the diagnosis now?`,
+    clue: `During the acute window period before host IgG antibodies develop, viral load is extremely high.`,
+    choices: [`HIV-1 RNA nucleic acid test`, `Repeat Monospot heterophile assay`, `Western blot IgG confirmation`],
+    correctIndex: 0,
+    explanation: `Correct: During acute HIV seroconversion, HIV-1 RNA NAT (and p24 antigen) becomes positive weeks before HIV antibodies appear. Distractor exclusion: Monospot detects EBV heterophile IgM; Western blot relies on host antibodies and is negative during the pre-seroconversion window.`,
+    secondOrderClue: `Mono-like illness + Monospot negative + high-risk exposure = Acute HIV -> order p24 Ag/Ab + HIV RNA NAT.`,
+    phase1Pearl: `Acute HIV disseminates rapidly to GALT and lymph nodes, causing massive early CD4+ memory T-cell destruction.`,
+    phase2Hallmark: `Diagnostic algorithm: 4th-gen HIV-1/2 Ag/Ab combo -> HIV-1/2 antibody differentiation -> HIV-1 NAT if discordant.`,
+    phase3Secret: `Guild Master's Secret: Patients in acute seroconversion have sky-high viral loads and highest transmission infectivity.`,
+    dossierBullets: {
+      p1: [`Window period: viral RNA rises first (~day 10), then p24 Ag (~day 15), then IgG.`, `Mimics EBV infectious mononucleosis clinically.`],
+      p2: [`4th-generation immunoassay detects both p24 Ag and HIV-1/2 Abs.`, `Discordant Ag/Ab vs differentiation requires HIV-1 NAT.`],
+      p3: [`Start ART immediately upon diagnosis to preserve CD4 pool.`, `Counsel on high transmissibility during acute viremia.`]
+    }
+  },
+  {
+    id: `HV02-Q2`, lo: 2, sector: `sector_1`, compartment: `cd4_lymphoid`, ageGroup: `immunocompromised_hiv`, behavior: `retroviral_integration`,
+    loTitle: `Sector I • Acute HIV Seroconversion`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Follicular Hyperplasia -> Involution`,
+    stem: `A lymph node biopsy from an asymptomatic patient with chronic untreated HIV infection demonstrates enlarged, hyperplastic lymphoid follicles early in disease, which later progress to depleted, burned-out germinal centers and paracortical atrophy. What drives this biphasic lymph node pathology?`,
+    clue: `During clinical latency, HIV actively replicates inside follicular dendritic networks and CD4+ T cells within nodes.`,
+    choices: [`Continuous nodal replication and CD4+ lysis`, `EBV-induced paracortical CD8+ expansion`, `HHV-8 viral IL-6 onion-skinning`],
+    correctIndex: 0,
+    explanation: `Correct: Throughout clinical latency, HIV replicates in lymph node CD4+ T cells and is trapped on follicular dendritic cells, causing early follicular hyperplasia followed by architectural destruction and CD4+ depletion. Distractor exclusion: EBV causes acute paracortical CD8+ hyperplasia; HHV-8 causes onion-skinning in Castleman disease.`,
+    secondOrderClue: `HIV clinical latency != viral dormancy; lymph nodes act as active viral factories.`,
+    phase1Pearl: `Trapping of HIV virions by follicular dendritic cells activates B cells (polyclonal hypergammaglobulinemia) while progressively lysing CD4+ T cells.`,
+    phase2Hallmark: `Early HIV LAD shows florid follicular hyperplasia; end-stage AIDS nodes show severe lymphoid depletion and hyalinization.`,
+    phase3Secret: `Guild Master's Secret: Persistent generalized lymphadenopathy (≥2 non-inguinal sites for >3 months) is classic in early HIV.`,
+    dossierBullets: {
+      p1: [`Clinical latency lasts ~8–10 years while HIV replicates in lymph nodes.`, `Follicular dendritic cells trap virions and infect passing CD4+ cells.`],
+      p2: [`Early node: follicular hyperplasia; Late AIDS node: depleted germinal centers.`, `Paracortex thins as CD4+ T-cell counts fall.`],
+      p3: [`Persistent generalized LAD warrants HIV testing.`, `ART halts nodal architectural destruction.`]
+    }
+  },
+  {
+    id: `HV02-Q3`, lo: 2, sector: `sector_1`, compartment: `cd4_lymphoid`, ageGroup: `immunocompromised_hiv`, behavior: `retroviral_integration`,
+    loTitle: `Sector I • Acute HIV Seroconversion`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `HIV-1/2 Differentiation Immunoassay`,
+    stem: `A 31-year-old patient undergoes routine STI screening and has a reactive 4th-generation HIV-1/2 antigen/antibody combination immunoassay. According to the standard CDC diagnostic algorithm, what is the immediate next laboratory step?`,
+    clue: `After a reactive 4th-gen screen, you must distinguish HIV-1 antibodies from HIV-2 antibodies before jumping to NAT.`,
+    choices: [`HIV-1/HIV-2 antibody differentiation immunoassay`, `CD4+ T-cell flow cytometry alone`, `CSF HIV-1 viral load PCR`],
+    correctIndex: 0,
+    explanation: `Correct: A reactive 4th-generation HIV-1/2 Ag/Ab combo test is followed immediately by an HIV-1/HIV-2 antibody differentiation immunoassay; NAT is performed if differentiation is nonreactive or indeterminate. Distractor exclusion: CD4 flow cytometry stages disease after diagnosis; CSF PCR is not part of serum screening.`,
+    secondOrderClue: `4th-gen Ag/Ab (+) -> Ab Differentiation (+) = confirmed; Differentiation (-) -> HIV-1 NAT.`,
+    phase1Pearl: `HIV-2 is less transmissible and progresses more slowly than HIV-1, and is intrinsically resistant to NNRTIs.`,
+    phase2Hallmark: `The 4th-gen combo test shortens the diagnostic window by detecting p24 capsid protein alongside anti-HIV-1/2 IgG/IgM.`,
+    phase3Secret: `Guild Master's Secret: Always check baseline HIV genotype resistance testing and CD4 count prior to or alongside ART start.`,
+    dossierBullets: {
+      p1: [`p24 capsid antigen appears ~15 days post-infection.`, `HIV-2 lacks susceptibility to NNRTIs and enfuvirtide.`],
+      p2: [`Step 1: HIV-1/2 Ag/Ab combo; Step 2: HIV-1/2 Ab differentiation.`, `Step 3 (if Step 2 negative/indeterminate): HIV-1 NAT.`],
+      p3: [`Order baseline resistance genotype, HBV/HCV serology, and CD4 count.`, `Never delay ART initiation unnecessarily.`]
+    }
+  },
+
+  // LO 3: HIV Opportunistic Lymphomas & CNS Mass Lesions
+  {
+    id: `HV03-Q1`, lo: 3, sector: `sector_1`, compartment: `bcell_reticulo`, ageGroup: `immunocompromised_hiv`, behavior: `oncogenic_transformation`,
+    loTitle: `Sector I • HIV Opportunistic Lymphoma`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Primary CNS Lymphoma (EBV)`,
+    stem: `A 41-year-old man with untreated HIV (CD4 count 38/mm³) presents with 3 weeks of progressive confusion, headache, and right-sided hemiparesis. Brain MRI with contrast reveals a solitary, homogeneously ring-enhancing lesion in the left periventricular white matter. Serum Toxoplasma IgG is negative. What is the most likely diagnosis?`,
+    clue: `Solitary periventricular ring-enhancing brain lesion in AIDS with CD4 < 100 and negative Toxoplasma serology.`,
+    choices: [`EBV-associated primary CNS lymphoma`, `Toxoplasma gondii cerebral abscesses`, `JC virus progressive multifocal leukoencephalopathy`],
+    correctIndex: 0,
+    explanation: `Correct: Primary CNS lymphoma in AIDS (typically EBV-driven DLBCL) presents with CD4 < 100 and a solitary periventricular ring-enhancing lesion, especially when Toxoplasma IgG is negative. Distractor exclusion: Toxoplasma classically forms multiple basal ganglia ring-enhancing lesions with positive IgG; PML causes non-enhancing multifocal demyelination.`,
+    secondOrderClue: `AIDS + CD4 < 100 + Solitary ring-enhancing MRI + Toxo IgG(-) = Primary CNS Lymphoma (EBV+).`,
+    phase1Pearl: `Severe T-cell immunodeficiency permits unchecked proliferation of EBV-transformed B cells in immunoprivileged CNS tissue.`,
+    phase2Hallmark: `MRI shows solitary periventricular enhancing lesion crossing corpus callosum; CSF is positive for EBV DNA by PCR.`,
+    phase3Secret: `Guild Master's Secret: In Toxoplasma IgG+ patients with multiple lesions, start empiric pyrimethamine-sulfadiazine; biopsy if no improvement in 1–2 weeks.`,
+    dossierBullets: {
+      p1: [`EBV latent proteins drive B-cell survival when T-cell immunity fails.`, `CD4 < 100/mm³ is the high-risk threshold.`],
+      p2: [`Solitary periventricular ring-enhancing mass on MRI.`, `CSF EBV PCR supports diagnosis; biopsy shows large atypical B cells.`],
+      p3: [`Distinguish from Toxoplasma (multiple, Toxo IgG+) and PML (non-enhancing).`, `Treat with ART + CNS-penetrating chemotherapy.`]
+    }
+  },
+  {
+    id: `HV03-Q2`, lo: 3, sector: `sector_1`, compartment: `bcell_reticulo`, ageGroup: `immunocompromised_hiv`, behavior: `oncogenic_transformation`,
+    loTitle: `Sector I • HIV Opportunistic Lymphoma`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Loss of CD8+ T-Cell Surveillance`,
+    stem: `An AIDS patient with CD4 count of 45/mm³ develops high-grade diffuse large B-cell lymphoma involving the gastrointestinal tract and brain. Molecular analysis detects clonal Epstein-Barr virus genomes within the malignant B cells. Which immunologic defect directly permits this malignancy?`,
+    clue: `Latent EBV B cells are normally kept in check by cytotoxic T-cell immunity.`,
+    choices: [`Impaired T-cell immunosurveillance of EBV+ B cells`, `Direct HIV integration into B-cell oncogenes`, `Loss of erythroid P antigen expression`],
+    correctIndex: 0,
+    explanation: `Correct: Depletion of CD4+ helper T cells impairs cytotoxic CD8+ T-cell surveillance, allowing latently EBV-infected B cells to proliferate clonally into NHL/DLBCL. Distractor exclusion: HIV infects CD4+ T cells and macrophages, not B cells directly; P antigen is the Parvovirus B19 receptor.`,
+    secondOrderClue: `HIV indirectly causes B-cell lymphoma by removing T-cell brakes on EBV-immortalized B cells.`,
+    phase1Pearl: `EBV LMP-1 mimics constitutively active CD40 signaling on B cells, activating NF-κB and BCL-2 anti-apoptotic pathways.`,
+    phase2Hallmark: `AIDS-defining lymphomas include CNS lymphoma, Burkitt lymphoma, and immunoblastic DLBCL (CD20+).`,
+    phase3Secret: `Guild Master's Secret: Starting ART restores T-cell surveillance and improves chemotherapy tolerance in HIV-associated NHL.`,
+    dossierBullets: {
+      p1: [`Loss of CD4+ help disables CD8+ cytotoxic control of latent EBV.`, `EBV LMP-1 drives NF-κB activation and B-cell survival.`],
+      p2: [`Extranodal GI or CNS involvement is characteristic in AIDS.`, `Tumor cells express pan-B markers (CD19, CD20).`],
+      p3: [`Combine ART with rituximab-based chemoimmunotherapy (monitor CD4).`, `Prophylaxis for PCP (TMP-SMX) is essential when CD4 < 200.`]
+    }
+  },
+  {
+    id: `HV03-Q3`, lo: 3, sector: `sector_1`, compartment: `bcell_reticulo`, ageGroup: `immunocompromised_hiv`, behavior: `oncogenic_transformation`,
+    loTitle: `Sector I • HIV Opportunistic Lymphoma`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `CSF EBV PCR & Periventricular Mass`,
+    stem: `A 38-year-old man with AIDS (CD4 52/mm³) fails to improve after 10 days of empiric pyrimethamine, sulfadiazine, and leucovorin for a solitary enhancing cerebral lesion. Lumbar puncture reveals mild lymphocytic pleocytosis and elevated protein. Which diagnostic test on CSF most strongly supports primary CNS lymphoma?`,
+    clue: `This viral PCR in CSF has high specificity for AIDS-related primary CNS lymphoma.`,
+    choices: [`Epstein-Barr virus DNA PCR`, `JC virus DNA PCR`, `Cryptococcal capsular antigen`],
+    correctIndex: 0,
+    explanation: `Correct: CSF EBV PCR is highly specific for AIDS-related primary CNS lymphoma in the setting of a solitary enhancing brain lesion unresponsive to anti-Toxoplasma therapy. Distractor exclusion: JC virus causes non-enhancing PML white-matter lesions; Cryptococcus causes meningitis with encapsulated yeast on India ink.`,
+    secondOrderClue: `Failed Toxo trial + enhancing mass -> CSF EBV PCR / stereotactic brain biopsy.`,
+    phase1Pearl: `EBV remains episomal inside malignant B lymphocytes and expresses latency proteins driving uncontrolled division.`,
+    phase2Hallmark: `Spectroscopy/FDG-PET shows hypermetabolic uptake in CNS lymphoma (vs hypometabolic Toxoplasma abscess).`,
+    phase3Secret: `Guild Master's Secret: Avoid corticosteroids before brain biopsy if possible, as steroids rapidly lyse lymphoma cells and yield false-negative histology.`,
+    dossierBullets: {
+      p1: [`EBV latency drives CNS DLBCL in profound T-cell deficiency.`, `Hypermetabolic glucose uptake distinguishes tumor from abscess.`],
+      p2: [`CSF EBV PCR + solitary periventricular lesion = PCNSL.`, `Biopsy shows sheets of large atypical CD20+ B cells.`],
+      p3: [`Withhold steroids prior to biopsy unless herniation is imminent.`, `Initiate ART + high-dose methotrexate.`]
+    }
+  },
+
+  // LO 4: EBV (HHV-4) Mononucleosis
+  {
+    id: `HV04-Q1`, lo: 4, sector: `sector_2`, compartment: `bcell_reticulo`, ageGroup: `adolescent_adult`, behavior: `oncogenic_transformation`,
+    loTitle: `Sector II • EBV Infectious Mononucleosis`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `EBV Infectious Mononucleosis`,
+    stem: `A 19-year-old college student presents with 6 days of fever, severe sore throat with tonsillar exudates, bilateral posterior cervical lymphadenopathy, and palpable splenomegaly. Two days ago, an urgent care clinic prescribed amoxicillin for presumed streptococcal pharyngitis, and she now has a diffuse maculopapular rash. What is the most likely diagnosis?`,
+    clue: `Teenager + posterior cervical LAD + splenomegaly + rash after amoxicillin.`,
+    choices: [`EBV infectious mononucleosis`, `Group A streptococcal pharyngitis`, `Acute Parvovirus B19 infection`],
+    correctIndex: 0,
+    explanation: `Correct: EBV infectious mononucleosis presents in teens/young adults with exudative pharyngitis, posterior cervical LAD, hepatosplenomegaly, and a classic non-allergic maculopapular rash following amoxicillin/ampicillin. Distractor exclusion: Strep pharyngitis causes anterior cervical LAD without splenomegaly; Parvovirus B19 causes slapped-cheek rash without exudative tonsillitis.`,
+    secondOrderClue: `Exudative pharyngitis + Posterior cervical LAD + Amoxicillin rash = EBV (NOT penicillin allergy).`,
+    phase1Pearl: `EBV infects oropharyngeal epithelium and B cells, triggering an intense CD8+ T-cell immune response responsible for symptoms.`,
+    phase2Hallmark: `Peripheral blood smear shows atypical lymphocytes (Downey cells) and positive Monospot heterophile antibodies.`,
+    phase3Secret: `Guild Master's Secret: The amoxicillin rash in EBV is NOT a true IgE drug allergy; advise against contact sports for 3–4 weeks.`,
+    dossierBullets: {
+      p1: [`Transmitted via saliva ("kissing disease").`, `Infects B cells; CD8+ T cells cause symptoms.`],
+      p2: [`Posterior cervical LAD + tonsillar exudates + splenomegaly.`, `Amoxicillin/ampicillin triggers non-allergic rash.`],
+      p3: [`Supportive care only; no acyclovir for uncomplicated mono.`, `Avoid contact sports due to splenic rupture risk.`]
+    }
+  },
+  {
+    id: `HV04-Q2`, lo: 4, sector: `sector_2`, compartment: `bcell_reticulo`, ageGroup: `adolescent_adult`, behavior: `oncogenic_transformation`,
+    loTitle: `Sector II • EBV Infectious Mononucleosis`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `CD21 Binding & CD8+ T-Cell Response`,
+    stem: `A 20-year-old man with infectious mononucleosis has a white blood cell count of 18,000/mm³ with 65% lymphocytes, many of which are large with abundant pale-blue cytoplasm scalloping around red blood cells. Which cellular interaction explains both viral entry and the identity of these atypical lymphocytes?`,
+    clue: `"Must be 21 to drink in Epstein's Bar" — distinguish the infected target cell from the reactive cell on smear.`,
+    choices: [`EBV binds B-cell CD21; atypical cells are CD8+ T cells`, `EBV binds T-cell CD4; atypical cells are B cells`, `EBV binds NK-cell CD56; atypical cells are monocytes`],
+    correctIndex: 0,
+    explanation: `Correct: EBV envelope glycoprotein gp350 binds B-cell CD21 (complement receptor 2), while the atypical Downey lymphocytes on peripheral smear are reactive cytotoxic CD8+ T cells targeting infected B cells. Distractor exclusion: CD4 is bound by HIV/HHV-6; atypical lymphocytes in mono are CD8+ T cells, not monocytes or B cells.`,
+    secondOrderClue: `Infects B cells (CD21) -> Reactive CD8+ T cells (Downey cells) expand lymph node paracortex & splenic PALS.`,
+    phase1Pearl: `CD8+ T-cell hyperplasia expands the lymph node paracortex (T-cell zone) and splenic periarteriolar lymphoid sheath (PALS).`,
+    phase2Hallmark: `Downey cells have abundant basophilic cytoplasm indented by adjacent erythrocytes on peripheral smear.`,
+    phase3Secret: `Guild Master's Secret: Definitive serologic diagnosis (when Monospot is negative early or in young children) is EBV Viral Capsid Antigen (VCA) IgM.`,
+    dossierBullets: {
+      p1: [`EBV binds B-cell CD21 (CR2).`, `Atypical lymphocytes = reactive cytotoxic CD8+ T cells.`],
+      p2: [`Lymph node paracortex and splenic PALS undergo T-cell hyperplasia.`, `Monospot detects IgM heterophile antibodies (positive after ~1 week).`],
+      p3: [`Negative Monospot? Order EBV VCA IgM or suspect CMV/acute HIV.`, `Screen for airway obstruction if massive tonsillar hypertrophy.`]
+    }
+  },
+  {
+    id: `HV04-Q3`, lo: 4, sector: `sector_2`, compartment: `bcell_reticulo`, ageGroup: `adolescent_adult`, behavior: `oncogenic_transformation`,
+    loTitle: `Sector II • EBV Infectious Mononucleosis`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Heterophile IgM & Splenic Precautions`,
+    stem: `A 17-year-old high school linebacker is diagnosed with EBV infectious mononucleosis via peripheral smear and a rapid screening assay that agglutinates horse erythrocytes. Which diagnostic mechanism does this test detect, and what is the most critical discharge instruction?`,
+    clue: `Think about the antibody class in Monospot and the potentially fatal complication of blunt abdominal trauma.`,
+    choices: [`IgM heterophile antibodies; avoid contact sports`, `IgG anti-gp120 antibodies; start valacyclovir`, `IgE anti-amoxicillin; prescribe prednisone`],
+    correctIndex: 0,
+    explanation: `Correct: The Monospot screening test detects IgM heterophile antibodies that cross-react with sheep or horse RBCs, and patients must avoid contact sports/heavy lifting to prevent splenic rupture. Distractor exclusion: Valacyclovir is not recommended for routine mono; prednisone is reserved for impending airway obstruction, not routine cases.`,
+    secondOrderClue: `Monospot = IgM heterophile agglutination of sheep/horse RBCs; Splenic PALS expansion -> rupture risk.`,
+    phase1Pearl: `Heterophile antibodies are polyclonal IgM antibodies produced by EBV-stimulated B cells that incidentally agglutinate animal RBCs.`,
+    phase2Hallmark: `Monospot may be falsely negative during the first week of illness or in children <4 years old.`,
+    phase3Secret: `Guild Master's Secret: Sudden left upper quadrant pain radiating to the left shoulder (Kehr sign) + hypotension in mono = splenic rupture.`,
+    dossierBullets: {
+      p1: [`Polyclonal B-cell activation generates IgM heterophile antibodies.`, `Splenic PALS hyperplasia stretches the splenic capsule.`],
+      p2: [`Monospot agglutinates horse/sheep RBCs (turns positive ~1 wk).`, `Elevated transaminases reflect mild EBV hepatitis.`],
+      p3: [`Restrict contact sports for at least 3–4 weeks until splenomegaly resolves.`, `Avoid aspirin in adolescents/children (Reye syndrome risk).`]
+    }
+  },
+
+  // LO 5: EBV Burkitt Lymphoma t(8;14)
+  {
+    id: `HV05-Q1`, lo: 5, sector: `sector_2`, compartment: `bcell_reticulo`, ageGroup: `pediatric_hemoglobinopathy`, behavior: `oncogenic_transformation`,
+    loTitle: `Sector II • EBV Burkitt Lymphoma`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Endemic Burkitt Lymphoma`,
+    stem: `An 8-year-old boy from equatorial Africa presents with a rapidly enlarging, painless mass involving the mandible that has doubled in size over 3 weeks, causing loosening of his molar teeth. Biopsy reveals high-grade B-cell lymphoma positive for EBV. What is the diagnosis?`,
+    clue: `Rapidly growing jaw mass in an equatorial African child linked to EBV and holoendemic malaria.`,
+    choices: [`Endemic Burkitt lymphoma`, `Hodgkin lymphoma (nodular sclerosis)`, `Acute lymphoblastic leukemia`],
+    correctIndex: 0,
+    explanation: `Correct: Endemic Burkitt lymphoma classically presents as a rapidly growing jaw/mandibular lesion in children from sub-Saharan Africa where EBV and chronic malaria co-exist. Distractor exclusion: Nodular sclerosis Hodgkin lymphoma presents with mediastinal mass and Reed-Sternberg cells in young adults; ALL presents with bone marrow pancytopenia.`,
+    secondOrderClue: `African child + Jaw mass + EBV = Endemic Burkitt; US child + Ileocecal mass = Sporadic Burkitt.`,
+    phase1Pearl: `Chronic malaria impairs T-cell control of EBV and stimulates germinal center AID expression, promoting c-myc translocation.`,
+    phase2Hallmark: `Classic "starry-sky" histology on H&E; tumor cells express CD19, CD20, BCL-6, and surface IgM.`,
+    phase3Secret: `Guild Master's Secret: Burkitt lymphoma has the fastest doubling time of any human tumor—watch closely for tumor lysis syndrome.`,
+    dossierBullets: {
+      p1: [`Endemic form (jaw) is nearly 100% EBV+; sporadic form (abdomen) ~20% EBV+.`, `Malaria acts as a chronic B-cell mitogen.`],
+      p2: [`Mandibular/maxillary bone destruction in endemic disease.`, `High mitotic rate and Ki-67 approaching 100%.`],
+      p3: [`Rapidly responsive to intensive multi-agent chemotherapy.`, `Pre-treat with hydration + allopurinol or rasburicase.`]
+    }
+  },
+  {
+    id: `HV05-Q2`, lo: 5, sector: `sector_2`, compartment: `bcell_reticulo`, ageGroup: `pediatric_hemoglobinopathy`, behavior: `oncogenic_transformation`,
+    loTitle: `Sector II • EBV Burkitt Lymphoma`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `t(8;14) c-myc Overexpression`,
+    stem: `Cytogenetic analysis of a mandibular B-cell tumor in a child shows a reciprocal chromosomal translocation placing a transcription factor proto-oncogene next to an actively transcribed immunoglobulin heavy chain enhancer. Which translocation and oncogene drive this tumor?`,
+    clue: `Chromosome 8 carries the myc transcription factor; chromosome 14 carries the Ig heavy chain locus.`,
+    choices: [`t(8;14) activating c-myc oncogene`, `t(14;18) activating BCL-2 oncogene`, `t(11;14) activating cyclin D1`],
+    correctIndex: 0,
+    explanation: `Correct: Burkitt lymphoma is driven by t(8;14), which translocates c-myc (chromosome 8) next to the Ig heavy chain gene (chromosome 14), causing constitutive c-myc transcription and rapid proliferation. Distractor exclusion: t(14;18) activates BCL-2 in follicular lymphoma; t(11;14) activates cyclin D1 in mantle cell lymphoma.`,
+    secondOrderClue: `t(8;14) = c-myc (Burkitt); t(14;18) = BCL-2 (Follicular); t(11;14) = Cyclin D1 (Mantle cell).`,
+    phase1Pearl: `c-myc encodes a nuclear transcription factor that accelerates cell-cycle entry (cyclins/CDKs) and metabolic biomass synthesis.`,
+    phase2Hallmark: `Malignant lymphocytes are medium-sized with round nuclei, multiple nucleoli, and deeply basophilic cytoplasm with lipid vacuoles.`,
+    phase3Secret: `Guild Master's Secret: High cell turnover yields elevated serum LDH and uric acid even before chemotherapy starts.`,
+    dossierBullets: {
+      p1: [`t(8;14) -> c-myc driven by Ig heavy chain enhancer.`, `Variant translocations t(2;8) and t(8;22) involve light chains.`],
+      p2: [`Rapid cell proliferation paired with high spontaneous apoptosis.`, `Elevated LDH reflects extreme tumor burden.`],
+      p3: [`Prevent tumor lysis syndrome (hyperkalemia, hyperphosphatemia, hypocalcemia, hyperuricemia).`, `Use rasburicase (uric acid -> allantoin) in high-risk cases.`]
+    }
+  },
+  {
+    id: `HV05-Q3`, lo: 5, sector: `sector_2`, compartment: `bcell_reticulo`, ageGroup: `pediatric_hemoglobinopathy`, behavior: `oncogenic_transformation`,
+    loTitle: `Sector II • EBV Burkitt Lymphoma`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Starry-Sky Tingible-Body Macrophages`,
+    stem: `Histologic examination of an excised ileocecal mass from a 10-year-old boy demonstrates diffuse sheets of monotonous, deeply basophilic lymphocytes punctuated by scattered pale macrophages containing phagocytosed nuclear debris. What does this classic microscopic pattern represent?`,
+    clue: `Rapid proliferation causes massive apoptosis, creating pale phagocytes ("stars") against a dark blue lymphoid "sky."`,
+    choices: [`Starry-sky pattern with tingible-body macrophages`, `Owl-eye Reed-Sternberg cells in fibrotic bands`, `Onion-skinning around hyalinized vessels`],
+    correctIndex: 0,
+    explanation: `Correct: The "starry-sky" appearance of Burkitt lymphoma results from abundant tingible-body macrophages clearing apoptotic nuclear debris amidst dense sheets of dark-blue tumor cells. Distractor exclusion: Reed-Sternberg cells define Hodgkin lymphoma; onion-skinning characterizes Castleman disease.`,
+    secondOrderClue: `Starry-sky = dark neoplastic B cells ("sky") + pale tingible-body macrophages ("stars").`,
+    phase1Pearl: `c-myc simultaneously drives cell division and sensitizes cells to apoptosis, feeding debris to resident macrophages.`,
+    phase2Hallmark: `Tingible-body macrophages stain pale with engulfed apoptotic bodies ("tingible bodies") on H&E.`,
+    phase3Secret: `Guild Master's Secret: Because of massive cell lysis on chemo day 1, monitor K+, PO4, Ca2+, uric acid, and Cr every 4–6 hours.`,
+    dossierBullets: {
+      p1: [`High mitotic index balanced by high spontaneous apoptosis.`, `Macrophages clear apoptotic nuclear fragments.`],
+      p2: [`H&E shows classic "starry-sky" appearance.`, `Ki-67 staining is nearly 100% positive.`],
+      p3: [`Immediate aggressive IV hydration + urate-lowering therapy.`, `Avoid urinary alkalinization if using rasburicase (calcium phosphate precipitation risk).`]
+    }
+  },
+
+  // LO 6: CMV (HHV-5) Mononucleosis & Retinitis
+  {
+    id: `HV06-Q1`, lo: 6, sector: `sector_2`, compartment: `bcell_reticulo`, ageGroup: `immunocompromised_hiv`, behavior: `retroviral_integration`,
+    loTitle: `Sector II • CMV Mononucleosis & Retinitis`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `CMV Retinitis (AIDS CD4 < 50)`,
+    stem: `A 36-year-old man with untreated HIV (CD4 count 24/mm³) reports progressive painless floaters and blurred vision in his right eye. Dilated fundoscopy demonstrates perivascular retinal hemorrhages and fluffy white exudates resembling "pizza pie." What is the most likely diagnosis?`,
+    clue: `"Sightomegalovirus" strikes AIDS patients when CD4 drops below 50/mm³.`,
+    choices: [`Cytomegalovirus (CMV) retinitis`, `Toxoplasma chorioretinitis`, `Herpes zoster ophthalmicus`],
+    correctIndex: 0,
+    explanation: `Correct: CMV retinitis ("sightomegalovirus") occurs in AIDS patients with CD4 < 50/mm³ and produces painless vision loss with retinal hemorrhages and cotton-wool exudates. Distractor exclusion: Toxoplasma chorioretinitis causes necrotizing yellow-white lesions with vitreous inflammation; HZO affects CN V1 dermatomal skin and cornea.`,
+    secondOrderClue: `CD4 < 50 + Painless vision loss + Retinal hemorrhages & exudates = CMV retinitis.`,
+    phase1Pearl: `CMV reactivates from latent reservoirs inside mononuclear leukocytes when severe cellular immunodeficiency develops.`,
+    phase2Hallmark: `Biopsy of CMV-infected GI/lung tissue shows giant cells with large basophilic intranuclear "owl-eye" inclusions.`,
+    phase3Secret: `Guild Master's Secret: CMV mononucleosis in immunocompetent adults causes atypical lymphocytosis with a NEGATIVE Monospot test.`,
+    dossierBullets: {
+      p1: [`Latent in monocytes, macrophages, and lymphocytes.`, `Reactivates when CD4 < 50/mm³ or post-transplant.`],
+      p2: [`Fundoscopy: retinal hemorrhages + cotton-wool exudates.`, `Histology: large intranuclear "owl-eye" inclusion bodies.`],
+      p3: [`Treat with IV/intravitreal ganciclovir (or oral valganciclovir) + ART.`, `Also causes linear esophageal ulcers and colitis in AIDS.`]
+    }
+  },
+  {
+    id: `HV06-Q2`, lo: 6, sector: `sector_2`, compartment: `bcell_reticulo`, ageGroup: `immunocompromised_hiv`, behavior: `retroviral_integration`,
+    loTitle: `Sector II • CMV Mononucleosis & Retinitis`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `UL97 Kinase Phosphorylation`,
+    stem: `A renal transplant recipient develops CMV pneumonitis refractory to first-line ganciclovir therapy. Sequencing of the viral isolate reveals a mutation that prevents initial monophosphorylation of the antiviral prodrug inside infected cells. Which viral enzyme is mutated?`,
+    clue: `Unlike HSV/VZV thymidine kinase, CMV uses a specific protein kinase to activate ganciclovir.`,
+    choices: [`CMV UL97 protein kinase`, `HSV thymidine kinase (TK)`, `Viral RNA-dependent RNA polymerase`],
+    correctIndex: 0,
+    explanation: `Correct: Ganciclovir requires initial phosphorylation by CMV-encoded UL97 kinase before host kinases convert it to the active triphosphate that inhibits viral DNA polymerase; UL97 mutations confer resistance. Distractor exclusion: HSV and VZV use viral thymidine kinase for acyclovir; CMV is a dsDNA virus without an RdRp.`,
+    secondOrderClue: `CMV ganciclovir activation = UL97 kinase -> Foscarnet bypasses UL97 directly!`,
+    phase1Pearl: `CMV enters cells via integrins/heparan sulfate and replicates its linear dsDNA genome inside the host nucleus.`,
+    phase2Hallmark: `CMV pneumonia in transplant recipients shows interstitial infiltrates and owl-eye inclusions in alveolar macrophages/epithelium.`,
+    phase3Secret: `Guild Master's Secret: Ganciclovir causes neutropenia/myelosuppression; switch to foscarnet (monitor renal function & Ca2+/Mg2+) if UL97 resistance occurs.`,
+    dossierBullets: {
+      p1: [`Ganciclovir -> UL97 kinase -> host kinases -> inhibits viral DNA polymerase.`, `Foscarnet pyrophosphate analog requires NO viral phosphorylation.`],
+      p2: [`Congenital CMV = MCC of viral SNHL + periventricular calcifications.`, `Monospot-negative infectious mononucleosis.`],
+      p3: [`Ganciclovir AE: myelosuppression (neutropenia).`, `Foscarnet AE: nephrotoxicity and electrolyte wasting (hypocalcemia/hypomagnesemia).`]
+    }
+  },
+  {
+    id: `HV06-Q3`, lo: 6, sector: `sector_2`, compartment: `bcell_reticulo`, ageGroup: `immunocompromised_hiv`, behavior: `retroviral_integration`,
+    loTitle: `Sector II • CMV Mononucleosis & Retinitis`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Owl-Eye Intranuclear Inclusions`,
+    stem: `A 44-year-old man with AIDS and CD4 count of 30/mm³ undergoes colonoscopy for chronic bloody diarrhea and abdominal pain. Biopsy of deep mucosal ulcerations reveals markedly enlarged endothelial and stromal cells containing prominent basophilic intranuclear halos. Which diagnosis and first-line drug are indicated?`,
+    clue: `Enlarged cells ("cytomegalo-") with classic avian-eye intranuclear inclusions.`,
+    choices: [`CMV colitis; treat with IV ganciclovir`, `HSV-1 colitis; treat with oral acyclovir`, `HHV-8 sarcoma; treat with valganciclovir`],
+    correctIndex: 0,
+    explanation: `Correct: CMV colitis produces deep mucosal ulcers with characteristic cytomegalic cells harboring basophilic intranuclear "owl-eye" inclusions, treated first-line with IV ganciclovir. Distractor exclusion: HSV forms multinucleated giant cells with Cowdry A inclusions and responds to acyclovir; HHV-8 shows spindle cells and responds to ART.`,
+    secondOrderClue: `Owl-eye inclusions = CMV; Multinucleated giant cells / Cowdry A = HSV/VZV.`,
+    phase1Pearl: `CMV induces cellular enlargement (cytomegaly) as viral DNA replication and capsid assembly expand the nucleus.`,
+    phase2Hallmark: `Intranuclear "owl-eye" inclusion surrounded by a clear halo; endoscopy shows linear/punched-out ulcers.`,
+    phase3Secret: `Guild Master's Secret: In HIV esophagitis, Candida shows white plaques, HSV shows small punched-out vesicles, and CMV shows large linear deep ulcers.`,
+    dossierBullets: {
+      p1: [`CMV targets endothelial and epithelial cells, causing ischemic mucosal ulceration.`, `Replicates inside nucleus and acquires envelope from nuclear/Golgi membranes.`],
+      p2: [`Basophilic "owl-eye" intranuclear inclusions on H&E.`, `Negative Monospot in immunocompetent CMV mono.`],
+      p3: [`1st-line: Ganciclovir (or oral valganciclovir step-down).`, `2nd-line: Foscarnet or cidofovir (with probenecid + IV saline).`]
+    }
+  },
+
+  // LO 7: HTLV-1 & Adult T-Cell Leukemia/Lymphoma (ATLL)
+  {
+    id: `HV07-Q1`, lo: 7, sector: `sector_3`, compartment: `cd4_lymphoid`, ageGroup: `endemic_occupational`, behavior: `oncogenic_transformation`,
+    loTitle: `Sector III • HTLV-1 & ATLL`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `HTLV-1 Adult T-Cell Leukemia/Lymphoma`,
+    stem: `A 52-year-old man originally from southern Japan presents with diffuse lymphadenopathy, hepatosplenomegaly, violaceous skin plaques, and confusion. Serum calcium is 13.8 mg/dL, alkaline phosphatase is elevated, and skeletal radiographs reveal multiple punched-out lytic bone lesions. What is the most likely diagnosis?`,
+    clue: `Endemic to Japan/Caribbean + lytic bone lesions + hypercalcemia + T-cell malignancy.`,
+    choices: [`HTLV-1 adult T-cell leukemia/lymphoma`, `Multiple myeloma (IgG plasma cell)`, `EBV endemic Burkitt lymphoma`],
+    correctIndex: 0,
+    explanation: `Correct: HTLV-1-induced adult T-cell leukemia/lymphoma (ATLL) is endemic to Japan and the Caribbean and uniquely causes diffuse LAD, hepatosplenomegaly, skin lesions, lytic bone lesions, and severe hypercalcemia. Distractor exclusion: Multiple myeloma causes lytic lesions and hypercalcemia without diffuse LAD, skin plaques, or viral etiology; Burkitt causes starry-sky B-cell jaw/abdominal tumors.`,
+    secondOrderClue: `Japan/Caribbean + Lytic bone lesions + Hypercalcemia + LAD + Skin lesions = HTLV-1 ATLL.`,
+    phase1Pearl: `HTLV-1 infects CD4+ T cells via breast milk, blood, or sexual contact and integrates randomly as a provirus.`,
+    phase2Hallmark: `Peripheral smear reveals CD4+CD25+ T lymphocytes with multilobed "flower cell" (cloverleaf) nuclei.`,
+    phase3Secret: `Guild Master's Secret: Unlike multiple myeloma, ATLL presents with prominent lymphadenopathy, hepatosplenomegaly, and hypercalcemic skin/bone involvement.`,
+    dossierBullets: {
+      p1: [`Enveloped +ssRNA retrovirus; vertical transmission via breastfeeding is major route.`, `Endemic in southern Japan, Caribbean, and parts of Africa.`],
+      p2: [`Hypercalcemia + lytic bone lesions + elevated LDH.`, `CD4+ CD25+ (IL-2Rα+) T-cell phenotype.`],
+      p3: [`Treat hypercalcemia acutely with IV normal saline + bisphosphonate/calcitonin.`, `Antiviral zidovudine + IFN-α or systemic chemotherapy.`]
+    }
+  },
+  {
+    id: `HV07-Q2`, lo: 7, sector: `sector_3`, compartment: `cd4_lymphoid`, ageGroup: `endemic_occupational`, behavior: `oncogenic_transformation`,
+    loTitle: `Sector III • HTLV-1 & ATLL`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Tax Protein (NF-κB & IL-2/RANKL)`,
+    stem: `In HTLV-1-transformed CD4+ T lymphocytes, a viral transactivator protein constitutively activates host NF-κB signaling, stimulates autocrine IL-2/IL-2Rα proliferation, and upregulates PTHrP and RANKL to activate osteoclasts. Which viral regulatory protein mediates this oncogenic cascade?`,
+    clue: `Recall the two key HTLV-1 regulatory proteins: one drives transcription/NF-κB transformation, while Rex exports viral RNA.`,
+    choices: [`Tax protein`, `Rex protein`, `Nef protein`],
+    correctIndex: 0,
+    explanation: `Correct: HTLV-1 Tax protein activates NF-κB, upregulates IL-2 and IL-2 receptor (CD25) for autocrine T-cell proliferation, and induces PTHrP/RANKL-mediated osteoclastic bone resorption/hypercalcemia. Distractor exclusion: Rex regulates nuclear export of unspliced/singly spliced viral mRNAs; Nef is an HIV accessory protein that downregulates MHC I and CD4.`,
+    secondOrderClue: `HTLV-1 Tax = NF-κB + IL-2/CD25 + PTHrP/RANKL (hypercalcemia); Rex = RNA export.`,
+    phase1Pearl: `Tax also inhibits p53 and DNA repair checkpoints, causing genomic instability and clonal progression to ATLL after decades of latency.`,
+    phase2Hallmark: `High CD25 (IL-2Rα) expression on circulating malignant CD4+ T cells.`,
+    phase3Secret: `Guild Master's Secret: HTLV-1 also causes tropical spastic paraparesis (HAM/TSP) via immune-mediated thoracic spinal cord demyelination.`,
+    dossierBullets: {
+      p1: [`Tax activates NF-κB, IL-2/IL-2Rα, and osteoclast RANKL/PTHrP.`, `Rex binds the Rex-response element to export viral mRNAs from the nucleus.`],
+      p2: [`Osteoclastic bone resorption produces punched-out lytic lesions.`, `Proviral integration is monoclonal in ATLL.`],
+      p3: [`Screen blood donors for HTLV-1/2 to prevent transfusion transmission.`, `Avoid breastfeeding by HTLV-1+ mothers where safe alternatives exist.`]
+    }
+  },
+  {
+    id: `HV07-Q3`, lo: 7, sector: `sector_3`, compartment: `cd4_lymphoid`, ageGroup: `endemic_occupational`, behavior: `oncogenic_transformation`,
+    loTitle: `Sector III • HTLV-1 & ATLL`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Cloverleaf "Flower Cells" on Smear`,
+    stem: `A peripheral blood smear from a 48-year-old Caribbean woman with hypercalcemia, generalized lymphadenopathy, and cutaneous nodules shows atypical lymphocytes with deeply indented, hyperlobated cloverleaf-shaped nuclei. Which finding and management priority are correct?`,
+    clue: `Botanical nickname for the pathognomonic leukemic T cells of HTLV-1 ATLL.`,
+    choices: [`Flower cells; aggressive IV hydration for hypercalcemia`, `Downey cells; splenectomy and contact precautions`, `Smudge cells; watch-and-wait observation`],
+    correctIndex: 0,
+    explanation: `Correct: Peripheral smear in ATLL shows pathognomonic "flower cells" (CD4+ T cells with hyperlobated cloverleaf nuclei), and life-threatening hypercalcemia requires immediate IV isotonic saline resuscitation plus bisphosphonates. Distractor exclusion: Downey cells are reactive CD8+ T cells in EBV; smudge cells occur in CLL.`,
+    secondOrderClue: `Flower cells = HTLV-1 ATLL; Downey cells = EBV; Smudge cells = CLL.`,
+    phase1Pearl: `Clonal Tax-driven proliferation alters nuclear lamina architecture, producing the characteristic convoluted flower-petal nuclei.`,
+    phase2Hallmark: `Polylobated "flower cells" positive for CD3, CD4, and CD25 (negative for CD8).`,
+    phase3Secret: `Guild Master's Secret: Acute ATLL has a poor prognosis; manage hypercalcemia emergently with IV normal saline before loop diuretics or zoledronic acid.`,
+    dossierBullets: {
+      p1: [`Malignant CD4+CD25+ T cells circulate in peripheral blood and infiltrate skin.`, `PTHrP/RANKL elevates serum calcium rapidly.`],
+      p2: [`Cloverleaf / polylobated "flower cells" are diagnostic on smear.`, `Serology + PCR confirm HTLV-1.`],
+      p3: [`Emergency hypercalcemia tx: aggressive IV normal saline -> bisphosphonates/calcitonin.`, `Combination zidovudine + IFN-α used in leukemic variants.`]
+    }
+  },
+
+  // LO 8: HHV-8 (KSHV) Kaposi Sarcoma & PEL
+  {
+    id: `HV08-Q1`, lo: 8, sector: `sector_3`, compartment: `erythroid_vascular`, ageGroup: `immunocompromised_hiv`, behavior: `oncogenic_transformation`,
+    loTitle: `Sector III • HHV-8 Kaposi Sarcoma & PEL`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `HHV-8 Kaposi Sarcoma`,
+    stem: `A 37-year-old HIV-positive man (CD4 count 110/mm³) presents with painless, raised dark-purple plaques on his hard palate and lower extremities. He has no fever or exposure to cats. Biopsy reveals proliferating endothelial spindle cells forming slit-like vascular channels with extravasated erythrocytes. What is the diagnosis?`,
+    clue: `Violaceous hard palate/skin plaques + spindle cells + NO cats or neutrophilic infiltrate.`,
+    choices: [`HHV-8-associated Kaposi sarcoma`, `Bartonella henselae bacillary angiomatosis`, `Primary cutaneous angiosarcoma`],
+    correctIndex: 0,
+    explanation: `Correct: Kaposi sarcoma (HHV-8/KSHV) causes violaceous skin and hard-palate plaques with perivascular spindle-cell proliferation and slit-like vascular spaces. Distractor exclusion: Bacillary angiomatosis (Bartonella henselae) mimics KS clinically but is linked to cat scratches and shows neutrophilic inflammation with Warthin-Starry+ bacilli.`,
+    secondOrderClue: `Violaceous lesions + Spindle cells + Lymphocytic infiltrate = HHV-8 KS; Neutrophils + Cat exposure = Bartonella.`,
+    phase1Pearl: `HHV-8 (KSHV) is transmitted via saliva and sexual contact, infecting endothelial and B cells.`,
+    phase2Hallmark: `Hard palate is the most common mucosal lesion; GI and pulmonary involvement can cause GI bleeding or hemoptysis.`,
+    phase3Secret: `Guild Master's Secret: Biopsy is essential in HIV+ patients to distinguish KS (treat with ART) from bacillary angiomatosis (treat with doxycycline/azithromycin).`,
+    dossierBullets: {
+      p1: [`HHV-8 infects endothelial cells and drives aberrant angiogenesis.`, `AIDS-defining illness; also occurs in elderly Mediterranean/Russian men and transplant patients.`],
+      p2: [`Violaceous plaques/nodules on hard palate, nose, extremities, GI tract.`, `Histology: spindle cells + slit-like blood vessels + extravasated RBCs.`],
+      p3: [`First-line therapy in HIV+ patients is initiating/optimizing ART.`, `Systemic chemo (liposomal doxorubicin) or IFN-α for extensive visceral disease.`]
+    }
+  },
+  {
+    id: `HV08-Q2`, lo: 8, sector: `sector_3`, compartment: `erythroid_vascular`, ageGroup: `immunocompromised_hiv`, behavior: `oncogenic_transformation`,
+    loTitle: `Sector III • HHV-8 Kaposi Sarcoma & PEL`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `VEGF Dysregulation & v-Cyclin/v-FLIP`,
+    stem: `Molecular analysis of violaceous cutaneous nodules in an immunosuppressed renal transplant patient reveals HHV-8 viral proteins that constitutively activate endothelial angiogenesis and block apoptosis. Overexpression of which host angiogenic growth factor drives the vascular proliferation in Kaposi sarcoma?`,
+    clue: `HHV-8 viral GPCR and latency proteins hijack endothelial vessel growth signaling.`,
+    choices: [`Vascular endothelial growth factor (VEGF)`, `Erythropoietin (EPO)`, `Platelet-derived growth factor-A (PDGF-A)`],
+    correctIndex: 0,
+    explanation: `Correct: HHV-8 dysregulates VEGF signaling (via viral GPCR and vIL-6) and expresses v-cyclin and v-FLIP, stimulating exuberant endothelial spindle-cell angiogenesis. Distractor exclusion: EPO drives red blood cell production via JAK2; PDGF-A does not drive HHV-8 vascular tumorogenesis.`,
+    secondOrderClue: `HHV-8 = VEGF dysregulation (Kaposi sarcoma) + clonal B-cell effusion (Primary Effusion Lymphoma).`,
+    phase1Pearl: `HHV-8 also causes Primary Effusion Lymphoma (PEL), a rare HIV-associated B-cell lymphoma presenting as pleural/pericardial/peritoneal effusions without a solid tumor mass.`,
+    phase2Hallmark: `PEL cells are large pleomorphic immunoblastic/anaplastic B cells that are CD45+, CD30+, CD138+, and LANA-1 (HHV-8)+, often co-infected with EBV.`,
+    phase3Secret: `Guild Master's Secret: In transplant-associated KS, switching immunosuppression from calcineurin inhibitors to sirolimus (mTOR inhibitor) often induces regression.`,
+    dossierBullets: {
+      p1: [`HHV-8 vGPCR upregulates VEGF; v-cyclin & v-FLIP drive cell cycle & anti-apoptosis.`, `Co-infects B cells to cause Primary Effusion Lymphoma (PEL).`],
+      p2: [`Immunohistochemistry stains positive for HHV-8 LANA-1 nuclear antigen.`, `PEL presents as malignant body-cavity effusions lacking solid masses.`],
+      p3: [`ART reverses HIV-associated KS by restoring CD4+/CD8+ immunity.`, `mTOR inhibition (sirolimus) suppresses VEGF in transplant KS.`]
+    }
+  },
+  {
+    id: `HV08-Q3`, lo: 8, sector: `sector_3`, compartment: `erythroid_vascular`, ageGroup: `immunocompromised_hiv`, behavior: `oncogenic_transformation`,
+    loTitle: `Sector III • HHV-8 Kaposi Sarcoma & PEL`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Spindle Cells & Slit-Like Spaces`,
+    stem: `A 68-year-old man of Mediterranean descent without HIV presents with slowly progressive, painless violaceous nodules on his ankles. Punch biopsy is performed to confirm classic Kaposi sarcoma. Which histopathologic triad confirms the diagnosis and excludes bacillary angiomatosis?`,
+    clue: `Look for mesenchymal vascular channels with leaking erythrocytes and NO neutrophilic clusters.`,
+    choices: [`Spindle cells, slit-like spaces, extravasated RBCs`, `Neutrophilic infiltrate and silver-staining bacilli`, `Reed-Sternberg cells in collagenous bands`],
+    correctIndex: 0,
+    explanation: `Correct: Kaposi sarcoma is characterized microscopically by intersecting fascicles of endothelial spindle cells forming slit-like vascular spaces with extravasated erythrocytes and hemosiderin. Distractor exclusion: Neutrophils and Warthin-Starry+ bacilli identify Bartonella bacillary angiomatosis; Reed-Sternberg cells define Hodgkin lymphoma.`,
+    secondOrderClue: `Classic Mediterranean elderly KS = indolent ankle lesions; AIDS KS = aggressive mucosal/visceral.`,
+    phase1Pearl: `HHV-8 encodes Latency-Associated Nuclear Antigen-1 (LANA-1), tethering the viral episome to host chromosomes during mitosis.`,
+    phase2Hallmark: `Slit-like vascular spaces + spindle cells + extravasated RBCs + hemosiderin-laden macrophages + LANA-1 positivity.`,
+    phase3Secret: `Guild Master's Secret: Never biopsy suspected KS lightly in thrombocytopenia without checking platelets, and never confuse PEL (no mass) with solid DLBCL.`,
+    dossierBullets: {
+      p1: [`Classic KS affects elderly Mediterranean/Eastern European men indolently.`, `LANA-1 maintains viral episomal persistence.`],
+      p2: [`Spindle cells + slit-like spaces + extravasated RBCs + hemosiderin.`, `Absence of neutrophilic microabscesses rules out Bartonella.`],
+      p3: [`Localized classic KS can be managed with excision/local radiation.`, `Systemic AIDS KS responds primarily to ART.`]
+    }
+  },
+
+  // LO 9: HHV-8 Multicentric Castleman Disease
+  {
+    id: `HV09-Q1`, lo: 9, sector: `sector_3`, compartment: `bcell_reticulo`, ageGroup: `immunocompromised_hiv`, behavior: `oncogenic_transformation`,
+    loTitle: `Sector III • HHV-8 Multicentric Castleman`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `HHV-8 Multicentric Castleman Disease`,
+    stem: `A 43-year-old man with HIV on irregular ART presents with recurrent episodes of high fever, drenching night sweats, generalized lymphadenopathy, hepatosplenomegaly, peripheral edema, and anemia. Serum CRP and IL-6 are markedly elevated, and excisional lymph node biopsy is positive for HHV-8. What is the diagnosis?`,
+    clue: `HIV+ + severe systemic B symptoms + high IL-6 + HHV-8+ polyclonal lymphoproliferation.`,
+    choices: [`HHV-8 multicentric Castleman disease`, `Acute infectious mononucleosis`, `Parvovirus B19 pure red cell aplasia`],
+    correctIndex: 0,
+    explanation: `Correct: HHV-8-associated Multicentric Castleman Disease (MCD) presents in HIV+ patients with relapsing B symptoms, diffuse LAD, hepatosplenomegaly, edema/hypoalbuminemia, and extreme IL-6 elevation. Distractor exclusion: Acute EBV mono lacks chronic relapsing hyper-IL-6 crises and HHV-8 positivity; Parvovirus PRCA presents with isolated anemia without diffuse LAD.`,
+    secondOrderClue: `HIV + Fever flares + Diffuse LAD + Sky-high IL-6/CRP + HHV-8 = Multicentric Castleman Disease.`,
+    phase1Pearl: `HHV-8 infects mantle-zone B immunoblasts and secretes viral IL-6 (vIL-6), mimicking and amplifying human IL-6.`,
+    phase2Hallmark: `Lymph node biopsy displays regressed germinal centers surrounded by concentric "onion-skin" mantle zone lymphocytes.`,
+    phase3Secret: `Guild Master's Secret: Unlike unicentric Castleman disease (cured by surgery), HHV-8 MCD is systemic and fatal without rituximab +/- antivirals.`,
+    dossierBullets: {
+      p1: [`HHV-8 drives polyclonal B-cell expansion in lymph node mantle zones.`, `High risk of progression to HHV-8+ plasmablastic lymphoma.`],
+      p2: [`Elevated CRP, IL-6, IgG, anemia, and hypoalbuminemia.`, `Lymph node shows hyalinized germinal centers and onion-skinning.`],
+      p3: [`Treat with rituximab (anti-CD20) +/- etoposide or ART optimization.`, `Excisional lymph node biopsy is mandatory to exclude lymphoma.`]
+    }
+  },
+  {
+    id: `HV09-Q2`, lo: 9, sector: `sector_3`, compartment: `bcell_reticulo`, ageGroup: `immunocompromised_hiv`, behavior: `oncogenic_transformation`,
+    loTitle: `Sector III • HHV-8 Multicentric Castleman`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Viral IL-6 (vIL-6) Signaling`,
+    stem: `In HHV-8-associated Multicentric Castleman Disease, an infected B-cell cytokine homolog binds directly to the gp130 signaling subunit on target cells without requiring the host alpha-receptor subunit, triggering relentless STAT3 activation, CRP surges, and hepcidin-mediated anemia. Which viral factor drives this storm?`,
+    clue: `This HHV-8 cytokine homolog directly mimics a major pro-inflammatory acute-phase interleukin.`,
+    choices: [`Viral interleukin-6 (vIL-6)`, `Viral tumor necrosis factor-alpha`, `HTLV-1 Tax transactivator`],
+    correctIndex: 0,
+    explanation: `Correct: HHV-8 encodes viral IL-6 (vIL-6), which directly engages gp130 without needing the IL-6Rα subunit, triggering STAT3 activation, systemic B symptoms, hepcidin upregulation, and plasmablastic proliferation. Distractor exclusion: HHV-8 does not encode viral TNF-α; Tax belongs to HTLV-1.`,
+    secondOrderClue: `HHV-8 vIL-6 binds gp130 directly -> STAT3 -> Hepcidin (anemia) + CRP + B-cell expansion.`,
+    phase1Pearl: `Because vIL-6 bypasses the membrane IL-6Rα subunit, it acts broadly across endothelial, hepatic, and hematopoietic cells.`,
+    phase2Hallmark: `Bone marrow and serum show anemia of chronic inflammation (high ferritin, low iron/TIBC) alongside polyclonal hypergammaglobulinemia.`,
+    phase3Secret: `Guild Master's Secret: Because HHV-8 MCD flares can mimic sepsis, blood cultures and node biopsy are key before giving empiric immunosuppressants.`,
+    dossierBullets: {
+      p1: [`vIL-6 signals directly through gp130 homodimers.`, `Drives hepatic acute-phase reactants (CRP, hepcidin) and VEGF.`],
+      p2: [`Anemia of chronic inflammation + thrombocytopenia + hypoalbuminemia.`, `Plasmablasts express lambda light chain restriction in mantle zones.`],
+      p3: [`Rituximab depletes CD20+ B-cell reservoirs of HHV-8.`, `Maintain uninterrupted ART to restore immune control.`]
+    }
+  },
+  {
+    id: `HV09-Q3`, lo: 9, sector: `sector_3`, compartment: `bcell_reticulo`, ageGroup: `immunocompromised_hiv`, behavior: `oncogenic_transformation`,
+    loTitle: `Sector III • HHV-8 Multicentric Castleman`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Onion-Skinning & Lollipop Vessels`,
+    stem: `Excisional lymph node biopsy from an HIV+ patient with recurrent fevers and diffuse adenopathy demonstrates atrophic, hyalinized germinal centers pierced radially by sclerotic arterioles, surrounded by concentric rings of small mantle-zone lymphocytes. What is this classic histologic hallmark and first-line systemic therapy?`,
+    clue: `Think layered vegetable rings around a penetrating stick-like vessel.`,
+    choices: [`Onion-skinning & lollipop sign; rituximab`, `Starry-sky pattern; rasburicase`, `Caseating granulomas; RIPE therapy`],
+    correctIndex: 0,
+    explanation: `Correct: Castleman disease characteristically shows concentric "onion-skin" mantle zone lymphocytes around regressed germinal centers pierced by hyalinized vessels ("lollipop" sign); HHV-8 MCD is treated first-line with rituximab plus ART. Distractor exclusion: Starry-sky defines Burkitt lymphoma; caseating granulomas define tuberculosis.`,
+    secondOrderClue: `Onion-skin mantle + Lollipop vessel = Castleman; Rituximab clears CD20+ HHV-8 reservoir.`,
+    phase1Pearl: `VEGF and IL-6 secretion promote microvascular hyalinization and concentric follicular mantle hyperplasia.`,
+    phase2Hallmark: `Concentric "onion-skin" rings of mantle lymphocytes + penetrating hyalinized vessel ("lollipop" sign) + LANA-1+ plasmablasts.`,
+    phase3Secret: `Guild Master's Secret: Concurrent Kaposi sarcoma is common in HHV-8 MCD—watch for KS exacerbation if steroids are used without ART/chemo.`,
+    dossierBullets: {
+      p1: [`Hyaline-vascular / plasmablastic overlap in HHV-8 MCD.`, `Plasmablasts reside in mantle zones and express HHV-8 LANA-1.`],
+      p2: [`"Onion-skin" mantle rings + "lollipop" penetrating blood vessel.`, `Rule out coexisting Kaposi sarcoma or DLBCL.`],
+      p3: [`Rituximab is standard first-line therapy for HHV-8 MCD.`, `Avoid prolonged high-dose steroid monotherapy due to KS flare risk.`]
+    }
+  },
+
+  // LO 10: Parvovirus B19 Aplastic Crisis & PRCA
+  {
+    id: `HV10-Q1`, lo: 10, sector: `sector_4`, compartment: `erythroid_vascular`, ageGroup: `pediatric_hemoglobinopathy`, behavior: `cytolytic_vascular`,
+    loTitle: `Sector IV • Parvovirus B19 Aplastic Crisis`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Parvovirus B19 Aplastic Crisis`,
+    stem: `A 7-year-old boy with sickle cell disease is brought to the emergency department with 3 days of worsening fatigue, pallor, and low-grade fever. His hemoglobin has dropped from 8.4 g/dL to 4.9 g/dL, and his reticulocyte count is 0.1% (normal baseline 10%). Which pathogen is the most likely cause?`,
+    clue: `Sickle cell patient + acute severe hemoglobin drop + near-zero reticulocytes.`,
+    choices: [`Parvovirus B19`, `Epstein-Barr virus`, `Hepatitis C virus`],
+    correctIndex: 0,
+    explanation: `Correct: Parvovirus B19 selectively infects and lyses erythroid precursors, causing transient aplastic crisis (profound reticulocytopenia and acute anemia) in patients with high RBC turnover such as sickle cell disease or hereditary spherocytosis. Distractor exclusion: EBV causes splenomegaly/atypical lymphocytosis without selective erythroid arrest; HCV causes chronic cryoglobulinemia/AIHA.`,
+    secondOrderClue: `Chronic hemolytic anemia (SCD/HS) + Sudden anemia + Reticulocytopenia = Parvovirus B19.`,
+    phase1Pearl: `Because sickle RBCs survive only ~10–20 days (vs 120 days normal), a brief 7-day erythropoietic arrest causes catastrophic anemia.`,
+    phase2Hallmark: `Bone marrow aspirate reveals erythroid hypoplasia and giant pronormoblasts with intranuclear viral inclusions.`,
+    phase3Secret: `Guild Master's Secret: Patients with transient aplastic crisis often lack the classic "slapped-cheek" rash and are highly contagious via respiratory droplets.`,
+    dossierBullets: {
+      p1: [`Naked ssDNA virus (smallest DNA virus); respiratory droplet & vertical spread.`, `Short RBC lifespan in SCD/spherocytosis magnifies marrow arrest.`],
+      p2: [`Profound reticulocytopenia (<0.5%) + acute normocytic anemia.`, `Immunocompetent children get slapped-cheek rash (Fifth disease); adults get symmetric polyarthralgia.`],
+      p3: [`Transfuse packed RBCs supportively while marrow recovers.`, `Pregnant staff should avoid droplet exposure (hydrops fetalis risk).`]
+    }
+  },
+  {
+    id: `HV10-Q2`, lo: 10, sector: `sector_4`, compartment: `erythroid_vascular`, ageGroup: `pediatric_hemoglobinopathy`, behavior: `cytolytic_vascular`,
+    loTitle: `Sector IV • Parvovirus B19 Aplastic Crisis`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Erythroid P Antigen (Globoside)`,
+    stem: `Parvovirus B19 exhibits strict cellular tropism for human erythroid progenitor cells (BFU-E and CFU-E) in bone marrow and fetal liver, inducing apoptosis and pure red cell aplasia while sparing myeloid and megakaryocytic lineages. Which cell-surface receptor mediates viral entry?`,
+    clue: `Named after a blood group glycosphingolipid antigen present on erythroid precursors.`,
+    choices: [`P antigen (globoside) on erythroid precursors`, `CD21 complement receptor on B cells`, `ACE2 metallopeptidase on endothelium`],
+    correctIndex: 0,
+    explanation: `Correct: Parvovirus B19 enters erythroid progenitor cells by binding the P blood group antigen (globoside), causing direct cytotoxicity and arrest of erythropoiesis. Distractor exclusion: CD21 is the EBV receptor on B cells; ACE2 is used by SARS-CoV-2.`,
+    secondOrderClue: `Parvovirus B19 = Naked ssDNA + P antigen (globoside) -> BFU-E/CFU-E lysis.`,
+    phase1Pearl: `Individuals genetically lacking the erythrocyte P antigen (p phenotype) are naturally resistant to Parvovirus B19 infection.`,
+    phase2Hallmark: `In fetuses (1st/2nd trimester), liver erythropoiesis arrest causes severe anemia, high-output heart failure, and hydrops fetalis.`,
+    phase3Secret: `Guild Master's Secret: Slapped-cheek rash in Fifth disease appears AFTER viremia resolves (immune-complex mediated), when the child is no longer contagious.`,
+    dossierBullets: {
+      p1: [`Binds P antigen (globoside) on erythroid precursors (BFU-E/CFU-E).`, `Viral NS1 protein induces cell-cycle arrest and apoptosis.`],
+      p2: [`Myeloid and platelet counts typically remain normal (isolated PRCA).`, `1st/2nd trimester fetal infection -> severe anemia -> hydrops fetalis.`],
+      p3: [`Neutralizing IgG clears viremia in immunocompetent hosts.`, `Immunocompromised hosts fail to clear virus -> chronic PRCA.`]
+    }
+  },
+  {
+    id: `HV10-Q3`, lo: 10, sector: `sector_4`, compartment: `erythroid_vascular`, ageGroup: `pediatric_hemoglobinopathy`, behavior: `cytolytic_vascular`,
+    loTitle: `Sector IV • Parvovirus B19 Aplastic Crisis`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Giant Pronormoblasts & IVIG`,
+    stem: `A 33-year-old kidney transplant recipient develops severe, transfusion-dependent normocytic anemia with 0.2% reticulocytes and normal WBC/platelet counts. Bone marrow aspirate shows absent late erythroid precursors and scattered giant pronormoblasts with glassy intranuclear inclusions. After confirming Parvovirus B19 DNA by PCR, what is the targeted treatment?`,
+    clue: `Immunocompromised patients cannot make neutralizing antibodies to clear B19 from marrow.`,
+    choices: [`Intravenous immunoglobulin (IVIG) therapy`, `High-dose IV ganciclovir`, `Immediate splenectomy`],
+    correctIndex: 0,
+    explanation: `Correct: Chronic pure red cell aplasia in immunocompromised hosts is caused by persistent Parvovirus B19 viremia (diagnosed by serum PCR and giant pronormoblasts on marrow biopsy) and is treated with pooled IVIG containing neutralizing anti-B19 antibodies. Distractor exclusion: Ganciclovir treats CMV, not naked ssDNA Parvovirus; splenectomy is contraindicated and ineffective.`,
+    secondOrderClue: `Immunocompromised + Giant pronormoblasts + PRCA -> Parvovirus B19 PCR -> treat with IVIG.`,
+    phase1Pearl: `Unlike immunocompetent hosts, transplant/HIV patients cannot mount effective anti-B19 IgG, so serology may be falsely negative; order PCR.`,
+    phase2Hallmark: `Giant pronormoblasts ("lantern cells") with eosinophilic/glassy intranuclear inclusions and cytoplasmic vacuolization.`,
+    phase3Secret: `Guild Master's Secret: Reduce immunosuppression cautiously if feasible alongside IVIG to restore durable erythroid recovery.`,
+    dossierBullets: {
+      p1: [`Serology is unreliable in immunocompromised hosts—confirm with B19 DNA PCR.`, `Humoral IgG is required to clear B19 viremia.`],
+      p2: [`Bone marrow: erythroid aplasia + giant pronormoblasts ("lantern cells").`, `Isolated anemia with normal leukocytes and platelets.`],
+      p3: [`IVIG provides passive neutralizing antibodies for chronic PRCA.`, `Supportive RBC transfusion for acute symptomatic anemia.`]
+    }
+  },
+
+  // LO 11: Dengue Virus & Antibody-Dependent Enhancement
+  {
+    id: `HV11-Q1`, lo: 11, sector: `sector_4`, compartment: `erythroid_vascular`, ageGroup: `endemic_occupational`, behavior: `cytolytic_vascular`,
+    loTitle: `Sector IV • Dengue Virus & ADE`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Dengue Hemorrhagic Fever`,
+    stem: `A 26-year-old woman returning from Southeast Asia presents with 5 days of high fever, severe retro-orbital headache, and intense myalgias. She had a similar febrile illness 3 years ago while living there. Today her blood pressure drops to 84/56 mmHg, hematocrit rises from 39% to 51%, platelets are 24,000/mm³, and petechiae appear under a blood pressure cuff. What is the diagnosis?`,
+    clue: `Second tropical flavivirus infection + retro-orbital pain + hemoconcentration + positive tourniquet test.`,
+    choices: [`Dengue hemorrhagic fever / shock syndrome`, `Yellow fever viral hepatitis`, `West Nile neuroinvasive encephalitis`],
+    correctIndex: 0,
+    explanation: `Correct: Prior Dengue exposure followed by re-infection causes Dengue hemorrhagic fever/shock syndrome characterized by retro-orbital pain, severe myalgias ("break-bone fever"), thrombocytopenia, petechiae (positive tourniquet test), and plasma leakage (rising hematocrit). Distractor exclusion: Yellow fever presents with jaundice, black vomitus, and Councilman bodies; West Nile causes flaccid paralysis/encephalitis.`,
+    secondOrderClue: `2nd Dengue infection + Rising Hct (plasma leak) + Low platelets + Positive tourniquet test = DHF/DSS.`,
+    phase1Pearl: `Dengue is an enveloped +ssRNA flavivirus with 4 distinct serotypes transmitted by Aedes aegypti mosquitoes.`,
+    phase2Hallmark: `Hemoconcentration (rising hematocrit ≥20% above baseline), thrombocytopenia, neutropenia, and positive tourniquet test.`,
+    phase3Secret: `Guild Master's Secret: Rising hematocrit despite bleeding is a classic hallmark of plasma leakage into third spaces—avoid NSAIDs/aspirin!`,
+    dossierBullets: {
+      p1: [`Flavivirus (+ssRNA, enveloped) transmitted by Aedes aegypti.`, `Primary infection = classic "break-bone fever" with retro-orbital pain.`],
+      p2: [`Thrombocytopenia + neutropenia + rising Hct (capillary leak).`, `Positive tourniquet test reflects capillary fragility.`],
+      p3: [`Treat with careful isotonic IV fluid resuscitation and close Hct monitoring.`, `Strictly avoid aspirin and NSAIDs due to hemorrhage risk.`]
+    }
+  },
+  {
+    id: `HV11-Q2`, lo: 11, sector: `sector_4`, compartment: `erythroid_vascular`, ageGroup: `endemic_occupational`, behavior: `cytolytic_vascular`,
+    loTitle: `Sector IV • Dengue Virus & ADE`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Antibody-Dependent Enhancement`,
+    stem: `A traveler infected with Dengue serotype 2 develops severe capillary leak and shock, despite having neutralizing immunity from a childhood Dengue serotype 1 infection. Pre-existing cross-reactive IgG binds the new serotype without neutralizing it and accelerates viral entry into macrophages. Which immunologic mechanism explains this worsened severity?`,
+    clue: `Pre-existing sub-neutralizing IgG acts as a Trojan horse via Fcγ receptors on monocytes/macrophages.`,
+    choices: [`Antibody-dependent enhancement (ADE)`, `Superantigen polyclonal T-cell activation`, `Type I IgE mast cell degranulation`],
+    correctIndex: 0,
+    explanation: `Correct: In antibody-dependent enhancement (ADE), non-neutralizing cross-reactive IgG from a prior Dengue serotype binds virions and facilitates Fcγ-receptor-mediated uptake into macrophages, driving massive viral replication, cytokine storm, and endothelial plasma leak. Distractor exclusion: Superantigens cross-link MHC II/TCR non-specifically (S. aureus TSST-1); Type I HSR is IgE-mediated anaphylaxis.`,
+    secondOrderClue: `Different Dengue serotype -> Sub-neutralizing IgG -> FcγR uptake -> ADE cytokine storm.`,
+    phase1Pearl: `Primary infection gives lifelong immunity to the homologous serotype but only transient cross-protection against the other 3 serotypes.`,
+    phase2Hallmark: `Complement consumption, thrombocytopenia, and pleural/peritoneal third-spacing occur as fever defervesces.`,
+    phase3Secret: `Guild Master's Secret: Because of ADE risk, the live recombinant Dengue vaccine (CYD-TDV) is restricted to seropositive individuals with prior confirmed Dengue.`,
+    dossierBullets: {
+      p1: [`Heterologous serotype + cross-reactive non-neutralizing IgG = ADE.`, `FcγR-mediated macrophage entry amplifies viral load and cytokines.`],
+      p2: [`Cytokine-induced endothelial glycocalyx disruption causes plasma leak.`, `Severe thrombocytopenia + coagulopathy yield hemorrhage.`],
+      p3: [`Live chimeric vaccine uses yellow fever backbone (only for seropositive).`, `Vector control against Aedes aegypti reduces outbreaks.`]
+    }
+  },
+  {
+    id: `HV11-Q3`, lo: 11, sector: `sector_4`, compartment: `erythroid_vascular`, ageGroup: `endemic_occupational`, behavior: `cytolytic_vascular`,
+    loTitle: `Sector IV • Dengue Virus & ADE`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Hemoconcentration & Isotonic Fluids`,
+    stem: `A 19-year-old man in the critical phase of Dengue fever develops abdominal pain, persistent vomiting, pleural effusion, platelets of 28,000/mm³, and a hematocrit jump from 40% to 52%. Which laboratory pattern defines this critical plasma-leakage phase, and what is the primary therapeutic intervention?`,
+    clue: `Plasma escapes vessels while RBCs stay inside, concentrating the blood—restore intravascular volume without NSAIDs.`,
+    choices: [`Rising hematocrit & low platelets; isotonic IV crystalloids`, `Falling hematocrit & spherocytes; oral aspirin`, `Eosinophilia & IgE surge; IV corticosteroids`],
+    correctIndex: 0,
+    explanation: `Correct: Rising hematocrit (hemoconcentration from plasma leakage) combined with marked thrombocytopenia characterizes Dengue hemorrhagic/critical phase; immediate management is titrated isotonic IV crystalloid resuscitation while avoiding aspirin/NSAIDs. Distractor exclusion: Aspirin worsens hemorrhagic diathesis; corticosteroids have no proven benefit in Dengue shock.`,
+    secondOrderClue: `Rising Hct + Falling platelets = Plasma leak (give isotonic saline/Ringer lactate, NO NSAIDs).`,
+    phase1Pearl: `NS1 viral antigen and RT-PCR detect acute Dengue during days 1–5 before IgM serology rises.`,
+    phase2Hallmark: `Tourniquet test: ≥10–20 petechiae per square inch after inflating BP cuff halfway between SBP and DBP for 5 minutes.`,
+    phase3Secret: `Guild Master's Secret: Monitor urine output and serial hematocrit closely—as plasma reabsorbs in recovery, over-resuscitation can cause pulmonary edema.`,
+    dossierBullets: {
+      p1: [`Dengue NS1 antigen is positive early in acute febrile phase.`, `Endothelial permeability peaks around defervescence (days 3–7).`],
+      p2: [`Hct rise ≥20% + platelets <100,000/mm³ + serous effusions.`, `Neutropenia and mild transaminitis are common.`],
+      p3: [`Titrated isotonic IV fluids (0.9% NaCl or LR) maintain perfusion.`, `Acetaminophen only for fever; avoid ibuprofen/aspirin.`]
+    }
+  },
+
+  // LO 12: Ebola & Marburg Filoviruses
+  {
+    id: `HV12-Q1`, lo: 12, sector: `sector_4`, compartment: `erythroid_vascular`, ageGroup: `endemic_occupational`, behavior: `cytolytic_vascular`,
+    loTitle: `Sector IV • Ebola & Marburg Filoviruses`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Filovirus Hemorrhagic Fever`,
+    stem: `A humanitarian physician returning from Central Africa 9 days after treating patients with severe hemorrhagic illness develops abrupt high fever, profound weakness, watery diarrhea, vomiting, a centripetal maculopapular rash, and bleeding from venipuncture sites. Blood pressure is 78/48 mmHg. Which virus family is responsible?`,
+    clue: `Thread-like enveloped -ssRNA viruses transmitted via direct contact with infected bodily fluids.`,
+    choices: [`Filoviridae (Ebola / Marburg virus)`, `Arenaviridae (LCM lymphocytic choriomeningitis)`, `Reoviridae (Colorado tick fever)`],
+    correctIndex: 0,
+    explanation: `Correct: Ebola and Marburg (Filoviridae) cause catastrophic viral hemorrhagic fever with abrupt fever, severe GI fluid losses, maculopapular rash, mucosal/venipuncture bleeding, and hypovolemic/septic shock after bodily fluid exposure. Distractor exclusion: LCMV causes rodent-borne aseptic meningitis; Colorado tick fever causes biphasic fever/myalgia without hemorrhage.`,
+    secondOrderClue: `Africa + Healthcare bodily fluid exposure + GI loss + Venipuncture hemorrhage + Shock = Ebola/Marburg Filovirus.`,
+    phase1Pearl: `Filoviruses are enveloped, filamentous -ssRNA viruses with helical nucleocapsids that carry their own RNA-dependent RNA polymerase.`,
+    phase2Hallmark: `Severe thrombocytopenia, coagulopathy (elevated PT/aPTT, D-dimer), leukopenia followed by neutrophilia, and AST > ALT transaminitis.`,
+    phase3Secret: `Guild Master's Secret: Healthcare workers are at extreme risk via percutaneous or mucosal exposure to bodily fluids—strict barrier PPE is mandatory.`,
+    dossierBullets: {
+      p1: [`Enveloped -ssRNA helical filamentous capsid; reservoir in fruit bats/primates.`, `Highly contagious via blood and bodily fluids.`],
+      p2: [`Consumptive coagulopathy (DIC), thrombocytopenia, hepatic necrosis.`, `Filamentous shepherd's-crook virions on EM.`],
+      p3: [`Immediate isolation, contact/droplet/airborne precautions, and aggressive volume repletion.`, `Correct severe hypokalemia and metabolic acidosis.`]
+    }
+  },
+  {
+    id: `HV12-Q2`, lo: 12, sector: `sector_4`, compartment: `erythroid_vascular`, ageGroup: `endemic_occupational`, behavior: `cytolytic_vascular`,
+    loTitle: `Sector IV • Ebola & Marburg Filoviruses`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Macrophage Cytokine Storm & DIC`,
+    stem: `In fatal Ebola virus infection, early viral tropism for monocytes, macrophages, and dendritic cells blocks type I interferon signaling while triggering explosive release of TNF-α, IL-6, tissue factor, and nitric oxide alongside viral glycoprotein endothelial injury. What is the direct hematologic consequence?`,
+    clue: `Tissue factor expression + endothelial damage + cytokine storm consume clotting factors and platelets.`,
+    choices: [`Disseminated intravascular coagulation and shock`, `Selective erythroid P-antigen aplasia`, `Monoclonal IgM cold agglutinin hemolysis`],
+    correctIndex: 0,
+    explanation: `Correct: Filovirus infection of macrophages/dendritic cells induces massive tissue factor and pro-inflammatory cytokine release alongside endothelial disruption, precipitating disseminated intravascular coagulation (DIC), capillary leak, and hypovolemic shock. Distractor exclusion: Erythroid P-antigen aplasia is Parvovirus B19; cold agglutinin IgM is Mycoplasma/EBV.`,
+    secondOrderClue: `Filovirus macrophage infection -> Tissue factor + TNF-α/NO + Endothelial damage -> DIC & shock.`,
+    phase1Pearl: `Ebola VP35 and VP24 proteins block host RIG-I interferon production and STAT1 signaling, enabling unchecked systemic viremia.`,
+    phase2Hallmark: `Elevated D-dimer, prolonged PT/aPTT, hypofibrinogenemia, and schistocytes/petechiae reflecting fulminant DIC.`,
+    phase3Secret: `Guild Master's Secret: Most deaths result from massive intravascular volume depletion (GI losses + third-spacing) and multi-organ hypoperfusion.`,
+    dossierBullets: {
+      p1: [`Infects macrophages/DCs first -> immune paralysis + cytokine storm.`, `Tissue factor triggers extrinsic coagulation cascade -> DIC.`],
+      p2: [`Viral glycoprotein disrupts endothelial tight junctions.`, `Lymphocyte apoptosis causes profound lymphopenia.`],
+      p3: [`Aggressive IV fluid and electrolyte replacement drastically lowers mortality.`, `Monoclonal antibody therapies (for Zaire ebolavirus) + supportive ICU care.`]
+    }
+  },
+  {
+    id: `HV12-Q3`, lo: 12, sector: `sector_4`, compartment: `erythroid_vascular`, ageGroup: `endemic_occupational`, behavior: `cytolytic_vascular`,
+    loTitle: `Sector IV • Ebola & Marburg Filoviruses`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Filamentous Helical Virion & Isolation`,
+    stem: `A patient with suspected viral hemorrhagic fever after laboratory exposure to Marburg virus is placed in a negative-pressure isolation room. Serum studies show platelets 18,000/mm³, INR 2.4, D-dimer 6,400 ng/mL, and AST 940 U/L. Which viral structural feature and immediate clinical priority apply?`,
+    clue: `Recall the virus class ("filo-" = thread) and the cornerstone of filovirus management.`,
+    choices: [`Enveloped -ssRNA helical filament; barrier PPE & fluids`, `Naked dsRNA segmented wheel; oral ribavirin`, `Enveloped dsDNA icosahedron; IV acyclovir`],
+    correctIndex: 0,
+    explanation: `Correct: Marburg and Ebola are enveloped, non-segmented -ssRNA viruses with helical filamentous capsids; immediate management prioritizes strict barrier isolation/PPE and aggressive supportive IV fluid/electrolyte resuscitation. Distractor exclusion: Naked segmented dsRNA describes Rotavirus (Reovirus); enveloped dsDNA describes Herpesviruses.`,
+    secondOrderClue: `Filovirus = Enveloped -ssRNA helical filament + Supportive fluids + Strict bodily-fluid isolation.`,
+    phase1Pearl: `All negative-sense ssRNA viruses carry their own RNA-dependent RNA polymerase inside the virion because host cells cannot transcribe -ssRNA directly.`,
+    phase2Hallmark: `EM shows long, thread-like filamentous virions ("U" or "6" shaped); labs show DIC + hepatocellular necrosis.`,
+    phase3Secret: `Guild Master's Secret: Avoid unnecessary IM injections or invasive procedures in hemorrhagic fever patients due to uncontrolled bleeding and staff needle-stick risk.`,
+    dossierBullets: {
+      p1: [`-ssRNA non-segmented genome; carries RdRp inside virion.`, `Replicates in host cytoplasm and buds from plasma membrane.`],
+      p2: [`DIC panel: low platelets, prolonged PT/aPTT, high D-dimer, low fibrinogen.`, `Markedly elevated AST/ALT reflects hepatocyte necrosis.`],
+      p3: [`Strict barrier PPE, isolation, and aggressive fluid/electrolyte support.`, `Diagnostic confirmation by RT-PCR in biosafety-level containment.`]
+    }
+  },
+
+  // LO 13: Hepatitis C Mixed Cryoglobulinemia & AIHA
+  {
+    id: `HV13-Q1`, lo: 13, sector: `sector_5`, compartment: `hepatic_splenic_omt`, ageGroup: `adolescent_adult`, behavior: `immune_complex_omt`,
+    loTitle: `Sector V • HCV Cryoglobulinemia & AIHA`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `HCV Mixed Cryoglobulinemia`,
+    stem: `A 56-year-old man with a history of injection drug use presents with palpable purpura on both shins, symmetric arthralgias, peripheral neuropathy, and hematuria. Labs show ALT 92 U/L, positive rheumatoid factor, markedly low C4 complement, and a positive serum test that precipitates at 4°C. What is the underlying etiology?`,
+    clue: `Meltzer triad (purpura, arthralgias, weakness) + low C4 + positive RF + cold-precipitating immunoglobulins.`,
+    choices: [`Chronic Hepatitis C virus infection`, `Acute Hepatitis A virus infection`, `Parvovirus B19 transient crisis`],
+    correctIndex: 0,
+    explanation: `Correct: Chronic Hepatitis C virus (HCV) is the leading cause of Type II mixed cryoglobulinemia (Meltzer triad: palpable purpura, arthralgias, weakness), leukocytoclastic vasculitis, membranoproliferative GN, positive RF, and low C4. Distractor exclusion: HAV is acute self-limited fecal-oral hepatitis without chronic cryoglobulinemia; Parvovirus B19 causes pure red cell aplasia.`,
+    secondOrderClue: `IVDU + Palpable purpura + Arthralgias + MPGN + Low C4 + Positive RF = HCV Mixed Cryoglobulinemia.`,
+    phase1Pearl: `HCV lacks 3'→5' exonuclease proofreading activity in its RNA polymerase, producing envelope hypervariability and chronic B-cell antigenic stimulation.`,
+    phase2Hallmark: `Type II mixed cryoglobulins consist of monoclonal IgM rheumatoid factor directed against polyclonal IgG; serum precipitates at 4°C and dissolves at 37°C.`,
+    phase3Secret: `Guild Master's Secret: HCV also increases risk of autoimmune hemolytic anemia, porphyria cutanea tarda, lichen planus, and B-cell NHL.`,
+    dossierBullets: {
+      p1: [`+ssRNA flavivirus; no 3'->5' exonuclease -> 60–80% chronicity.`, `Chronic B-cell stimulation via CD81 triggers clonal IgM RF.`],
+      p2: [`Low C4 (classical complement consumption) + positive RF + cryocrit.`, `Renal biopsy shows membranoproliferative GN (MPGN); skin shows leukocytoclastic vasculitis.`],
+      p3: [`Treat HCV with direct-acting antivirals (e.g., sofosbuvir-based regimen).`, `Add rituximab +/- plasmapheresis for severe organ-threatening vasculitis.`]
+    }
+  },
+  {
+    id: `HV13-Q2`, lo: 13, sector: `sector_5`, compartment: `hepatic_splenic_omt`, ageGroup: `adolescent_adult`, behavior: `immune_complex_omt`,
+    loTitle: `Sector V • HCV Cryoglobulinemia & AIHA`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `No 3'→5' Exonuclease Proofreading`,
+    stem: `A patient exposed to Hepatitis C virus through a pre-1990 blood transfusion develops chronic hepatitis, lymphoid aggregates in portal tracts, and extrahepatic IgM-IgG immune-complex vasculitis. Which molecular property of the HCV RNA-dependent RNA polymerase explains why host neutralizing antibodies fail to clear the virus?`,
+    clue: `High mutation rate in the envelope E1/E2 region prevents durable antibody neutralization.`,
+    choices: [`Lack of 3'→5' exonuclease proofreading activity`, `Integration of proviral DNA into host CD4 genes`, `Segmented reassortment of 8 RNA strands`],
+    correctIndex: 0,
+    explanation: `Correct: HCV RNA polymerase lacks 3'→5' exonuclease proofreading activity, generating continuous antigenic variation in envelope proteins so host antibodies lag behind new mutant quasispecies. Distractor exclusion: Proviral integration occurs in retroviruses (HIV/HTLV-1); segmented reassortment of 8 RNA strands occurs in Influenza.`,
+    secondOrderClue: `HCV = No 3'->5' exonuclease -> Envelope hypervariability -> Chronicity (60–80%) -> Cirrhosis/HCC/Cryoglobulins.`,
+    phase1Pearl: `Persistent HCV binding to B-cell CD81 lowers the B-cell activation threshold, predisposing to cryoglobulinemia, AIHA, and marginal zone/DLBCL lymphoma.`,
+    phase2Hallmark: `Liver biopsy in chronic HCV shows portal lymphoid aggregates/follicles and focal macrovesicular steatosis.`,
+    phase3Secret: `Guild Master's Secret: Cure of HCV with direct-acting antivirals (sofosbuvir + protease/NS5A inhibitors) achieves >95% SVR and often resolves cryoglobulinemia and HCV-linked B-cell lymphoma.`,
+    dossierBullets: {
+      p1: [`Error-prone RdRp creates mutant quasispecies outpacing host Abs.`, `Chronic B-cell stimulation drives mixed cryoglobulins and warm/cold AIHA.`],
+      p2: [`Biopsy: portal lymphoid aggregates + macrovesicular steatosis.`, `Screen HCV with anti-HCV Ab -> confirm active infection with HCV RNA PCR.`],
+      p3: [`Direct-acting antivirals (sofosbuvir, ledipasvir/velpatasvir) replace older IFN-α/ribavirin.`, `Monitor for cirrhosis and HCC every 6 months if F3/F4 fibrosis.`]
+    }
+  },
+  {
+    id: `HV13-Q3`, lo: 13, sector: `sector_5`, compartment: `hepatic_splenic_omt`, ageGroup: `adolescent_adult`, behavior: `immune_complex_omt`,
+    loTitle: `Sector V • HCV Cryoglobulinemia & AIHA`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Cold-Precipitating Cryocrit & DAA`,
+    stem: `A 59-year-old woman with chronic Hepatitis C develops symmetric leg purpura exacerbated by cold weather, peripheral neuropathy, and nephritic-nephrotic proteinuria. Serum collected in a 37°C warmed tube forms a white precipitate when chilled to 4°C, and direct Coombs testing is positive. What are the expected complement pattern and definitive antiviral therapy?`,
+    clue: `Classical pathway consumption drops one early complement component while direct-acting antivirals cure the viral driver.`,
+    choices: [`Low C4; direct-acting antivirals (sofosbuvir)`, `Elevated C4; oral acyclovir`, `Normal C4; live-attenuated HCV vaccine`],
+    correctIndex: 0,
+    explanation: `Correct: Type II mixed cryoglobulinemia activates the classical complement pathway, characteristically causing markedly low C4 (often with normal/slightly low C3), and definitive treatment eliminates the HCV antigenic driver with direct-acting antivirals (e.g., sofosbuvir-based regimens). Distractor exclusion: Acyclovir targets herpesviruses; no HCV vaccine exists.`,
+    secondOrderClue: `Keep cryoglobulin sample at 37°C until clotting! Low C4 + Positive RF + HCV RNA -> DAA therapy.`,
+    phase1Pearl: `Cryoglobulins precipitate reversibly below 37°C in acral/cool capillaries (legs, ears, nose), triggering complement activation and neutrophil vasculitis.`,
+    phase2Hallmark: `PAS-positive intraluminal cryoglobulin thrombi and subendothelial deposits ("tram-track" GBM splitting) on MPGN kidney biopsy.`,
+    phase3Secret: `Guild Master's Secret: Always keep the blood draw tube warm (37°C) during transport to the lab—if it cools prematurely, cryoglobulins clot out and yield a false-negative test!`,
+    dossierBullets: {
+      p1: [`Monoclonal IgM RF binds polyclonal IgG anti-HCV complexes.`, `Classical complement activation consumes C4 disproportionately.`],
+      p2: [`Lab pearl: draw and transport specimen at 37°C, then chill to 4°C.`, `MPGN shows mesangial interposition ("tram-track" appearance).`],
+      p3: [`Direct-acting antivirals (e.g., sofosbuvir/velpatasvir) cure HCV.`, `Severe vasculitis/AIHA requires rituximab or plasmapheresis first.`]
+    }
+  },
+
+  // LO 14: Splenic Red/White Pulp Mechanics & T5-T9 OMT
+  {
+    id: `HV14-Q1`, lo: 14, sector: `sector_5`, compartment: `hepatic_splenic_omt`, ageGroup: `adolescent_adult`, behavior: `immune_complex_omt`,
+    loTitle: `Sector V • Splenic Pulp & T5-T9 OMT`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `T5–T9 Splenic Sympathetics`,
+    stem: `A 22-year-old patient recovering from a chronic viral syndrome with mild splenomegaly undergoes an osteopathic structural examination. The physician palpates boggy, warm, erythematous paraspinal tissue texture changes along a specific thoracic spinal segment corresponding to splenic sympathetic innervation. Which spinal levels innervate the spleen?`,
+    clue: `Spleen derives from foregut mesoderm and shares sympathetic outflow with upper GI/celiac ganglion structures.`,
+    choices: [`T5–T9 (via celiac ganglion)`, `T1–T4 (via stellate ganglion)`, `T10–L2 (via inferior mesenteric)`],
+    correctIndex: 0,
+    explanation: `Correct: Sympathetic innervation to the spleen arises from T5–T9 via the greater splanchnic nerve and celiac ganglion, producing T5–T9 paraspinal viscerosomatic reflexes (classically left-sided). Distractor exclusion: T1–T4 supplies heart/lungs/head/neck; T10–L2 supplies kidneys, gonads, and hindgut.`,
+    secondOrderClue: `Foregut/Spleen sympathetics = T5–T9 (Celiac ganglion); Parasympathetics = Vagus (CN X, OA–AA).`,
+    phase1Pearl: `Sympathetic fibers (T5–T9) regulate splenic capsular smooth muscle contraction and arteriolar tone; parasympathetic tone arrives via CN X (vagus).`,
+    phase2Hallmark: `Left-sided T5–T9 paraspinal hypertonicity/bogginess and a splenic Chapman reflex at the left 7th–8th intercostal space anteriorly.`,
+    phase3Secret: `Guild Master's Secret: Treat T5–T9 somatic dysfunction gently (rib raising, soft tissue) and avoid direct splenic palpation/compression in acute EBV mononucleosis!`,
+    dossierBullets: {
+      p1: [`Splenic sympathetics: T5–T9 -> greater splanchnic nerve -> celiac ganglion.`, `Splenic parasympathetics: Vagus nerve (CN X) -> OA–AA/C2 somatic check.`],
+      p2: [`Viscerosomatic reflex: T5–T9 (predominantly left).`, `Chapman point: anterior left 7th–8th intercostal space near sternum.`],
+      p3: [`Rib raising T5–T9 normalizes sympathetic tone.`, `Absolute warning: never apply direct splenic pump over an acutely enlarged EBV spleen.`]
+    }
+  },
+  {
+    id: `HV14-Q2`, lo: 14, sector: `sector_5`, compartment: `hepatic_splenic_omt`, ageGroup: `adolescent_adult`, behavior: `immune_complex_omt`,
+    loTitle: `Sector V • Splenic Pulp & T5-T9 OMT`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `PALS (T Cells) & Billroth Cords`,
+    stem: `During acute EBV mononucleosis, massive proliferation of cytotoxic CD8+ T lymphocytes expands a specific periarterial compartment of splenic white pulp, while splenic red pulp cords of Billroth clear antibody-coated erythrocytes. Which microanatomic pairing accurately describes these splenic zones?`,
+    clue: `T cells cuff central arterioles in white pulp; macrophages line splenic cords in red pulp.`,
+    choices: [`T cells in PALS; macrophages in red pulp cords`, `B cells in PALS; T cells in marginal zone`, `Erythrocytes in PALS; plasma cells in follicles`],
+    correctIndex: 0,
+    explanation: `Correct: In the spleen, T cells reside in the periarteriolar lymphoid sheath (PALS) surrounding central arterioles (expanding markedly in EBV), B cells populate lymphoid follicles, and macrophages in the red pulp cords of Billroth filter senescent/opsonized RBCs. Distractor exclusion: PALS is a T-cell zone, not a B-cell or RBC compartment.`,
+    secondOrderClue: `Lymph node paracortex & Splenic PALS = T-cell zones (expand in EBV); Follicles = B-cell zones.`,
+    phase1Pearl: `Open splenic circulation forces RBCs to squeeze through narrow endothelial slits between cords of Billroth and venous sinuses; rigid/spherocytic RBCs are trapped and destroyed.`,
+    phase2Hallmark: `Loss of splenic red pulp filtration leaves nuclear DNA remnants (Howell-Jolly bodies) inside circulating RBCs.`,
+    phase3Secret: `Guild Master's Secret: Functional or surgical asplenia mandates vaccination against encapsulated organisms (S. pneumoniae, H. influenzae B, N. meningitidis).`,
+    dossierBullets: {
+      p1: [`White pulp: PALS (T cells) + follicles (B cells) + marginal zone (APCs).`, `Red pulp: splenic cords of Billroth (macrophages) + venous sinuses.`],
+      p2: [`EBV CD8+ T-cell response causes dramatic PALS hyperplasia.`, `Hypersplenism sequesters platelets/RBCs/WBCs in red pulp.`],
+      p3: [`Asplenia smear: Howell-Jolly bodies, target cells, thrombocytosis.`, `Vaccinate asplenic patients against SHiN encapsulated bacteria.`]
+    }
+  },
+  {
+    id: `HV14-Q3`, lo: 14, sector: `sector_5`, compartment: `hepatic_splenic_omt`, ageGroup: `adolescent_adult`, behavior: `immune_complex_omt`,
+    loTitle: `Sector V • Splenic Pulp & T5-T9 OMT`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Howell-Jolly Bodies (Asplenia)`,
+    stem: `A 30-year-old man who underwent emergency splenectomy after traumatic rupture during infectious mononucleosis returns for follow-up. His peripheral blood smear shows basophilic nuclear remnants inside mature erythrocytes alongside target cells. What do these RBC inclusions signify, and which preventive step is essential?`,
+    clue: `Normally the spleen "pits" out leftover DNA fragments from circulating erythrocytes.`,
+    choices: [`Howell-Jolly bodies; vaccinate vs encapsulated bacteria`, `Heinz bodies; avoid fava beans and sulfa drugs`, `Auer rods; start all-trans retinoic acid`],
+    correctIndex: 0,
+    explanation: `Correct: Howell-Jolly bodies are basophilic nuclear DNA remnants normally pitted by splenic red pulp macrophages; their presence indicates asplenia/hyposplenism and necessitates vaccination against encapsulated organisms (S. pneumoniae, N. meningitidis, H. influenzae). Distractor exclusion: Heinz bodies reflect denatured hemoglobin in G6PD deficiency; Auer rods characterize acute promyelocytic leukemia.`,
+    secondOrderClue: `Howell-Jolly bodies = Functional/Surgical Asplenia -> Vaccinate vs SHiN + T5-T9 OMT check.`,
+    phase1Pearl: `Splenic marginal zone B cells and IgM opsonization are critical for clearing polysaccharide-encapsulated bacteria.`,
+    phase2Hallmark: `Single round basophilic nuclear remnant (Howell-Jolly body) inside RBCs + target cells + reactive thrombocytosis.`,
+    phase3Secret: `Guild Master's Secret: In sickle cell disease, repeated vaso-occlusive infarcts cause autosplenectomy by age 5—always check for Howell-Jolly bodies and give penicillin prophylaxis in young children.`,
+    dossierBullets: {
+      p1: [`Splenic macrophages normally "pit" nuclear remnants without lysing the RBC.`, `Marginal zone clears encapsulated bacteria via complement/IgM.`],
+      p2: [`Howell-Jolly bodies = pathognomonic marker of asplenia/hyposplenism.`, `Also seen in sickle cell autosplenectomy and celiac disease.`],
+      p3: [`Immunize against S. pneumoniae, H. influenzae type b, N. meningitidis.`, `Seek urgent antibiotics for any fever in an asplenic host.`]
+    }
+  },
+
+  // LO 15: Thoracic Duct OMT & Pump Contraindications
+  {
+    id: `HV15-Q1`, lo: 15, sector: `sector_5`, compartment: `hepatic_splenic_omt`, ageGroup: `endemic_occupational`, behavior: `immune_complex_omt`,
+    loTitle: `Sector V • Thoracic Duct & Lymphatic OMT`, angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Release Thoracic Inlet First`,
+    stem: `A 58-year-old inpatient recovering from viral pneumonia has persistent dependent lower-extremity and pulmonary interstitial edema. Before initiating diaphragmatic doming or pedal lymphatic pump techniques, which osteopathic structure must the physician treat FIRST to prevent worsening distal congestion?`,
+    clue: `Lymphatic OMT always opens the central terminal drainage outlet before pumping peripheral fluid upstream.`,
+    choices: [`Thoracic inlet (Sibson fascia / T1–T4 / rib 1)`, `Pedal lymphatic pump at the ankles`, `Popliteal and inguinal lymph nodes`],
+    correctIndex: 0,
+    explanation: `Correct: Lymphatic treatment must always begin proximally by releasing the thoracic inlet (T1–T4, 1st ribs, clavicles, Sibson fascia) where the thoracic duct and right lymphatic duct empty into the venous system, before applying diaphragmatic doming or distal pumps. Distractor exclusion: Starting with pedal or peripheral pumps against a restricted thoracic inlet worsens central congestion.`,
+    secondOrderClue: `Lymphatic OMT Rule #1: Open the drain first! Thoracic Inlet -> Diaphragm -> Peripheral Pumps.`,
+    phase1Pearl: `Myofascial restriction at the thoracic inlet compresses the low-pressure terminal lymphatics (right and left venous angles), impeding systemic lymph return.`,
+    phase2Hallmark: `Palpatory restriction at T1–T4, elevated/restricted 1st rib, and asymmetric clavicular/Sibson fascia tension.`,
+    phase3Secret: `Guild Master's Secret: After thoracic inlet release, redome the thoracoabdominal diaphragm to restore the negative intrathoracic pressure pump.`,
+    dossierBullets: {
+      p1: [`Lymphatic vessels are low-pressure valved conduits reliant on pressure gradients.`, `Thoracic inlet myofascial release clears terminal venous drainage.`],
+      p2: [`Thoracic inlet boundaries: T1 posteriorly, 1st ribs laterally, manubrium anteriorly.`, `Sibson fascia spans the thoracic aperture.`],
+      p3: [`Sequence: 1) Thoracic inlet -> 2) Diaphragm doming -> 3) Splenic/mesenteric/pedal pumps.`, `Never pump distally into an obstructed central outlet.`]
+    }
+  },
+  {
+    id: `HV15-Q2`, lo: 15, sector: `sector_5`, compartment: `hepatic_splenic_omt`, ageGroup: `endemic_occupational`, behavior: `immune_complex_omt`,
+    loTitle: `Sector V • Thoracic Duct & Lymphatic OMT`, angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Left Venous Angle (IJV + Subclavian)`,
+    stem: `Lymph collected from the lower extremities, abdomen, left thorax, left upper extremity, and left head and neck ascends through the cisterna chyli and thoracic duct to re-enter systemic venous circulation. Into which exact vascular junction does the thoracic duct drain?`,
+    clue: `All of the body EXCEPT the right upper quadrant/head/neck/arm empties on the left side.`,
+    choices: [`Left internal jugular & left subclavian junction`, `Right internal jugular & right subclavian junction`, `Azygos vein arch into superior vena cava`],
+    correctIndex: 0,
+    explanation: `Correct: The thoracic duct drains lymph from the entire body except the right head, right neck, right upper extremity, and right hemithorax, emptying into the left venous angle (junction of the left internal jugular and left subclavian veins). Distractor exclusion: The right lymphatic duct drains the right upper quadrant into the right venous angle; the azygos vein drains posterior thoracic venous blood.`,
+    secondOrderClue: `Thoracic duct = Left venous angle (all body minus RUQ/R thorax/R arm/R head); Right lymphatic duct = Right venous angle.`,
+    phase1Pearl: `During inspiration, negative intrathoracic pressure and descending diaphragmatic compression of the cisterna chyli pull lymph upward through one-way valves.`,
+    phase2Hallmark: `Damage to the thoracic duct (trauma/surgery/lymphoma) produces chylothorax (milky pleural fluid with triglycerides > 110 mg/dL).`,
+    phase3Secret: `Guild Master's Secret: Left supraclavicular Virchow node enlargement reflects thoracic duct drainage from abdominal/thoracic malignancies or infections.`,
+    dossierBullets: {
+      p1: [`Cisterna chyli lies anterior to L1–L2 and ascends as thoracic duct.`, `Crosses from right to left at ~T5 before entering left venous angle.`],
+      p2: [`Chylothorax = milky pleural effusion with triglycerides > 110 mg/dL.`, `Right lymphatic duct drains only right head/neck/arm/hemithorax.`],
+      p3: [`Diaphragm doming maximizes respiratory pressure pump across cisterna chyli.`, `Evaluate left supraclavicular fossa (Virchow node) for occult pathology.`]
+    }
+  },
+  {
+    id: `HV15-Q3`, lo: 15, sector: `sector_5`, compartment: `hepatic_splenic_omt`, ageGroup: `endemic_occupational`, behavior: `immune_complex_omt`,
+    loTitle: `Sector V • Thoracic Duct & Lymphatic OMT`, angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Pump Contraindication (DVT / DIC / EBV Spleen)`,
+    stem: `A hospitalized patient with Ebola hemorrhagic coagulopathy and acute lower-extremity deep vein thrombosis has severe peripheral edema. Why must the osteopathic physician strictly withhold vigorous pedal and thoracic lymphatic pump techniques in this patient?`,
+    clue: `Forcing sudden intravascular/lymphatic pressure surges can dislodge thrombi or worsen hemorrhage/organ rupture.`,
+    choices: [`Risk of embolizing DVT & worsening coagulopathy`, `Risk of triggering CCR5 receptor upregulation`, `Risk of inducing Howell-Jolly body formation`],
+    correctIndex: 0,
+    explanation: `Correct: Active deep vein thrombosis (embolization risk), unstable coagulopathy/DIC (hemorrhage risk), acute bacterial sepsis, osseous fracture/osteomyelitis, and fragile acute viral splenomegaly (EBV rupture risk) are critical contraindications to vigorous lymphatic pump techniques. Distractor exclusion: Lymphatic pumps do not upregulate CCR5 or induce Howell-Jolly bodies.`,
+    secondOrderClue: `Lymphatic Pump Contraindications: Active DVT, Unstable Coagulopathy/DIC, Acute Fracture, Bacterial Sepsis (relative), Fragile Splenomegaly.`,
+    phase1Pearl: `Vigorous mechanical compression alters venous return and shear forces, risking pulmonary embolism from DVT or capsular rupture in an engorged viral spleen.`,
+    phase2Hallmark: `Unilateral calf swelling/Homan/ultrasound-confirmed DVT, elevated D-dimer/INR, or LUQ tenderness with EBV splenomegaly.`,
+    phase3Secret: `Guild Master's Secret: On COMLEX, gentle thoracic inlet myofascial release is much safer than aggressive pumps, and NEVER perform splenic pump in acute infectious mononucleosis!`,
+    dossierBullets: {
+      p1: [`Vigorous pumps transiently spike venous and lymphatic flow velocity.`, `Absolute contraindications: active DVT, acute fracture, anuria (severe CHF overload without diuresis).`],
+      p2: [`Hematologic/infectious contraindications: DIC/bleeding diathesis, acute EBV splenomegaly, untreated bacterial sepsis/abscess.`],
+      p3: [`Substitute gentle indirect myofascial release or treat underlying DVT/coagulopathy first.`, `Always confirm absence of DVT before pedal pump.`]
+    }
+  }
+];
+
+// Runtime State
+let masterDeck = [];
+let currentDeck = [];
+let currentIndex = 0;
+let hp = GAME_CONFIG.baseHp;
+let xp = 0;
+let streak = 0;
+let missedIds = [];
+let masteredLos = {};
+let isHintsVisible = false;
+let isMenuOpen = false;
+let isTimerOn = false;
+let timerRemaining = GAME_CONFIG.timedSeconds;
+let timerInterval = null;
+let timesUpMode = 'auto_reveal';
+let phaseFilter = 'all';
+let codexSectorFilter = 'all';
+let currentLaneMap = [0, 1, 2];
+let targetedLane = 1;
+let isOutcomeOpen = false;
+let isCodexOpen = false;
+let metaFadeTimer = null;
+
+// Audio State
+let masterSoundOn = true;
+let sfxOn = true;
+let bgmOn = false;
+let bgmVolume = 0.35;
+let audioCtx = null;
+let bgmTimer = null;
+let bgmStep = 0;
+let customAudioEl = null;
+let customAudioUrl = null;
+
+// 3D Canvas State
+let canvasEl = null;
+let ctx2d = null;
+let animFrameId = null;
+let craftX = 0;
+let craftTargetX = 0;
+let craftTilt = 0;
+let scrollZ = 0;
+let particles = [];
+let lastFrameTs = 0;
+
+function initParticles() {
+  particles = [];
+  for (let i = 0; i < GAME_CONFIG.particleCount; i++) {
+    particles.push({
+      x: (Math.random() - 0.5) * 2.6,
+      y: (Math.random() - 0.5) * 1.6,
+      z: Math.random()
+    });
+  }
+}
+
+function getCurrentQuestion() {
+  if (!currentDeck.length) return ALL_QUESTIONS[0];
+  if (currentIndex < 0 || currentIndex >= currentDeck.length) currentIndex = 0;
+  return currentDeck[currentIndex];
+}
+
+function shuffleArray(arr) {
+  const copy = arr.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = copy[i];
+    copy[i] = copy[j];
+    copy[j] = tmp;
+  }
+  return copy;
+}
+
+function ensureAudioContext() {
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) audioCtx = new AC();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(function(){});
+  }
+}
+
+function playSfx(type) {
+  if (!masterSoundOn || !sfxOn) return;
+  try {
+    ensureAudioContext();
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    if (type === 'steer') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(340, now);
+      osc.frequency.exponentialRampToValueAtTime(520, now + 0.06);
+      gain.gain.setValueAtTime(0.06, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+      osc.start(now);
+      osc.stop(now + 0.08);
+    } else if (type === 'correct') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, now);
+      osc.frequency.setValueAtTime(659.25, now + 0.07);
+      osc.frequency.setValueAtTime(783.99, now + 0.14);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+      osc.start(now);
+      osc.stop(now + 0.29);
+    } else {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(190, now);
+      osc.frequency.exponentialRampToValueAtTime(95, now + 0.22);
+      gain.gain.setValueAtTime(0.11, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+      osc.start(now);
+      osc.stop(now + 0.25);
+    }
+  } catch (e) {}
+}
+
+function startBgmLoop() {
+  stopBgmLoop();
+  if (!masterSoundOn || !bgmOn) return;
+  if (customAudioEl && customAudioUrl) {
+    customAudioEl.volume = bgmVolume;
+    customAudioEl.play().catch(function(){});
+    return;
+  }
+  ensureAudioContext();
+  if (!audioCtx) return;
+  const bassNotes = [110, 110, 130.81, 146.83, 110, 98, 130.81, 123.47];
+  bgmTimer = setInterval(function() {
+    if (!masterSoundOn || !bgmOn || !audioCtx) return;
+    try {
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(bassNotes[bgmStep % bassNotes.length], now);
+      gain.gain.setValueAtTime(0.04 * bgmVolume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.24);
+      bgmStep++;
+    } catch (e) {}
+  }, 260);
+}
+
+function stopBgmLoop() {
+  if (bgmTimer) {
+    clearInterval(bgmTimer);
+    bgmTimer = null;
+  }
+  if (customAudioEl) {
+    customAudioEl.pause();
+  }
+}
+
+function toggleMasterSound() {
+  masterSoundOn = !masterSoundOn;
+  const btn = document.getElementById('master-sound-btn');
+  if (btn) {
+    btn.textContent = masterSoundOn ? `🔊 Sound: ON` : `🔇 Sound: OFF`;
+    btn.classList.toggle('is-active', masterSoundOn);
+  }
+  if (!masterSoundOn) stopBgmLoop();
+  else if (bgmOn) startBgmLoop();
+  persistAppState();
+}
+
+function toggleSfx() {
+  sfxOn = !sfxOn;
+  const btn = document.getElementById('sfx-toggle-btn');
+  if (btn) {
+    btn.textContent = sfxOn ? `✨ SFX: ON` : `✨ SFX: OFF`;
+    btn.classList.toggle('is-active', sfxOn);
+  }
+  persistAppState();
+}
+
+function toggleProceduralBgm() {
+  bgmOn = !bgmOn;
+  const btn = document.getElementById('bgm-toggle-btn');
+  if (btn) {
+    btn.textContent = bgmOn ? `🎵 Zombies BGM: ON` : `🎵 Zombies BGM: OFF`;
+    btn.classList.toggle('is-active', bgmOn);
+  }
+  if (bgmOn) startBgmLoop();
+  else stopBgmLoop();
+  persistAppState();
+}
+
+function setBgmVolume(val) {
+  bgmVolume = Math.max(0, Math.min(1, Number(val) / 100));
+  const label = document.getElementById('bgm-volume-val');
+  if (label) label.textContent = `${Math.round(bgmVolume * 100)}%`;
+  if (customAudioEl) customAudioEl.volume = bgmVolume;
+  persistAppState();
+}
+
+function loadCustomBgmFile(input) {
+  if (!input || !input.files || !input.files[0]) return;
+  if (customAudioUrl) URL.revokeObjectURL(customAudioUrl);
+  customAudioUrl = URL.createObjectURL(input.files[0]);
+  if (!customAudioEl) {
+    customAudioEl = new Audio();
+    customAudioEl.loop = true;
+  }
+  customAudioEl.src = customAudioUrl;
+  bgmOn = true;
+  const btn = document.getElementById('bgm-toggle-btn');
+  if (btn) {
+    btn.textContent = `🎵 Custom Track: ON`;
+    btn.classList.add('is-active');
+  }
+  startBgmLoop();
+}
+
+function toggleMenuDrawer() {
+  isMenuOpen = !isMenuOpen;
+  const drawer = document.getElementById('top-menu-drawer');
+  const btn = document.getElementById('menu-toggle-btn');
+  if (drawer) drawer.classList.toggle('is-open', isMenuOpen);
+  if (btn) btn.setAttribute('aria-expanded', String(isMenuOpen));
+  playSfx('steer');
+}
+
+function syncHintsUI() {
+  const app = document.getElementById('xr-app');
+  const menuBtn = document.getElementById('menu-hints-btn');
+  if (app) {
+    app.classList.toggle('hints-visible', isHintsVisible);
+    app.classList.toggle('hints-hidden', !isHintsVisible);
+  }
+  if (menuBtn) {
+    menuBtn.textContent = isHintsVisible ? `💡 Hints: ON [H]` : `💡 Hints: OFF [H]`;
+    menuBtn.classList.toggle('is-active', isHintsVisible);
+  }
+}
+
+function toggleHintsBar() {
+  isHintsVisible = !isHintsVisible;
+  syncHintsUI();
+  playSfx('steer');
+  persistAppState();
+}
+
+function openCodexFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  openCodex();
+}
+
+function skipFromMenu() {
+  if (isMenuOpen) toggleMenuDrawer();
+  skipCurrentQuestion();
+}
+
+function syncTimerControlsUI() {
+  const chip = document.getElementById('timer-chip');
+  const text = document.getElementById('timer-text');
+  const menuBtn = document.getElementById('menu-timer-btn');
+  if (text) text.textContent = isTimerOn ? `${timerRemaining}s` : `OFF`;
+  if (chip) chip.classList.toggle('is-urgent', isTimerOn && timerRemaining <= 10);
+  if (menuBtn) {
+    menuBtn.textContent = isTimerOn ? `⏱ 50s Timer: ON [T]` : `⏱ 50s Timer: OFF [T]`;
+    menuBtn.classList.toggle('is-active', isTimerOn);
+  }
+}
+
+function resetQuestionTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  timerRemaining = GAME_CONFIG.timedSeconds;
+  syncTimerControlsUI();
+  if (!isTimerOn || isOutcomeOpen || isCodexOpen) return;
+  timerInterval = setInterval(function() {
+    if (isOutcomeOpen || isCodexOpen || isMenuOpen) return;
+    timerRemaining--;
+    syncTimerControlsUI();
+    if (timerRemaining <= 0) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      handleTimesUp();
+    }
+  }, 1000);
+}
+
+function handleTimesUp() {
+  const q = getCurrentQuestion();
+  if (timesUpMode === 'skip_penalty') {
+    hp = Math.max(0, hp - GAME_CONFIG.hpPenaltyWrong);
+    streak = 0;
+    if (missedIds.indexOf(q.id) === -1) missedIds.push(q.id);
+    playSfx('wrong');
+    updateTelemetryUI();
+    advanceQuestion(1);
+  } else {
+    resolveQuestion(-1, true);
+  }
+}
+
+function toggleTimerFromMenu() {
+  isTimerOn = !isTimerOn;
+  resetQuestionTimer();
+  persistAppState();
+}
+
+function startTimedRunFromMenu() {
+  isTimerOn = true;
+  if (isMenuOpen) toggleMenuDrawer();
+  restartOrderedRun();
+  resetQuestionTimer();
+}
+
+function setTimesUpMode(val) {
+  timesUpMode = val || 'auto_reveal';
+  persistAppState();
+}
+
+function setPhaseFilter(val) {
+  phaseFilter = val || 'all';
+  const map = {
+    'all': 'phase-pill-all',
+    'Phase 1: Pathogenesis': 'phase-pill-p1',
+    'Phase 2: Histology / Structure': 'phase-pill-p2',
+    'Phase 3: Clinical & Management': 'phase-pill-p3'
+  };
+  Object.keys(map).forEach(function(k) {
+    const el = document.getElementById(map[k]);
+    if (el) el.classList.toggle('is-active', k === phaseFilter);
+  });
+  applyDeckFilters();
+}
+
+function buildDeck(keepOrder) {
+  const sectorEl = document.getElementById('sector-filter');
+  const angleEl = document.getElementById('angle-filter');
+  const compEl = document.getElementById('compartment-filter');
+  const ageEl = document.getElementById('age-filter');
+  const behEl = document.getElementById('behavior-filter');
+
+  const secVal = sectorEl ? sectorEl.value : 'all';
+  const angVal = angleEl ? angleEl.value : 'all';
+  const cmpVal = compEl ? compEl.value : 'all';
+  const ageVal = ageEl ? ageEl.value : 'all';
+  const behVal = behEl ? behEl.value : 'all';
+
+  let filtered = ALL_QUESTIONS.filter(function(q) {
+    if (secVal === 'missed') {
+      if (missedIds.indexOf(q.id) === -1) return false;
+    } else if (secVal !== 'all' && q.sector !== secVal) {
+      return false;
+    }
+    if (angVal !== 'all' && q.angle !== angVal) return false;
+    if (cmpVal !== 'all' && q.compartment !== cmpVal) return false;
+    if (ageVal !== 'all' && q.ageGroup !== ageVal) return false;
+    if (behVal !== 'all' && q.behavior !== behVal) return false;
+    if (phaseFilter !== 'all' && q.phaseFocus !== phaseFilter) return false;
+    return true;
+  });
+
+  const toast = document.getElementById('menu-status-toast');
+  if (!filtered.length) {
+    if (toast) toast.textContent = secVal === 'missed'
+      ? `No missed gates yet — showing full 45-gate deck.`
+      : `No gates match combined filters — showing full 45-gate deck.`;
+    filtered = ALL_QUESTIONS.slice();
+  } else if (toast) {
+    toast.textContent = `Active deck: ${filtered.length} gates loaded.`;
+  }
+
+  masterDeck = filtered;
+  currentDeck = keepOrder ? filtered.slice() : shuffleArray(filtered);
+  currentIndex = 0;
+}
+
+function applyDeckFilters() {
+  buildDeck(true);
+  loadQuestion(0);
+  persistAppState();
+}
+
+function restartOrderedRun() {
+  hp = GAME_CONFIG.baseHp;
+  streak = 0;
+  buildDeck(true);
+  loadQuestion(0);
+  if (isMenuOpen) toggleMenuDrawer();
+  persistAppState();
+}
+
+function shuffleDeckRun() {
+  buildDeck(false);
+  loadQuestion(0);
+  if (isMenuOpen) toggleMenuDrawer();
+  persistAppState();
+}
+
+function resetMastery(btn) {
+  if (!btn) return;
+  if (btn.dataset.armed !== 'true') {
+    btn.dataset.armed = 'true';
+    btn.textContent = `Confirm Reset?`;
+    setTimeout(function() {
+      if (btn.dataset.armed === 'true') {
+        btn.dataset.armed = 'false';
+        btn.textContent = `⚠ Reset Mastery`;
+      }
+    }, 4000);
+    return;
+  }
+  btn.dataset.armed = 'false';
+  btn.textContent = `⚠ Reset Mastery`;
+  hp = GAME_CONFIG.baseHp;
+  xp = 0;
+  streak = 0;
+  missedIds = [];
+  masteredLos = {};
+  buildSkillTree();
+  applyDeckFilters();
+  const toast = document.getElementById('menu-status-toast');
+  if (toast) toast.textContent = `Mastery, XP, and missed gates reset.`;
+  persistAppState();
+}
+
+function isolateEntityGates(loNum) {
+  const sectorEl = document.getElementById('sector-filter');
+  const angleEl = document.getElementById('angle-filter');
+  const compEl = document.getElementById('compartment-filter');
+  const ageEl = document.getElementById('age-filter');
+  const behEl = document.getElementById('behavior-filter');
+  if (sectorEl) sectorEl.value = 'all';
+  if (angleEl) angleEl.value = 'all';
+  if (compEl) compEl.value = 'all';
+  if (ageEl) ageEl.value = 'all';
+  if (behEl) behEl.value = 'all';
+  phaseFilter = 'all';
+
+  currentDeck = ALL_QUESTIONS.filter(function(q) { return q.lo === loNum; });
+  currentIndex = 0;
+  loadQuestion(0);
+  if (isMenuOpen) toggleMenuDrawer();
+  persistAppState();
+}
+
+function buildSkillTree() {
+  const grid = document.getElementById('skill-tree-grid');
+  if (!grid) return;
+  grid.innerHTML = CODEX_DATA.map(function(item) {
+    const done = masteredLos[item.lo] ? `is-mastered` : ``;
+    const badge = masteredLos[item.lo] ? `✔ Mastered` : item.tag;
+    return `<button type="button" class="skill-node-btn ${done}" onclick="isolateEntityGates(${item.lo})">
+      <span class="skill-node-title">LO ${item.lo}: ${item.entity}</span>
+      <span class="skill-node-meta">${badge} • 3 Gates</span>
+    </button>`;
+  }).join('');
+}
+
+function updateTelemetryUI() {
+  const hpEl = document.getElementById('hp-text');
+  const xpEl = document.getElementById('xp-text');
+  const stEl = document.getElementById('streak-text');
+  const gtEl = document.getElementById('gate-text');
+  if (hpEl) hpEl.textContent = String(hp);
+  if (xpEl) xpEl.textContent = String(xp);
+  if (stEl) stEl.textContent = String(streak);
+  if (gtEl) gtEl.textContent = `${currentIndex + 1}/${currentDeck.length || 1}`;
+}
+
+function triggerMetaFade() {
+  const row = document.getElementById('q-meta-row');
+  if (!row) return;
+  if (metaFadeTimer) clearTimeout(metaFadeTimer);
+  row.classList.remove('is-faded');
+  metaFadeTimer = setTimeout(function() {
+    row.classList.add('is-faded');
+  }, GAME_CONFIG.metaFadeMs);
+}
+
+function loadQuestion(idx) {
+  if (!currentDeck.length) buildDeck(true);
+  currentIndex = Math.max(0, Math.min(idx, currentDeck.length - 1));
+  const q = getCurrentQuestion();
+  const theme = LO_VISUAL_THEMES[q.lo] || LO_VISUAL_THEMES[1];
+
+  const loBadge = document.getElementById('lo-badge');
+  const angleBadge = document.getElementById('angle-badge');
+  const phaseBadge = document.getElementById('phase-badge');
+  const corridorBadge = document.getElementById('corridor-badge');
+  const stemText = document.getElementById('q-stem-text');
+  const clueText = document.getElementById('q-clue-text');
+
+  if (loBadge) loBadge.textContent = q.loTitle;
+  if (angleBadge) angleBadge.textContent = q.angle.replace('->', '→');
+  if (phaseBadge) phaseBadge.textContent = q.phaseFocus.toUpperCase();
+  if (corridorBadge) corridorBadge.textContent = `CORRIDOR: ${theme.tag}`;
+  if (stemText) stemText.textContent = q.stem;
+  if (clueText) clueText.textContent = q.clue;
+
+  currentLaneMap = shuffleArray([0, 1, 2]);
+  for (let lane = 0; lane < 3; lane++) {
+    const choiceTextEl = document.getElementById(`lane-${lane}-text`);
+    if (choiceTextEl) {
+      choiceTextEl.textContent = q.choices[currentLaneMap[lane]];
+    }
+  }
+
+  previewLaneTarget(1, true);
+  updateTelemetryUI();
+  triggerMetaFade();
+  resetQuestionTimer();
+}
+
+function previewLaneTarget(lane, silent) {
+  targetedLane = lane;
+  craftTargetX = (lane - 1) * 0.85;
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`lane-${i}-card`);
+    if (card) card.classList.toggle('is-targeted', i === lane);
+  }
+  if (!silent) playSfx('steer');
+}
+
+function selectLaneAndResolve(lane) {
+  if (isOutcomeOpen || isCodexOpen || isMenuOpen) return;
+  previewLaneTarget(lane, true);
+  resolveQuestion(lane, false);
+}
+
+function skipCurrentQuestion() {
+  if (isOutcomeOpen || isCodexOpen) return;
+  advanceQuestion(1);
+}
+
+function advanceQuestion(step) {
+  if (!currentDeck.length) return;
+  currentIndex = (currentIndex + step + currentDeck.length) % currentDeck.length;
+  loadQuestion(currentIndex);
+  persistAppState();
+}
+
+function resolveQuestion(chosenLane, isTimesUp) {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  const q = getCurrentQuestion();
+  const chosenChoiceIdx = chosenLane >= 0 ? currentLaneMap[chosenLane] : -1;
+  const isCorrect = !isTimesUp && chosenChoiceIdx === q.correctIndex;
+
+  let xpDelta = 0;
+  let hpDeltaLabel = `HP +0`;
+
+  if (isCorrect) {
+    streak += 1;
+    let hpGain = 5;
+    if (streak % 4 === 0) hpGain += 25;
+    hp = Math.min(GAME_CONFIG.baseHp, hp + hpGain);
+    hpDeltaLabel = `HP +${hpGain}`;
+    xpDelta = GAME_CONFIG.xpCorrect + Math.min(25, (streak - 1) * 5);
+    xp += xpDelta;
+    masteredLos[q.lo] = true;
+    missedIds = missedIds.filter(function(id) { return id !== q.id; });
+    playSfx('correct');
+    buildSkillTree();
+  } else {
+    streak = 0;
+    hp = Math.max(0, hp - GAME_CONFIG.hpPenaltyWrong);
+    hpDeltaLabel = `HP -${GAME_CONFIG.hpPenaltyWrong}`;
+    if (missedIds.indexOf(q.id) === -1) missedIds.push(q.id);
+    if (hp === 0) hp = GAME_CONFIG.baseHp;
+    playSfx('wrong');
+  }
+
+  updateTelemetryUI();
+  populateOutcomeModal(q, isCorrect, xpDelta, hpDeltaLabel, isTimesUp, chosenChoiceIdx);
+  persistAppState();
+}
+
+function renderDossierBullets(el, lines) {
+  if (!el) return;
+  const items = (Array.isArray(lines) ? lines : [lines])
+    .flatMap(function(line) { return String(line || '').split(/\n|<br\s*\/?>/i); })
+    .map(function(line) { return line.replace(/^\s*[•\-\*]\s*/, '').trim(); })
+    .filter(Boolean);
+  el.innerHTML = items.map(function(line) {
+    return `<p class="dossier-line">• ${line}</p>`;
+  }).join('');
+}
+
+function populateOutcomeModal(q, isCorrect, xpDelta, hpDeltaLabel, isTimesUp, chosenChoiceIdx) {
+  const verdict = document.getElementById('outcome-verdict');
+  const tagEl = document.getElementById('outcome-entity-tag');
+  const xpEl = document.getElementById('outcome-xp-delta');
+  const hpEl = document.getElementById('outcome-hp-delta');
+
+  if (verdict) {
+    const prefix = isTimesUp ? `⏱ TIME'S UP` : (isCorrect ? `✔ CORRECT` : `✖ INCORRECT`);
+    verdict.textContent = `${prefix} — ${q.shortAnswer}`;
+    verdict.classList.toggle('is-correct', isCorrect);
+    verdict.classList.toggle('is-wrong', !isCorrect);
+  }
+  if (tagEl) tagEl.textContent = `${q.id} • ${q.loTitle}`;
+  if (xpEl) xpEl.textContent = isCorrect ? `+${xpDelta} XP` : `+0 XP`;
+  if (hpEl) hpEl.textContent = hpDeltaLabel;
+
+  const yourAnsText = isTimesUp ? 'No Lane Selected (Timed Out)' : (q.choices[chosenChoiceIdx] || '');
+  const rightAnsText = q.choices[q.correctIndex] || '';
+  renderDossierBullets(document.getElementById('sec1-choice'), [
+    `Your Selection: ${yourAnsText}`,
+    `Gold-Standard Answer: ${rightAnsText}`
+  ]);
+  renderDossierBullets(document.getElementById('sec2-explanation'), [q.explanation]);
+  renderDossierBullets(document.getElementById('sec3-clue'), [q.secondOrderClue]);
+  renderDossierBullets(document.getElementById('sec4-p1'), [q.phase1Pearl]);
+  renderDossierBullets(document.getElementById('sec5-p2'), [q.phase2Hallmark]);
+  renderDossierBullets(document.getElementById('sec6-p3'), [q.phase3Secret]);
+
+  const bulletList = []
+    .concat((q.dossierBullets && q.dossierBullets.p1) || [])
+    .concat((q.dossierBullets && q.dossierBullets.p2) || [])
+    .concat((q.dossierBullets && q.dossierBullets.p3) || []);
+  renderDossierBullets(document.getElementById('sec7-bullets'), bulletList);
+
+  const modal = document.getElementById('outcome-modal');
+  const body = document.getElementById('outcome-body');
+  if (body) body.scrollTop = 0;
+  if (modal) modal.classList.add('is-open');
+  isOutcomeOpen = true;
+}
+
+function scrollOutcomeBody(delta) {
+  const body = document.getElementById('outcome-body');
+  if (!body) return;
+  if (typeof body.scrollBy === 'function') {
+    body.scrollBy({ top: delta, behavior: 'smooth' });
+  } else {
+    body.scrollTop = Math.max(0, (body.scrollTop || 0) + delta);
+  }
+}
+
+function continueRunner() {
+  const modal = document.getElementById('outcome-modal');
+  if (modal) modal.classList.remove('is-open');
+  isOutcomeOpen = false;
+  advanceQuestion(1);
+}
+
+function openCodex() {
+  const modal = document.getElementById('codex-modal');
+  if (modal) modal.classList.add('is-open');
+  isCodexOpen = true;
+  renderCodexTable();
+}
+
+function closeCodex() {
+  const modal = document.getElementById('codex-modal');
+  if (modal) modal.classList.remove('is-open');
+  isCodexOpen = false;
+  resetQuestionTimer();
+}
+
+function scrollCodexBody(delta) {
+  const body = document.getElementById('codex-body');
+  if (!body) return;
+  if (typeof body.scrollBy === 'function') {
+    body.scrollBy({ top: delta, behavior: 'smooth' });
+  } else {
+    body.scrollTop = Math.max(0, (body.scrollTop || 0) + delta);
+  }
+}
+
+function setCodexSector(sec, btn) {
+  codexSectorFilter = sec;
+  const pills = document.querySelectorAll('#codex-sector-pills .phase-pill');
+  pills.forEach(function(p) { p.classList.remove('is-active'); });
+  if (btn) btn.classList.add('is-active');
+  renderCodexTable();
+}
+
+function renderCodexTable() {
+  const tbody = document.getElementById('codex-tbody');
+  const searchEl = document.getElementById('codex-search-input');
+  if (!tbody) return;
+  const query = searchEl ? searchEl.value.trim().toLowerCase() : '';
+
+  const rows = CODEX_DATA.filter(function(item) {
+    if (codexSectorFilter !== 'all' && item.sector !== codexSectorFilter) return false;
+    if (!query) return true;
+    const blob = `${item.entity} ${item.badgeMeta} ${item.etiology} ${item.pathogenesis} ${item.hallmarks} ${item.clinical} ${item.management}`.toLowerCase();
+    return blob.indexOf(query) !== -1;
+  });
+
+  tbody.innerHTML = rows.map(function(item) {
+    return `<tr>
+      <td class="amboss-scan-target"><strong>LO ${item.lo}: ${item.entity}</strong><br><span>${item.badgeMeta}</span></td>
+      <td class="amboss-scan-target">${item.etiology}</td>
+      <td class="amboss-scan-target">${item.pathogenesis}</td>
+      <td class="amboss-scan-target">${item.hallmarks}</td>
+      <td class="amboss-scan-target">${item.clinical}</td>
+      <td class="amboss-scan-target">${item.management}</td>
+    </tr>`;
+  }).join('');
+}
+
+// 3D Synthwave Corridor & 1:1 Portal Fusion Renderer
+function setupCanvasRenderer() {
+  canvasEl = document.getElementById('xr-canvas');
+  const shell = document.getElementById('viewport-shell');
+  if (!canvasEl || !shell) return;
+  ctx2d = canvasEl.getContext('2d');
+  initParticles();
+
+  function resizeCanvas() {
+    const w = shell.clientWidth || window.innerWidth;
+    const h = shell.clientHeight || 360;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvasEl.width = Math.floor(w * dpr);
+    canvasEl.height = Math.floor(h * dpr);
+    if (ctx2d) ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  // Active mouse hover banking / surfing across viewport
+  shell.addEventListener('mousemove', function(e) {
+    if (isMenuOpen || isOutcomeOpen || isCodexOpen) return;
+    const rect = shell.getBoundingClientRect();
+    const normX = ((e.clientX - rect.left) / Math.max(1, rect.width)) * 2 - 1;
+    craftTargetX = Math.max(-1, Math.min(1, normX));
+  });
+
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  lastFrameTs = performance.now();
+  animFrameId = requestAnimationFrame(renderXrFrame);
+}
+
+function renderXrFrame(ts) {
+  const dt = Math.min(0.05, (ts - lastFrameTs) / 1000);
+  lastFrameTs = ts;
+  scrollZ = (scrollZ + dt * 0.55) % 1;
+
+  const shell = document.getElementById('viewport-shell');
+  if (canvasEl && ctx2d && shell) {
+    const w = shell.clientWidth || window.innerWidth;
+    const h = shell.clientHeight || 360;
+    const q = getCurrentQuestion();
+    const theme = LO_VISUAL_THEMES[q.lo] || LO_VISUAL_THEMES[1];
+
+    // Deep midnight-navy void
+    ctx2d.fillStyle = '#0a0a12';
+    ctx2d.fillRect(0, 0, w, h);
+
+    const horizonY = h * 0.34;
+    const vanishX = w * 0.5;
+
+    // Subtle horizon glow
+    const grad = ctx2d.createLinearGradient(0, horizonY - 40, 0, h);
+    grad.addColorStop(0, `rgba(${theme.gridRgb}, 0.0)`);
+    grad.addColorStop(0.2, `rgba(${theme.gridRgb}, 0.14)`);
+    grad.addColorStop(1, 'rgba(10, 10, 18, 0.95)');
+    ctx2d.fillStyle = grad;
+    ctx2d.fillRect(0, horizonY - 40, w, h - horizonY + 40);
+
+    // Infinite wireframe floor grid
+    ctx2d.strokeStyle = `rgba(${theme.gridRgb}, 0.28)`;
+    ctx2d.lineWidth = 1;
+    const numCols = 14;
+    for (let c = -numCols; c <= numCols; c++) {
+      const bottomX = vanishX + c * (w / 7);
+      ctx2d.beginPath();
+      ctx2d.moveTo(vanishX + c * 6, horizonY);
+      ctx2d.lineTo(bottomX, h);
+      ctx2d.stroke();
+    }
+    const numRows = 12;
+    for (let r = 0; r < numRows; r++) {
+      const t = ((r + scrollZ) / numRows);
+      const y = horizonY + Math.pow(t, 1.9) * (h - horizonY);
+      ctx2d.beginPath();
+      ctx2d.moveTo(0, y);
+      ctx2d.lineTo(w, y);
+      ctx2d.stroke();
+    }
+
+    // 3 Teal perspective track rails
+    ctx2d.strokeStyle = 'rgba(0, 255, 204, 0.55)';
+    ctx2d.lineWidth = 1.6;
+    [-1, 0, 1].forEach(function(laneOffset) {
+      ctx2d.beginPath();
+      ctx2d.moveTo(vanishX + laneOffset * 26, horizonY);
+      ctx2d.lineTo(vanishX + laneOffset * (w * 0.28), h);
+      ctx2d.stroke();
+    });
+
+    // 150 crisp 3D square pixel-dust particles
+    ctx2d.fillStyle = theme.dust;
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      p.z -= dt * 0.22;
+      if (p.z <= 0.02) {
+        p.z = 1;
+        p.x = (Math.random() - 0.5) * 2.6;
+        p.y = (Math.random() - 0.5) * 1.5;
+      }
+      const scale = 1 / p.z;
+      const sx = vanishX + p.x * scale * (w * 0.16);
+      const sy = horizonY + p.y * scale * (h * 0.14);
+      if (sx >= 0 && sx <= w && sy >= 0 && sy <= h) {
+        const size = Math.max(1.5, Math.min(4, 2.8 / p.z));
+        ctx2d.fillRect(sx, sy, size, size);
+      }
+    }
+
+    // Live 1:1 Portal Fusion around the 3 centered DOM cards
+    const shellRect = shell.getBoundingClientRect();
+    const portalColors = ['#ff2d78', '#00ffcc', '#ffe04a'];
+    for (let lane = 0; lane < 3; lane++) {
+      const card = document.getElementById(`lane-${lane}-card`);
+      if (!card) continue;
+      const r = card.getBoundingClientRect();
+      const cx = r.left - shellRect.left;
+      const cy = r.top - shellRect.top;
+      const cw = r.width;
+      const ch = r.height;
+
+      ctx2d.save();
+      ctx2d.strokeStyle = portalColors[lane];
+      ctx2d.lineWidth = targetedLane === lane ? 2.6 : 1.4;
+      ctx2d.shadowColor = portalColors[lane];
+      ctx2d.shadowBlur = targetedLane === lane ? 16 : 6;
+      ctx2d.strokeRect(cx - 2, cy - 2, cw + 4, ch + 4);
+      ctx2d.restore();
+    }
+
+    // Solid geometric teal diamond craft banking/surfing smoothly
+    craftX += (craftTargetX - craftX) * Math.min(1, dt * 10);
+    craftTilt = (craftTargetX - craftX) * 0.55;
+    const shipX = vanishX + craftX * (w * 0.26);
+    const shipY = h * 0.87;
+
+    ctx2d.save();
+    ctx2d.translate(shipX, shipY);
+    ctx2d.rotate(craftTilt);
+    ctx2d.fillStyle = '#00ffcc';
+    ctx2d.strokeStyle = '#e8e0f0';
+    ctx2d.lineWidth = 1.5;
+    ctx2d.shadowColor = '#00ffcc';
+    ctx2d.shadowBlur = 14;
+    ctx2d.beginPath();
+    ctx2d.moveTo(0, -18);
+    ctx2d.lineTo(18, 8);
+    ctx2d.lineTo(0, 15);
+    ctx2d.lineTo(-18, 8);
+    ctx2d.closePath();
+    ctx2d.fill();
+    ctx2d.stroke();
+    ctx2d.restore();
+  }
+
+  animFrameId = requestAnimationFrame(renderXrFrame);
+}
+
+// Keyboard Shortcuts
+document.addEventListener('keydown', function(e) {
+  const tag = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '';
+  if (tag === 'input' || tag === 'select' || tag === 'textarea') {
+    if (e.key === 'Escape' && isCodexOpen) closeCodex();
+    return;
+  }
+  const k = e.key.toLowerCase();
+  if (isOutcomeOpen) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      continueRunner();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      scrollOutcomeBody(-160);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      scrollOutcomeBody(160);
+    }
+    return;
+  }
+  if (isCodexOpen) {
+    if (k === 'c' || e.key === 'Escape') {
+      e.preventDefault();
+      closeCodex();
+    }
+    return;
+  }
+  if (k === 'h') { e.preventDefault(); toggleHintsBar(); }
+  else if (k === 'c') { e.preventDefault(); openCodex(); }
+  else if (k === 's') { e.preventDefault(); skipCurrentQuestion(); }
+  else if (k === 't') { e.preventDefault(); toggleTimerFromMenu(); }
+  else if (e.key === 'Escape' && isMenuOpen) { toggleMenuDrawer(); }
+  else if (k === '1' || k === 'a') { selectLaneAndResolve(0); }
+  else if (k === '2' || k === 'w' || e.key === 'ArrowUp') { e.preventDefault(); selectLaneAndResolve(1); }
+  else if (k === '3' || k === 'd') { selectLaneAndResolve(2); }
+  else if (e.key === 'ArrowLeft') { previewLaneTarget(Math.max(0, targetedLane - 1)); }
+  else if (e.key === 'ArrowRight') { previewLaneTarget(Math.min(2, targetedLane + 1)); }
+  else if (e.key === 'Enter') { selectLaneAndResolve(targetedLane); }
+});
+
+// State Persistence via notebookAppApi
+async function persistAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.setAppState !== 'function') return;
+  const sectorEl = document.getElementById('sector-filter');
+  const angleEl = document.getElementById('angle-filter');
+  const compEl = document.getElementById('compartment-filter');
+  const ageEl = document.getElementById('age-filter');
+  const behEl = document.getElementById('behavior-filter');
+  try {
+    await window.notebookAppApi.setAppState({
+      hp: hp,
+      xp: xp,
+      streak: streak,
+      currentIndex: currentIndex,
+      missedIds: missedIds,
+      masteredLos: masteredLos,
+      isHintsVisible: isHintsVisible,
+      isTimerOn: isTimerOn,
+      timesUpMode: timesUpMode,
+      phaseFilter: phaseFilter,
+      sectorFilter: sectorEl ? sectorEl.value : 'all',
+      angleFilter: angleEl ? angleEl.value : 'all',
+      compartmentFilter: compEl ? compEl.value : 'all',
+      ageFilter: ageEl ? ageEl.value : 'all',
+      behaviorFilter: behEl ? behEl.value : 'all',
+      masterSoundOn: masterSoundOn,
+      sfxOn: sfxOn,
+      bgmVolume: bgmVolume
+    });
+  } catch (e) {}
+}
+
+async function restoreAppState() {
+  if (!window.notebookAppApi || typeof window.notebookAppApi.getAppState !== 'function') return;
+  try {
+    const state = await window.notebookAppApi.getAppState();
+    if (!state) return;
+    if (typeof state.hp === 'number') hp = state.hp;
+    if (typeof state.xp === 'number') xp = state.xp;
+    if (typeof state.streak === 'number') streak = state.streak;
+    if (Array.isArray(state.missedIds)) missedIds = state.missedIds;
+    if (state.masteredLos && typeof state.masteredLos === 'object') masteredLos = state.masteredLos;
+    if (typeof state.isHintsVisible === 'boolean') isHintsVisible = state.isHintsVisible;
+    if (typeof state.isTimerOn === 'boolean') isTimerOn = state.isTimerOn;
+    if (state.timesUpMode) timesUpMode = state.timesUpMode;
+    if (state.phaseFilter) phaseFilter = state.phaseFilter;
+    if (typeof state.masterSoundOn === 'boolean') masterSoundOn = state.masterSoundOn;
+    if (typeof state.sfxOn === 'boolean') sfxOn = state.sfxOn;
+    if (typeof state.bgmVolume === 'number') bgmVolume = state.bgmVolume;
+
+    const sectorEl = document.getElementById('sector-filter');
+    const angleEl = document.getElementById('angle-filter');
+    const compEl = document.getElementById('compartment-filter');
+    const ageEl = document.getElementById('age-filter');
+    const behEl = document.getElementById('behavior-filter');
+    const tuEl = document.getElementById('timesup-mode');
+    const volEl = document.getElementById('bgm-volume-slider');
+    const volVal = document.getElementById('bgm-volume-val');
+
+    if (sectorEl && state.sectorFilter) sectorEl.value = state.sectorFilter;
+    if (angleEl && state.angleFilter) angleEl.value = state.angleFilter;
+    if (compEl && state.compartmentFilter) compEl.value = state.compartmentFilter;
+    if (ageEl && state.ageFilter) ageEl.value = state.ageFilter;
+    if (behEl && state.behaviorFilter) behEl.value = state.behaviorFilter;
+    if (tuEl) tuEl.value = timesUpMode;
+    if (volEl) volEl.value = String(Math.round(bgmVolume * 100));
+    if (volVal) volVal.textContent = `${Math.round(bgmVolume * 100)}%`;
+
+    if (typeof state.currentIndex === 'number') currentIndex = state.currentIndex;
+  } catch (e) {}
+}
+
+async function initApp() {
+  await restoreAppState();
+  syncHintsUI();
+  syncTimerControlsUI();
+  buildSkillTree();
+  buildDeck(true);
+  loadQuestion(currentIndex);
+  setupCanvasRenderer();
+  if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === 'function') {
+    window.notebookAppApi.notifyAppReady();
+  }
+}
+
+
+document.addEventListener('visibilitychange', function() {
+  if (document.hidden) {
+    stopBgmLoop();
+    if (animFrameId) {
+      cancelAnimationFrame(animFrameId);
+      animFrameId = null;
+    }
+  } else {
+    if (!animFrameId && canvasEl) {
+      lastFrameTs = performance.now();
+      animFrameId = requestAnimationFrame(renderXrFrame);
+    }
+    if (bgmOn && masterSoundOn) {
+      startBgmLoop();
+    }
+  }
+});
+
+window.addEventListener('pagehide', function() {
+  stopBgmLoop();
+  persistAppState();
+});
+
+window.addEventListener('DOMContentLoaded', initApp);
+</script>
+</body>
+</html>
