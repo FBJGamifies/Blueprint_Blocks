@@ -1,0 +1,2700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="artifact-type" content="tool">
+<meta name="design-style" content="neon_noir">
+<title>07. Neuro Microbiology — XR 3-Lane Diagnostic Runner (v3.8)</title>
+<style>
+:root {
+  color-scheme: dark;
+  --background: #0a0a12;
+  --surface-container-low: #111118;
+  --surface-container: #141422;
+  --surface-container-high: #1e1e30;
+  --on-surface: #e8e0f0;
+  --on-surface-variant: #a098b0;
+  --outline: #5a5068;
+  --outline-variant: #302840;
+  --primary: #ff2d78;
+  --on-primary: #1a0010;
+  --primary-container: #b3004e;
+  --on-primary-container: #ffe0ec;
+  --secondary: #00ffcc;
+  --tertiary: #ffe04a;
+  --error: #ff4444;
+  --on-error: #1a0000;
+  --positive: #00ffcc;
+  --warning: #ffe04a;
+  --focus: #ff2d78;
+  --data-1: #ff2d78;
+  --data-2: #00ffcc;
+  --data-3: #ffe04a;
+  --data-4: #b388ff;
+  --data-context: #6e6680;
+  --font-headline: 'Sora', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-label: 'Space Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --rounded: 0.125rem;
+  --rounded-lg: 0.25rem;
+  --rounded-full: 0.75rem;
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+  --glow-text: 0 0 8px currentColor;
+  --glow-primary: 0 0 16px color-mix(in srgb, var(--primary) 40%, transparent);
+  --glow-secondary: 0 0 16px color-mix(in srgb, var(--secondary) 35%, transparent);
+  --glow-tertiary: 0 0 16px color-mix(in srgb, var(--tertiary) 35%, transparent);
+  --neon-border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  --neon-border-lit: 1px solid color-mix(in srgb, var(--primary) 50%, transparent);
+  --neon-inset: inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+  --scanlines: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in srgb, var(--on-surface) 3%, transparent) 3px 4px);
+  --game-body-size: 0.95rem;
+  --card-min-h: clamp(118px, 19dvh, 178px);
+  --card-pad: clamp(0.65rem, 1.3dvh, 1.05rem);
+  --card-font: clamp(0.86rem, 1.05vw, 1.02rem);
+  --stem-font: clamp(0.9rem, 1.15vw, 1.06rem);
+  --stem-max-h: 25dvh;
+}
+#xr-app.hints-visible {
+  --card-min-h: clamp(92px, 14.5dvh, 142px);
+  --card-pad: clamp(0.5rem, 1dvh, 0.82rem);
+  --card-font: clamp(0.8rem, 0.95vw, 0.94rem);
+  --stem-font: clamp(0.84rem, 1.02vw, 0.98rem);
+  --stem-max-h: 21dvh;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; width: 100%; height: 100dvh; overflow: hidden; overflow-x: clip;
+  background-color: var(--background); color: var(--on-surface);
+  font-family: var(--font-body); font-size: var(--game-body-size); line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+}
+button, input, select { font-family: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+#xr-app {
+  position: relative; width: 100%; height: 100dvh; display: flex; flex-direction: column;
+  background-color: var(--background); background-image: var(--scanlines); overflow: hidden;
+}
+
+/* BAND 1: ULTRA-SLIM TOP BAR */
+.top-mini-bar {
+  flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-sm); padding: 0.35rem 0.7rem; min-height: 44px;
+  background: color-mix(in srgb, var(--surface-container-low) 92%, transparent);
+  border-bottom: 1px solid var(--outline-variant); z-index: 25;
+}
+.menu-mini-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;
+  min-height: 36px; padding: 0.25rem 0.7rem; background: var(--surface-container);
+  border: var(--neon-border-lit); border-radius: var(--rounded); color: var(--primary);
+  font-family: var(--font-label); font-size: 0.74rem; font-weight: 700; letter-spacing: 0.08em;
+  cursor: pointer; text-transform: uppercase;
+  transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+.menu-mini-btn:hover, .menu-mini-btn[aria-expanded="true"] {
+  border-color: var(--primary); box-shadow: var(--glow-primary); text-shadow: var(--glow-text);
+}
+.mini-telemetry {
+  display: flex; align-items: center; justify-content: flex-end; flex-wrap: nowrap;
+  gap: 0.35rem; overflow-x: auto; scrollbar-width: none;
+}
+.mini-telemetry::-webkit-scrollbar { display: none; }
+.tele-chip {
+  display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.2rem 0.5rem;
+  background: var(--surface-container); border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded); font-family: var(--font-label); font-size: 0.72rem;
+  font-weight: 700; white-space: nowrap; color: var(--on-surface);
+}
+.tele-chip.is-hp { border-color: color-mix(in srgb, var(--primary) 45%, transparent); color: var(--primary); }
+.tele-chip.is-xp { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+.tele-chip.is-streak { border-color: color-mix(in srgb, var(--tertiary) 45%, transparent); color: var(--tertiary); }
+.tele-chip.is-timer { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); color: var(--secondary); }
+.tele-chip.is-timer.is-urgent { border-color: var(--error); color: var(--error); box-shadow: 0 0 10px color-mix(in srgb, var(--error) 45%, transparent); }
+.tele-chip.is-timer.is-off { color: var(--on-surface-variant); border-color: var(--outline-variant); }
+
+/* COLLAPSIBLE MENU DRAWER */
+.menu-drawer-backdrop {
+  position: fixed; inset: 0; z-index: 45; display: none;
+  background: color-mix(in srgb, var(--background) 70%, transparent); backdrop-filter: blur(4px);
+}
+.menu-drawer-backdrop.is-open { display: block; }
+#top-menu-drawer {
+  position: fixed; top: 44px; left: 0; bottom: 0; width: min(440px, 94vw);
+  z-index: 50; display: none; flex-direction: column; gap: var(--space-md);
+  padding: var(--space-md); overflow-y: auto;
+  background: var(--surface-container-low); border-right: var(--neon-border-lit);
+  box-shadow: var(--glow-primary);
+}
+#top-menu-drawer.is-open { display: flex; }
+.drawer-header {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-sm);
+  padding-bottom: var(--space-sm); border-bottom: 1px solid var(--outline-variant);
+}
+.drawer-kicker {
+  font-family: var(--font-label); font-size: 0.7rem; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--secondary); text-shadow: var(--glow-text); margin: 0 0 0.25rem;
+}
+.drawer-title {
+  font-family: var(--font-headline); font-size: 1.05rem; font-weight: 700;
+  color: var(--on-surface); margin: 0; line-height: 1.25; letter-spacing: -0.01em;
+}
+.drawer-section {
+  display: flex; flex-direction: column; gap: 0.45rem; padding: 0.65rem;
+  background: var(--surface-container); border: 1px solid var(--outline-variant); border-radius: var(--rounded-lg);
+}
+.drawer-section-label {
+  font-family: var(--font-label); font-size: 0.68rem; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--on-surface-variant); margin: 0;
+}
+.drawer-btn-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.4rem;
+}
+.drawer-btn {
+  min-height: 40px; padding: 0.4rem 0.6rem; background: var(--surface-container-low);
+  border: 1px solid var(--outline); border-radius: var(--rounded); color: var(--on-surface);
+  font-family: var(--font-label); font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.05em; cursor: pointer; text-align: center;
+  transition: border-color var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out);
+}
+.drawer-btn:hover { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+.drawer-btn.is-active { border-color: var(--primary); color: var(--primary); box-shadow: var(--glow-primary); }
+.drawer-btn.is-warn { border-color: var(--tertiary); color: var(--tertiary); }
+.drawer-btn.is-danger { border-color: var(--error); color: var(--error); }
+.drawer-field { display: flex; flex-direction: column; gap: 0.25rem; }
+.drawer-field label {
+  font-family: var(--font-label); font-size: 0.66rem; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--on-surface-variant);
+}
+.drawer-select {
+  width: 100%; min-height: 38px; padding: 0.4rem 1.8rem 0.4rem 0.6rem;
+  background: var(--surface-container-low); border: 1px solid var(--outline);
+  border-radius: var(--rounded); color: var(--on-surface); font-size: 0.8rem;
+}
+.drawer-range-row { display: flex; align-items: center; gap: 0.5rem; }
+.drawer-range-row input[type="range"] { flex: 1; accent-color: var(--secondary); }
+.drawer-file-input { font-size: 0.72rem; color: var(--on-surface-variant); }
+.phase-pills { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.phase-pill {
+  flex: 1 1 auto; min-height: 34px; padding: 0.25rem 0.45rem;
+  background: var(--surface-container-low); border: 1px solid var(--outline);
+  border-radius: var(--rounded); font-family: var(--font-label); font-size: 0.66rem;
+  text-transform: uppercase; cursor: pointer; text-align: center;
+}
+.phase-pill.is-active { border-color: var(--secondary); color: var(--secondary); box-shadow: var(--glow-secondary); }
+.skill-tree-grid {
+  display: grid; grid-template-columns: 1fr; gap: 0.35rem;
+}
+.skill-node-btn {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.4rem;
+  width: 100%; min-height: 40px; padding: 0.4rem 0.55rem; text-align: left;
+  background: var(--surface-container-low); border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded); cursor: pointer;
+}
+.skill-node-btn:hover { border-color: var(--secondary); }
+.skill-node-btn.is-selected { border-color: var(--primary); background: var(--surface-container-high); }
+.skill-node-title { font-size: 0.78rem; font-weight: 600; color: var(--on-surface); line-height: 1.25; }
+.skill-node-meta { font-family: var(--font-label); font-size: 0.64rem; color: var(--secondary); white-space: nowrap; }
+.hotkey-guide {
+  font-family: var(--font-label); font-size: 0.68rem; color: var(--on-surface-variant);
+  background: var(--surface-container-low); border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded); padding: 0.45rem 0.65rem; line-height: 1.5;
+}
+
+/* BAND 2: QUESTION STAGE BANNER + 3-SECOND AUTO-HIDING METADATA */
+.question-stage {
+  flex: 0 0 auto; z-index: 15; padding: 0.45rem 0.85rem 0.3rem;
+  display: flex; flex-direction: column; align-items: center; gap: 0.35rem;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-container-low) 92%, transparent) 0%, color-mix(in srgb, var(--background) 65%, transparent) 100%);
+  border-bottom: 1px solid color-mix(in srgb, var(--outline-variant) 70%, transparent);
+}
+.meta-ribbon {
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0.35rem;
+  max-height: 68px; opacity: 1; overflow: hidden;
+  transition: opacity var(--dur-long) var(--ease-out), max-height var(--dur-long) var(--ease-out), margin var(--dur-long) var(--ease-out);
+}
+.meta-ribbon.is-faded { opacity: 0; max-height: 0; margin: 0; pointer-events: none; }
+.meta-badge {
+  display: inline-flex; align-items: center; padding: 0.14rem 0.48rem;
+  border: 1px solid var(--primary); border-radius: var(--rounded);
+  font-family: var(--font-label); font-size: 0.65rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--primary);
+  background: color-mix(in srgb, var(--surface-container) 88%, transparent);
+}
+.meta-badge.is-angle { border-color: var(--secondary); color: var(--secondary); }
+.meta-badge.is-phase { border-color: var(--tertiary); color: var(--tertiary); }
+.meta-badge.is-corridor { border-color: var(--data-4); color: var(--data-4); }
+
+.question-stem-box {
+  width: min(980px, 100%); max-height: var(--stem-max-h); overflow-y: auto;
+  padding: 0.35rem 0.75rem; background: color-mix(in srgb, var(--surface-container) 84%, transparent);
+  border: var(--neon-border); box-shadow: var(--neon-inset); border-radius: var(--rounded-lg);
+  display: flex; align-items: center; justify-content: center;
+}
+.question-stem {
+  margin: 0; width: 100%; text-align: center; font-size: var(--stem-font);
+  font-weight: 500; color: var(--on-surface); line-height: 1.44;
+}
+
+/* BAND 3: CENTER 3D VIEWPORT + 3 FROSTED CENTERED ANSWER CARDS */
+.viewport-shell {
+  position: relative; flex: 1 1 auto; min-height: 0; width: 100%; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+#xr-canvas {
+  position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 1;
+}
+.lane-overlay-container {
+  position: relative; z-index: 10; width: min(1140px, 95vw);
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(0.65rem, 1.8vw, 1.35rem);
+  align-items: stretch; justify-content: center; pointer-events: none;
+  margin-bottom: clamp(2.4rem, 7dvh, 4.5rem);
+}
+.lane-dom-card {
+  pointer-events: auto; position: relative; min-height: var(--card-min-h);
+  padding: var(--card-pad); border-radius: var(--rounded-lg);
+  background: color-mix(in srgb, var(--surface-container) 78%, transparent);
+  backdrop-filter: blur(8px); cursor: pointer; user-select: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  gap: 0.4rem;
+  transition: transform var(--dur-micro) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+.lane-dom-card.lane-0 {
+  border: 2px solid color-mix(in srgb, var(--data-1) 72%, transparent);
+  box-shadow: inset 0 0 18px color-mix(in srgb, var(--data-1) 16%, transparent), 0 0 14px color-mix(in srgb, var(--data-1) 24%, transparent);
+}
+.lane-dom-card.lane-1 {
+  border: 2px solid color-mix(in srgb, var(--data-2) 72%, transparent);
+  box-shadow: inset 0 0 18px color-mix(in srgb, var(--data-2) 16%, transparent), 0 0 14px color-mix(in srgb, var(--data-2) 24%, transparent);
+}
+.lane-dom-card.lane-2 {
+  border: 2px solid color-mix(in srgb, var(--data-3) 72%, transparent);
+  box-shadow: inset 0 0 18px color-mix(in srgb, var(--data-3) 16%, transparent), 0 0 14px color-mix(in srgb, var(--data-3) 24%, transparent);
+}
+.lane-dom-card.is-targeted { transform: translateY(-3px) scale(1.015); }
+.lane-dom-card.lane-0.is-targeted { border-color: var(--data-1); box-shadow: inset 0 0 24px color-mix(in srgb, var(--data-1) 26%, transparent), 0 0 24px color-mix(in srgb, var(--data-1) 55%, transparent); }
+.lane-dom-card.lane-1.is-targeted { border-color: var(--data-2); box-shadow: inset 0 0 24px color-mix(in srgb, var(--data-2) 26%, transparent), 0 0 24px color-mix(in srgb, var(--data-2) 55%, transparent); }
+.lane-dom-card.lane-2.is-targeted { border-color: var(--data-3); box-shadow: inset 0 0 24px color-mix(in srgb, var(--data-3) 26%, transparent), 0 0 24px color-mix(in srgb, var(--data-3) 55%, transparent); }
+
+.lane-card-head {
+  display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+  font-family: var(--font-label); font-size: 0.66rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+.lane-0 .lane-card-head { color: var(--data-1); }
+.lane-1 .lane-card-head { color: var(--data-2); }
+.lane-2 .lane-card-head { color: var(--data-3); }
+.lane-key-label {
+  padding: 0.08rem 0.35rem; border: 1px solid currentColor; border-radius: var(--rounded);
+}
+.lane-card-text {
+  width: 100%; display: flex; align-items: center; justify-content: center; text-align: center;
+  font-size: var(--card-font); font-weight: 600; color: var(--on-surface); line-height: 1.35;
+}
+
+/* BAND 4: COLLAPSIBLE TACTICAL HINTS BAR */
+#hints-bar {
+  flex: 0 0 auto; z-index: 18; padding: 0.45rem 0.85rem;
+  background: var(--surface-container-low); border-top: 1px solid color-mix(in srgb, var(--secondary) 40%, transparent);
+  display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 0.2rem;
+}
+#xr-app.hints-visible #hints-bar { display: flex; }
+.hints-kicker {
+  font-family: var(--font-label); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--secondary); text-shadow: var(--glow-text);
+}
+#q-clue-text {
+  margin: 0; max-width: 900px; text-align: center; font-size: 0.84rem; color: var(--on-surface);
+}
+
+/* TOAST */
+.inline-toast {
+  position: fixed; top: 52px; left: 50%; transform: translateX(-50%); z-index: 60;
+  padding: 0.35rem 0.9rem; background: var(--surface-container-high);
+  border: 1px solid var(--secondary); border-radius: var(--rounded);
+  font-family: var(--font-label); font-size: 0.74rem; font-weight: 700;
+  color: var(--secondary); box-shadow: var(--glow-secondary);
+  opacity: 0; pointer-events: none; transition: opacity var(--dur-short) var(--ease-out);
+}
+.inline-toast.is-visible { opacity: 1; }
+
+/* MODALS (OUTCOME DOSSIER, CODEX, SUMMARY) */
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 70; display: none; align-items: center; justify-content: center;
+  padding: 0.75rem; background: color-mix(in srgb, var(--background) 82%, transparent); backdrop-filter: blur(6px);
+}
+.modal-backdrop.is-open { display: flex; }
+#outcome-popup-modal, #codex-modal, #summary-modal {
+  width: min(940px, 94vw); max-height: 90dvh; display: flex; flex-direction: column;
+  background: var(--surface-container-low); border: var(--neon-border-lit);
+  border-radius: var(--rounded-lg); box-shadow: var(--glow-primary); overflow: hidden;
+}
+#codex-modal { width: min(1140px, 96vw); border-color: color-mix(in srgb, var(--secondary) 50%, transparent); box-shadow: var(--glow-secondary); }
+.popup-header {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
+  padding: 0.75rem 1rem; background: var(--surface-container); border-bottom: 1px solid var(--outline-variant);
+}
+.popup-header-centered { justify-content: center; text-align: center; }
+.popup-verdict {
+  margin: 0; font-family: var(--font-headline); font-size: 1.08rem; font-weight: 800;
+  text-align: center; letter-spacing: -0.01em; color: var(--secondary); text-shadow: var(--glow-text);
+}
+.popup-verdict.is-wrong { color: var(--primary); }
+.popup-verdict.is-timeout { color: var(--tertiary); }
+.popup-question-pin {
+  padding: 0.55rem 1rem; background: var(--surface-container-low); border-bottom: 1px solid var(--outline-variant);
+  text-align: center;
+}
+.popup-question-pin-label {
+  display: block; font-family: var(--font-label); font-size: 0.65rem; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--secondary); margin-bottom: 0.2rem;
+}
+.popup-question-pin-text {
+  margin: 0; font-size: 0.86rem; color: var(--on-surface); text-align: center;
+}
+.popup-scroll-body {
+  flex: 1 1 auto; overflow-y: auto; padding: 0.85rem 1rem; display: flex; flex-direction: column; gap: 0.7rem;
+}
+.dossier-block {
+  padding: 0.65rem 0.8rem; background: var(--surface-container); border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-lg); text-align: center;
+}
+.dossier-block.is-highlight { border-color: color-mix(in srgb, var(--secondary) 45%, transparent); }
+.dossier-block-title {
+  margin: 0 0 0.4rem; font-family: var(--font-headline); font-size: 0.86rem; font-weight: 700;
+  color: var(--tertiary); text-transform: uppercase; letter-spacing: 0.04em; text-align: center;
+}
+.choice-compare-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.55rem; margin-bottom: 0.45rem;
+}
+.choice-box {
+  padding: 0.5rem; background: var(--surface-container-low); border: 1px solid var(--outline);
+  border-radius: var(--rounded); text-align: center;
+}
+.choice-box.is-correct { border-color: var(--secondary); }
+.choice-box.is-wrong { border-color: var(--primary); }
+.choice-box-label {
+  display: block; font-family: var(--font-label); font-size: 0.62rem; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--on-surface-variant); margin-bottom: 0.2rem;
+}
+.choice-box-val { font-size: 0.84rem; font-weight: 600; color: var(--on-surface); }
+.dossier-bullet-list {
+  list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.28rem;
+  text-align: center; align-items: center;
+}
+.dossier-bullet-list li {
+  font-size: 0.83rem; color: var(--on-surface); line-height: 1.42; max-width: 72ch; text-align: center;
+}
+.angle-3-grid {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.55rem;
+}
+.angle-mini-card {
+  padding: 0.55rem; background: var(--surface-container-low); border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded); text-align: center;
+}
+.angle-mini-card h4 {
+  margin: 0 0 0.35rem; font-family: var(--font-label); font-size: 0.68rem; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--secondary); text-align: center;
+}
+.popup-footer {
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0.5rem;
+  padding: 0.65rem 1rem; background: var(--surface-container); border-top: 1px solid var(--outline-variant);
+}
+.btn-neon {
+  min-height: 40px; padding: 0.45rem 0.95rem; background: var(--surface-container-low);
+  border: var(--neon-border-lit); border-radius: var(--rounded); color: var(--primary);
+  font-family: var(--font-label); font-size: 0.74rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; cursor: pointer;
+  transition: box-shadow var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+.btn-neon:hover { border-color: var(--primary); box-shadow: var(--glow-primary); text-shadow: var(--glow-text); }
+.btn-neon.is-cyan { color: var(--secondary); border-color: color-mix(in srgb, var(--secondary) 55%, transparent); }
+.btn-neon.is-cyan:hover { border-color: var(--secondary); box-shadow: var(--glow-secondary); }
+
+/* CODEX MODAL */
+.codex-toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem;
+  padding: 0.6rem 1rem; background: var(--surface-container-low); border-bottom: 1px solid var(--outline-variant);
+}
+.codex-search-wrap { display: flex; flex-direction: column; gap: 0.2rem; min-width: min(260px, 100%); }
+.codex-search-wrap label { font-family: var(--font-label); font-size: 0.62rem; text-transform: uppercase; color: var(--on-surface-variant); }
+.codex-search-input {
+  min-height: 36px; padding: 0.3rem 0.6rem; background: var(--surface-container);
+  border: 1px solid var(--outline); border-radius: var(--rounded); color: var(--on-surface); font-size: 0.82rem;
+}
+.codex-pills { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.codex-pill {
+  min-height: 34px; padding: 0.25rem 0.55rem; background: var(--surface-container);
+  border: 1px solid var(--outline); border-radius: var(--rounded); font-family: var(--font-label);
+  font-size: 0.65rem; text-transform: uppercase; cursor: pointer;
+}
+.codex-pill.is-active { border-color: var(--secondary); color: var(--secondary); box-shadow: var(--glow-secondary); }
+.codex-table-wrap { flex: 1 1 auto; overflow: auto; padding: 0.5rem 0.75rem; }
+.codex-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+.codex-table th {
+  position: sticky; top: 0; z-index: 2; padding: 0.5rem; background: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline); font-family: var(--font-label); font-size: 0.66rem;
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--secondary); text-align: left;
+}
+.codex-table td {
+  padding: 0.5rem; border-bottom: 1px solid var(--outline-variant); vertical-align: top;
+  background: var(--surface-container-low); color: var(--on-surface); line-height: 1.38;
+}
+.codex-table tr:nth-child(even) td { background: var(--surface-container); }
+
+/* SUMMARY MODAL */
+.summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.55rem; }
+.summary-stat {
+  padding: 0.65rem; background: var(--surface-container); border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded); text-align: center;
+}
+.summary-stat-val { font-family: var(--font-headline); font-size: 1.3rem; font-weight: 800; color: var(--secondary); }
+.summary-stat-lbl { font-family: var(--font-label); font-size: 0.64rem; text-transform: uppercase; color: var(--on-surface-variant); }
+
+/* 3 VERBATIM PHONE MEDIA QUERIES (PRESERVING TABLETS) */
+@media (max-width: 600px) {
+  .tele-chip.is-xp { display: none; }
+  .lane-card-head, .lane-key-label { display: none; }
+  .lane-overlay-container {
+    grid-template-columns: 1fr; gap: 0.45rem; width: 94vw; margin-bottom: 1rem;
+  }
+  #xr-app.hints-hidden {
+    --card-min-h: clamp(62px, 12.5dvh, 92px);
+    --card-pad: 0.45rem 0.65rem;
+    --card-font: 0.84rem;
+    --stem-font: 0.84rem;
+    --stem-max-h: 22dvh;
+  }
+  #xr-app.hints-visible {
+    --card-min-h: clamp(50px, 10dvh, 74px);
+    --card-pad: 0.35rem 0.55rem;
+    --card-font: 0.78rem;
+    --stem-font: 0.78rem;
+    --stem-max-h: 17dvh;
+  }
+  #outcome-popup-modal, #codex-modal, #summary-modal { width: 96vw; max-height: 92dvh; }
+  .choice-compare-grid, .angle-3-grid, .summary-grid { grid-template-columns: 1fr; }
+}
+@media (max-height: 500px) and (pointer: coarse) {
+  .top-mini-bar { min-height: 36px; padding: 0.2rem 0.5rem; }
+  .question-stage { padding: 0.25rem 0.6rem; }
+  .lane-overlay-container {
+    grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.45rem; margin-bottom: 0.5rem;
+  }
+  #xr-app.hints-hidden { --card-min-h: 74px; --card-pad: 0.38rem; --card-font: 0.76rem; --stem-max-h: 20dvh; }
+  #xr-app.hints-visible { --card-min-h: 58px; --card-pad: 0.3rem; --card-font: 0.72rem; --stem-max-h: 16dvh; }
+}
+@media (min-width: 601px) and (max-aspect-ratio: 9/16) and (pointer: coarse) {
+  html { font-size: 200%; }
+  .lane-overlay-container { grid-template-columns: 1fr; gap: 0.45rem; width: 94vw; }
+  .lane-card-head, .lane-key-label { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+<div id="xr-app" class="hints-hidden">
+  <!-- BAND 1: ULTRA-SLIM TOP BAR -->
+  <div class="top-mini-bar">
+    <button type="button" class="menu-mini-btn" id="menu-toggle-btn" onclick="toggleMenuDrawer()" aria-expanded="false" aria-controls="top-menu-drawer">☰ MENU</button>
+    <div class="mini-telemetry" aria-label="Game Status">
+      <span class="tele-chip is-hp" id="hp-chip">HP <span id="hp-text">100</span></span>
+      <span class="tele-chip is-xp">XP <span id="xp-text">0</span></span>
+      <span class="tele-chip is-streak">⚡ <span id="streak-text">0</span></span>
+      <span class="tele-chip">GATE <span id="gate-text">1/45</span></span>
+      <span class="tele-chip is-timer" id="timer-chip">⏱ <span id="timer-text">50s</span></span>
+    </div>
+  </div>
+
+  <!-- BAND 2: TOP QUESTION + 3-SECOND AUTO-HIDING METADATA -->
+  <div class="question-stage">
+    <div class="meta-ribbon" id="meta-ribbon">
+      <span class="meta-badge" id="lo-badge">SECTOR I • LO 1</span>
+      <span class="meta-badge is-angle" id="angle-badge">PRESENTATION → DIAGNOSIS</span>
+      <span class="meta-badge is-phase" id="phase-badge">PHASE 1: PATHOGENESIS</span>
+      <span class="meta-badge is-corridor" id="corridor-badge">CORRIDOR</span>
+    </div>
+    <div class="question-stem-box">
+      <p class="question-stem amboss-scan-target" id="q-stem-text">Loading diagnostic corridor…</p>
+    </div>
+  </div>
+
+  <!-- BAND 3: CENTER 3D XR VIEWPORT + 3 PORTAL-FUSED ANSWER CARDS -->
+  <div class="viewport-shell" id="viewport-shell">
+    <canvas id="xr-canvas" aria-label="3D Perspective Diagnostic Corridor"></canvas>
+    <div class="lane-overlay-container" id="lane-overlay-container">
+      <div id="lane-0-card" class="lane-dom-card lane-0" role="button" tabindex="0"
+           onmouseenter="previewLaneTarget(0)" onpointerenter="previewLaneTarget(0)" onmousemove="previewLaneTarget(0)" onfocus="previewLaneTarget(0)"
+           onclick="selectLaneAndResolve(0)"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(0);}">
+        <div class="lane-card-head"><span class="lane-key-label">1 / A / ←</span><span>LANE 1</span></div>
+        <div class="lane-card-text amboss-scan-target" id="lane-0-text">Option A</div>
+      </div>
+      <div id="lane-1-card" class="lane-dom-card lane-1" role="button" tabindex="0"
+           onmouseenter="previewLaneTarget(1)" onpointerenter="previewLaneTarget(1)" onmousemove="previewLaneTarget(1)" onfocus="previewLaneTarget(1)"
+           onclick="selectLaneAndResolve(1)"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(1);}">
+        <div class="lane-card-head"><span class="lane-key-label">2 / W / ↑</span><span>LANE 2</span></div>
+        <div class="lane-card-text amboss-scan-target" id="lane-1-text">Option B</div>
+      </div>
+      <div id="lane-2-card" class="lane-dom-card lane-2" role="button" tabindex="0"
+           onmouseenter="previewLaneTarget(2)" onpointerenter="previewLaneTarget(2)" onmousemove="previewLaneTarget(2)" onfocus="previewLaneTarget(2)"
+           onclick="selectLaneAndResolve(2)"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLaneAndResolve(2);}">
+        <div class="lane-card-head"><span class="lane-key-label">3 / D / →</span><span>LANE 3</span></div>
+        <div class="lane-card-text amboss-scan-target" id="lane-2-text">Option C</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BAND 4: COLLAPSIBLE TACTICAL HINTS BAR -->
+  <div id="hints-bar">
+    <span class="hints-kicker">Tactical Hint [H]</span>
+    <p class="amboss-scan-target" id="q-clue-text">Hint ready.</p>
+  </div>
+</div>
+
+<!-- MENU DRAWER -->
+<div class="menu-drawer-backdrop" id="menu-backdrop" onclick="toggleMenuDrawer()"></div>
+<aside id="top-menu-drawer" aria-label="Mission Controls">
+  <div class="drawer-header">
+    <div>
+      <p class="drawer-kicker">COMLEX-USA / USMLE • NEUROLOGY MICROBIOLOGY &amp; OMT</p>
+      <h1 class="drawer-title">07. Neuro Microbiology — XR 3-Lane Runner (v3.8)</h1>
+    </div>
+    <button type="button" class="drawer-btn" onclick="toggleMenuDrawer()" aria-label="Close Menu">✕</button>
+  </div>
+
+  <div class="drawer-section">
+    <p class="drawer-section-label">Tactical Actions</p>
+    <div class="drawer-btn-grid">
+      <button type="button" class="drawer-btn" id="menu-hints-btn" onclick="toggleHintsBar()">💡 Hints: OFF [H]</button>
+      <button type="button" class="drawer-btn" onclick="openCodexFromMenu()">📖 Loot Codex [C]</button>
+      <button type="button" class="drawer-btn" onclick="skipFromMenu()">⏭ Skip Gate [S]</button>
+      <button type="button" class="drawer-btn is-active" id="menu-timer-btn" onclick="toggleTimerFromMenu()">⏱ 50s Timer: ON [T]</button>
+      <button type="button" class="drawer-btn is-warn" onclick="startTimedRunFromMenu()">⚡ Start 50s Timed Run</button>
+      <button type="button" class="drawer-btn" onclick="showSummaryFromMenu()">📊 Run Summary</button>
+    </div>
+    <div class="drawer-field">
+      <label for="timeout-mode-select">Time's Up Behavior</label>
+      <select id="timeout-mode-select" class="drawer-select" onchange="setTimeoutMode(this.value)">
+        <option value="review">Time's Up = Wrong → Outcome Dossier</option>
+        <option value="hold">Hold at 0s (Warning Only)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="drawer-section">
+    <p class="drawer-section-label">Audio &amp; Procedural Synth Suite</p>
+    <div class="drawer-btn-grid">
+      <button type="button" class="drawer-btn is-active" id="btn-master-sound" onclick="toggleMasterSound()">🔊 Master Sound: ON</button>
+      <button type="button" class="drawer-btn is-active" id="btn-sfx" onclick="toggleSfx()">🎛 SFX: ON</button>
+      <button type="button" class="drawer-btn" id="btn-bgm" onclick="toggleZombiesBgm()">🎵 Zombies BGM: OFF</button>
+      <button type="button" class="drawer-btn" onclick="stopAllAudio()">🔇 Mute All</button>
+    </div>
+    <div class="drawer-field">
+      <label for="bgm-vol-slider">BGM Volume (<span id="bgm-vol-label">35%</span>)</label>
+      <div class="drawer-range-row">
+        <input type="range" id="bgm-vol-slider" min="0" max="100" value="35" oninput="updateBgmVolume(this.value)">
+      </div>
+    </div>
+    <div class="drawer-field">
+      <label for="custom-bgm-file">Custom MP3 / WAV Track</label>
+      <input type="file" id="custom-bgm-file" class="drawer-file-input" accept="audio/*" onchange="loadCustomAudio(this)">
+    </div>
+  </div>
+
+  <div class="drawer-section">
+    <p class="drawer-section-label">Deck &amp; Curriculum Filters</p>
+    <div class="drawer-field">
+      <label for="sector-filter">Sector / Focus Filter</label>
+      <select id="sector-filter" class="drawer-select" onchange="setSectorFilter(this.value)">
+        <option value="all">All 5 Sectors (45 Gates)</option>
+        <option value="sector_1">Sector I — Acute Bacterial Meningitis</option>
+        <option value="sector_2">Sector II — Chronic, Spirochetal, TB &amp; Fungal</option>
+        <option value="sector_3">Sector III — Viral Encephalitis, Myelitis &amp; Rabies</option>
+        <option value="sector_4">Sector IV — Abscesses, Parasites &amp; Prions</option>
+        <option value="sector_5">Sector V — Antimicrobials, CSF &amp; Cranial OMT</option>
+        <option value="missed">🎯 Missed Gates Only</option>
+      </select>
+    </div>
+    <div class="drawer-field">
+      <label for="angle-filter">Diagnostic Angle Filter</label>
+      <select id="angle-filter" class="drawer-select" onchange="setAngleFilter(this.value)">
+        <option value="all">All 3 Angles</option>
+        <option value="Presentation -> Diagnosis">Presentation → Diagnosis</option>
+        <option value="Mechanism -> Pathophysiology">Mechanism → Pathophysiology</option>
+        <option value="Hallmarks -> Management">Hallmarks → Management</option>
+      </select>
+    </div>
+    <div class="drawer-field">
+      <label>Phase Mix Filter (30% / 35% / 35%)</label>
+      <div class="phase-pills">
+        <button type="button" class="phase-pill is-active" data-phase="all" onclick="setPhaseFilter('all')">All (100%)</button>
+        <button type="button" class="phase-pill" data-phase="Phase 1: Pathogenesis" onclick="setPhaseFilter('Phase 1: Pathogenesis')">P1 Path (30%)</button>
+        <button type="button" class="phase-pill" data-phase="Phase 2: Histology / Structure" onclick="setPhaseFilter('Phase 2: Histology / Structure')">P2 Hallmarks (35%)</button>
+        <button type="button" class="phase-pill" data-phase="Phase 3: Clinical & Management" onclick="setPhaseFilter('Phase 3: Clinical & Management')">P3 Clin/Tx (35%)</button>
+      </div>
+    </div>
+    <div class="drawer-btn-grid">
+      <button type="button" class="drawer-btn" onclick="restartDeckOrdered()">↺ Restart Ordered</button>
+      <button type="button" class="drawer-btn" onclick="shuffleDeck()">🔀 Shuffle Deck</button>
+      <button type="button" class="drawer-btn is-danger" id="reset-mastery-btn" onclick="handleResetMastery(this)">⚠ Reset Mastery</button>
+      <button type="button" class="drawer-btn" onclick="clearEntityFilter()">✖ Clear Entity Filter</button>
+    </div>
+  </div>
+
+  <div class="drawer-section">
+    <p class="drawer-section-label">15-Entity Neuro Microbiology Skill Tree</p>
+    <div class="skill-tree-grid" id="skill-tree-grid"></div>
+  </div>
+
+  <div class="hotkey-guide">
+    Steer/Fire: [1/2/3] • [A/W/D] • [←/↑/→] • Hover/Click Card • [H] Hints • [M] Menu • [C] Codex • [S] Skip • [T] Timer • [Space/Enter] Continue
+  </div>
+</aside>
+
+<!-- 7-PART OUTCOME DOSSIER MODAL -->
+<div class="modal-backdrop" id="outcome-backdrop" role="dialog" aria-modal="true" aria-labelledby="outcome-verdict">
+  <div id="outcome-popup-modal">
+    <div class="popup-header popup-header-centered">
+      <h2 class="popup-verdict" id="outcome-verdict">✔ CORRECT — DIAGNOSIS</h2>
+      <span class="meta-badge" id="outcome-xp-delta">+100 XP</span>
+      <span class="meta-badge is-phase" id="outcome-hp-delta">+5 HP</span>
+    </div>
+    <div class="popup-question-pin">
+      <span class="popup-question-pin-label" id="outcome-lo-ref">Original Board Vignette</span>
+      <p class="popup-question-pin-text amboss-scan-target" id="outcome-question-text"></p>
+    </div>
+    <div class="popup-scroll-body" id="outcome-scroll-body">
+      <div class="dossier-block is-highlight">
+        <h3 class="dossier-block-title">1. Clinical Concept Pin &amp; Your Choice vs. Correct Answer</h3>
+        <div class="choice-compare-grid">
+          <div class="choice-box" id="your-choice-box">
+            <span class="choice-box-label">Your Selected Lane</span>
+            <span class="choice-box-val amboss-scan-target" id="your-choice-val">—</span>
+          </div>
+          <div class="choice-box is-correct">
+            <span class="choice-box-label">Verified Answer</span>
+            <span class="choice-box-val amboss-scan-target" id="correct-choice-val">—</span>
+          </div>
+        </div>
+        <ul class="dossier-bullet-list amboss-scan-target" id="dossier-sec-1"></ul>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">2. The Mechanism (Cellular / Molecular Etiology)</h3>
+        <ul class="dossier-bullet-list amboss-scan-target" id="dossier-sec-2"></ul>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">3. Morphologic &amp; Diagnostic Hallmarks (CSF, Stain, Imaging)</h3>
+        <ul class="dossier-bullet-list amboss-scan-target" id="dossier-sec-3"></ul>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">4. Clinical Therapeutics &amp; Pharmacokinetics</h3>
+        <ul class="dossier-bullet-list amboss-scan-target" id="dossier-sec-4"></ul>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">5. The Divergent Trap (Why Wrong Choices Fail)</h3>
+        <ul class="dossier-bullet-list amboss-scan-target" id="dossier-sec-5"></ul>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">6. Osteopathic / Somatosensory Clinical Pearl</h3>
+        <ul class="dossier-bullet-list amboss-scan-target" id="dossier-sec-6"></ul>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">7. High-Yield Board Association — 3-Phase Perspective Shifts</h3>
+        <div class="angle-3-grid">
+          <div class="angle-mini-card">
+            <h4>Pathogenesis Angle</h4>
+            <ul class="dossier-bullet-list amboss-scan-target" id="dossier-angle-1"></ul>
+          </div>
+          <div class="angle-mini-card">
+            <h4>Histology &amp; Diagnostic Angle</h4>
+            <ul class="dossier-bullet-list amboss-scan-target" id="dossier-angle-2"></ul>
+          </div>
+          <div class="angle-mini-card">
+            <h4>Clinical Management Angle</h4>
+            <ul class="dossier-bullet-list amboss-scan-target" id="dossier-angle-3"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="popup-footer">
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(-180)">▲ Up</button>
+      <button type="button" class="btn-neon is-cyan" onclick="scrollOutcomeBody(180)">▼ Down</button>
+      <button type="button" class="btn-neon" id="continue-runner-btn" onclick="continueAfterOutcome()">Continue Runner [Space / Enter]</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6-COLUMN MASTER LOOT CODEX MODAL -->
+<div class="modal-backdrop" id="codex-backdrop" role="dialog" aria-modal="true" aria-labelledby="codex-title">
+  <div id="codex-modal">
+    <div class="popup-header">
+      <h2 class="popup-verdict" id="codex-title">MASTER LOOT CODEX — NEURO MICROBIOLOGY (15 ENTITIES)</h2>
+      <button type="button" class="btn-neon" onclick="closeCodex()">Close [Esc]</button>
+    </div>
+    <div class="codex-toolbar">
+      <div class="codex-search-wrap">
+        <label for="codex-search">Filter Entities, CSF, Drugs, or OMT</label>
+        <input type="search" id="codex-search" class="codex-search-input" placeholder="e.g., Acyclovir, India ink, SBS, Listeria…" oninput="renderCodexTable()">
+      </div>
+      <div class="codex-pills" id="codex-pills">
+        <button type="button" class="codex-pill is-active" data-sector="all" onclick="setCodexSector('all', this)">All Sectors</button>
+        <button type="button" class="codex-pill" data-sector="sector_1" onclick="setCodexSector('sector_1', this)">I. Acute Bacterial</button>
+        <button type="button" class="codex-pill" data-sector="sector_2" onclick="setCodexSector('sector_2', this)">II. Chronic/Fungal</button>
+        <button type="button" class="codex-pill" data-sector="sector_3" onclick="setCodexSector('sector_3', this)">III. Viral/Rabies</button>
+        <button type="button" class="codex-pill" data-sector="sector_4" onclick="setCodexSector('sector_4', this)">IV. Abscess/Prion</button>
+        <button type="button" class="codex-pill" data-sector="sector_5" onclick="setCodexSector('sector_5', this)">V. Abx/CSF/OMT</button>
+      </div>
+    </div>
+    <div class="codex-table-wrap">
+      <table class="codex-table">
+        <thead>
+          <tr>
+            <th>LO &amp; Entity / Boss</th>
+            <th>Etiology / Trigger</th>
+            <th>Pathogenesis Cascade</th>
+            <th>CSF, Gross &amp; Histology Hallmarks</th>
+            <th>Clinical Presentation</th>
+            <th>Management &amp; Cranial OMT Secret</th>
+          </tr>
+        </thead>
+        <tbody id="codex-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- END-OF-RUN SUMMARY MODAL -->
+<div class="modal-backdrop" id="summary-backdrop" role="dialog" aria-modal="true" aria-labelledby="summary-title">
+  <div id="summary-modal">
+    <div class="popup-header popup-header-centered">
+      <h2 class="popup-verdict" id="summary-title">DIAGNOSTIC CORRIDOR COMPLETE</h2>
+    </div>
+    <div class="popup-scroll-body">
+      <div class="summary-grid">
+        <div class="summary-stat"><div class="summary-stat-val" id="sum-acc">0%</div><div class="summary-stat-lbl">Accuracy</div></div>
+        <div class="summary-stat"><div class="summary-stat-val" id="sum-xp">0</div><div class="summary-stat-lbl">Total XP</div></div>
+        <div class="summary-stat"><div class="summary-stat-val" id="sum-streak">0</div><div class="summary-stat-lbl">Best Streak</div></div>
+        <div class="summary-stat"><div class="summary-stat-val" id="sum-missed">0</div><div class="summary-stat-lbl">Missed Gates</div></div>
+      </div>
+      <div class="dossier-block">
+        <h3 class="dossier-block-title">High-Yield Debrief</h3>
+        <ul class="dossier-bullet-list" id="summary-bullets"></ul>
+      </div>
+    </div>
+    <div class="popup-footer">
+      <button type="button" class="btn-neon is-cyan" onclick="reviewMissedFromSummary()">🎯 Drill Missed Gates</button>
+      <button type="button" class="btn-neon" onclick="restartFromSummary()">↺ Run Full Deck</button>
+      <button type="button" class="btn-neon" onclick="closeSummary()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="inline-toast" id="inline-toast" role="status" aria-live="polite"></div>
+
+<api-shim></api-shim>
+<script>
+const GAME_CONFIG = {
+  title: `07. Neuro Microbiology — XR 3-Lane Diagnostic Runner`,
+  timerSeconds: 50,
+  metaFadeMs: 3000
+};
+
+const LO_VISUAL_THEMES = {
+  1:  { tag: `NEONATAL GBS / E. COLI`, dust: `#ff2d78`, gridRgb: `255,45,120` },
+  2:  { tag: `LISTERIA ACTIN CORRIDOR`, dust: `#ff6b9d`, gridRgb: `255,107,157` },
+  3:  { tag: `MENINGOCOCCAL PURPURA`, dust: `#ff2d78`, gridRgb: `255,45,120` },
+  4:  { tag: `SPIROCHETE DARK-FIELD`, dust: `#00ffcc`, gridRgb: `0,255,204` },
+  5:  { tag: `IXODES NEUROBORRELIOSIS`, dust: `#38f2af`, gridRgb: `56,242,175` },
+  6:  { tag: `INDIA INK & TB PELLICLE`, dust: `#00e5ff`, gridRgb: `0,229,255` },
+  7:  { tag: `TEMPORAL HEMORRHAGE`, dust: `#ffe04a`, gridRgb: `255,224,74` },
+  8:  { tag: `RETROGRADE DYNEIN TRACK`, dust: `#ffb84d`, gridRgb: `255,184,77` },
+  9:  { tag: `ANTERIOR HORN & ARBOVIRUS`, dust: `#ffe04a`, gridRgb: `255,224,74` },
+  10: { tag: `RING-ENHANCING ABSCESS`, dust: `#b388ff`, gridRgb: `179,136,255` },
+  11: { tag: `PROTOZOAL CNS TUNNEL`, dust: `#9d6bff`, gridRgb: `157,107,255` },
+  12: { tag: `PRION SPONGIFORM MATRIX`, dust: `#c7a4ff`, gridRgb: `199,164,255` },
+  13: { tag: `EMPIRIC BBB BARRAGE`, dust: `#00ffcc`, gridRgb: `0,255,204` },
+  14: { tag: `L4-L5 CSF DIFFERENTIAL`, dust: `#ff2d78`, gridRgb: `255,45,120` },
+  15: { tag: `CRANIAL SBS & CV4 VAULT`, dust: `#ffe04a`, gridRgb: `255,224,74` }
+};
+
+const CODEX_DATA = [
+  {
+    lo: 1, sector: `sector_1`, tag: `Sector I • Acute Bacterial`,
+    entity: `Neonatal Meningitis (GBS & E. coli K1)`,
+    etiology: `Newborns 0–6 months; maternal vaginal/rectal colonization acquired during delivery.`,
+    pathogenesis: `Group B Strep (S. agalactiae) polysaccharide capsule + E. coli K1 capsular antigen evade neonatal opsonization and cross immature BBB.`,
+    hallmarks: `GBS: Gram+ cocci in chains, CAMP+, bacitracin-resistant, hippurate+. E. coli: Gram- rod, pink lactose-fermenter on MacConkey. CSF: ↑PMNs, ↓glucose, ↑protein.`,
+    clinical: `Neonatal fever/hypothermia, lethargy, poor feeding, bulging anterior fontanelle, irritability, seizures.`,
+    management: `Empiric ampicillin + gentamicin (or cefotaxime). Intrapartum penicillin G prophylaxis at 35–37 wk GBS screen. OMT: gentle suboccipital/cranial decompression post-stabilization.`
+  },
+  {
+    lo: 2, sector: `sector_1`, tag: `Sector I • Acute Bacterial`,
+    entity: `Listeria monocytogenes Meningitis`,
+    etiology: `Neonates, adults >60 yr, pregnant women, and immunocompromised; unpasteurized dairy & deli meats.`,
+    pathogenesis: `Facultative intracellular Gram+ rod escapes phagolysosome via listeriolysin O and polymerizes host actin ("actin rockets") for cell-to-cell spread without humoral exposure.`,
+    hallmarks: `Tumbling motility in broth at room temp, growth at 4°C (cold enrichment), narrow β-hemolysis, catalase+. CSF: ↑PMNs (or monocytic shift), ↓glucose.`,
+    clinical: `Acute meningitis in neonate or elderly/transplant patient; rhombencephalitis (brainstem/CN deficits) or sepsis.`,
+    management: `Ampicillin (+ gentamicin for synergy) — cephalosporins (ceftriaxone) do NOT cover Listeria! OMT: OA/AA release only after acute infection control.`
+  },
+  {
+    lo: 3, sector: `sector_1`, tag: `Sector I • Acute Bacterial`,
+    entity: `N. meningitidis & S. pneumoniae Meningitis`,
+    etiology: `Teens/college dorms & military barracks (N. meningitidis); adults/elderly, asplenia, post-influenza (S. pneumoniae).`,
+    pathogenesis: `Both secrete IgA protease for nasopharyngeal colonization; LOS endotoxin (N. meningitidis) triggers DIC & bilateral adrenal hemorrhage; C5-C9 MAC deficiency predisposes to Neisseria.`,
+    hallmarks: `N. meningitidis: Gram- kidney-bean diplococci, maltose+ & glucose+, Thayer-Martin agar. S. pneumo: Gram+ lancet diplococci, optochin-sensitive, bile-soluble, Quellung+.`,
+    clinical: `Fever, nuchal rigidity, photophobia; petechiae/purpura + shock (Waterhouse-Friderichsen) in meningococcemia.`,
+    management: `Ceftriaxone + vancomycin (+ dexamethasone before/with 1st dose for S. pneumo). Close-contact prophylaxis for N. meningitidis: rifampin, ciprofloxacin, or ceftriaxone.`
+  },
+  {
+    lo: 4, sector: `sector_2`, tag: `Sector II • Chronic / Spirochetal`,
+    entity: `Neurosyphilis (Treponema pallidum)`,
+    etiology: `Sexually transmitted spirochete; tertiary neurosyphilis develops years after untreated primary/secondary infection.`,
+    pathogenesis: `Endarteritis obliterans of vasa vasorum damages dorsal columns/dorsal roots (tabes dorsalis) and cerebral cortex (general paresis).`,
+    hallmarks: `Dark-field microscopy (spiral spirochete; cannot culture on routine agar); CSF lymphocytic pleocytosis, ↑protein, reactive CSF VDRL (specific).`,
+    clinical: `Tabes dorsalis (loss of vibration/proprioception, Romberg+, lancinating pains, Charcot joints), general paresis, Argyll Robertson pupil (accommodates, does not react).`,
+    management: `IV aqueous crystalline Penicillin G for 10–14 days (desensitize if penicillin-allergic). OMT: T10–L2 sympathetic/proprioceptive gait support.`
+  },
+  {
+    lo: 5, sector: `sector_2`, tag: `Sector II • Chronic / Spirochetal`,
+    entity: `Lyme Neuroborreliosis (Borrelia burgdorferi)`,
+    etiology: `Ixodes scapularis (deer tick) bite in Northeast/Upper Midwest; white-footed mouse & deer reservoirs.`,
+    pathogenesis: `Large spirochete spreads hematogenously in Stage 2 (early disseminated) causing lymphocytic inflammation of meninges, cranial nerves, and cardiac conduction.`,
+    hallmarks: `Visualized on Giemsa/Wright stain (large spirochete). CSF: lymphocytic pleocytosis, normal/mildly ↓ glucose. Serology: ELISA screen → Western blot.`,
+    clinical: `Prior erythema migrans ("bull's-eye"), followed by bilateral CN VII (Bell) palsy, lymphocytic meningitis, migratory arthralgias, and AV heart block.`,
+    management: `IV ceftriaxone for CNS/neuroborreliosis or 3rd-degree AV block (oral doxycycline for Stage 1 erythema migrans or isolated Bell palsy).`
+  },
+  {
+    lo: 6, sector: `sector_2`, tag: `Sector II • Chronic / Fungal`,
+    entity: `Cryptococcus neoformans & Tuberculous Meningitis`,
+    etiology: `Cryptococcus: HIV/AIDS (CD4 <100), pigeon droppings. M. tuberculosis: reactivation/miliary spread in immunocompromised or endemic exposure.`,
+    pathogenesis: `Cryptococcus glucuronoxylomannan polysaccharide capsule resists phagocytosis and plugs arachnoid granulations (↑↑ICP). TB forms thick basilar exudate entrapping cranial nerves.`,
+    hallmarks: `Crypto: narrow-based budding yeast, India ink clear halo, mucicarmine+, latex agglutination+, MRI "soap-bubble" basal ganglia lesions. TB: acid-fast bacilli, CSF fibrin spider-web pellicle, ↑↑protein, ↓↓glucose.`,
+    clinical: `Subacute headache, fever, cranial nerve palsies (CN VI/III), visual changes from severe ↑ICP.`,
+    management: `Crypto: Amphotericin B + flucytosine induction → fluconazole maintenance + serial LPs for ↑ICP. TB: RIPE + adjunctive corticosteroids.`
+  },
+  {
+    lo: 7, sector: `sector_3`, tag: `Sector III • Viral CNS`,
+    entity: `HSV-1 Limbic Encephalitis`,
+    etiology: `Reactivation of latent HSV-1 from trigeminal ganglion or primary retrograde olfactory/trigeminal invasion in immunocompetent adults.`,
+    pathogenesis: `Lytic viral replication induces asymmetric hemorrhagic necrosis of the inferior frontal and medial temporal lobes.`,
+    hallmarks: `CSF: lymphocytic pleocytosis, ↑RBCs (xanthochromia), normal glucose, ↑protein; PCR for HSV-1 DNA gold standard. MRI: temporal lobe T2 hyperintensity; Cowdry A intranuclear inclusions.`,
+    clinical: `Acute fever, altered mental status, personality changes, bizarre behavior, aphasia, focal seizures, olfactory hallucinations.`,
+    management: `Immediate empiric IV Acyclovir (phosphorylated by viral thymidine kinase; hydrate well to prevent crystal nephropathy).`
+  },
+  {
+    lo: 8, sector: `sector_3`, tag: `Sector III • Viral CNS`,
+    entity: `Rabies Virus Encephalomyelitis`,
+    etiology: `Bite from rabid bat, raccoon, skunk, or dog; rhabdovirus transmitted in saliva.`,
+    pathogenesis: `Binds nicotinic ACh receptors at NMJ, travels via retrograde dynein axonal transport to dorsal root ganglia & CNS, then anterograde to salivary glands.`,
+    hallmarks: `Bullet-shaped enveloped ssRNA(-) virus; eosinophilic cytoplasmic Negri bodies in hippocampal pyramidal cells and cerebellar Purkinje neurons.`,
+    clinical: `Prodrome (paresthesia at bite site, fever) → encephalitic agitation, hydrophobia, aerophobia, hypersalivation → paralysis and fatal coma.`,
+    management: `Once symptomatic, nearly 100% fatal. Post-exposure prophylaxis (PEP): wound wash + Rabies Immune Globulin (RIG, passive) + killed Rabies vaccine (active) in different sites.`
+  },
+  {
+    lo: 9, sector: `sector_3`, tag: `Sector III • Viral CNS`,
+    entity: `Enteroviruses (Coxsackie/Polio) & West Nile Virus`,
+    etiology: `Enteroviruses (picornaviruses, fecal-oral, summer/fall); West Nile Virus (flavivirus, Culex mosquito).`,
+    pathogenesis: `Coxsackie/echovirus cause benign aseptic meningeal inflammation. Poliovirus & WNV destroy spinal cord anterior horn lower motor neurons.`,
+    hallmarks: `CSF: lymphocytic pleocytosis, NORMAL glucose, normal/mildly ↑ protein. Enterovirus PCR confirms aseptic meningitis; WNV IgM in CSF/serum.`,
+    clinical: `Enterovirus: MCC of viral meningitis (headache, photophobia, self-limited). Polio/WNV: asymmetric acute flaccid paralysis, absent DTRs, intact sensation.`,
+    management: `Supportive care (no antivirals). Prevention: inactivated polio vaccine (IPV) / oral polio vaccine (OPV); mosquito vector control.`
+  },
+  {
+    lo: 10, sector: `sector_4`, tag: `Sector IV • Abscesses & Fungi`,
+    entity: `Polymicrobial Brain Abscess & Mucormycosis`,
+    etiology: `Contiguous otitis/mastoiditis (temporal/cerebellum) or sinusitis/dental infection (frontal lobe); hematogenous bacteremia (multiple). DKA/neutropenia for Mucor/Rhizopus.`,
+    pathogenesis: `Viridans strep, S. aureus, and oral anaerobes form liquefactive necrosis with collagenous capsule. Mucor invades blood vessel walls via cribriform plate → ischemic black necrosis.`,
+    hallmarks: `Abscess: solitary or multiple ring-enhancing lesions with central restricted diffusion on MRI (LP contraindicated if mass effect!). Mucor: broad nonseptate hyphae branching at 90° angles.`,
+    clinical: `Subacute headache, focal neurologic deficit, fever (50%), seizures. Mucormycosis: DKA patient with black necrotic nasal/palatal eschar, periorbital pain, CN palsies.`,
+    management: `Abscess: neurosurgical aspiration/drainage + IV metronidazole + ceftriaxone (+ vancomycin). Mucor: urgent surgical debridement + IV liposomal amphotericin B (or isavuconazole) + DKA reversal.`
+  },
+  {
+    lo: 11, sector: `sector_4`, tag: `Sector IV • CNS Protozoa`,
+    entity: `Toxoplasma gondii & Naegleria fowleri`,
+    etiology: `Toxoplasma: AIDS (CD4 <100), cat feces oocysts or undercooked meat cysts. Naegleria: swimming in warm freshwater lakes/ponds.`,
+    pathogenesis: `Toxoplasma reactivates in basal ganglia/corticomedullary junction causing necrotizing encephalitis. Naegleria invades olfactory mucosa and crosses cribriform plate into brain.`,
+    hallmarks: `Toxo: multiple ring-enhancing lesions on MRI (vs solitary CNS lymphoma); tachyzoites on biopsy. Naegleria: rapidly fatal hemorrhagic CSF with motile amebic trophozoites, ↓↓glucose.`,
+    clinical: `Toxo: HIV+ patient with headache, confusion, focal deficits, seizures (congenital triad: chorioretinitis, hydrocephalus, intracranial calcifications). Naegleria: fulminant meningoencephalitis 3–7 days post-swim.`,
+    management: `Toxo: Sulfadiazine + pyrimethamine (+ leucovorin); PPx with TMP-SMX when CD4 <100 and anti-Toxo IgG+. Naegleria: amphotericin B + miltefosine (poor prognosis).`
+  },
+  {
+    lo: 12, sector: `sector_4`, tag: `Sector IV • Helminth & Prion`,
+    entity: `Neurocysticercosis (Taenia solium) & CJD Prion`,
+    etiology: `T. solium: ingestion of Taenia eggs via fecal-oral contamination (not cysticerci in pork—eating eggs causes cysticercosis). CJD: sporadic, inherited, or iatrogenic PrPSc misfolding.`,
+    pathogenesis: `T. solium oncospheres encyst in brain parenchyma; degenerating cysts trigger perilesional edema. CJD: PrPc α-helix converts to protease-resistant PrPSc β-pleated sheets causing neuronal vacuolation.`,
+    hallmarks: `Neurocysticercosis: CT/MRI "Swiss-cheese" calcified cysts or cystic lesions with scolex. CJD: cortical spongiform change without inflammation, ↑CSF 14-3-3 protein, EEG periodic sharp triphasic waves.`,
+    clinical: `Neurocysticercosis: adult-onset focal/generalized seizures in patient from endemic region. CJD: rapidly progressive dementia, startle myoclonus, ataxia.`,
+    management: `Neurocysticercosis: albendazole + corticosteroids (steroids prevent inflammatory seizure surge as cysts die) + antiepileptics. CJD: fatal, supportive care only; strict prion sterilization.`
+  },
+  {
+    lo: 13, sector: `sector_5`, tag: `Sector V • Pharmacology`,
+    entity: `Empiric Meningitis Antimicrobials & Dexamethasone`,
+    etiology: `Suspected acute bacterial meningitis before CSF culture speciation; age & immune status dictate empiric coverage.`,
+    pathogenesis: `Bactericidal cell-wall lysis triggers intense subarachnoid cytokine storm → cerebral edema & sensorineural hearing loss, blunted by early dexamethasone.`,
+    hallmarks: `Ceftriaxone (3rd-gen ceph) penetrates inflamed BBB for N. meningitidis/S. pneumo/H. flu. Vancomycin covers β-lactam-resistant S. pneumoniae (altered PBPs). Ampicillin covers Listeria.`,
+    clinical: `Empiric regimen: Ceftriaxone + Vancomycin (ages 1 mo–50 yr); ADD Ampicillin if <1 mo or >50 yr/immunocompromised; ADD Acyclovir if temporal/encephalitic signs.`,
+    management: `Administer Dexamethasone BEFORE or WITH first antibiotic dose in suspected S. pneumoniae meningitis to reduce mortality & hearing loss. Never delay antibiotics for CT.`
+  },
+  {
+    lo: 14, sector: `sector_5`, tag: `Sector V • CSF Diagnostics`,
+    entity: `CSF Diagnostic Profiling & Lumbar Puncture`,
+    etiology: `Lumbar puncture at L4–L5 interspace (iliac crest / Tuffier line) below conus medullaris (ends L1–L2 in adults, L3 in neonates).`,
+    pathogenesis: `Bacteria consume CSF glucose and recruit PMNs; viruses elicit lymphocytic response while sparing glucose; TB/fungi cause thick lymphocytic exudate with low glucose.`,
+    hallmarks: `Bacterial: ↑↑OP, ↑↑PMNs, ↑protein, ↓glucose. Viral: normal/↑OP, ↑lymphocytes, normal/↑protein, NORMAL glucose. Fungal/TB: ↑OP, ↑lymphocytes, ↑protein, ↓glucose.`,
+    clinical: `LP crosses skin → supraspinous/interspinous lig → ligamentum flavum → epidural space → dura → arachnoid → subarachnoid space. Contraindicated in papilledema/mass effect.`,
+    management: `Always rule out herniation risk (focal deficit, papilledema, immunocompromised, seizure) with head CT first—give empiric IV antibiotics BEFORE CT.`
+  },
+  {
+    lo: 15, sector: `sector_5`, tag: `Sector V • Cranial OMT`,
+    entity: `Cranial Osteopathy, SBS Strains & OA-AA Release`,
+    etiology: `Cranial rhythmic impulse (CRI 10–14/min), sphenobasilar synchondrosis (SBS) somatic dysfunction, or upper cervical/vagal tension post-illness.`,
+    pathogenesis: `Flexion/extension at SBS drives primary respiratory mechanism via reciprocal tension membranes (falx cerebri, tentorium cerebelli) and CSF fluctuation.`,
+    hallmarks: `Torsion (1 AP axis, named for high greater wing); Sidebending-Rotation (2 vertical + 1 AP axes, named for convexity); Vertical/Lateral strains (named for sphenoid base); Compression (reduced CRI).`,
+    clinical: `OA somatic dysfunction compresses CN X (vagus) at jugular foramen and suboccipital muscles; SBS compression causes headache, brain fog, and sluggish lymphatic/glymphatic flow.`,
+    management: `OA-AA suboccipital release normalizes parasympathetic/vagal tone and eases cervicogenic headache. CV4 (compression of 4th ventricle) enhances CRI & CSF drainage; contraindicated in acute ↑ICP/hemorrhage.`
+  }
+];
+
+const ALL_QUESTIONS = [
+  // LO 1: Neonatal Meningitis (GBS & E. coli K1)
+  {
+    id: `NM01-Q1`, lo: 1, sector: `sector_1`, loTitle: `Sector I • Neonatal Meningitis (GBS & E. coli K1)`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Group B Streptococcus Meningitis`,
+    stem: `A 5-day-old male neonate born via precipitous vaginal delivery to a mother with no prenatal care develops temperature instability (35.8°C), poor feeding, lethargy, and a bulging anterior fontanelle. CSF Gram stain shows Gram-positive cocci in chains that are catalase-negative and hippurate-positive. Which organism is the most likely cause?`,
+    clue: `Think of the #1 cause of neonatal meningitis with a positive CAMP test and bacitracin resistance.`,
+    choices: [`Streptococcus agalactiae (GBS)`, `Listeria monocytogenes`, `Streptococcus pneumoniae`],
+    correctIndex: 0,
+    explanation: `Correct: Streptococcus agalactiae (Group B Strep) is the leading cause of neonatal meningitis (0–6 mo) and appears as catalase-negative Gram+ cocci in chains that are hippurate+ and CAMP+. Distractor exclusion: Listeria monocytogenes is a catalase+ Gram+ rod with tumbling motility; S. pneumoniae is a lancet-shaped diplococcus affecting older infants and adults.`,
+    secondOrderClue: `Neonate <1 mo + bulging fontanelle + Gram+ chains + CAMP+ = Streptococcus agalactiae`,
+    phase1Pearl: `GBS polysaccharide capsule inhibits alternative complement C3b deposition and prevents opsonophagocytosis.`,
+    phase2Hallmark: `β-hemolytic, bacitracin-resistant, hippurate-positive, arrowhead zone of enhanced hemolysis on CAMP test.`,
+    phase3Secret: `Screen pregnant patients at 35–37 weeks with rectovaginal swab; give intrapartum IV penicillin G if positive.`
+  },
+  {
+    id: `NM01-Q2`, lo: 1, sector: `sector_1`, loTitle: `Sector I • Neonatal Meningitis (GBS & E. coli K1)`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `E. coli K1 Capsular Antigen`,
+    stem: `A 10-day-old newborn presents with irritability, apnea, and nuchal rigidity. CSF culture grows a Gram-negative rod forming pink colonies on MacConkey agar. Which virulence factor specifically enables this pathogen to resist complement-mediated opsonization and cross the neonatal blood-brain barrier?`,
+    clue: `This acidic capsular polysaccharide mimics host sialic acid (NCAM) in neonatal brain tissue.`,
+    choices: [`K1 capsular polysaccharide`, `IgA1 protease`, `Listeriolysin O`],
+    correctIndex: 0,
+    explanation: `Correct: The K1 capsular antigen of E. coli consists of α-2,8-linked polysialic acid that mimics host neural cell adhesion molecules, evading complement opsonization and mediating neonatal CNS invasion. Distractor exclusion: IgA1 protease is used by N. meningitidis/S. pneumoniae for mucosal colonization; listeriolysin O allows Listeria to escape phagolysosomes.`,
+    secondOrderClue: `Gram- lactose fermenter + neonatal meningitis = E. coli K1 capsule`,
+    phase1Pearl: `E. coli K1 capsule inhibits C3b binding and closely resembles fetal neural sialic acid, preventing antibody recognition.`,
+    phase2Hallmark: `Gram-negative rod, indole-positive, metallic green sheen on EMB agar, pink colonies on MacConkey agar.`,
+    phase3Secret: `Empiric neonatal meningitis coverage uses ampicillin + gentamicin (or cefotaxime) to cover GBS, E. coli, and Listeria.`
+  },
+  {
+    id: `NM01-Q3`, lo: 1, sector: `sector_1`, loTitle: `Sector I • Neonatal Meningitis (GBS & E. coli K1)`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Ampicillin + Gentamicin`,
+    stem: `A 3-day-old febrile neonate with hypotonia and high-pitched crying undergoes lumbar puncture showing 1,800 WBC/mm³ (92% PMNs), glucose 18 mg/dL, and protein 210 mg/dL. Pending CSF cultures, which empiric intravenous antimicrobial regimen is most appropriate?`,
+    clue: `Neonates under 1 month require coverage for GBS, E. coli, AND Listeria.`,
+    choices: [`Ampicillin plus gentamicin`, `Ceftriaxone plus vancomycin`, `Vancomycin plus acyclovir`],
+    correctIndex: 0,
+    explanation: `Correct: Neonatal meningitis (<1 month) is empirically treated with ampicillin (covers GBS and Listeria) plus gentamicin (or cefotaxime, covering Gram-negative enterics such as E. coli K1). Distractor exclusion: Ceftriaxone + vancomycin misses Listeria and ceftriaxone is avoided in neonates due to bilirubin displacement/kernicterus; vancomycin + acyclovir lacks Gram-negative coverage.`,
+    secondOrderClue: `Age <1 mo + bacterial CSF profile = Ampicillin + Gentamicin (avoid ceftriaxone in neonates)`,
+    phase1Pearl: `Ceftriaxone displaces bilirubin from albumin and precipitates with calcium in neonates, risking kernicterus and biliary sludging.`,
+    phase2Hallmark: `Bacterial neonatal CSF: marked PMN predominance (>1,000 WBC/mm³), glucose <40 mg/dL, elevated protein >150 mg/dL.`,
+    phase3Secret: `Add acyclovir if vesicular rash, elevated transaminases, or temporal/seizure predominance suggests neonatal HSV.`
+  },
+
+  // LO 2: Listeria monocytogenes Meningitis
+  {
+    id: `NM02-Q1`, lo: 2, sector: `sector_1`, loTitle: `Sector I • Listeria monocytogenes Meningitis`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Listeria monocytogenes Meningitis`,
+    stem: `A 72-year-old man with chronic lymphocytic leukemia who frequently eats soft unpasteurized cheeses and cold deli meats presents with fever, confusion, cranial nerve VI palsy, and ataxia. Blood and CSF cultures grow a catalase-positive, Gram-positive rod demonstrating tumbling motility at 25°C. What is the causative pathogen?`,
+    clue: `Remember the only Gram-positive organism with endotoxin-like cold growth, actin rockets, and tumbling motility.`,
+    choices: [`Listeria monocytogenes`, `Streptococcus agalactiae`, `Bacillus cereus`],
+    correctIndex: 0,
+    explanation: `Correct: Listeria monocytogenes infects neonates, adults >60 yr, pregnant women, and immunocompromised patients via unpasteurized dairy/deli meats, causing meningitis or brainstem rhombencephalitis. Distractor exclusion: S. agalactiae is a catalase-negative coccus in chains; B. cereus is a spore-forming Gram+ rod causing emetic/diarrheal food poisoning.`,
+    secondOrderClue: `Elderly/immunocompromised + deli meat/soft cheese + tumbling Gram+ rod = Listeria`,
+    phase1Pearl: `Listeria survives refrigeration (cold enrichment at 4°C) and spreads intracellularly to evade humoral antibodies.`,
+    phase2Hallmark: `Short Gram+ rods, catalase+, narrow zone of β-hemolysis, characteristic tumbling motility at room temperature.`,
+    phase3Secret: `Always add ampicillin to empiric meningitis regimens for infants <1 mo, adults >50 yr, or T-cell immunocompromised hosts.`
+  },
+  {
+    id: `NM02-Q2`, lo: 2, sector: `sector_1`, loTitle: `Sector I • Listeria monocytogenes Meningitis`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Actin-Mediated Cell-to-Cell Spread`,
+    stem: `A pregnant woman develops fever and myalgias after eating queso fresco, followed by preterm labor and neonatal sepsis. The responsible facultative intracellular bacterium avoids extracellular antibody neutralization by moving directly between host macrophages and endothelial cells. Which mechanism mediates this spread?`,
+    clue: `After lysing the phagosome with listeriolysin O, it hijacks host cytoskeleton filaments.`,
+    choices: [`Host actin polymerization ("actin rockets")`, `Inhibition of phagolysosome fusion via cord factor`, `Retrograde dynein axonal transport`],
+    correctIndex: 0,
+    explanation: `Correct: Listeria escapes the phagolysosome using listeriolysin O and phospholipases, then expresses ActA to polymerize host actin into "actin rockets" that propel it directly into adjacent cells. Distractor exclusion: Cord factor (trehalose dimycolate) is a virulence factor of M. tuberculosis; retrograde dynein transport is used by rabies virus and HSV.`,
+    secondOrderClue: `Listeriolysin O escape + ActA → host actin polymerization ("actin rockets")`,
+    phase1Pearl: `Cell-mediated immunity (CD4+ Th1 / IFN-γ macrophage activation) is essential to clear Listeria, explaining risk in pregnancy and steroids.`,
+    phase2Hallmark: `Intracellular coccobacilli seen within monocytes/PMNs on Gram stain; non-spore-forming Gram+ rod.`,
+    phase3Secret: `Cephalosporins have intrinsic resistance against Listeria due to low affinity for its penicillin-binding proteins.`
+  },
+  {
+    id: `NM02-Q3`, lo: 2, sector: `sector_1`, loTitle: `Sector I • Listeria monocytogenes Meningitis`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Add Ampicillin to Regimen`,
+    stem: `A 66-year-old woman on chronic prednisone for rheumatoid arthritis presents with fever, stiff neck, and altered mental status. She is started on IV ceftriaxone and vancomycin, but continues to deteriorate 12 hours later when CSF Gram stain reveals pleomorphic Gram-positive bacilli. What immediate antibiotic modification is required?`,
+    clue: `Ceftriaxone and vancomycin alone leave a classic gap in patients >50 years or immunocompromised.`,
+    choices: [`Add IV ampicillin`, `Switch ceftriaxone to cefepime`, `Add oral fluconazole`],
+    correctIndex: 0,
+    explanation: `Correct: Ampicillin (often combined with gentamicin for synergy) is the drug of choice for Listeria monocytogenes; all cephalosporins lack activity against Listeria. Distractor exclusion: Cefepime is a 4th-generation cephalosporin and also fails to cover Listeria; fluconazole treats Cryptococcus, not Gram+ bacilli.`,
+    secondOrderClue: `Age >50 yr or immunocompromised + CSF Gram+ rods = add Ampicillin immediately`,
+    phase1Pearl: `Listeria PBPs bind aminopenicillins (ampicillin) effectively, whereas 3rd/4th-generation cephalosporins cannot inhibit Listeria cell-wall synthesis.`,
+    phase2Hallmark: `CSF may show neutrophilic or lymphocytic predominance with low glucose and Gram-positive coccobacilli.`,
+    phase3Secret: `Guild Master Secret: For penicillin-allergic patients with Listeria meningitis, TMP-SMX is the preferred alternative.`
+  },
+
+  // LO 3: N. meningitidis & S. pneumoniae Meningitis
+  {
+    id: `NM03-Q1`, lo: 3, sector: `sector_1`, loTitle: `Sector I • N. meningitidis & S. pneumoniae`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Neisseria meningitidis (Waterhouse-Friderichsen)`,
+    stem: `A 19-year-old college freshman living in a crowded dormitory presents with abrupt fever, severe headache, nuchal rigidity, hypotension (74/42 mmHg), and rapidly spreading non-blanching petechiae on her trunk and extremities. CSF shows Gram-negative diplococci. Which organism and complication are occurring?`,
+    clue: `College dorm + petechial rash + refractory shock = LOS-induced bilateral adrenal hemorrhage.`,
+    choices: [`N. meningitidis with adrenal hemorrhage`, `S. pneumoniae with cavernous thrombosis`, `H. influenzae type b with epiglottitis`],
+    correctIndex: 0,
+    explanation: `Correct: Neisseria meningitidis causes fulminant meningitis in adolescents/young adults in close quarters; LOS endotoxin triggers DIC and bilateral adrenal hemorrhage (Waterhouse-Friderichsen syndrome). Distractor exclusion: S. pneumoniae is a Gram+ diplococcus without meningococcemic purpura; Hib causes meningitis in unvaccinated children <6 yr.`,
+    secondOrderClue: `Teen/dorm + petechiae + refractory shock + Gram- diplococci = N. meningitidis / Waterhouse-Friderichsen`,
+    phase1Pearl: `Outer membrane lipooligosaccharide (LOS) triggers massive TNF-α/IL-1 release, capillary leak, DIC, and adrenal cortical necrosis.`,
+    phase2Hallmark: `Gram-negative kidney-bean diplococci inside PMNs; ferments both glucose and maltose; grows on Thayer-Martin (VPN) chocolate agar.`,
+    phase3Secret: `Give immediate IV ceftriaxone + stress-dose hydrocortisone for adrenal crisis; isolate droplet precautions and give rifampin/cipro PPx to close contacts.`
+  },
+  {
+    id: `NM03-Q2`, lo: 3, sector: `sector_1`, loTitle: `Sector I • N. meningitidis & S. pneumoniae`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `C5–C9 MAC Complement Deficiency`,
+    stem: `A 21-year-old military recruit survives an episode of meningococcal meningitis, marking his second invasive Neisseria infection in 3 years. Evaluation reveals intact antibody titers and normal neutrophil oxidative burst, but undetectable serum CH50 hemolytic activity. Which immune defect most likely predisposes him?`,
+    clue: `Killing of Neisseria species uniquely depends on forming membrane attack complexes.`,
+    choices: [`Terminal complement (C5–C9) deficiency`, `Bruton tyrosine kinase (BTK) deficiency`, `NADPH oxidase deficiency`],
+    correctIndex: 0,
+    explanation: `Correct: Terminal complement (C5–C9) deficiency impairs formation of the Membrane Attack Complex (MAC), conferring a 1,000-fold risk of recurrent invasive Neisseria infections (meningitidis & gonorrhoeae). Distractor exclusion: BTK deficiency causes X-linked agammaglobulinemia with broad encapsulated bacterial infections; NADPH oxidase deficiency causes CGD (catalase+ organisms).`,
+    secondOrderClue: `Recurrent Neisseria + undetectable CH50 = C5–C9 MAC deficiency`,
+    phase1Pearl: `Neisseria outer membranes are uniquely lysed by C5b-9 MAC pores; patients on eculizumab (anti-C5) carry the same meningococcal risk.`,
+    phase2Hallmark: `Undetectable CH50 screening assay despite normal C3/C4 levels points directly to terminal C5–C9 pathway defect.`,
+    phase3Secret: `Administer quadrivalent MenACWY and MenB vaccines to all patients with complement deficiencies or starting anti-C5 therapy.`
+  },
+  {
+    id: `NM03-Q3`, lo: 3, sector: `sector_1`, loTitle: `Sector I • N. meningitidis & S. pneumoniae`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `S. pneumoniae (Lancet Diplococci)`,
+    stem: `A 58-year-old man with functional asplenia from sickle cell disease presents with fever, productive rust-colored sputum, and acute confusion with nuchal rigidity. CSF Gram stain shows α-hemolytic, optochin-sensitive, bile-soluble Gram-positive lancet-shaped diplococci. Which protective structure is critical to this organism's virulence?`,
+    clue: `Loss of the spleen impairs clearance of encapsulated bacteria confirmed by the Quellung reaction.`,
+    choices: [`Polysaccharide capsule (Quellung positive)`, `Protein A binding IgG Fc`, `M protein inhibiting complement`],
+    correctIndex: 0,
+    explanation: `Correct: Streptococcus pneumoniae is the most common cause of adult meningitis; its polysaccharide capsule prevents C3b phagocytosis and swells with type-specific antiserum (Quellung reaction). Distractor exclusion: Protein A belongs to S. aureus; M protein is the major antiphagocytic virulence factor of S. pyogenes (Group A Strep).`,
+    secondOrderClue: `Adult + pneumonia/otitis/asplenia + lancet Gram+ diplococci + optochin-S = S. pneumoniae`,
+    phase1Pearl: `S. pneumoniae secretes IgA1 protease to cleave mucosal IgA and uses its thick capsule to evade splenic macrophage clearance.`,
+    phase2Hallmark: `α-hemolytic on blood agar, optochin-sensitive, bile-soluble, lancet-shaped Gram+ diplococci.`,
+    phase3Secret: `Treat with ceftriaxone + vancomycin (for PBP-altered DRSP) + early dexamethasone; vaccinate asplenic patients with PCV20/PPSV23.`
+  },
+
+  // LO 4: Neurosyphilis (Treponema pallidum)
+  {
+    id: `NM04-Q1`, lo: 4, sector: `sector_2`, loTitle: `Sector II • Neurosyphilis (Treponema pallidum)`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Tabes Dorsalis (Neurosyphilis)`,
+    stem: `A 54-year-old man presents with lightning-like shooting pains in his legs, wide-based stamping gait, and painless deformity of his right knee. Exam shows absent lower-extremity vibration and proprioception, positive Romberg sign, and pupils that constrict on near accommodation but not to direct light. What is the diagnosis?`,
+    clue: `Argyll Robertson pupil ("prostitute's pupil") + dorsal column sensory ataxia = tertiary spirochete disease.`,
+    choices: [`Tertiary neurosyphilis (tabes dorsalis)`, `Subacute combined degeneration (B12)`, `Friedreich ataxia`],
+    correctIndex: 0,
+    explanation: `Correct: Tabes dorsalis is tertiary neurosyphilis caused by Treponema pallidum degeneration of dorsal columns and dorsal sensory roots, classically accompanied by Argyll Robertson pupils and Charcot joints. Distractor exclusion: Vitamin B12 deficiency damages both dorsal columns AND lateral corticospinal tracts without Argyll Robertson pupils; Friedreich ataxia presents in adolescence with cardiomyopathy and pes cavus.`,
+    secondOrderClue: `Dorsal column loss + lancinating pain + Argyll Robertson pupil = Tabes dorsalis (T. pallidum)`,
+    phase1Pearl: `Treponema pallidum induces obliterative endarteritis of the vasa vasorum, leading to chronic ischemic degeneration of dorsal roots and columns.`,
+    phase2Hallmark: `Spirochete visible only on dark-field microscopy or silver/immunofluorescent stains; reactive CSF VDRL confirms neurosyphilis.`,
+    phase3Secret: `Screen with serum RPR/VDRL + confirmatory FTA-ABS/TP-PA, then perform LP for CSF VDRL before initiating IV Penicillin G.`
+  },
+  {
+    id: `NM04-Q2`, lo: 4, sector: `sector_2`, loTitle: `Sector II • Neurosyphilis (Treponema pallidum)`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Endarteritis Obliterans of Vasa Vasorum`,
+    stem: `A 61-year-old man with progressive personality changes, grandiose delusions, hyperreflexia, and dementia is found to have a positive CSF VDRL test. Histopathology of the cerebral cortex and meninges reveals perivascular lymphoplasmacytic infiltrates narrowing small vessels. What primary vascular mechanism drives tertiary neurosyphilis?`,
+    clue: `Plasma cells cuffing small nutrient vessels cause chronic ischemia in both CNS and thoracic aorta.`,
+    choices: [`Endarteritis obliterans of vasa vasorum`, `Immune-complex leukocytoclastic vasculitis`, `Direct viral lysis of oligodendrocytes`],
+    correctIndex: 0,
+    explanation: `Correct: T. pallidum triggers an intense plasma-cell-rich perivascular inflammation (endarteritis obliterans) of small arteries and vasa vasorum, leading to cortical atrophy (general paresis) and dorsal column loss. Distractor exclusion: Leukocytoclastic vasculitis is classic for IgA/ANCA small-vessel vasculitis; viral lysis of oligodendrocytes causes PML (JC virus).`,
+    secondOrderClue: `General paresis + lymphoplasmacytic cuffing = T. pallidum endarteritis obliterans`,
+    phase1Pearl: `General paresis of the insane reflects chronic spirochetal meningoencephalitis with frontal/temporal cortical atrophy and microglial rod cells.`,
+    phase2Hallmark: `CSF shows mild lymphocytic pleocytosis (10–100 cells/mm³), elevated protein, and highly specific positive CSF VDRL.`,
+    phase3Secret: `Warn patients about the Jarisch-Herxheimer reaction (fever, rigors, hypotension within 24 hr of penicillin due to spirochete lysis).`
+  },
+  {
+    id: `NM04-Q3`, lo: 4, sector: `sector_2`, loTitle: `Sector II • Neurosyphilis (Treponema pallidum)`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `IV Penicillin G (10–14 Days)`,
+    stem: `A 49-year-old HIV-positive man with blurred vision and bilateral sensorineural hearing loss has a serum RPR titer of 1:128 and positive FTA-ABS. Lumbar puncture demonstrates 48 lymphocytes/mm³, protein 88 mg/dL, and a reactive CSF VDRL. What is the definitive treatment?`,
+    clue: `IM benzathine penicillin G does NOT achieve treponemicidal concentrations in the CSF.`,
+    choices: [`IV aqueous crystalline penicillin G`, `Single-dose IM benzathine penicillin G`, `Oral doxycycline for 14 days`],
+    correctIndex: 0,
+    explanation: `Correct: Neurosyphilis (including ocular and otic syphilis) requires 10–14 days of high-dose IV aqueous crystalline penicillin G to achieve therapeutic CSF levels. Distractor exclusion: Single-dose IM benzathine penicillin G treats primary/secondary/early latent syphilis only and fails to cross the BBB adequately; oral doxycycline is not first-line for neurosyphilis.`,
+    secondOrderClue: `Reactive CSF VDRL = IV aqueous penicillin G (NOT IM benzathine penicillin)`,
+    phase1Pearl: `Penicillin inhibits cell-wall transpeptidases (PBPs); T. pallidum divides slowly (~30 hr), requiring sustained IV levels for neurosyphilis.`,
+    phase2Hallmark: `CSF VDRL is highly specific for neurosyphilis (rare false positives); CSF FTA-ABS is sensitive to rule out if negative.`,
+    phase3Secret: `Guild Master Secret: If a patient with neurosyphilis has a true severe penicillin allergy, perform penicillin desensitization and still treat with IV penicillin G.`
+  },
+
+  // LO 5: Lyme Neuroborreliosis (Borrelia burgdorferi)
+  {
+    id: `NM05-Q1`, lo: 5, sector: `sector_2`, loTitle: `Sector II • Lyme Neuroborreliosis`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Lyme Neuroborreliosis (B. burgdorferi)`,
+    stem: `A 28-year-old hiker from Connecticut presents in August with headache, neck stiffness, and inability to wrinkle his forehead or close either eye bilaterally. Four weeks ago he had an expanding annular erythematous rash on his calf after camping. Which organism is responsible?`,
+    clue: `Remember "A Key Lyme pie to the FACE": Facial nerve palsy (often bilateral), Arthritis, Cardiac block, Erythema migrans.`,
+    choices: [`Borrelia burgdorferi`, `Treponema pallidum`, `Rickettsia rickettsii`],
+    correctIndex: 0,
+    explanation: `Correct: Borrelia burgdorferi, transmitted by the Ixodes scapularis tick, causes Stage 2 early disseminated Lyme disease featuring bilateral CN VII (Bell) palsy, lymphocytic meningitis, and AV block. Distractor exclusion: T. pallidum is sexually transmitted without an expanding tick-bite erythema migrans rash; R. rickettsii causes centripetal petechial rash starting on wrists/ankles.`,
+    secondOrderClue: `Northeast camping + prior erythema migrans + bilateral Bell palsy = Borrelia burgdorferi`,
+    phase1Pearl: `Ixodes scapularis must feed for >24–36 hours to transmit B. burgdorferi; outer surface protein switching helps evade host immunity.`,
+    phase2Hallmark: `Large spirochete visible on Giemsa or Wright-stained blood smears (unlike T. pallidum, which requires dark-field microscopy).`,
+    phase3Secret: `In an endemic area, bilateral facial nerve palsy is virtually pathognomonic for Lyme neuroborreliosis until proven otherwise.`
+  },
+  {
+    id: `NM05-Q2`, lo: 5, sector: `sector_2`, loTitle: `Sector II • Lyme Neuroborreliosis`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Lymphocytic Meningitis + Normal/Mildly Low Glucose`,
+    stem: `A 35-year-old woman from Massachusetts with migratory knee arthralgias, first-degree AV block, and photophobia undergoes lumbar puncture during evaluation for Stage 2 Lyme disease. Which CSF profile most accurately characterizes Lyme neuroborreliosis?`,
+    clue: `Spirochetal meningitis mimics viral/aseptic meningitis on basic CSF cell differential.`,
+    choices: [`Lymphocytic pleocytosis with normal/mildly low glucose`, `PMN predominance with glucose <20 mg/dL`, `Eosinophilic pleocytosis with normal protein`],
+    correctIndex: 0,
+    explanation: `Correct: Lyme neuroborreliosis produces a subacute aseptic-like CSF profile characterized by lymphocytic pleocytosis, mildly elevated protein, and normal (or only slightly reduced) glucose. Distractor exclusion: Marked PMN predominance and glucose <20 mg/dL indicate acute bacterial meningitis; eosinophilic pleocytosis suggests helminths such as Angiostrongylus or neurocysticercosis.`,
+    secondOrderClue: `Stage 2 Lyme meningitis = CSF lymphocytic pleocytosis + elevated intrathecal anti-Borrelia antibodies`,
+    phase1Pearl: `B. burgdorferi outer-surface lipoproteins trigger TLR2-mediated mononuclear/lymphocytic meningeal inflammation rather than acute neutrophilic pus.`,
+    phase2Hallmark: `Two-tier serologic testing: ELISA screening followed by confirmatory IgM/IgG Western blot.`,
+    phase3Secret: `Check an ECG in all patients with disseminated Lyme disease to screen for fluctuating AV nodal heart block.`
+  },
+  {
+    id: `NM05-Q3`, lo: 5, sector: `sector_2`, loTitle: `Sector II • Lyme Neuroborreliosis`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `IV Ceftriaxone for CNS Meningitis`,
+    stem: `A 41-year-old landscaper from Wisconsin presents with fever, nuchal rigidity, positive CSF Lyme antibody index, and third-degree AV block on ECG. Two weeks earlier he noticed a targetoid thigh rash. Which antimicrobial is indicated for his CNS and severe cardiac involvement?`,
+    clue: `Oral doxycycline treats Stage 1 rash or isolated Bell palsy, but CNS meningitis or high-grade AV block requires IV therapy.`,
+    choices: [`IV ceftriaxone`, `Oral amoxicillin`, `IV vancomycin`],
+    correctIndex: 0,
+    explanation: `Correct: IV ceftriaxone is first-line for Lyme meningitis/encephalitis, Lyme arthritis refractory to oral therapy, and symptomatic or high-grade (2nd/3rd-degree) AV block. Distractor exclusion: Oral amoxicillin is reserved for Stage 1 Lyme in pregnant women and children <8 years; vancomycin has no role against spirochetes.`,
+    secondOrderClue: `Lyme meningitis or high-grade AV block = IV Ceftriaxone (Stage 1 / isolated Bell palsy = oral Doxycycline)`,
+    phase1Pearl: `Ceftriaxone penetrates inflamed meninges reliably and binds spirochetal penicillin-binding proteins with a long once-daily half-life.`,
+    phase2Hallmark: `Erythema migrans diagnosis is clinical (no serology needed in Stage 1 because antibodies take weeks to develop).`,
+    phase3Secret: `In children <8 years and pregnant patients with Stage 1 Lyme, substitute amoxicillin (or cefuroxime) for doxycycline.`
+  },
+
+  // LO 6: Cryptococcus neoformans & Tuberculous Meningitis
+  {
+    id: `NM06-Q1`, lo: 6, sector: `sector_2`, loTitle: `Sector II • Cryptococcus & TB Meningitis`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Cryptococcus neoformans Meningitis`,
+    stem: `A 34-year-old man with untreated HIV (CD4 count 42/mm³) presents with 2 weeks of worsening headache, nausea, and diplopia. Opening pressure on LP is 340 mmH₂O. India ink stain of CSF reveals encapsulated, narrow-based budding yeasts with clear halos, and brain MRI shows dilated Virchow-Robin "soap-bubble" lesions. What is the pathogen?`,
+    clue: `Look for the pigeon-droppings encapsulated yeast stained by India ink and mucicarmine.`,
+    choices: [`Cryptococcus neoformans`, `Histoplasma capsulatum`, `Candida albicans`],
+    correctIndex: 0,
+    explanation: `Correct: Cryptococcus neoformans causes subacute meningitis with severely elevated opening pressure in AIDS (CD4 <100); India ink highlights its thick polysaccharide capsule as a clear halo, and MRI shows "soap-bubble" basal ganglia lesions. Distractor exclusion: Histoplasma is a tiny intracellular yeast inside macrophages without a true capsule; Candida forms pseudohyphae.`,
+    secondOrderClue: `AIDS CD4 <100 + ↑↑OP + India ink halo + soap-bubble MRI = Cryptococcus neoformans`,
+    phase1Pearl: `The glucuronoxylomannan capsule physically obstructs arachnoid granulations, causing communicating hydrocephalus and severe ↑ICP.`,
+    phase2Hallmark: `India ink clear halo, mucicarmine red capsule stain, methenamine silver stain, urease+, and rapid CSF cryptococcal antigen (CrAg) latex agglutination.`,
+    phase3Secret: `Manage elevated ICP aggressively with daily therapeutic lumbar punctures alongside antifungal therapy.`
+  },
+  {
+    id: `NM06-Q2`, lo: 6, sector: `sector_2`, loTitle: `Sector II • Cryptococcus & TB Meningitis`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Tuberculous Basilar Meningitis`,
+    stem: `A 46-year-old immigrant from an endemic region presents with 3 weeks of low-grade fever, weight loss, headache, and new CN III and VI palsies. CSF shows 220 lymphocytes/mm³, protein 340 mg/dL, and glucose 18 mg/dL; a delicate fibrin "spider-web" pellicle forms in the standing CSF tube. Where does this exudate classically localize?`,
+    clue: `Mycobacterium tuberculosis forms a gelatinous exudate around the brainstem cisterns.`,
+    choices: [`Basilar meninges and interpeduncular cistern`, `Superior sagittal sinus arachnoid villi only`, `Anterior horn motor neurons of spinal cord`],
+    correctIndex: 0,
+    explanation: `Correct: Tuberculous meningitis forms a thick, gelatinous basilar exudate in the basal cisterns that encases cranial nerves (CN III, IV, VI, VII) and causes obliterative vasculitis/hydrocephalus. Distractor exclusion: Arachnoid villi plugging describes Cryptococcus; anterior horn motor neurons are targeted by poliovirus and West Nile virus.`,
+    secondOrderClue: `Subacute CN palsies + CSF ↓↓glucose + ↑↑protein + spider-web pellicle = TB basilar meningitis`,
+    phase1Pearl: `Rupture of a subpial caseous focus (Rich focus) into the subarachnoid space triggers delayed-type hypersensitivity basilar exudate.`,
+    phase2Hallmark: `CSF shows lymphocytic pleocytosis, markedly elevated protein (>200 mg/dL), very low glucose, cobweb/spider-web fibrin clot, and AFB/NAAT positivity.`,
+    phase3Secret: `Treat tuberculous meningitis with RIPE (Rifampin, Isoniazid, Pyrazinamide, Ethambutol) PLUS adjunctive corticosteroids to reduce mortality.`
+  },
+  {
+    id: `NM06-Q3`, lo: 6, sector: `sector_2`, loTitle: `Sector II • Cryptococcus & TB Meningitis`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Amphotericin B + Flucytosine → Fluconazole`,
+    stem: `An immunocompromised man with HIV (CD4 35/mm³) is diagnosed with cryptococcal meningitis via positive CSF cryptococcal latex agglutination antigen. Which two-stage antifungal regimen provides optimal fungicidal induction followed by maintenance suppression?`,
+    clue: `Use the classic polyene + antimetabolite induction pair before stepping down to a CNS-penetrating azole.`,
+    choices: [`Amphotericin B + flucytosine, then fluconazole`, `Fluconazole monotherapy followed by nystatin`, `Caspofungin induction followed by terbinafine`],
+    correctIndex: 0,
+    explanation: `Correct: Cryptococcal meningitis requires induction with IV amphotericin B (binds ergosterol, forms membrane pores) plus flucytosine (5-FC, converted to 5-FU to inhibit fungal DNA/RNA synthesis), followed by oral fluconazole consolidation/maintenance. Distractor exclusion: Fluconazole alone has slower CSF clearance; echinocandins (caspofungin) have poor CNS penetration and lack activity against Cryptococcus.`,
+    secondOrderClue: `Cryptococcal meningitis = 1) Ampho B + Flucytosine, 2) Fluconazole maintenance`,
+    phase1Pearl: `Flucytosine is selectively converted by fungal cytosine deaminase into 5-fluorouracil, inhibiting thymidylate synthase; never use as monotherapy due to rapid resistance.`,
+    phase2Hallmark: `Monitor renal function & K⁺/Mg²⁺ on amphotericin B ("ampho-terrible") and CBC for bone marrow suppression on flucytosine.`,
+    phase3Secret: `Delay ART initiation slightly (2–10 weeks) in cryptococcal meningitis to avoid fatal CNS immune reconstitution inflammatory syndrome (IRIS).`
+  },
+
+  // LO 7: HSV-1 Limbic Encephalitis
+  {
+    id: `NM07-Q1`, lo: 7, sector: `sector_3`, loTitle: `Sector III • HSV-1 Limbic Encephalitis`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `HSV-1 Encephalitis`,
+    stem: `A 44-year-old previously healthy woman is brought in with 2 days of high fever, confusion, bizarre behavior, expressive aphasia, and focal temporal lobe seizures preceded by smelling burnt rubber. Brain MRI shows asymmetric T2 hyperintensity and hemorrhage in the left medial temporal lobe. What is the diagnosis?`,
+    clue: `Sporadic viral encephalitis with temporal lobe hemorrhage and olfactory hallucinations.`,
+    choices: [`Herpes simplex virus type 1 encephalitis`, `Progressive multifocal leukoencephalopathy`, `Subacute sclerosing panencephalitis`],
+    correctIndex: 0,
+    explanation: `Correct: HSV-1 is the most common cause of sporadic fatal viral encephalitis in the US, classically producing acute fever, altered mental status, personality/speech changes, and medial temporal lobe hemorrhagic necrosis. Distractor exclusion: PML (JC virus) causes non-enhancing subcortical white matter demyelination in AIDS; SSPE occurs years after measles with diffuse decline.`,
+    secondOrderClue: `Fever + altered mental status + burnt-rubber aura + temporal lobe MRI = HSV-1 encephalitis`,
+    phase1Pearl: `HSV-1 enters via olfactory mucosa or reactivates from the trigeminal ganglion, spreading along the skull base to inferior frontal and temporal lobes.`,
+    phase2Hallmark: `CSF: lymphocytic pleocytosis, elevated RBCs/xanthochromia (hemorrhagic necrosis), normal glucose; CSF HSV-1 PCR is diagnostic.`,
+    phase3Secret: `Encephalitis (altered mental status / focal deficit) is distinguished from meningitis (intact sensorium); start IV acyclovir immediately upon suspicion.`
+  },
+  {
+    id: `NM07-Q2`, lo: 7, sector: `sector_3`, loTitle: `Sector III • HSV-1 Limbic Encephalitis`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Cowdry A Eosinophilic Intranuclear Inclusions`,
+    stem: `A biopsy of necrotic temporal lobe cortex from an untreated fatal case of viral encephalitis shows perivascular lymphocytic cuffing, neuronophagia, and large eosinophilic intranuclear inclusions within neurons and glia. What are these hallmark inclusions called, and what does CSF typically show?`,
+    clue: `Herpesviruses replicate inside the host cell nucleus, leaving classic viral factories.`,
+    choices: [`Cowdry type A inclusions; CSF with ↑RBCs & lymphocytes`, `Negri bodies; CSF with neutrophil predominance`, `Owl-eye inclusions; CSF with low glucose`],
+    correctIndex: 0,
+    explanation: `Correct: HSV-1 produces eosinophilic intranuclear Cowdry type A inclusions alongside hemorrhagic necrosis of the temporal lobe, explaining why CSF shows elevated RBCs with lymphocytic pleocytosis and normal glucose. Distractor exclusion: Negri bodies are cytoplasmic inclusions in rabies; owl-eye inclusions are classic for CMV.`,
+    secondOrderClue: `HSV-1 histopathology = Cowdry A intranuclear inclusions + temporal hemorrhagic necrosis`,
+    phase1Pearl: `HSV-1 is a double-stranded DNA enveloped icosahedral virus that replicates in the nucleus and buds from the nuclear membrane.`,
+    phase2Hallmark: `EEG often shows periodic lateralized epileptiform discharges (PLEDs) over the affected temporal lobe.`,
+    phase3Secret: `Never wait for CSF HSV PCR results before giving IV acyclovir; delayed therapy (>48 hr) sharply increases mortality.`
+  },
+  {
+    id: `NM07-Q3`, lo: 7, sector: `sector_3`, loTitle: `Sector III • HSV-1 Limbic Encephalitis`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `IV Acyclovir (Thymidine Kinase)`,
+    stem: `A 52-year-old man with fever, confusion, and left temporal lobe edema on MRI is started on empiric IV acyclovir. What is the mechanism of activation and primary dose-limiting nephrotoxicity of this antiviral agent?`,
+    clue: `This guanosine analog requires a viral enzyme for its first phosphorylation and precipitates in renal tubules.`,
+    choices: [`Viral thymidine kinase activation; crystalline nephropathy`, `Viral neuraminidase inhibition; interstitial nephritis`, `Host ribavirin kinase; hemolytic anemia`],
+    correctIndex: 0,
+    explanation: `Correct: Acyclovir is a guanosine analog monophosphorylated selectively by HSV viral thymidine kinase, then triphosphorylated by host kinases to inhibit viral DNA polymerase via chain termination; it can precipitate in renal tubules (crystalline nephropathy). Distractor exclusion: Neuraminidase inhibitors treat influenza; ribavirin causes hemolytic anemia.`,
+    secondOrderClue: `HSV-1 encephalitis Tx = IV Acyclovir (viral TK → chain termination) + vigorous IV hydration`,
+    phase1Pearl: `Resistance to acyclovir arises via mutations in viral thymidine kinase (most common) or viral DNA polymerase; treat resistant cases with foscarnet.`,
+    phase2Hallmark: `Needle-shaped birefringent acyclovir crystals on urinalysis if patient becomes volume-depleted during high-dose IV therapy.`,
+    phase3Secret: `Always administer aggressive IV hydration and infuse acyclovir slowly over 1 hour to prevent obstructive crystal nephropathy.`
+  },
+
+  // LO 8: Rabies Virus Encephalomyelitis
+  {
+    id: `NM08-Q1`, lo: 8, sector: `sector_3`, loTitle: `Sector III • Rabies Virus Encephalomyelitis`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Rabies Encephalomyelitis`,
+    stem: `A 32-year-old spelunker who awoke with a bat in his cabin 6 weeks ago presents with tingling pain at his right forearm, fever, severe agitation, painful pharyngeal spasms when attempting to drink water (hydrophobia), and spasms triggered by a fan breeze (aerophobia). What is the diagnosis?`,
+    clue: `Bat exposure + paresthesias at bite site + hydrophobia/aerophobia = classic encephalitic rhabdovirus.`,
+    choices: [`Rabies virus encephalomyelitis`, `Tetanus (Clostridium tetani)`, `West Nile virus encephalitis`],
+    correctIndex: 0,
+    explanation: `Correct: Rabies virus has a weeks-to-months incubation period (shorter for bites near the head), presenting with bite-site paresthesias followed by autonomic hyperexcitability, hydrophobia, aerophobia, and hypersalivation. Distractor exclusion: Tetanus causes lockjaw (trismus) and opisthotonos without hydrophobia or bat exposure; West Nile causes flaccid paralysis or non-hydrophobic encephalitis.`,
+    secondOrderClue: `Bat exposure + bite paresthesia + hydrophobia/aerophobia = Rabies (Rhabdovirus)`,
+    phase1Pearl: `Rabies is an enveloped, negative-sense, single-stranded RNA bullet-shaped rhabdovirus; incubation correlates inversely with distance from CNS.`,
+    phase2Hallmark: `Eosinophilic cytoplasmic Negri bodies in cerebellar Purkinje cells and hippocampal pyramidal neurons.`,
+    phase3Secret: `Bat bites can be tiny and unnoticed—any direct contact or awakening in a room with a bat warrants post-exposure prophylaxis.`
+  },
+  {
+    id: `NM08-Q2`, lo: 8, sector: `sector_3`, loTitle: `Sector III • Rabies Virus Encephalomyelitis`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `nAChR Binding + Retrograde Dynein Transport`,
+    stem: `Following a raccoon bite to the calf, an unvaccinated hiker develops subclinical viral replication in skeletal muscle before the pathogen enters peripheral motor nerves and ascends to the spinal cord and brainstem. Which receptor and axonal motor protein mediate this CNS invasion?`,
+    clue: `It enters at the neuromuscular junction and travels backward toward the soma using minus-end microtubules.`,
+    choices: [`Nicotinic ACh receptor; retrograde dynein transport`, `ICAM-1 receptor; anterograde kinesin transport`, `CD155 poliovirus receptor; hematogenous spread`],
+    correctIndex: 0,
+    explanation: `Correct: Rabies virus binds nicotinic acetylcholine receptors (nAChRs) at the neuromuscular junction and ascends peripheral nerves via retrograde axonal transport powered by dynein motors. Distractor exclusion: ICAM-1 is the receptor for rhinovirus and kinesin drives anterograde transport; CD155 is the poliovirus receptor.`,
+    secondOrderClue: `Rabies CNS entry = NMJ nAChR binding → retrograde dynein transport → dorsal root/CNS`,
+    phase1Pearl: `By travelling inside axons via dynein, rabies completely bypasses bloodstream antibodies until clinical symptoms appear.`,
+    phase2Hallmark: `Bullet-shaped virions on electron microscopy; Negri bodies represent cytoplasmic ribonucleoprotein factories.`,
+    phase3Secret: `Once the virus reaches the CNS and produces clinical hydrophobia, mortality approaches 100%; prevention via PEP is everything.`
+  },
+  {
+    id: `NM08-Q3`, lo: 8, sector: `sector_3`, loTitle: `Sector III • Rabies Virus Encephalomyelitis`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Wound Wash + RIG + Killed Vaccine`,
+    stem: `A 19-year-old camper is bitten on the hand by a stray fox that escapes capture. On arrival to the ED, the wound is thoroughly irrigated with soap and water. What immediate post-exposure prophylaxis (PEP) regimen must be administered to an unvaccinated patient?`,
+    clue: `Combine immediate passive neutralizing antibodies around the wound with active immunization elsewhere.`,
+    choices: [`Rabies immune globulin + killed rabies vaccine`, `Live-attenuated rabies vaccine monotherapy`, `IV acyclovir plus oral ribavirin`],
+    correctIndex: 0,
+    explanation: `Correct: Unvaccinated individuals with high-risk exposure receive thorough wound cleansing plus BOTH passive Rabies Immune Globulin (RIG, infiltrated around the wound) AND the active inactivated (killed) rabies vaccine series (days 0, 3, 7, 14) at an anatomically distant site. Distractor exclusion: Vaccine alone leaves a 7–14 day immunity gap; acyclovir/ribavirin are ineffective.`,
+    secondOrderClue: `Unvaccinated rabies bite = Wound wash + RIG (passive at wound) + Killed vaccine (active, separate site)`,
+    phase1Pearl: `Never inject RIG and the vaccine in the same syringe or same anatomic site, or RIG will neutralize the vaccine antigen.`,
+    phase2Hallmark: `Post-mortem or animal brain fluorescent antibody testing / Negri bodies confirm rabies in captured animals.`,
+    phase3Secret: `Previously vaccinated individuals exposed to rabies receive booster vaccine doses (days 0 and 3) WITHOUT RIG.`
+  },
+
+  // LO 9: Enteroviruses & Arboviruses (West Nile)
+  {
+    id: `NM09-Q1`, lo: 9, sector: `sector_3`, loTitle: `Sector III • Enteroviruses & West Nile Virus`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Enteroviral Aseptic Meningitis`,
+    stem: `In late August, a 16-year-old boy attending summer camp develops fever, frontal headache, photophobia, and mild nuchal rigidity, accompanied by a maculopapular rash. CSF shows 140 WBC/mm³ (85% lymphocytes), glucose 62 mg/dL (serum 95 mg/dL), and protein 58 mg/dL. Which pathogen is the most common cause?`,
+    clue: `Think naked picornavirus transmitted fecal-orally during summer and early fall.`,
+    choices: [`Enterovirus (Coxsackievirus / Echovirus)`, `Neisseria meningitidis`, `Cryptococcus neoformans`],
+    correctIndex: 0,
+    explanation: `Correct: Non-polio enteroviruses (coxsackievirus, echovirus) are the most common overall cause of viral (aseptic) meningitis, peaking in summer/fall via fecal-oral transmission with normal CSF glucose and lymphocytic predominance. Distractor exclusion: N. meningitidis causes acute PMN meningitis with low glucose; Cryptococcus affects immunocompromised hosts with low CSF glucose.`,
+    secondOrderClue: `Summer/fall + aseptic CSF (↑lymphocytes, NORMAL glucose) = Enterovirus (MCC viral meningitis)`,
+    phase1Pearl: `Enteroviruses are non-enveloped (acid-stable) positive-sense ssRNA picornaviruses that survive stomach acid to replicate in Peyer patches.`,
+    phase2Hallmark: `CSF PCR for enterovirus confirms diagnosis rapidly and prevents unnecessary prolonged IV antibiotics.`,
+    phase3Secret: `Enteroviral meningitis is generally self-limited and treated supportively; rule out bacterial meningitis before stopping empiric therapy.`
+  },
+  {
+    id: `NM09-Q2`, lo: 9, sector: `sector_3`, loTitle: `Sector III • Enteroviruses & West Nile Virus`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Anterior Horn Lower Motor Neuron Destruction`,
+    stem: `A 67-year-old man from Texas presents in September with fever, encephalopathy, and sudden asymmetric weakness of his right leg and left arm with absent deep tendon reflexes, intact pinprick sensation, and normal nerve conduction sensory potentials. CSF is positive for West Nile virus IgM. Which CNS structure is selectively destroyed?`,
+    clue: `Both poliovirus and West Nile virus mimic each other by destroying the same spinal cord motor cell bodies.`,
+    choices: [`Spinal cord anterior horn motor neurons`, `Dorsal root ganglion sensory neurons`, `Lateral corticospinal upper motor neurons`],
+    correctIndex: 0,
+    explanation: `Correct: Like poliovirus, West Nile virus (a flavivirus transmitted by Culex mosquitoes) exhibits tropism for spinal cord anterior horn alpha motor neurons, producing asymmetric acute flaccid paralysis with hyporeflexia and preserved sensation. Distractor exclusion: Dorsal root ganglia destruction causes sensory ataxia; UMN lesions cause spasticity and hyperreflexia.`,
+    secondOrderClue: `West Nile or Polio + asymmetric flaccid paralysis + areflexia + intact sensation = Anterior horn LMN lesion`,
+    phase1Pearl: `West Nile virus is an enveloped positive-sense ssRNA flavivirus maintained in bird reservoirs and transmitted by Culex mosquitoes.`,
+    phase2Hallmark: `CSF shows lymphocytic pleocytosis, normal glucose, mild protein elevation, and diagnostic CSF anti-WNV IgM.`,
+    phase3Secret: `Monitor respiratory vital capacity closely in WNV/polio poliomyelitis-like syndromes due to diaphragmatic paralysis risk.`
+  },
+  {
+    id: `NM09-Q3`, lo: 9, sector: `sector_3`, loTitle: `Sector III • Enteroviruses & West Nile Virus`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Enterovirus Normal CSF Glucose vs Bacterial`,
+    stem: `A 9-year-old girl presents with fever, headache, and mild neck stiffness; a neighbor child recently had hand-foot-and-mouth disease. Which combination of CSF findings confirms viral enteroviral meningitis rather than partially treated bacterial or tuberculous meningitis?`,
+    clue: `Viruses do not consume CSF glucose, and lymphocytes predominate after the first 24 hours.`,
+    choices: [`Normal glucose, ↑lymphocytes, normal/mildly ↑protein`, `Low glucose, ↑PMNs, markedly ↑protein`, `Low glucose, ↑lymphocytes, markedly ↑protein`],
+    correctIndex: 0,
+    explanation: `Correct: Viral meningitis classically exhibits normal CSF glucose (>60% of serum), lymphocytic predominance, and normal to mildly elevated protein (<100 mg/dL). Distractor exclusion: Low glucose with PMNs indicates bacterial meningitis; low glucose with lymphocytes and markedly elevated protein indicates fungal or tuberculous meningitis.`,
+    secondOrderClue: `Normal CSF glucose + lymphocytes = Viral (Enterovirus); Low CSF glucose + lymphocytes = TB/Fungal`,
+    phase1Pearl: `Early viral meningitis (<24 hr) can transiently show PMNs before shifting to lymphocytes, whereas glucose remains normal throughout.`,
+    phase2Hallmark: `Opening pressure in viral meningitis is normal to mildly elevated (typically <250 mmH₂O), unlike severe ↑ICP in Cryptococcus.`,
+    phase3Secret: `Killed IPV (Salk) induces systemic IgG protecting the CNS from paralysis; live OPV (Sabin) induces both IgG and mucosal IgA.`
+  },
+
+  // LO 10: Polymicrobial Brain Abscess & Mucormycosis
+  {
+    id: `NM10-Q1`, lo: 10, sector: `sector_4`, loTitle: `Sector IV • Brain Abscess & Mucormycosis`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Otogenic Temporal/Cerebellar Brain Abscess`,
+    stem: `A 38-year-old man with untreated chronic suppurative otitis media and mastoiditis develops 10 days of progressive headache, fever, and left-sided dysmetria. Contrast MRI shows a solitary ring-enhancing lesion in the left cerebellum with central restricted diffusion. Which pathogens are most commonly isolated?`,
+    clue: `Contiguous spread from ear/sinus/dental sources introduces polymicrobial oral flora.`,
+    choices: [`Viridans streptococci, S. aureus & oral anaerobes`, `Neisseria meningitidis & Listeria`, `Toxoplasma gondii & JC virus`],
+    correctIndex: 0,
+    explanation: `Correct: Contiguous brain abscesses from otitis/mastoiditis (temporal lobe or cerebellum) or sinusitis/dental infection (frontal lobe) are typically polymicrobial with viridans streptococci, S. aureus, and oral anaerobes (Bacteroides, Fusobacterium). Distractor exclusion: N. meningitidis/Listeria cause diffuse meningitis; Toxoplasma causes multiple abscesses in AIDS.`,
+    secondOrderClue: `Otitis/mastoiditis → temporal/cerebellar abscess; sinusitis/dental → frontal abscess (Strep/Staph/Anaerobes)`,
+    phase1Pearl: `Local osteomyelitis or emissary vein thrombophlebitis propagates bacteria into brain parenchyma, progressing from cerebritis to encapsulated liquefactive necrosis.`,
+    phase2Hallmark: `Ring-enhancing lesion with bright central diffusion-weighted imaging (DWI) restriction (pus restricts water diffusion, unlike necrotic tumor).`,
+    phase3Secret: `Lumbar puncture is CONTRAINDICATED in brain abscess due to severe risk of transtentorial or uncal herniation.`
+  },
+  {
+    id: `NM10-Q2`, lo: 10, sector: `sector_4`, loTitle: `Sector IV • Brain Abscess & Mucormycosis`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Mucormycosis (90° Nonseptate Hyphae)`,
+    stem: `A 55-year-old man in diabetic ketoacidosis (pH 7.12, blood glucose 610 mg/dL) develops acute facial pain, proptosis, ophthalmoplegia, and a black necrotic eschar on his nasal turbinate and hard palate. Biopsy of the eschar shows broad, irregular, ribbon-like hyphae lacking septa and branching at right (90°) angles. How did the organism reach the brain?`,
+    clue: `Ketone bodies and free iron in DKA fuel angioinvasive mold penetration through a bony skull plate.`,
+    choices: [`Vascular invasion across the cribriform plate`, `Hematogenous seeding from mitral endocarditis`, `Retrograde transport along the facial nerve`],
+    correctIndex: 0,
+    explanation: `Correct: Mucor and Rhizopus spores are inhaled into the paranasal sinuses, proliferate inside blood vessel walls (causing thrombosis and black necrotic eschar), and penetrate the cribriform plate into the frontal lobe and cavernous sinus. Distractor exclusion: Endocarditis seeds multiple cortical abscesses; retrograde nerve transport describes HSV/rabies.`,
+    secondOrderClue: `DKA + black nasal eschar + 90° nonseptate hyphae = Mucormycosis via cribriform plate`,
+    phase1Pearl: `Acidemia in DKA releases iron from transferrin and impairs neutrophil chemotaxis; Rhizopus possesses ketone reductase allowing rapid growth in ketoacidosis.`,
+    phase2Hallmark: `Broad, nonseptate (coenocytic) hyphae branching at wide 90° angles (contrast with Aspergillus: septate, acute 45° branching).`,
+    phase3Secret: `Urgent surgical debridement + IV liposomal amphotericin B (or isavuconazole) + immediate insulin/hydration DKA reversal.`
+  },
+  {
+    id: `NM10-Q3`, lo: 10, sector: `sector_4`, loTitle: `Sector IV • Brain Abscess & Mucormycosis`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Drainage + Metronidazole + Ceftriaxone + Vanco`,
+    stem: `A 47-year-old man with severe periodontitis and a maxillary molar abscess develops frontal headache, fever, and right hemiparesis. Contrast brain MRI shows a 3.5-cm right frontal lobe ring-enhancing abscess with surrounding vasogenic edema. What is the optimal diagnostic and therapeutic plan?`,
+    clue: `Dental-origin frontal abscesses require neurosurgical source control plus anaerobic, streptococcal, and MRSA coverage.`,
+    choices: [`Surgical aspiration + metronidazole, ceftriaxone & vancomycin`, `Lumbar puncture + IV ampicillin monotherapy`, `Oral albendazole + high-dose dexamethasone only`],
+    correctIndex: 0,
+    explanation: `Correct: A pyogenic brain abscess >2.5 cm requires stereotactic neurosurgical aspiration/drainage for decompression and culture, paired with empiric IV metronidazole (oral anaerobes), ceftriaxone (viridans strep/Gram-), and vancomycin (MRSA/S. aureus). Distractor exclusion: LP risks fatal herniation; albendazole treats neurocysticercosis.`,
+    secondOrderClue: `Frontal brain abscess (dental/sinus) = Stereotactic drainage + Metronidazole + Ceftriaxone + Vancomycin (NO LP)`,
+    phase1Pearl: `Metronidazole is reduced to cytotoxic free radicals exclusively inside anaerobic bacteria, achieving excellent brain abscess penetration.`,
+    phase2Hallmark: `Multiple brain abscesses suggest hematogenous bacteremia (e.g., right-to-left shunt, endocarditis, IVDU) rather than contiguous sinus/ear spread.`,
+    phase3Secret: `Add corticosteroid taper only if significant mass effect/edema threatens herniation, as steroids can delay capsule formation.`
+  },
+
+  // LO 11: CNS Protozoa — Toxoplasma gondii & Naegleria fowleri
+  {
+    id: `NM11-Q1`, lo: 11, sector: `sector_4`, loTitle: `Sector IV • Toxoplasma & Naegleria`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Toxoplasma gondii Encephalitis`,
+    stem: `A 37-year-old HIV-positive man (CD4 count 38/mm³) not taking prophylaxis presents with headache, confusion, fever, and focal left-sided weakness. Brain MRI with contrast reveals 4 ring-enhancing lesions in the basal ganglia and corticomedullary junction. What is the most likely diagnosis?`,
+    clue: `Multiple ring-enhancing basal ganglia lesions in AIDS (vs solitary EBV-driven CNS lymphoma).`,
+    choices: [`Cerebral toxoplasmosis (Toxoplasma gondii)`, `Primary CNS lymphoma (EBV)`, `Cryptococcal meningitis`],
+    correctIndex: 0,
+    explanation: `Correct: Reactivation of latent Toxoplasma gondii bradyzoite cysts in AIDS patients with CD4 <100/mm³ classically produces multiple ring-enhancing brain abscesses in the basal ganglia and gray-white junction. Distractor exclusion: EBV-associated primary CNS lymphoma typically presents as a solitary ring-enhancing lesion; Cryptococcus causes basilar meningitis/"soap-bubble" non-enhancing lesions.`,
+    secondOrderClue: `AIDS CD4 <100 + multiple ring-enhancing basal ganglia lesions = Toxoplasma gondii`,
+    phase1Pearl: `Acquired via ingesting tissue cysts in undercooked meat or oocysts in cat feces; reactivation occurs when CD4 T-cell immunity collapses.`,
+    phase2Hallmark: `Histopathology demonstrates crescent-shaped tachyzoites at the periphery of necrotic abscesses; IgG serology is usually positive.`,
+    phase3Secret: `Start empiric sulfadiazine + pyrimethamine (+ leucovorin); reserve brain biopsy only if lesions fail to shrink after 2 weeks (suspicious for CNS lymphoma).`
+  },
+  {
+    id: `NM11-Q2`, lo: 11, sector: `sector_4`, loTitle: `Sector IV • Toxoplasma & Naegleria`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Naegleria fowleri via Cribriform Plate`,
+    stem: `A 14-year-old boy goes diving in a warm stagnant freshwater lake in Florida in July. Five days later he develops severe frontal headache, fever, anosmia, stiff neck, and rapid coma. Wet mount of purulent CSF (glucose 8 mg/dL) demonstrates rapidly motile amebic trophozoites. What is his portal of CNS entry?`,
+    clue: `Warm freshwater forced up the nose invades the olfactory neuroepithelium directly.`,
+    choices: [`Olfactory nerve crossing the cribriform plate`, `Ingestion of cysts penetrating portal veins`, `Bite of a freshwater sandfly vector`],
+    correctIndex: 0,
+    explanation: `Correct: Naegleria fowleri (primary amebic meningoencephalitis) enters the nasal cavity during warm freshwater swimming, penetrates the olfactory mucosa, and migrates along olfactory nerve fibers through the cribriform plate directly into the brain. Distractor exclusion: It does not infect via GI ingestion or arthropod vectors.`,
+    secondOrderClue: `Warm freshwater swimming + rapid fatal purulent CSF + motile amoebas = Naegleria fowleri (cribriform plate)`,
+    phase1Pearl: `Unlike bacterial meningitis, Naegleria destroys brain tissue rapidly via cytolytic pore-forming proteins (naegleriapores) and trogocytosis ("brain-eating amoeba").`,
+    phase2Hallmark: `Purulent CSF mimics bacterial meningitis (↑PMNs, ↓↓glucose, ↑protein) with negative Gram stain and motile trophozoites on warm wet mount.`,
+    phase3Secret: `Treat immediately with amphotericin B (+ miltefosine/rifampin/azithromycin), though prognosis remains grim.`
+  },
+  {
+    id: `NM11-Q3`, lo: 11, sector: `sector_4`, loTitle: `Sector IV • Toxoplasma & Naegleria`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Sulfadiazine + Pyrimethamine (+ Leucovorin)`,
+    stem: `A 33-year-old man with AIDS (CD4 52/mm³) and positive anti-Toxoplasma IgG begins empiric treatment for multiple ring-enhancing cerebral lesions. Which definitive antimicrobial combination blocks sequential steps in protozoal folate synthesis, and what adjunct protects host bone marrow?`,
+    clue: `Inhibit dihydropteroate synthase and dihydrofolate reductase simultaneously while rescuing human marrow.`,
+    choices: [`Sulfadiazine + pyrimethamine + leucovorin`, `TMP-SMX + acyclovir + pyridoxine`, `Metronidazole + albendazole + prednisone`],
+    correctIndex: 0,
+    explanation: `Correct: Cerebral toxoplasmosis is treated with sulfadiazine (inhibits dihydropteroate synthase) plus pyrimethamine (inhibits protozoal dihydrofolate reductase), paired with leucovorin (folinic acid) to prevent host megaloblastic anemia and neutropenia. Distractor exclusion: TMP-SMX is used for prophylaxis when CD4 <100 (or alternative); metronidazole/albendazole treat anaerobes/helminths.`,
+    secondOrderClue: `Toxo Tx = Sulfadiazine + Pyrimethamine + Leucovorin; Toxo PPx (CD4 <100) = TMP-SMX`,
+    phase1Pearl: `Sequential folate blockade prevents protozoal thymidine synthesis required for tachyzoite DNA replication.`,
+    phase2Hallmark: `Congenital toxoplasmosis presents with classic triad: chorioretinitis, hydrocephalus, and diffuse intracranial calcifications.`,
+    phase3Secret: `Guild Master Secret: Give TMP-SMX prophylaxis whenever HIV CD4 <100/mm³ + positive anti-Toxoplasma IgG (also covers Pneumocystis jirovecii at CD4 <200).`
+  },
+
+  // LO 12: Neurocysticercosis (Taenia solium) & CJD Prion
+  {
+    id: `NM12-Q1`, lo: 12, sector: `sector_4`, loTitle: `Sector IV • Neurocysticercosis & CJD Prion`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Neurocysticercosis (Taenia solium Eggs)`,
+    stem: `A 29-year-old man who recently immigrated from rural Mexico presents after a new-onset generalized tonic-clonic seizure. Non-contrast head CT reveals multiple small calcified parenchymal cysts and a vesicular cyst containing a bright eccentric scolex ("Swiss-cheese" appearance). How was this CNS infection acquired?`,
+    clue: `Eating undercooked pork causes intestinal tapeworm; brain cysts come from ingesting the parasite's eggs.`,
+    choices: [`Fecal-oral ingestion of Taenia solium eggs`, `Eating undercooked pork containing larvae`, `Skin penetration by cercariae in fresh water`],
+    correctIndex: 0,
+    explanation: `Correct: Neurocysticercosis results from ingesting Taenia solium EGGS (via fecal-oral contamination from a tapeworm carrier); hatched oncospheres invade intestinal blood vessels and encyst in brain/muscle. Distractor exclusion: Eating cysticerci larvae in undercooked pork causes intestinal taeniasis (adult tapeworm), not brain cysticercosis; cercariae penetrate skin in schistosomiasis.`,
+    secondOrderClue: `Adult-onset seizures + "Swiss-cheese" calcified brain cysts = T. solium neurocysticercosis (ingested EGGS)`,
+    phase1Pearl: `Viable cysts evade host immunity; as cysticerci degenerate, antigen release provokes surrounding edema and epileptogenic inflammation.`,
+    phase2Hallmark: `CT/MRI shows multiple cystic lesions with a scolex ("hole-with-dot" sign) and punctate calcifications ("Swiss-cheese" brain).`,
+    phase3Secret: `Always administer corticosteroids (dexamethasone/prednisone) BEFORE/WITH albendazole to prevent seizures from dying cyst inflammation.`
+  },
+  {
+    id: `NM12-Q2`, lo: 12, sector: `sector_4`, loTitle: `Sector IV • Neurocysticercosis & CJD Prion`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `PrPSc α-Helix → β-Pleated Sheet Conversion`,
+    stem: `A 64-year-old man develops rapidly progressive dementia over 4 months accompanied by severe startle myoclonus and ataxia. Brain autopsy demonstrates intracytoplasmic vacuolation of cortical gray matter without inflammatory infiltrate. What molecular conformational event causes this fatal encephalopathy?`,
+    clue: `An infectious protein devoid of nucleic acids templates misfolding of a normal host membrane glycoprotein.`,
+    choices: [`PrPc α-helices misfold into protease-resistant β-sheets`, `Amyloid-β cleavage by γ-secretase forms plaques`, `Hyperphosphorylated tau forms neurofibrillary tangles`],
+    correctIndex: 0,
+    explanation: `Correct: Creutzfeldt-Jakob Disease (CJD) is a prion spongiform encephalopathy in which normal α-helical cellular prion protein (PrPc) misfolds into insoluble, protease-resistant β-pleated sheets (PrPSc), triggering self-propagating neuronal vacuolation without inflammation. Distractor exclusion: Amyloid-β plaques and tau tangles characterize chronic Alzheimer disease, not rapid myoclonic spongiform encephalopathy.`,
+    secondOrderClue: `Rapid dementia + startle myoclonus + spongiform cortex = CJD (PrPc α-helix → PrPSc β-sheet)`,
+    phase1Pearl: `Prions contain zero DNA or RNA and resist standard autoclaving, alcohol, and formalin fixation.`,
+    phase2Hallmark: `Spongiform degeneration (vacuolation of neuropil) in cerebral cortex and basal ganglia with complete absence of leukocytic inflammation.`,
+    phase3Secret: `Iatrogenic CJD can transmit via contaminated corneal transplants, dural grafts, pituitary growth hormone, or neurosurgical instruments.`
+  },
+  {
+    id: `NM12-Q3`, lo: 12, sector: `sector_4`, loTitle: `Sector IV • Neurocysticercosis & CJD Prion`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `CSF 14-3-3 Protein + EEG Sharp Waves`,
+    stem: `A 68-year-old woman presents with 8 weeks of progressive memory loss, visual hallucinations, cerebellar ataxia, and violent jerks to sudden loud noises. Brain MRI shows cortical ribboning on DWI. Which CSF biomarker and EEG finding strongly support the suspected diagnosis?`,
+    clue: `Look for the neuronal injury marker released into CSF and periodic synchronous electrical bursts.`,
+    choices: [`Elevated CSF 14-3-3 protein; periodic sharp waves`, `CSF oligoclonal IgG bands; temporal lobe PLEDs`, `CSF lymphocytic pleocytosis; burst-suppression`],
+    correctIndex: 0,
+    explanation: `Correct: Sporadic CJD is supported by markedly elevated CSF 14-3-3 protein (or positive RT-QuIC), periodic sharp biphasic/triphasic synchronous waves on EEG (1–2 Hz), and DWI hyperintensity ("cortical ribboning" / pulvinar sign). Distractor exclusion: Oligoclonal bands signify MS and temporal PLEDs signify HSV-1; lymphocytic pleocytosis argues against non-inflammatory prion disease.`,
+    secondOrderClue: `CJD workup = ↑CSF 14-3-3 protein + EEG periodic sharp triphasic waves + MRI cortical ribboning`,
+    phase1Pearl: `CSF cell count, protein, and glucose remain completely normal in CJD because PrPSc is a self-protein eliciting no adaptive immune response.`,
+    phase2Hallmark: `EEG shows 1–2 Hz periodic sharp wave complexes; MRI DWI shows hyperintense basal ganglia and cortical ribboning.`,
+    phase3Secret: `CJD is uniformly fatal (usually within 1 year); management is supportive palliative care with strict instrument decontamination protocols.`
+  },
+
+  // LO 13: Empiric Meningitis Antimicrobials & Dexamethasone
+  {
+    id: `NM13-Q1`, lo: 13, sector: `sector_5`, loTitle: `Sector V • Empiric Meningitis Regimens`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Ceftriaxone + Vancomycin + Ampicillin`,
+    stem: `A 63-year-old man with hypertension and diabetes presents with fever (39.4°C), nuchal rigidity, and confusion. Because he has papilledema on fundoscopy, a head CT is ordered prior to LP. Which empiric IV antimicrobial regimen should be started immediately before CT?`,
+    clue: `Adults >50 years need coverage for S. pneumoniae (including resistant strains), N. meningitidis, AND Listeria.`,
+    choices: [`Ceftriaxone + vancomycin + ampicillin`, `Ceftriaxone + vancomycin alone`, `Cefazolin + gentamicin + metronidazole`],
+    correctIndex: 0,
+    explanation: `Correct: Patients >50 years old (or immunocompromised) with suspected bacterial meningitis require IV ceftriaxone (N. meningitidis, S. pneumo, Gram-), vancomycin (drug-resistant S. pneumoniae), AND ampicillin (Listeria monocytogenes) administered immediately prior to CT/LP. Distractor exclusion: Omitting ampicillin misses Listeria in >50 yr; cefazolin (1st-gen) does not cross the BBB.`,
+    secondOrderClue: `Age >50 yr empiric meningitis = Ceftriaxone + Vancomycin + Ampicillin (NEVER delay for CT)`,
+    phase1Pearl: `1st- and 2nd-generation cephalosporins (except cefuroxime marginally) fail to achieve bactericidal CSF concentrations; 3rd-gen ceftriaxone/cefotaxime penetrate inflamed meninges well.`,
+    phase2Hallmark: `Vancomycin covers S. pneumoniae with altered penicillin-binding proteins (PBPs) that confer resistance to ceftriaxone.`,
+    phase3Secret: `Always draw 2 sets of blood cultures and start empiric IV antibiotics + dexamethasone BEFORE sending a patient with focal deficits/papilledema to head CT.`
+  },
+  {
+    id: `NM13-Q2`, lo: 13, sector: `sector_5`, loTitle: `Sector V • Empiric Meningitis Regimens`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `Dexamethasone Blunts Lysis Cytokine Storm`,
+    stem: `A 34-year-old man with suspected pneumococcal meningitis receives IV dexamethasone 15 minutes before his first dose of IV ceftriaxone and vancomycin. What pathophysiologic rationale explains why corticosteroids must precede or accompany the initial antibiotic dose?`,
+    clue: `Rapid bacterial cell-wall lysis dumps peptidoglycan and teichoic acid into the CSF, damaging CN VIII.`,
+    choices: [`Attenuates antibiotic-induced CSF cytokine inflammation`, `Enhances ceftriaxone penetration across intact BBB`, `Prevents vancomycin-induced red man syndrome`],
+    correctIndex: 0,
+    explanation: `Correct: Bactericidal β-lactam lysis of S. pneumoniae releases cell-wall fragments that surge CSF TNF-α and IL-1β, worsening cerebral edema and sensorineural deafness; early dexamethasone blunts this inflammatory cascade. Distractor exclusion: Steroids actually decrease meningeal permeability slightly; red man syndrome is prevented by slow vancomycin infusion.`,
+    secondOrderClue: `Early Dexamethasone (before/with 1st Abx) → ↓TNF-α/IL-1 lysis surge → ↓mortality & hearing loss in S. pneumo`,
+    phase1Pearl: `Once cell-wall lysis has already triggered subarachnoid inflammation, delayed steroids lose their neuroprotective mortality benefit.`,
+    phase2Hallmark: `Most strongly proven to reduce neurologic sequelae (sensorineural deafness) in S. pneumoniae and Hib meningitis.`,
+    phase3Secret: `Discontinue dexamethasone if CSF Gram stain/cultures subsequently identify a non-pneumococcal pathogen (e.g., viral or fungal) unless TB meningitis.`
+  },
+  {
+    id: `NM13-Q3`, lo: 13, sector: `sector_5`, loTitle: `Sector V • Empiric Meningitis Regimens`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Add IV Cefepime + Vancomycin + Ampicillin`,
+    stem: `A 48-year-old man develops fever, neck stiffness, and lethargy 5 days after a neurosurgical craniotomy and ventriculoperitoneal shunt placement. Which empiric IV regimen appropriately covers nosocomial Pseudomonas aeruginosa and MRSA in addition to standard meningitis flora?`,
+    clue: `Post-neurosurgical meningitis requires a 4th-generation anti-pseudomonal cephalosporin instead of ceftriaxone.`,
+    choices: [`Vancomycin + cefepime (or meropenem)`, `Ceftriaxone + oral doxycycline`, `Ampicillin + azithromycin`],
+    correctIndex: 0,
+    explanation: `Correct: Healthcare-associated/post-neurosurgical meningitis requires vancomycin (for MRSA and coagulase-negative staphylococci) plus an anti-pseudomonal β-lactam with good CNS penetration such as cefepime, ceftazidime, or meropenem. Distractor exclusion: Ceftriaxone does not cover Pseudomonas aeruginosa; ampicillin + azithromycin fails to cover MRSA and Pseudomonas.`,
+    secondOrderClue: `Post-neurosurgery / VP shunt meningitis = Vancomycin + Cefepime (or Meropenem) for MRSA + Pseudomonas`,
+    phase1Pearl: `Cefepime (4th-generation cephalosporin) resists chromosomal AmpC β-lactamases and penetrates inflamed CSF effectively against Pseudomonas.`,
+    phase2Hallmark: `Look for Gram-negative non-lactose-fermenting oxidase+ rods (Pseudomonas) or Gram+ grape-like clusters (Staph) in shunt CSF.`,
+    phase3Secret: `Neurosurgical hardware (VP shunt/EVD) infection almost always requires temporary device removal alongside IV antibiotics.`
+  },
+
+  // LO 14: CSF Diagnostic Profiling & Lumbar Puncture
+  {
+    id: `NM14-Q1`, lo: 14, sector: `sector_5`, loTitle: `Sector V • CSF Diagnostic Profiling & LP`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Fungal or Tuberculous Meningitis Profile`,
+    stem: `A 40-year-old man with chronic headache and diplopia undergoes lumbar puncture. CSF analysis returns: opening pressure 290 mmH₂O, WBC 165/mm³ (88% lymphocytes), protein 210 mg/dL, and glucose 22 mg/dL (serum glucose 98 mg/dL). Which category of CNS infection best matches this profile?`,
+    clue: `Lymphocytes + elevated protein + LOW glucose rules out uncomplicated viral meningitis.`,
+    choices: [`Fungal or tuberculous meningitis`, `Uncomplicated enteroviral meningitis`, `Acute meningococcal meningitis`],
+    correctIndex: 0,
+    explanation: `Correct: Elevated opening pressure, lymphocytic predominance, high protein, and LOW CSF glucose (<40 mg/dL or <40% serum) is the classic signature of fungal (e.g., Cryptococcus) or tuberculous meningitis. Distractor exclusion: Viral meningitis preserves NORMAL CSF glucose; acute bacterial meningitis shows marked PMN (>80% neutrophils) predominance.`,
+    secondOrderClue: `↑OP + ↑Lymphocytes + ↑↑Protein + ↓Glucose = Fungal or TB meningitis`,
+    phase1Pearl: `Fungi and mycobacteria consume CSF glucose and impair blood-CSF glucose transporter (GLUT1) function via chronic meningeal inflammation.`,
+    phase2Hallmark: `Always compare CSF glucose to simultaneous serum glucose (normal CSF:serum glucose ratio is ≥0.6).`,
+    phase3Secret: `Send CSF for India ink/CrAg, AFB smear/culture/MTB-PCR, and fungal cultures whenever lymphocytes accompany low glucose.`
+  },
+  {
+    id: `NM14-Q2`, lo: 14, sector: `sector_5`, loTitle: `Sector V • CSF Diagnostic Profiling & LP`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `L4–L5 Space; Conus Ends L1–L2`,
+    stem: `During a diagnostic lumbar puncture on a 30-year-old adult, a clinician palpates the superior iliac crests (Tuffier line) to guide needle entry into the subarachnoid space without injuring the spinal cord. At which interspace is the needle inserted, and where does the adult spinal cord terminate?`,
+    clue: `The dural sac and cauda equina extend to S2, safely below the conus medullaris.`,
+    choices: [`Insert L4–L5 (or L3–L4); cord ends at L1–L2`, `Insert L1–L2; cord ends at S1–S2`, `Insert T12–L1; cord ends at L4–L5`],
+    correctIndex: 0,
+    explanation: `Correct: In adults, the spinal cord (conus medullaris) terminates at the L1–L2 vertebral level while the subarachnoid space continues to S2; palpating the iliac crests aligns with the L4 spinous process for safe LP at L3–L4 or L4–L5. Distractor exclusion: In newborns the cord ends lower (~L3), so L4–L5 is used; inserting at T12–L2 risks direct conus injury.`,
+    secondOrderClue: `Iliac crest = L4 landmark → LP at L4–L5 (or L3–L4); Adult cord ends L1–L2; Dural sac ends S2`,
+    phase1Pearl: `Needle traverses: skin → subcutaneous tissue → supraspinous ligament → interspinous ligament → ligamentum flavum ("pop") → epidural space → dura mater → arachnoid → subarachnoid space.`,
+    phase2Hallmark: `CSF is produced by choroid plexus ependymal cells, exits 4th ventricle via foramina of Luschka (lateral) & Magendie (median), and resorbs via arachnoid granulations.`,
+    phase3Secret: `Post-LP headache results from CSF leak through the dural defect; prevent with atraumatic (pencil-point) needles and treat refractory cases with epidural blood patch.`
+  },
+  {
+    id: `NM14-Q3`, lo: 14, sector: `sector_5`, loTitle: `Sector V • CSF Diagnostic Profiling & LP`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `Empiric Abx FIRST, Then Head CT`,
+    stem: `A 61-year-old woman presents with fever, stiff neck, new-onset generalized seizure, and right-sided pronator drift. The physician plans to obtain a non-contrast head CT before performing a lumbar puncture. What is the mandatory next immediate step prior to transporting her to CT?`,
+    clue: `Suspected intracranial mass effect contraindicates immediate LP, but never delay antimicrobials.`,
+    choices: [`Draw blood cultures + give IV Abx & dexamethasone first`, `Perform immediate LP before CT to avoid delay`, `Wait for CT results before giving any antibiotics`],
+    correctIndex: 0,
+    explanation: `Correct: When indications for head CT before LP exist (focal neurologic deficit, papilledema, new seizure, immunocompromised state, altered consciousness), draw blood cultures and administer empiric IV antibiotics (+ dexamethasone) IMMEDIATELY BEFORE CT to prevent fatal delay. Distractor exclusion: Immediate LP with mass effect risks herniation; waiting for CT increases mortality.`,
+    secondOrderClue: `Focal deficit/seizure/papilledema = Blood cultures + IV Abx/Dex FIRST → Head CT → LP if safe`,
+    phase1Pearl: `Each hour of antibiotic delay in acute bacterial meningitis significantly increases cerebral ischemia, edema, and mortality.`,
+    phase2Hallmark: `Criteria requiring CT before LP ("HIP-C"): History of CNS disease, Immunocompromised, Papilledema, Altered Consciousness/Seizure/Focal deficit.`,
+    phase3Secret: `Even if antibiotics precede LP by 1–2 hours, CSF cell count, glucose, protein, and PCR remain diagnostic.`
+  },
+
+  // LO 15: Cranial Osteopathy, SBS Strains & OA-AA Release
+  {
+    id: `NM15-Q1`, lo: 15, sector: `sector_5`, loTitle: `Sector V • Cranial OMT, SBS & OA-AA`,
+    angle: `Presentation -> Diagnosis`, phaseFocus: `Phase 2: Histology / Structure`,
+    shortAnswer: `Right Torsion SBS Dysfunction`,
+    stem: `During an osteopathic cranial structural exam (vault hold) on a patient recovering from viral meningitis with persistent tension headaches, the clinician palpates the right greater wing of the sphenoid superior and the right occiput inferior around a single anteroposterior axis. How is this sphenobasilar synchondrosis (SBS) somatic dysfunction named?`,
+    clue: `Torsion rotates sphenoid and occiput in opposite directions around 1 AP axis; name it for the HIGH sphenoid wing.`,
+    choices: [`Right torsion SBS dysfunction`, `Right sidebending-rotation SBS`, `Superior vertical strain SBS`],
+    correctIndex: 0,
+    explanation: `Correct: In an SBS torsion, the sphenoid and occiput rotate in opposite directions around a single anteroposterior (AP) axis; it is named for the side of the SUPERIOR (higher) greater wing of the sphenoid (right greater wing high = Right Torsion). Distractor exclusion: Sidebending-rotation rotates both in the same direction around an AP axis plus 2 vertical axes (named for convexity); vertical strain involves 2 transverse axes.`,
+    secondOrderClue: `SBS Torsion = 1 AP axis, sphenoid & occiput opposite directions, named for HIGH greater wing`,
+    phase1Pearl: `Physiologic SBS flexion/extension occurs about two parallel transverse axes: sphenoid moves inferiorly/anteriorly while occiput moves inferiorly/posteriorly during flexion.`,
+    phase2Hallmark: `Vault hold finger placement: index fingers on greater wings of sphenoid, middle/ring fingers near temporal mastoid/petrous regions, little fingers on squamous occiput.`,
+    phase3Secret: `Torsion and sidebending-rotation are physiologic SBS strains; vertical strains, lateral strains, and compression are non-physiologic (trauma-associated).`
+  },
+  {
+    id: `NM15-Q2`, lo: 15, sector: `sector_5`, loTitle: `Sector V • Cranial OMT, SBS & OA-AA`,
+    angle: `Mechanism -> Pathophysiology`, phaseFocus: `Phase 1: Pathogenesis`,
+    shortAnswer: `OA-AA Suboccipital Release (Vagus / CRI)`,
+    stem: `A 26-year-old student recovering from resolved aseptic meningitis complains of persistent occipital headache, autonomic imbalance, and neck stiffness. Exam reveals occipitoatlantal (OA) somatic dysfunction and suboccipital myofascial hypertonicity. Which physiologic benefit does OA-AA suboccipital release primarily achieve?`,
+    clue: `Releasing the suboccipital triangle decompresses the jugular foramen (CN IX, X, XI) and restores cranial parasympathetic tone.`,
+    choices: [`Restores vagal parasympathetic tone & venous drainage`, `Increases sympathetic outflow from T1–T4`, `Compresses the fourth ventricle via direct HVLA`],
+    correctIndex: 0,
+    explanation: `Correct: Suboccipital (OA-AA) release relaxes the suboccipital myofascia, decompresses the jugular foramen (CN IX, X, XI and internal jugular vein), normalizes vagal (CN X) parasympathetic tone, and relieves cervicogenic headache. Distractor exclusion: Sympathetic outflow originates at T1–L2 (not OA); CV4 is a gentle cranial technique, never HVLA.`,
+    secondOrderClue: `OA somatic dysfunction → jugular foramen compression (CN X / IJV) → OA suboccipital release restores vagal & venous outflow`,
+    phase1Pearl: `Over 90% of cranial venous blood drains through the internal jugular veins exiting the jugular foramina between the temporal and occipital bones.`,
+    phase2Hallmark: `OA joint motion is primarily flexion/extension ("nodding yes", 50% of cervical flexion/extension) with sidebending and rotation to opposite sides (Type I).`,
+    phase3Secret: `Avoid cervical HVLA in patients with acute meningitis, vertebral artery dissection, Down syndrome atlantoaxial instability, or RA.`,
+  },
+  {
+    id: `NM15-Q3`, lo: 15, sector: `sector_5`, loTitle: `Sector V • Cranial OMT, SBS & OA-AA`,
+    angle: `Hallmarks -> Management`, phaseFocus: `Phase 3: Clinical & Management`,
+    shortAnswer: `CV4 Compression (Contraindicated in ↑ICP)`,
+    stem: `An osteopathic physician considers performing a CV4 (compression of the fourth ventricle) technique to augment the cranial rhythmic impulse (CRI) and promote lymphatic/CSF fluctuation in a patient with post-infectious fatigue. In which clinical scenario is CV4 strictly CONTRAINDICATED?`,
+    clue: `CV4 transiently increases intracranial fluid pressure wave amplitude and venous sinus drainage.`,
+    choices: [`Acute intracranial hemorrhage or elevated ICP`, `Post-viral tension headache without mass effect`, `Mild upper respiratory sinus congestion`],
+    correctIndex: 0,
+    explanation: `Correct: CV4 transiently elevates intracranial pressure while resisting cranial flexion, making it strictly contraindicated in acute intracranial hemorrhage, cerebral edema/↑ICP, skull fracture, or acute stroke. Distractor exclusion: Tension headaches and sinus congestion (without ↑ICP) are classic indications for CV4 and venous sinus drainage.`,
+    secondOrderClue: `CV4 (occiput lateral angles held in extension) → ↑CRI & CSF fluctuation; CONTRAINDICATED in ↑ICP / hemorrhage / skull fx`,
+    phase1Pearl: `During CV4, the clinician cradles the squamous occiput medial to the occipitomastoid sutures, gently encouraging extension and resisting flexion until a "still point" occurs.`,
+    phase2Hallmark: `Normal Cranial Rhythmic Impulse (CRI) is 10–14 cycles per minute; SBS compression reduces CRI amplitude.`,
+    phase3Secret: `Guild Master Secret: Always treat the thoracic inlet (myofascial release) BEFORE cranial venous sinus or CV4 drainage to clear the downstream lymphatic bottleneck.`
+  }
+];
+
+/* STATE */
+let state = {
+  hp: 100, xp: 0, streak: 0, bestStreak: 0,
+  correctCount: 0, wrongCount: 0,
+  deck: [], deckPos: 0, missedIds: [],
+  sectorFilter: 'all', angleFilter: 'all', phaseFilter: 'all', entityFilter: null,
+  timerEnabled: true, timeoutMode: 'review', timeLeft: GAME_CONFIG.timerSeconds,
+  isHintsVisible: false, masterSound: true, sfxEnabled: true, bgmEnabled: false, bgmVolume: 0.35,
+  currentChoices: [], currentCorrectLane: 0, resolved: false
+};
+
+let timerInterval = null;
+let metaFadeTimer = null;
+let toastTimer = null;
+let audioCtx = null;
+let bgmTimer = null;
+let customAudioEl = null;
+
+/* CANVAS 3D STATE */
+let canvas, ctx;
+let shipLane = 1;
+let shipVisualX = 0; // -1, 0, +1
+let shipTilt = 0;
+let laneTargets = [null, null, null];
+let particles = [];
+let gridOffset = 0;
+let animId = null;
+
+function initParticles() {
+  particles = [];
+  for (let i = 0; i < 150; i++) {
+    particles.push({
+      x: (Math.random() - 0.5) * 2.6,
+      y: Math.random() * 1.4 - 0.25,
+      z: Math.random(),
+      size: 1.5 + Math.random() * 2.5
+    });
+  }
+}
+
+function getCurrentQuestion() {
+  if (!state.deck.length) return ALL_QUESTIONS[0];
+  const idx = Math.min(state.deckPos, state.deck.length - 1);
+  return state.deck[idx];
+}
+
+function buildDeck(keepOrder) {
+  let pool = ALL_QUESTIONS.slice();
+  if (state.sectorFilter === 'missed') {
+    pool = pool.filter(q => state.missedIds.includes(q.id));
+    if (!pool.length) {
+      showToast(`No missed gates recorded yet — loading full deck.`);
+      state.sectorFilter = 'all';
+      const sf = document.getElementById('sector-filter');
+      if (sf) sf.value = 'all';
+      pool = ALL_QUESTIONS.slice();
+    }
+  } else if (state.sectorFilter !== 'all') {
+    pool = pool.filter(q => q.sector === state.sectorFilter);
+  }
+  if (state.angleFilter !== 'all') {
+    pool = pool.filter(q => q.angle === state.angleFilter);
+  }
+  if (state.phaseFilter !== 'all') {
+    pool = pool.filter(q => q.phaseFocus === state.phaseFilter);
+  }
+  if (state.entityFilter !== null) {
+    pool = pool.filter(q => q.lo === state.entityFilter);
+  }
+  if (!pool.length) pool = ALL_QUESTIONS.slice();
+  if (!keepOrder) {
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+  }
+  state.deck = pool;
+  state.deckPos = 0;
+}
+
+function renderSkillTree() {
+  const grid = document.getElementById('skill-tree-grid');
+  if (!grid) return;
+  grid.innerHTML = CODEX_DATA.map(c => {
+    const sel = state.entityFilter === c.lo ? 'is-selected' : '';
+    return `<button type="button" class="skill-node-btn ${sel}" onclick="selectEntityFromTree(${c.lo})">
+      <span class="skill-node-title">LO ${c.lo}: ${c.entity}</span>
+      <span class="skill-node-meta">${c.tag.split('•')[0].trim()}</span>
+    </button>`;
+  }).join('');
+}
+
+function renderQuestion() {
+  const q = getCurrentQuestion();
+  state.resolved = false;
+  const indexed = q.choices.map((txt, idx) => ({ txt, isCorrect: idx === q.correctIndex }));
+  for (let i = indexed.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indexed[i], indexed[j]] = [indexed[j], indexed[i]];
+  }
+  state.currentChoices = indexed.map(o => o.txt);
+  state.currentCorrectLane = indexed.findIndex(o => o.isCorrect);
+
+  const stemEl = document.getElementById('q-stem-text');
+  const clueEl = document.getElementById('q-clue-text');
+  const loBadge = document.getElementById('lo-badge');
+  const angBadge = document.getElementById('angle-badge');
+  const phBadge = document.getElementById('phase-badge');
+  const corBadge = document.getElementById('corridor-badge');
+  const theme = LO_VISUAL_THEMES[q.lo] || LO_VISUAL_THEMES[1];
+
+  if (stemEl) stemEl.textContent = q.stem;
+  if (clueEl) clueEl.textContent = q.clue;
+  if (loBadge) loBadge.textContent = q.loTitle;
+  if (angBadge) angBadge.textContent = q.angle.replace('->', '→');
+  if (phBadge) phBadge.textContent = q.phaseFocus.toUpperCase();
+  if (corBadge) corBadge.textContent = `CORRIDOR: ${theme.tag}`;
+
+  for (let i = 0; i < 3; i++) {
+    const tEl = document.getElementById(`lane-${i}-text`);
+    if (tEl) tEl.textContent = state.currentChoices[i];
+  }
+
+  const ribbon = document.getElementById('meta-ribbon');
+  if (ribbon) {
+    ribbon.classList.remove('is-faded');
+    clearTimeout(metaFadeTimer);
+    metaFadeTimer = setTimeout(() => {
+      ribbon.classList.add('is-faded');
+    }, GAME_CONFIG.metaFadeMs);
+  }
+
+  updateTelemetry();
+  resetGateTimer();
+  previewLaneTarget(1);
+}
+
+function updateTelemetry() {
+  const hpEl = document.getElementById('hp-text');
+  const xpEl = document.getElementById('xp-text');
+  const stEl = document.getElementById('streak-text');
+  const gtEl = document.getElementById('gate-text');
+  if (hpEl) hpEl.textContent = String(state.hp);
+  if (xpEl) xpEl.textContent = String(state.xp);
+  if (stEl) stEl.textContent = String(state.streak);
+  if (gtEl) gtEl.textContent = `${Math.min(state.deckPos + 1, state.deck.length)}/${state.deck.length}`;
+}
+
+function resetGateTimer() {
+  clearInterval(timerInterval);
+  state.timeLeft = GAME_CONFIG.timerSeconds;
+  syncTimerControlsUI();
+  if (!state.timerEnabled) return;
+  timerInterval = setInterval(() => {
+    if (state.resolved) return;
+    if (isModalOpen()) return;
+    state.timeLeft = Math.max(0, state.timeLeft - 1);
+    syncTimerControlsUI();
+    if (state.timeLeft === 0) {
+      clearInterval(timerInterval);
+      if (state.timeoutMode === 'review') {
+        resolveGate(-1, true);
+      } else {
+        showToast(`⏱ TIME EXPIRED — Select a lane to resolve!`);
+      }
+    }
+  }, 1000);
+}
+
+function syncTimerControlsUI() {
+  const chip = document.getElementById('timer-chip');
+  const text = document.getElementById('timer-text');
+  const menuBtn = document.getElementById('menu-timer-btn');
+  if (text) text.textContent = state.timerEnabled ? `${state.timeLeft}s` : `OFF`;
+  if (chip) {
+    chip.classList.toggle('is-off', !state.timerEnabled);
+    chip.classList.toggle('is-urgent', state.timerEnabled && state.timeLeft <= 10);
+  }
+  if (menuBtn) {
+    menuBtn.textContent = state.timerEnabled ? `⏱ 50s Timer: ON [T]` : `⏱ 50s Timer: OFF [T]`;
+    menuBtn.classList.toggle('is-active', state.timerEnabled);
+  }
+}
+
+function previewLaneTarget(laneIdx) {
+  shipLane = Math.max(0, Math.min(2, laneIdx));
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`lane-${i}-card`);
+    if (card) card.classList.toggle('is-targeted', i === shipLane);
+  }
+}
+
+function selectLaneAndResolve(laneIdx) {
+  if (state.resolved) return;
+  previewLaneTarget(laneIdx);
+  resolveGate(laneIdx, false);
+}
+
+function renderDossierBullets(ulId, lines) {
+  const ul = document.getElementById(ulId);
+  if (!ul) return;
+  const arr = Array.isArray(lines) ? lines : [String(lines || '')];
+  ul.innerHTML = arr.filter(Boolean).map(line => {
+    const clean = String(line).replace(/^[•\-\*]\s*/, '').trim();
+    return `<li>• ${escapeHtml(clean)}</li>`;
+  }).join('');
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function resolveGate(chosenLane, isTimeout) {
+  if (state.resolved) return;
+  state.resolved = true;
+  clearInterval(timerInterval);
+
+  const q = getCurrentQuestion();
+  const isCorrect = !isTimeout && chosenLane === state.currentCorrectLane;
+  const chosenText = isTimeout ? `No Lane Selected (Time Expired)` : (state.currentChoices[chosenLane] || `—`);
+  const correctText = state.currentChoices[state.currentCorrectLane];
+
+  let xpDelta = 0;
+  let hpDelta = 0;
+  if (isCorrect) {
+    state.streak += 1;
+    state.bestStreak = Math.max(state.bestStreak, state.streak);
+    state.correctCount += 1;
+    xpDelta = 100 + Math.min(state.streak * 15, 75);
+    state.xp += xpDelta;
+    hpDelta = 5;
+    state.hp = Math.min(100, state.hp + hpDelta);
+    if (state.streak > 0 && state.streak % 4 === 0) {
+      state.hp = Math.min(100, state.hp + 25);
+      showToast(`✚ STREAK BONUS +25 HP`);
+    }
+    state.missedIds = state.missedIds.filter(id => id !== q.id);
+    playSfx('correct');
+  } else {
+    state.streak = 0;
+    state.wrongCount += 1;
+    hpDelta = -15;
+    state.hp = Math.max(0, state.hp + hpDelta);
+    if (!state.missedIds.includes(q.id)) state.missedIds.push(q.id);
+    playSfx('wrong');
+  }
+  updateTelemetry();
+  persistAppState();
+
+  const verdictEl = document.getElementById('outcome-verdict');
+  const xpBadge = document.getElementById('outcome-xp-delta');
+  const hpBadge = document.getElementById('outcome-hp-delta');
+  if (verdictEl) {
+    verdictEl.classList.remove('is-wrong', 'is-timeout');
+    if (isTimeout) {
+      verdictEl.textContent = `⏱ TIME'S UP — ${q.shortAnswer}`;
+      verdictEl.classList.add('is-timeout');
+    } else if (isCorrect) {
+      verdictEl.textContent = `✔ CORRECT — ${q.shortAnswer}`;
+    } else {
+      verdictEl.textContent = `✖ INCORRECT — ${q.shortAnswer}`;
+      verdictEl.classList.add('is-wrong');
+    }
+  }
+  if (xpBadge) xpBadge.textContent = `${xpDelta >= 0 ? '+' : ''}${xpDelta} XP`;
+  if (hpBadge) hpBadge.textContent = `${hpDelta >= 0 ? '+' : ''}${hpDelta} HP`;
+
+  const refEl = document.getElementById('outcome-lo-ref');
+  const qTextEl = document.getElementById('outcome-question-text');
+  const yourBox = document.getElementById('your-choice-box');
+  const yourVal = document.getElementById('your-choice-val');
+  const corrVal = document.getElementById('correct-choice-val');
+  if (refEl) refEl.textContent = `${q.id} • ${q.loTitle} • ${q.angle.replace('->', '→')}`;
+  if (qTextEl) qTextEl.textContent = q.stem;
+  if (yourVal) yourVal.textContent = chosenText;
+  if (corrVal) corrVal.textContent = correctText;
+  if (yourBox) {
+    yourBox.classList.remove('is-correct', 'is-wrong');
+    yourBox.classList.add(isCorrect ? 'is-correct' : 'is-wrong');
+  }
+
+  const codexEntity = CODEX_DATA.find(c => c.lo === q.lo) || CODEX_DATA[0];
+  const parts = q.explanation.split('Distractor exclusion:');
+  const correctRationale = (parts[0] || q.explanation).replace(/^Correct:\s*/i, '').trim();
+  const distractorRationale = (parts[1] || `Other options do not match this clinical mechanism or CSF profile.`).trim();
+
+  renderDossierBullets('dossier-sec-1', [
+    `Concept Pin: ${q.shortAnswer} (${codexEntity.entity})`,
+    correctRationale
+  ]);
+  renderDossierBullets('dossier-sec-2', [
+    q.phase1Pearl,
+    `Pathogenesis Cascade: ${codexEntity.pathogenesis}`
+  ]);
+  renderDossierBullets('dossier-sec-3', [
+    q.phase2Hallmark,
+    `Codex CSF & Microscopy: ${codexEntity.hallmarks}`
+  ]);
+  renderDossierBullets('dossier-sec-4', [
+    q.phase3Secret,
+    `Therapeutic Standard: ${codexEntity.management}`
+  ]);
+  renderDossierBullets('dossier-sec-5', [
+    `Distractor Exclusion: ${distractorRationale}`,
+    `Clinical Trap Check: ${q.clue}`
+  ]);
+  renderDossierBullets('dossier-sec-6', [
+    `Board Logic Equation: ${q.secondOrderClue}`,
+    `OMT / Somatosensory Correlate: ${codexEntity.management.includes('OMT') ? codexEntity.management.slice(codexEntity.management.indexOf('OMT')) : 'Pair OA-AA suboccipital release and thoracic inlet drainage post-stabilization to support vagal tone and CSF/lymphatic return.'}`
+  ]);
+  renderDossierBullets('dossier-angle-1', [
+    q.phase1Pearl,
+    `Etiology: ${codexEntity.etiology}`
+  ]);
+  renderDossierBullets('dossier-angle-2', [
+    q.phase2Hallmark,
+    `Classic Presentation: ${codexEntity.clinical}`
+  ]);
+  renderDossierBullets('dossier-angle-3', [
+    q.phase3Secret,
+    `Board Clue: ${q.secondOrderClue}`
+  ]);
+
+  const scrollBody = document.getElementById('outcome-scroll-body');
+  if (scrollBody) scrollBody.scrollTop = 0;
+  const backdrop = document.getElementById('outcome-backdrop');
+  if (backdrop) backdrop.classList.add('is-open');
+}
+
+function scrollOutcomeBody(delta) {
+  const sb = document.getElementById('outcome-scroll-body');
+  if (sb) {
+    if (typeof sb.scrollBy === 'function') {
+      sb.scrollBy({ top: delta, behavior: 'smooth' });
+    } else {
+      sb.scrollTop += delta;
+    }
+  }
+}
+
+function continueAfterOutcome() {
+  const backdrop = document.getElementById('outcome-backdrop');
+  if (backdrop) backdrop.classList.remove('is-open');
+  if (state.hp <= 0) {
+    state.hp = 100;
+    showToast(`Vital integrity restored to 100 HP for next gate.`);
+  }
+  if (state.deckPos + 1 >= state.deck.length) {
+    openSummaryModal();
+  } else {
+    state.deckPos += 1;
+    renderQuestion();
+  }
+  persistAppState();
+}
+
+function openSummaryModal() {
+  clearInterval(timerInterval);
+  const total = state.correctCount + state.wrongCount;
+  const acc = total ? Math.round((state.correctCount / total) * 100) : 0;
+  const sumAcc = document.getElementById('sum-acc');
+  const sumXp = document.getElementById('sum-xp');
+  const sumStr = document.getElementById('sum-streak');
+  const sumMis = document.getElementById('sum-missed');
+  if (sumAcc) sumAcc.textContent = `${acc}%`;
+  if (sumXp) sumXp.textContent = String(state.xp);
+  if (sumStr) sumStr.textContent = String(state.bestStreak);
+  if (sumMis) sumMis.textContent = String(state.missedIds.length);
+  renderDossierBullets('summary-bullets', [
+    `Completed ${state.deck.length} diagnostic gates with ${state.correctCount} correct and ${state.wrongCount} incorrect.`,
+    `Missed Gates Queue holds ${state.missedIds.length} gate(s) ready for targeted remediation.`,
+    `Open the Master Loot Codex [C] anytime to compare CSF profiles, mechanisms, and cranial OMT secrets side by side.`
+  ]);
+  const sb = document.getElementById('summary-backdrop');
+  if (sb) sb.classList.add('is-open');
+}
+
+function closeSummary() {
+  const sb = document.getElementById('summary-backdrop');
+  if (sb) sb.classList.remove('is-open');
+}
+
+function reviewMissedFromSummary() {
+  closeSummary();
+  state.sectorFilter = 'missed';
+  const sf = document.getElementById('sector-filter');
+  if (sf) sf.value = 'missed';
+  buildDeck(true);
+  renderQuestion();
+  persistAppState();
+}
+
+function restartFromSummary() {
+  closeSummary();
+  state.sectorFilter = 'all';
+  const sf = document.getElementById('sector-filter');
+  if (sf) sf.value = 'all';
+  buildDeck(true);
+  renderQuestion();
+  persistAppState();
+}
+
+/* MENU & FILTER CONTROLS */
+function toggleMenuDrawer() {
+  const drawer = document.getElementById('top-menu-drawer');
+  const backdrop = document.getElementById('menu-backdrop');
+  const btn = document.getElementById('menu-toggle-btn');
+  if (!drawer || !backdrop) return;
+  const open = !drawer.classList.contains('is-open');
+  drawer.classList.toggle('is-open', open);
+  backdrop.classList.toggle('is-open', open);
+  if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+
+function syncHintsUI() {
+  const app = document.getElementById('xr-app');
+  const btn = document.getElementById('menu-hints-btn');
+  if (app) {
+    app.classList.toggle('hints-visible', state.isHintsVisible);
+    app.classList.toggle('hints-hidden', !state.isHintsVisible);
+  }
+  if (btn) {
+    btn.textContent = state.isHintsVisible ? `💡 Hints: ON [H]` : `💡 Hints: OFF [H]`;
+    btn.classList.toggle('is-active', state.isHintsVisible);
+  }
+}
+
+function toggleHintsBar() {
+  state.isHintsVisible = !state.isHintsVisible;
+  syncHintsUI();
+  playSfx('steer');
+  persistAppState();
+}
+
+function openCodexFromMenu() {
+  if (document.getElementById('top-menu-drawer')?.classList.contains('is-open')) toggleMenuDrawer();
+  openCodex();
+}
+
+function skipFromMenu() {
+  if (document.getElementById('top-menu-drawer')?.classList.contains('is-open')) toggleMenuDrawer();
+  skipCurrentQuestion();
+}
+
+function skipCurrentQuestion() {
+  if (state.resolved) return;
+  state.deckPos = (state.deckPos + 1) % state.deck.length;
+  renderQuestion();
+  playSfx('steer');
+  showToast(`⏭ Skipped to Gate ${state.deckPos + 1}/${state.deck.length}`);
+  persistAppState();
+}
+
+function toggleTimerFromMenu() {
+  state.timerEnabled = !state.timerEnabled;
+  if (state.timerEnabled) {
+    resetGateTimer();
+  } else {
+    clearInterval(timerInterval);
+    syncTimerControlsUI();
+  }
+  persistAppState();
+}
+
+function startTimedRunFromMenu() {
+  state.timerEnabled = true;
+  state.hp = 100;
+  state.xp = 0;
+  state.streak = 0;
+  state.correctCount = 0;
+  state.wrongCount = 0;
+  buildDeck(false);
+  renderQuestion();
+  toggleMenuDrawer();
+  showToast(`⚡ 50s Timed Run Started!`);
+  persistAppState();
+}
+
+function showSummaryFromMenu() {
+  toggleMenuDrawer();
+  openSummaryModal();
+}
+
+function setTimeoutMode(val) {
+  state.timeoutMode = val === 'hold' ? 'hold' : 'review';
+  persistAppState();
+}
+
+function setSectorFilter(val) {
+  state.sectorFilter = val;
+  state.entityFilter = null;
+  renderSkillTree();
+  buildDeck(true);
+  renderQuestion();
+  persistAppState();
+}
+
+function setAngleFilter(val) {
+  state.angleFilter = val;
+  buildDeck(true);
+  renderQuestion();
+  persistAppState();
+}
+
+function setPhaseFilter(val) {
+  state.phaseFilter = val;
+  document.querySelectorAll('.phase-pill').forEach(p => {
+    p.classList.toggle('is-active', p.dataset.phase === val);
+  });
+  buildDeck(true);
+  renderQuestion();
+  persistAppState();
+}
+
+function selectEntityFromTree(lo) {
+  state.entityFilter = state.entityFilter === lo ? null : lo;
+  renderSkillTree();
+  buildDeck(true);
+  renderQuestion();
+  toggleMenuDrawer();
+  persistAppState();
+}
+
+function clearEntityFilter() {
+  state.entityFilter = null;
+  state.sectorFilter = 'all';
+  state.angleFilter = 'all';
+  state.phaseFilter = 'all';
+  const sf = document.getElementById('sector-filter');
+  const af = document.getElementById('angle-filter');
+  if (sf) sf.value = 'all';
+  if (af) af.value = 'all';
+  document.querySelectorAll('.phase-pill').forEach(p => p.classList.toggle('is-active', p.dataset.phase === 'all'));
+  renderSkillTree();
+  buildDeck(true);
+  renderQuestion();
+  persistAppState();
+}
+
+function restartDeckOrdered() {
+  buildDeck(true);
+  renderQuestion();
+  toggleMenuDrawer();
+  showToast(`↺ Deck restarted in ordered sequence.`);
+  persistAppState();
+}
+
+function shuffleDeck() {
+  buildDeck(false);
+  renderQuestion();
+  toggleMenuDrawer();
+  showToast(`🔀 Deck shuffled (${state.deck.length} gates).`);
+  persistAppState();
+}
+
+function handleResetMastery(btn) {
+  if (btn.dataset.armed !== 'true') {
+    btn.dataset.armed = 'true';
+    btn.textContent = `⚠ Tap Again to Confirm Reset`;
+    setTimeout(() => {
+      btn.dataset.armed = 'false';
+      btn.textContent = `⚠ Reset Mastery`;
+    }, 3500);
+    return;
+  }
+  btn.dataset.armed = 'false';
+  btn.textContent = `⚠ Reset Mastery`;
+  state.hp = 100;
+  state.xp = 0;
+  state.streak = 0;
+  state.bestStreak = 0;
+  state.correctCount = 0;
+  state.wrongCount = 0;
+  state.missedIds = [];
+  clearEntityFilter();
+  showToast(`Mastery telemetry reset.`);
+  persistAppState();
+}
+
+/* CODEX MODAL */
+let activeCodexSector = 'all';
+function openCodex() {
+  renderCodexTable();
+  const cb = document.getElementById('codex-backdrop');
+  if (cb) cb.classList.add('is-open');
+}
+function closeCodex() {
+  const cb = document.getElementById('codex-backdrop');
+  if (cb) cb.classList.remove('is-open');
+}
+function setCodexSector(sec, btn) {
+  activeCodexSector = sec;
+  document.querySelectorAll('.codex-pill').forEach(p => p.classList.toggle('is-active', p === btn));
+  renderCodexTable();
+}
+function renderCodexTable() {
+  const tbody = document.getElementById('codex-tbody');
+  if (!tbody) return;
+  const q = (document.getElementById('codex-search')?.value || '').toLowerCase().trim();
+  const rows = CODEX_DATA.filter(c => {
+    if (activeCodexSector !== 'all' && c.sector !== activeCodexSector) return false;
+    if (!q) return true;
+    return `${c.entity} ${c.tag} ${c.etiology} ${c.pathogenesis} ${c.hallmarks} ${c.clinical} ${c.management}`.toLowerCase().includes(q);
+  });
+  tbody.innerHTML = rows.map(c => `<tr>
+    <td class="amboss-scan-target"><strong>LO ${c.lo}: ${escapeHtml(c.entity)}</strong><br><small>${escapeHtml(c.tag)}</small></td>
+    <td class="amboss-scan-target">${escapeHtml(c.etiology)}</td>
+    <td class="amboss-scan-target">${escapeHtml(c.pathogenesis)}</td>
+    <td class="amboss-scan-target">${escapeHtml(c.hallmarks)}</td>
+    <td class="amboss-scan-target">${escapeHtml(c.clinical)}</td>
+    <td class="amboss-scan-target">${escapeHtml(c.management)}</td>
+  </tr>`).join('');
+}
+
+/* PROCEDURAL WEB AUDIO ENGINE */
+function ensureAudioCtx() {
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) audioCtx = new AC();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playSfx(type) {
+  if (!state.masterSound || !state.sfxEnabled) return;
+  try {
+    ensureAudioCtx();
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    if (type === 'correct') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(523.25, now);
+      osc.frequency.exponentialRampToValueAtTime(1046.5, now + 0.18);
+      gain.gain.setValueAtTime(0.14, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+      osc.start(now); osc.stop(now + 0.29);
+    } else if (type === 'wrong') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(190, now);
+      osc.frequency.exponentialRampToValueAtTime(85, now + 0.25);
+      gain.gain.setValueAtTime(0.14, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+      osc.start(now); osc.stop(now + 0.29);
+    } else {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(420, now);
+      gain.gain.setValueAtTime(0.05, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+      osc.start(now); osc.stop(now + 0.08);
+    }
+  } catch (e) {}
+}
+
+function syncAudioUI() {
+  const m = document.getElementById('btn-master-sound');
+  const s = document.getElementById('btn-sfx');
+  const b = document.getElementById('btn-bgm');
+  if (m) { m.textContent = state.masterSound ? `🔊 Master Sound: ON` : `🔇 Master Sound: OFF`; m.classList.toggle('is-active', state.masterSound); }
+  if (s) { s.textContent = state.sfxEnabled ? `🎛 SFX: ON` : `🎛 SFX: OFF`; s.classList.toggle('is-active', state.sfxEnabled); }
+  if (b) { b.textContent = state.bgmEnabled ? `🎵 Zombies BGM: ON` : `🎵 Zombies BGM: OFF`; b.classList.toggle('is-active', state.bgmEnabled); }
+}
+
+function toggleMasterSound() {
+  state.masterSound = !state.masterSound;
+  if (!state.masterSound) stopBgmLoop();
+  else if (state.bgmEnabled) startBgmLoop();
+  syncAudioUI();
+  persistAppState();
+}
+
+function toggleSfx() {
+  state.sfxEnabled = !state.sfxEnabled;
+  syncAudioUI();
+  persistAppState();
+}
+
+function toggleZombiesBgm() {
+  state.bgmEnabled = !state.bgmEnabled;
+  if (state.bgmEnabled && state.masterSound) startBgmLoop();
+  else stopBgmLoop();
+  syncAudioUI();
+  persistAppState();
+}
+
+function stopAllAudio() {
+  state.masterSound = false;
+  state.bgmEnabled = false;
+  stopBgmLoop();
+  if (customAudioEl) customAudioEl.pause();
+  syncAudioUI();
+  persistAppState();
+}
+
+function updateBgmVolume(val) {
+  state.bgmVolume = Math.max(0, Math.min(1, Number(val) / 100));
+  const lbl = document.getElementById('bgm-vol-label');
+  if (lbl) lbl.textContent = `${val}%`;
+  if (customAudioEl) customAudioEl.volume = state.bgmVolume;
+}
+
+function startBgmLoop() {
+  stopBgmLoop();
+  if (customAudioEl) {
+    customAudioEl.volume = state.bgmVolume;
+    customAudioEl.play().catch(() => {});
+    return;
+  }
+  ensureAudioCtx();
+  const notes = [146.83, 174.61, 220.00, 164.81, 146.83, 130.81, 164.81, 196.00];
+  let step = 0;
+  bgmTimer = setInterval(() => {
+    if (!state.masterSound || !state.bgmEnabled || !audioCtx) return;
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(notes[step % notes.length], now);
+    g.gain.setValueAtTime(0.08 * state.bgmVolume, now);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(now); osc.stop(now + 0.44);
+    step++;
+  }, 460);
+}
+
+function stopBgmLoop() {
+  clearInterval(bgmTimer);
+  bgmTimer = null;
+  if (customAudioEl) customAudioEl.pause();
+}
+
+function loadCustomAudio(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  if (customAudioEl) customAudioEl.pause();
+  const url = URL.createObjectURL(file);
+  customAudioEl = new Audio(url);
+  customAudioEl.loop = true;
+  customAudioEl.volume = state.bgmVolume;
+  state.bgmEnabled = true;
+  state.masterSound = true;
+  startBgmLoop();
+  syncAudioUI();
+  showToast(`Loaded custom track: ${file.name}`);
+}
+
+/* 3D SYNTHWAVE CORRIDOR RENDERER & 1:1 PORTAL FUSION */
+function resizeCanvas() {
+  const shell = document.getElementById('viewport-shell');
+  if (!canvas || !shell) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.max(1, Math.floor(shell.clientWidth * dpr));
+  canvas.height = Math.max(1, Math.floor(shell.clientHeight * dpr));
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function updateCardRects() {
+  if (!canvas) return;
+  const cRect = canvas.getBoundingClientRect();
+  for (let i = 0; i < 3; i++) {
+    const el = document.getElementById(`lane-${i}-card`);
+    if (el) {
+      const r = el.getBoundingClientRect();
+      laneTargets[i] = {
+        x: r.left - cRect.left,
+        y: r.top - cRect.top,
+        w: r.width,
+        h: r.height,
+        cx: (r.left - cRect.left) + r.width / 2,
+        cy: (r.top - cRect.top) + r.height / 2
+      };
+    }
+  }
+}
+
+function drawCorridor() {
+  const shell = document.getElementById('viewport-shell');
+  if (!ctx || !shell) return;
+  const W = shell.clientWidth;
+  const H = shell.clientHeight;
+  const q = getCurrentQuestion();
+  const theme = LO_VISUAL_THEMES[q.lo] || LO_VISUAL_THEMES[1];
+  const horizonY = H * 0.24;
+  const vanishX = W * 0.5;
+
+  ctx.clearRect(0, 0, W, H);
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+  bgGrad.addColorStop(0, '#07070f');
+  bgGrad.addColorStop(0.3, '#0e0c1d');
+  bgGrad.addColorStop(1, '#090912');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // Wireframe synthwave grid floor
+  ctx.save();
+  ctx.strokeStyle = `rgba(${theme.gridRgb}, 0.24)`;
+  ctx.lineWidth = 1;
+  const numCols = 14;
+  for (let i = -numCols; i <= numCols; i++) {
+    ctx.beginPath();
+    ctx.moveTo(vanishX + i * 16, horizonY);
+    ctx.lineTo(vanishX + i * (W * 0.14), H);
+    ctx.stroke();
+  }
+  gridOffset = (gridOffset + 0.014) % 1;
+  for (let r = 0; r < 14; r++) {
+    const t = ((r + gridOffset) / 14);
+    const y = horizonY + Math.pow(t, 2.2) * (H - horizonY);
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(W, y);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // 150 crisp 3D square pixel-dust particles
+  ctx.fillStyle = theme.dust;
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    p.z -= 0.0045;
+    if (p.z <= 0.02) {
+      p.z = 1;
+      p.x = (Math.random() - 0.5) * 2.6;
+      p.y = Math.random() * 1.3 - 0.25;
+    }
+    const scale = 1 / p.z;
+    const sx = vanishX + p.x * scale * (W * 0.22);
+    const sy = horizonY + p.y * scale * (H * 0.28);
+    if (sx >= 0 && sx <= W && sy >= 0 && sy <= H) {
+      const sz = Math.max(1.2, p.size * (1.2 - p.z));
+      ctx.globalAlpha = Math.max(0.15, 1 - p.z);
+      ctx.fillRect(sx, sy, sz, sz);
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // 3 Teal perspective rails + 1:1 Portal Fusion to DOM cards
+  updateCardRects();
+  const portalColors = ['#ff2d78', '#00ffcc', '#ffe04a'];
+  for (let i = 0; i < 3; i++) {
+    const target = laneTargets[i];
+    const endX = target ? target.cx : W * (0.2 + i * 0.3);
+    const endY = target ? target.y : H * 0.45;
+    const startX = vanishX + (i - 1) * 26;
+
+    // Teal track rail
+    ctx.strokeStyle = 'rgba(0, 255, 204, 0.34)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(startX, horizonY);
+    ctx.lineTo(endX, H);
+    ctx.stroke();
+
+    // 1:1 Portal Frame Fused directly onto Card Bounds
+    if (target) {
+      ctx.save();
+      ctx.strokeStyle = portalColors[i];
+      ctx.lineWidth = shipLane === i ? 2.6 : 1.4;
+      ctx.shadowColor = portalColors[i];
+      ctx.shadowBlur = shipLane === i ? 16 : 6;
+      ctx.beginPath();
+      ctx.moveTo(vanishX + (i - 1) * 18, horizonY);
+      ctx.lineTo(target.x, target.y);
+      ctx.moveTo(vanishX + (i - 1) * 18 + 14, horizonY);
+      ctx.lineTo(target.x + target.w, target.y);
+      ctx.stroke();
+      ctx.strokeRect(target.x - 1, target.y - 1, target.w + 2, target.h + 2);
+      ctx.restore();
+    }
+  }
+
+  // Player solid geometric teal diamond craft with smooth banking tilt
+  const targetShipNorm = shipLane - 1;
+  const delta = targetShipNorm - shipVisualX;
+  shipVisualX += delta * 0.16;
+  shipTilt += ((delta * 0.55) - shipTilt) * 0.18;
+
+  const targetObj = laneTargets[shipLane];
+  const shipX = laneTargets[0] && laneTargets[2]
+    ? laneTargets[1].cx + shipVisualX * ((laneTargets[2].cx - laneTargets[0].cx) / 2)
+    : W * 0.5 + shipVisualX * (W * 0.25);
+  const shipY = targetObj ? Math.min(H - 24, targetObj.y + targetObj.h + 28) : H - 38;
+
+  ctx.save();
+  ctx.translate(shipX, shipY);
+  ctx.rotate(shipTilt);
+  ctx.shadowColor = '#00ffcc';
+  ctx.shadowBlur = 16;
+  ctx.fillStyle = '#00ffcc';
+  ctx.beginPath();
+  ctx.moveTo(0, -18);
+  ctx.lineTo(20, 4);
+  ctx.lineTo(0, 14);
+  ctx.lineTo(-20, 4);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#0a0a12';
+  ctx.beginPath();
+  ctx.moveTo(0, -8);
+  ctx.lineTo(8, 3);
+  ctx.lineTo(0, 7);
+  ctx.lineTo(-8, 3);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  animId = requestAnimationFrame(drawCorridor);
+}
+
+function handleCanvasSurf(e) {
+  if (!canvas || isModalOpen()) return;
+  const rect = canvas.getBoundingClientRect();
+  const relX = e.clientX - rect.left;
+  const third = rect.width / 3;
+  const idx = relX < third ? 0 : (relX < third * 2 ? 1 : 2);
+  previewLaneTarget(idx);
+}
+
+/* HELPERS & KEYBOARD SHORTCUTS */
+function isModalOpen() {
+  return Boolean(
+    document.getElementById('outcome-backdrop')?.classList.contains('is-open') ||
+    document.getElementById('codex-backdrop')?.classList.contains('is-open') ||
+    document.getElementById('summary-backdrop')?.classList.contains('is-open')
+  );
+}
+
+function showToast(msg) {
+  const el = document.getElementById('inline-toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('is-visible');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('is-visible'), 2400);
+}
+
+document.addEventListener('keydown', (e) => {
+  const key = e.key;
+  if (document.getElementById('codex-backdrop')?.classList.contains('is-open')) {
+    if (key === 'Escape') closeCodex();
+    return;
+  }
+  if (document.getElementById('outcome-backdrop')?.classList.contains('is-open')) {
+    if (key === ' ' || key === 'Enter') { e.preventDefault(); continueAfterOutcome(); }
+    if (key === 'ArrowUp') { e.preventDefault(); scrollOutcomeBody(-140); }
+    if (key === 'ArrowDown') { e.preventDefault(); scrollOutcomeBody(140); }
+    return;
+  }
+  if (key === '1' || key.toLowerCase() === 'a' || key === 'ArrowLeft') { e.preventDefault(); selectLaneAndResolve(0); }
+  else if (key === '2' || key.toLowerCase() === 'w' || key === 'ArrowUp') { e.preventDefault(); selectLaneAndResolve(1); }
+  else if (key === '3' || key.toLowerCase() === 'd' || key === 'ArrowRight') { e.preventDefault(); selectLaneAndResolve(2); }
+  else if (key.toLowerCase() === 'h') { e.preventDefault(); toggleHintsBar(); }
+  else if (key.toLowerCase() === 'm') { e.preventDefault(); toggleMenuDrawer(); }
+  else if (key.toLowerCase() === 'c') { e.preventDefault(); openCodex(); }
+  else if (key.toLowerCase() === 's') { e.preventDefault(); skipCurrentQuestion(); }
+  else if (key.toLowerCase() === 't') { e.preventDefault(); toggleTimerFromMenu(); }
+});
+
+/* PERSISTENCE VIA NOTEBOOK APP SHIM API */
+async function persistAppState() {
+  if (!window.notebookAppApi) return;
+  try {
+    await window.notebookAppApi.setAppState({
+      hp: state.hp,
+      xp: state.xp,
+      streak: state.streak,
+      bestStreak: state.bestStreak,
+      correctCount: state.correctCount,
+      wrongCount: state.wrongCount,
+      deckPos: state.deckPos,
+      missedIds: state.missedIds,
+      sectorFilter: state.sectorFilter,
+      angleFilter: state.angleFilter,
+      phaseFilter: state.phaseFilter,
+      entityFilter: state.entityFilter,
+      timerEnabled: state.timerEnabled,
+      timeoutMode: state.timeoutMode,
+      isHintsVisible: state.isHintsVisible,
+      masterSound: state.masterSound,
+      sfxEnabled: state.sfxEnabled
+    });
+  } catch (err) {}
+}
+
+async function restoreAppState() {
+  if (!window.notebookAppApi) return;
+  try {
+    const saved = await window.notebookAppApi.getAppState();
+    if (!saved) return;
+    Object.assign(state, {
+      hp: typeof saved.hp === 'number' ? saved.hp : 100,
+      xp: typeof saved.xp === 'number' ? saved.xp : 0,
+      streak: typeof saved.streak === 'number' ? saved.streak : 0,
+      bestStreak: typeof saved.bestStreak === 'number' ? saved.bestStreak : 0,
+      correctCount: typeof saved.correctCount === 'number' ? saved.correctCount : 0,
+      wrongCount: typeof saved.wrongCount === 'number' ? saved.wrongCount : 0,
+      missedIds: Array.isArray(saved.missedIds) ? saved.missedIds : [],
+      sectorFilter: saved.sectorFilter || 'all',
+      angleFilter: saved.angleFilter || 'all',
+      phaseFilter: saved.phaseFilter || 'all',
+      entityFilter: typeof saved.entityFilter === 'number' ? saved.entityFilter : null,
+      timerEnabled: typeof saved.timerEnabled === 'boolean' ? saved.timerEnabled : true,
+      timeoutMode: saved.timeoutMode || 'review',
+      isHintsVisible: Boolean(saved.isHintsVisible),
+      masterSound: typeof saved.masterSound === 'boolean' ? saved.masterSound : true,
+      sfxEnabled: typeof saved.sfxEnabled === 'boolean' ? saved.sfxEnabled : true
+    });
+    buildDeck(true);
+    if (typeof saved.deckPos === 'number' && saved.deckPos < state.deck.length) {
+      state.deckPos = saved.deckPos;
+    }
+    const sf = document.getElementById('sector-filter');
+    const af = document.getElementById('angle-filter');
+    const tm = document.getElementById('timeout-mode-select');
+    if (sf) sf.value = state.sectorFilter;
+    if (af) af.value = state.angleFilter;
+    if (tm) tm.value = state.timeoutMode;
+    document.querySelectorAll('.phase-pill').forEach(p => {
+      p.classList.toggle('is-active', p.dataset.phase === state.phaseFilter);
+    });
+  } catch (err) {}
+}
+
+async function bootApp() {
+  canvas = document.getElementById('xr-canvas');
+  ctx = canvas ? canvas.getContext('2d') : null;
+  initParticles();
+  buildDeck(true);
+  await restoreAppState();
+  syncHintsUI();
+  syncAudioUI();
+  syncTimerControlsUI();
+  renderSkillTree();
+  renderQuestion();
+
+  const shell = document.getElementById('viewport-shell');
+  if (shell) {
+    shell.addEventListener('mousemove', handleCanvasSurf);
+    shell.addEventListener('pointermove', handleCanvasSurf);
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  if (animId) cancelAnimationFrame(animId);
+  animId = requestAnimationFrame(drawCorridor);
+
+  if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === 'function') {
+    window.notebookAppApi.notifyAppReady();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', bootApp);
+</script>
+</body>
+</html>
